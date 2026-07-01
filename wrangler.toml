@@ -1,0 +1,13 @@
+name = "backlink"
+main = "src/index.ts"
+compatibility_date = "2026-06-30"
+
+[vars]
+CURATOR_MODEL = "claude-haiku-4-5"
+
+[[kv_namespaces]]
+binding = "STATION_STATE"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Secrets (set via: wrangler secret put ANTHROPIC_API_KEY)
+# ANTHROPIC_API_KEY is required for LLM curation features
