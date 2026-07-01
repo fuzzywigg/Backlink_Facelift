@@ -1,18 +1,19 @@
 {
   "name": "backlink",
   "version": "0.1.0",
-  "private": true,
+  "description": "LLM-curated internet radio — editorial AI over iptv-org catalog",
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "type-check": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.53.0"
+    "hono": "^4.12.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260630.0",
-    "typescript": "^5.5.0",
-    "wrangler": "^3.100.0"
+    "@cloudflare/workers-types": "^4.20260620.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
   }
 }

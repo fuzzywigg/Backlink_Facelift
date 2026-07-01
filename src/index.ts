@@ -1,146 +1,181 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { parseM3U, Station } from './parser';
+import { Env } from './types';
 
-export interface Env {
-  STATION_STATE: KVNamespace;
-  ANTHROPIC_API_KEY: string;
-  CURATOR_MODEL: string;
+const GENRE_MAP: Record<string, string> = {
+  'late night': 'ambient',
+  chill: 'ambient',
+  ambient: 'ambient',
+  relaxing: 'ambient',
+  focus: 'ambient',
+  classical: 'classical',
+  classic: 'classical',
+  jazz: 'jazz',
+  blues: 'jazz',
+  pop: 'pop',
+  rock: 'rock',
+  metal: 'rock',
+  indie: 'rock',
+  music: 'music',
+  news: 'news',
+  sports: 'sports',
+  entertainment: 'entertainment',
+  dance: 'pop',
+  electronic: 'ambient',
+  lofi: 'ambient',
+  'lo-fi': 'ambient',
+};
+
+const VALID_GENRES = ['music', 'ambient', 'jazz', 'classical', 'pop', 'rock', 'news', 'sports', 'entertainment'];
+const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories';
+
+function resolveGenre(input?: string): string {
+  if (!input) return 'music';
+  const lower = input.toLowerCase().trim();
+  return GENRE_MAP[lower] ?? (VALID_GENRES.includes(lower) ? lower : 'music');
 }
 
-const IPTV_CATALOG_URL = "https://iptv-org.github.io/iptv/index.m3u";
-const KV_CATALOG_KEY = "catalog:cached";
-const KV_CATALOG_TTL = 3600; // 1 hour
-const KV_CURRENT_STATION_KEY = "station:current";
-
-interface Station {
-  name: string;
-  url: string;
-  genre: string;
-  country: string;
-  logo?: string;
-}
-
-async function fetchCatalog(env: Env): Promise<Station[]> {
-  const cached = await env.STATION_STATE.get(KV_CATALOG_KEY);
+async function fetchStations(genre: string, kv: KVNamespace): Promise<Station[]> {
+  const cacheKey = `stations:${genre}`;
+  const cached = await kv.get(cacheKey);
   if (cached) return JSON.parse(cached) as Station[];
 
-  const res = await fetch(IPTV_CATALOG_URL);
-  const text = await res.text();
-  const stations = parseM3U(text);
+  const url = `${IPTV_BASE}/${genre}.m3u`;
+  let res = await fetch(url);
 
-  await env.STATION_STATE.put(KV_CATALOG_KEY, JSON.stringify(stations), {
-    expirationTtl: KV_CATALOG_TTL,
-  });
-  return stations;
-}
-
-function parseM3U(m3u: string): Station[] {
-  const lines = m3u.split("\n");
-  const stations: Station[] = [];
-  let current: Partial<Station> = {};
-
-  for (const line of lines) {
-    if (line.startsWith("#EXTINF:")) {
-      const nameMatch = line.match(/,(.+)$/);
-      const groupMatch = line.match(/group-title="([^"]+)"/);
-      const countryMatch = line.match(/tvg-country="([^"]+)"/);
-      const logoMatch = line.match(/tvg-logo="([^"]+)"/);
-      current = {
-        name: nameMatch?.[1]?.trim() ?? "Unknown",
-        genre: groupMatch?.[1]?.trim() ?? "General",
-        country: countryMatch?.[1]?.trim() ?? "",
-        logo: logoMatch?.[1]?.trim(),
-      };
-    } else if (line.startsWith("http") && current.name) {
-      stations.push({ ...(current as Station), url: line.trim() });
-      current = {};
-    }
+  if (!res.ok) {
+    // Fallback to music.m3u
+    res = await fetch(`${IPTV_BASE}/music.m3u`);
+    if (!res.ok) throw new Error('Stream catalog unavailable');
   }
+
+  const raw = await res.text();
+  const stations = parseM3U(raw);
+
+  await kv.put(cacheKey, JSON.stringify(stations), { expirationTtl: 3600 });
   return stations;
 }
 
-async function curateStation(
+async function callHaiku(
+  apiKey: string,
   stations: Station[],
-  mood: string,
-  env: Env
-): Promise<Station> {
-  // LLM curation stub — calls Claude to pick best station for mood
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-  const sample = stations.slice(0, 50).map((s) => `${s.name} [${s.genre}]`);
+  genre: string,
+  mood?: string,
+): Promise<Array<{ name: string; url: string; logo?: string; editorial: string; genre: string }>> {
+  const query = [mood, genre].filter(Boolean).join(' / ');
+  const stationList = stations
+    .slice(0, 50)
+    .map((s, i) => `${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? 'en'}] — ${s.url}`)
+    .join('\n');
 
-  const msg = await client.messages.create({
-    model: env.CURATOR_MODEL,
-    max_tokens: 256,
-    messages: [
-      {
-        role: "user",
-        content: `You are a music curator. Given this mood/context: "${mood}", pick the BEST radio station from this list. Reply with ONLY the station name, nothing else.\n\nStations:\n${sample.join("\n")}`,
-      },
-    ],
+  const prompt = `You are Backlink, an AI radio curator. Given this list of radio stations and the user's request, pick the top 3 stations with a short editorial blurb (1-2 sentences max). Be specific about what makes each station right for the mood. Return JSON only: [{"name": "...", "url": "...", "logo": "...", "editorial": "...", "genre": "..."}]\n\nUser request: ${query}\n\nAvailable stations:\n${stationList}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5',
+      max_tokens: 512,
+      temperature: 0.7,
+      messages: [{ role: 'user', content: prompt }],
+    }),
   });
 
-  const chosen = (msg.content[0] as { text: string }).text.trim();
-  return stations.find((s) => s.name === chosen) ?? stations[0];
+  if (!resp.ok) throw new Error(`Anthropic API error: ${resp.status}`);
+
+  const data = (await resp.json()) as { content: Array<{ text: string }> };
+  const text = data.content[0]?.text ?? '';
+
+  // Extract JSON array from the response
+  const jsonMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+  if (!jsonMatch) throw new Error('Invalid JSON from Haiku');
+
+  return JSON.parse(jsonMatch[0]);
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    const { method, pathname } = { method: request.method, pathname: url.pathname };
+const app = new Hono<{ Bindings: Env }>();
 
-    // GET / — now_playing
-    if (method === "GET" && pathname === "/") {
-      const stations = await fetchCatalog(env);
-      const raw = await env.STATION_STATE.get(KV_CURRENT_STATION_KEY);
-      const current: Station = raw ? JSON.parse(raw) : stations[0];
-      return Response.json({ now_playing: current });
-    }
+app.use('*', cors());
 
-    // GET /stations?genre=jazz
-    if (method === "GET" && pathname === "/stations") {
-      const genre = url.searchParams.get("genre");
-      let stations = await fetchCatalog(env);
-      if (genre) {
-        stations = stations.filter(
-          (s) => s.genre.toLowerCase().includes(genre.toLowerCase())
-        );
-      }
-      return Response.json({ stations, count: stations.length });
-    }
+app.get('/', (c) => {
+  return c.json({
+    name: 'Backlink',
+    description: 'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    version: c.env.VERSION ?? '0.1.0',
+    endpoints: {
+      '/curate': 'GET ?genre=&mood= — AI-curated station picks',
+      '/stations': 'GET ?genre= — Raw station list',
+      '/genres': 'GET — Available genre categories',
+      '/health': 'GET — Health check',
+    },
+    powered_by: 'Backlink/Geryon 🦀',
+  });
+});
 
-    // GET /mcp — MCP tool manifest
-    if (method === "GET" && pathname === "/mcp") {
-      const { MCP_MANIFEST } = await import("./mcp");
-      return Response.json(MCP_MANIFEST);
-    }
+app.get('/health', (c) => {
+  return c.json({ ok: true, version: c.env.VERSION ?? '0.1.0' });
+});
 
-    // POST /mcp/station_select
-    if (method === "POST" && pathname === "/mcp/station_select") {
-      const body = await request.json<{ station_name: string }>();
-      const stations = await fetchCatalog(env);
-      const station = stations.find((s) =>
-        s.name.toLowerCase().includes(body.station_name.toLowerCase())
-      );
-      if (!station) {
-        return Response.json({ error: "Station not found" }, { status: 404 });
-      }
-      await env.STATION_STATE.put(KV_CURRENT_STATION_KEY, JSON.stringify(station));
-      return Response.json({ selected: station });
-    }
+app.get('/genres', (c) => {
+  return c.json({
+    genres: VALID_GENRES,
+    aliases: GENRE_MAP,
+  });
+});
 
-    // POST /mcp/curator
-    if (method === "POST" && pathname === "/mcp/curator") {
-      const body = await request.json<{ mood: string; genre?: string }>();
-      let stations = await fetchCatalog(env);
-      if (body.genre) {
-        stations = stations.filter((s) =>
-          s.genre.toLowerCase().includes(body.genre!.toLowerCase())
-        );
-      }
-      const station = await curateStation(stations, body.mood, env);
-      await env.STATION_STATE.put(KV_CURRENT_STATION_KEY, JSON.stringify(station));
-      return Response.json({ curated: station });
-    }
+app.get('/stations', async (c) => {
+  const genreParam = c.req.query('genre');
+  const genre = resolveGenre(genreParam);
 
-    return Response.json({ error: "Not found" }, { status: 404 });
-  },
-};
+  let stations: Station[];
+  try {
+    stations = await fetchStations(genre, c.env.CATALOG_CACHE);
+  } catch {
+    return c.json({ error: 'Stream catalog unavailable', retry_after: 60 }, 503);
+  }
+
+  return c.json({ genre, count: stations.length, stations });
+});
+
+app.get('/curate', async (c) => {
+  const genreParam = c.req.query('genre');
+  const mood = c.req.query('mood');
+  const genre = resolveGenre(genreParam ?? mood);
+
+  let stations: Station[];
+  try {
+    stations = await fetchStations(genre, c.env.CATALOG_CACHE);
+  } catch {
+    return c.json({ error: 'Stream catalog unavailable', retry_after: 60 }, 503);
+  }
+
+  const query = [mood, genreParam].filter(Boolean).join(' ') || genre;
+
+  let curated;
+  try {
+    curated = await callHaiku(c.env.ANTHROPIC_API_KEY, stations, genre, mood);
+  } catch {
+    // Graceful degradation: return top 5 without editorial
+    curated = stations.slice(0, 5).map((s) => ({
+      name: s.name,
+      url: s.url,
+      logo: s.logo,
+      editorial: null,
+      genre,
+    }));
+  }
+
+  return c.json({
+    query,
+    curated_by: 'Backlink/Geryon',
+    timestamp: new Date().toISOString(),
+    stations: curated,
+  });
+});
+
+export default app;
