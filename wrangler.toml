@@ -9,5 +9,5 @@ id = "REPLACE_WITH_KV_ID"
 [vars]
 VERSION = "0.1.0"
 
-# Secrets (set via CLI, never commit):
-# wrangler secret put ANTHROPIC_API_KEY
+[ai]
+binding = "AI"
