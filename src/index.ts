@@ -57,8 +57,8 @@ async function fetchStations(genre: string, kv: KVNamespace): Promise<Station[]>
   return stations;
 }
 
-async function callHaiku(
-  apiKey: string,
+async function curateWithAI(
+  ai: Ai,
   stations: Station[],
   genre: string,
   mood?: string,
@@ -69,31 +69,17 @@ async function callHaiku(
     .map((s, i) => `${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? 'en'}] — ${s.url}`)
     .join('\n');
 
-  const prompt = `You are Backlink, an AI radio curator. Given this list of radio stations and the user's request, pick the top 3 stations with a short editorial blurb (1-2 sentences max). Be specific about what makes each station right for the mood. Return JSON only: [{"name": "...", "url": "...", "logo": "...", "editorial": "...", "genre": "..."}]\n\nUser request: ${query}\n\nAvailable stations:\n${stationList}`;
+  const prompt = `You are Backlink, an AI radio curator. Given this list of radio stations and the user's request, pick the top 3 stations with a short editorial blurb (1-2 sentences max). Be specific about what makes each station right for the mood. Return JSON only — no explanation, no markdown: [{"name": "...", "url": "...", "logo": "...", "editorial": "...", "genre": "..."}]\n\nUser request: ${query}\n\nAvailable stations:\n${stationList}`;
 
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5',
-      max_tokens: 512,
-      temperature: 0.7,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
+  const result = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 512,
+  }) as { response: string };
 
-  if (!resp.ok) throw new Error(`Anthropic API error: ${resp.status}`);
+  const text = result.response ?? '';
 
-  const data = (await resp.json()) as { content: Array<{ text: string }> };
-  const text = data.content[0]?.text ?? '';
-
-  // Extract JSON array from the response
   const jsonMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  if (!jsonMatch) throw new Error('Invalid JSON from Haiku');
+  if (!jsonMatch) throw new Error('Invalid JSON from CF AI');
 
   return JSON.parse(jsonMatch[0]);
 }
@@ -158,7 +144,7 @@ app.get('/curate', async (c) => {
 
   let curated;
   try {
-    curated = await callHaiku(c.env.ANTHROPIC_API_KEY, stations, genre, mood);
+    curated = await curateWithAI(c.env.AI, stations, genre, mood);
   } catch {
     // Graceful degradation: return top 5 without editorial
     curated = stations.slice(0, 5).map((s) => ({
