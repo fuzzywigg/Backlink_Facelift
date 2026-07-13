@@ -6,6 +6,10 @@ compatibility_date = "2025-01-01"
 binding = "CATALOG_CACHE"
 id = "edb6ca4df12f4f45b40508b3dda3c432"
 
+[[routes]]
+pattern = "backlink.fuzzywigg.com"
+custom_domain = true
+
 [vars]
 VERSION = "0.1.0"
 
