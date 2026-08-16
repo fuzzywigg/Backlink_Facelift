@@ -140,5 +140,5 @@ This spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink 
 - Base URL: `https://backlink.fuzzywigg.com`
 - No auth required for read endpoints
 - KV cache means `/stations` calls are fast after first hit per genre (1h TTL)
-- `/curate` always calls Haiku fresh — no LLM response caching
-- On Haiku failure, graceful degradation returns top 5 raw stations with `editorial: null`
+- `/curate` always calls Gemini fresh — no LLM response caching
+- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`
