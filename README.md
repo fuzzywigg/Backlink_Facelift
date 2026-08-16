@@ -1,8 +1,10 @@
 # Backlink 📻
 
-> AI-curated internet radio. The editorial layer is the product.
+> JSON API over iptv-org category M3Us. Live worker: https://backlink.fuzzywigg.com
+>
+> Catalog is IPTV *video* channels, not internet radio. `jazz`/`ambient`/`classical`/`pop`/`rock` files 404 and fall back to `music.m3u`. Live `/curate` often returns `editorial: null` when Gemini degrades.
 
-Backlink wraps the [iptv-org](https://github.com/iptv-org/iptv) catalog (8,000+ free, legal streams) with Claude Haiku curation. Tell it a mood or genre — it picks the stations and explains why.
+Backlink wraps [iptv-org](https://github.com/iptv-org/iptv) category playlists with Gemini 2.0 Flash. Real matching categories today: `music`, `news`, `sports`, `entertainment`.
 
 ## API
 
@@ -51,7 +53,7 @@ See [DEPLOY.md](./DEPLOY.md).
 - **Cloudflare Workers** — zero infra, global edge
 - **Hono** — lightweight routing
 - **iptv-org** — 8,000+ free stream catalog
-- **Claude Haiku** — editorial curation
+- **Gemini 2.0 Flash** — editorial curation
 - **CF KV** — M3U parse cache (1h TTL)
 
 ## Available Genres
