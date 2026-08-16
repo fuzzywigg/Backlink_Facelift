@@ -18,7 +18,7 @@ Domain target: backlink.fuzzywigg.com
 - Bump dependency versions
 
 ## Escalate to Human
-- Changes to ANTHROPIC_API_KEY handling or any secret management
+- Changes to GEMINI_API_KEY handling or any secret management
 - Production deploy (first deploy must be HITL)
 - Adding new external data sources beyond iptv-org
 - Changes to CORS or authentication logic
