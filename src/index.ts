@@ -145,6 +145,10 @@ app.get('/curate', async (c) => {
   const mood = c.req.query('mood');
   const genre = resolveGenre(genreParam ?? mood);
 
+  if (!c.env.GEMINI_API_KEY) {
+    return c.json({ error: 'Curation service unavailable', retry_after: 60 }, 503);
+  }
+
   let stations: Station[];
   try {
     stations = await fetchStations(genre, c.env.CATALOG_CACHE);
