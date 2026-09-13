@@ -768,7 +768,9 @@ describe('MCP_MANIFEST', () => {
   });
 
   it('keeps curator_prompt mood examples focus work / late night jazz / morning energy', () => {
-    const desc = toolNamed('curator_prompt').input_schema.properties.mood.description as string;
+    const mood = toolNamed('curator_prompt').input_schema.properties.mood;
+    expect(mood).toBeDefined();
+    const desc = mood!.description as string;
     expect(desc).toContain('focus work');
     expect(desc).toContain('late night jazz');
     expect(desc).toContain('morning energy');

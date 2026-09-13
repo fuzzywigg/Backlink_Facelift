@@ -4677,7 +4677,7 @@ https://example.com/nolang.m3u8
   });
 
   it('never passes RequestInit on iptv primary or music-fallback fetches', async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith('/sports.m3u')) return new Response('down', { status: 503 });
       if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
