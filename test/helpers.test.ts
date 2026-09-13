@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { parseM3U } from '../src/parser';
 import {
   SAMPLE_M3U,
   buildSimpleM3U,
@@ -1478,5 +1479,123 @@ http://example.com/b.m3u8
     const kv = mockKV(seed);
     seed.a = 'mutated';
     expect(await kv.get('a')).toBe('1');
+  });
+
+  it('buildSimpleM3U round-trips through parseM3U for full attr stations', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Round',
+        url: 'https://example.com/round-helper.m3u8',
+        logo: 'https://cdn.example/r.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    expect(parseM3U(m3u)).toEqual([
+      {
+        name: 'Round',
+        url: 'https://example.com/round-helper.m3u8',
+        logo: 'https://cdn.example/r.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+  });
+
+  it('buildSimpleM3U round-trips through parseM3U for name+url only', () => {
+    const m3u = buildSimpleM3U([{ name: 'Bare', url: 'https://example.com/bare-helper.m3u8' }]);
+    expect(parseM3U(m3u)[0]).toMatchObject({
+      name: 'Bare',
+      url: 'https://example.com/bare-helper.m3u8',
+    });
+    expect(parseM3U(m3u)[0].logo).toBeUndefined();
+  });
+
+  it('countHttpStreamLines matches parseM3U length for SAMPLE_M3U', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(parseM3U(SAMPLE_M3U).length);
+  });
+
+  it('countHttpStreamLines counts both http and https but parseM3U also accepts both', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'http://example.com/a.m3u8' },
+      { name: 'B', url: 'https://example.com/b.m3u8' },
+    ]);
+    expect(countHttpStreamLines(m3u)).toBe(2);
+    expect(parseM3U(m3u)).toHaveLength(2);
+  });
+
+  it('countHttpStreamLines ignores rtmp lines that parseM3U also skips', () => {
+    const m3u = `#EXTM3U
+#EXTINF:-1 tvg-name="R",R
+rtmp://example.com/live
+#EXTINF:-1 tvg-name="H",H
+https://example.com/h.m3u8
+`;
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)).toHaveLength(1);
+  });
+
+  it('buildSimpleM3U emits trailing newline after last URL', () => {
+    const m3u = buildSimpleM3U([{ name: 'T', url: 'https://example.com/t.m3u8' }]);
+    expect(m3u.endsWith('\n')).toBe(true);
+    expect(m3u.split('\n').filter(Boolean).at(-1)).toBe('https://example.com/t.m3u8');
+  });
+
+  it('buildSimpleM3U with empty stations is header-only parseM3U []', () => {
+    expect(parseM3U(buildSimpleM3U([]))).toEqual([]);
+  });
+
+  it('buildSimpleM3U preserves empty-string optional attrs for parseM3U', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'E',
+        url: 'https://example.com/e-helper.m3u8',
+        logo: '',
+        group: '',
+        language: '',
+        country: '',
+      },
+    ]);
+    const [s] = parseM3U(m3u);
+    expect(s.logo).toBe('');
+    expect(s.group).toBe('');
+    expect(s.language).toBe('');
+    expect(s.country).toBe('');
+  });
+
+  it('countHttpStreamLines does not count http substrings inside tvg-logo', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'L',
+        url: 'https://example.com/logo-count.m3u8',
+        logo: 'https://cdn.example/a.png',
+      },
+    ]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+  });
+
+  it('SAMPLE_M3U parseM3U names match Alpha..Zeta Greek letter order', () => {
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.name)).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Zeta FM',
+    ]);
+  });
+
+  it('iptvCategoryUrl genre segment is not URL-encoded by the helper', () => {
+    expect(iptvCategoryUrl('smooth jazz')).toBe(
+      'https://iptv-org.github.io/iptv/categories/smooth jazz.m3u',
+    );
+  });
+
+  it('seedStationsCache can seed multiple genres without clobbering', () => {
+    const a = seedStationsCache('jazz', [{ name: 'J', url: 'https://j' }]);
+    const b = seedStationsCache('news', [{ name: 'N', url: 'https://n' }], a);
+    expect(Object.keys(b).sort()).toEqual(['stations:jazz', 'stations:news']);
   });
 });

@@ -1093,4 +1093,88 @@ describe('source ↔ product contracts', () => {
   it('locks degrade editorial null literal (not undefined) in /curate catch', () => {
     expect(read('src/index.ts')).toMatch(/editorial:\s*null/);
   });
+
+  it('locks parseM3U to split on newline then trim each line', () => {
+    expect(read('src/parser.ts')).toContain("raw.split('\\n').map((l) => l.trim())");
+  });
+
+  it('locks parseM3U EXTINF branch to clear current before attr extraction', () => {
+    const parser = read('src/parser.ts');
+    const extinf = parser.indexOf("if (line.startsWith('#EXTINF'))");
+    const clear = parser.indexOf('current = {}', extinf);
+    const nameMatch = parser.indexOf('tvg-name=', extinf);
+    expect(extinf).toBeGreaterThan(-1);
+    expect(clear).toBeGreaterThan(extinf);
+    expect(nameMatch).toBeGreaterThan(clear);
+  });
+
+  it('locks parseM3U http branch to require current.name before push', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/if \(current\.name && !seen\.has\(line\)\)/);
+    expect(parser).toMatch(/stations\.push\(\{/);
+  });
+
+  it('locks parseM3U Station interface required fields name and url only', () => {
+    const parser = read('src/parser.ts');
+    const iface = parser.slice(
+      parser.indexOf('export interface Station'),
+      parser.indexOf('}', parser.indexOf('export interface Station')) + 1,
+    );
+    expect(iface).toMatch(/name:\s*string/);
+    expect(iface).toMatch(/url:\s*string/);
+    expect(iface).toMatch(/logo\?:\s*string/);
+    expect(iface).toMatch(/group\?:\s*string/);
+    expect(iface).toMatch(/language\?:\s*string/);
+    expect(iface).toMatch(/country\?:\s*string/);
+  });
+
+  it('locks parseM3U to never import hono, genres, or mcp', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).not.toMatch(/from ['\"]\.\/genres|from ['\"]\.\/mcp|from ['\"]hono/);
+    expect(parser).not.toMatch(/^import /m);
+  });
+
+  it('locks parseM3U comma fallback only when !current.name', () => {
+    expect(read('src/parser.ts')).toMatch(/if \(!current\.name\) \{\s*\n\s*const commaIdx/);
+  });
+
+  it('locks parseM3U seen Set to be function-local (not module-level)', () => {
+    const parser = read('src/parser.ts');
+    const fnStart = parser.indexOf('export function parseM3U');
+    const seen = parser.indexOf('const seen = new Set<string>()', fnStart);
+    expect(seen).toBeGreaterThan(fnStart);
+    expect(parser.indexOf('const seen = new Set')).toBe(seen);
+  });
+
+  it('locks parseM3U push to always include logo/group/language/country keys', () => {
+    const parser = read('src/parser.ts');
+    const push = parser.slice(parser.indexOf('stations.push({'), parser.indexOf('});', parser.indexOf('stations.push({')) + 2);
+    expect(push).toContain('logo: current.logo');
+    expect(push).toContain('group: current.group');
+    expect(push).toContain('language: current.language');
+    expect(push).toContain('country: current.country');
+  });
+
+  it('locks parseM3U non-http reset to require truthy line and not start with #', () => {
+    expect(read('src/parser.ts')).toContain("else if (line && !line.startsWith('#'))");
+  });
+
+  it('locks index to call parseM3U on raw M3U text before KV put', () => {
+    const index = read('src/index.ts');
+    const parseCall = index.indexOf('const stations = parseM3U(raw)');
+    const putCall = index.indexOf('await kv.put(cacheKey', parseCall);
+    expect(parseCall).toBeGreaterThan(-1);
+    expect(putCall).toBeGreaterThan(parseCall);
+  });
+
+  it('locks helpers buildSimpleM3U to emit #EXTINF:-1 prefix', () => {
+    expect(read('test/helpers.ts')).toContain('`#EXTINF:-1 ${attrs},${s.name}`');
+  });
+
+  it('locks helpers countHttpStreamLines to trim then filter http(s) startsWith', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).toMatch(/\.split\('\\n'\)/);
+    expect(helpers).toMatch(/\.map\(\(l\) => l\.trim\(\)\)/);
+    expect(helpers).toMatch(/l\.startsWith\('http:\/\/'\) \|\| l\.startsWith\('https:\/\/'\)/);
+  });
 });
