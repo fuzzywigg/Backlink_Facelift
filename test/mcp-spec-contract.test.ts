@@ -388,5 +388,59 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(notes).toMatch(/^- /m);
     expect((notes.match(/^- /gm) ?? []).length).toBeGreaterThanOrEqual(4);
   });
+
+  it('locks Integration Notes bullet count at exactly 5', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    expect((notes.match(/^- /gm) ?? []).length).toBe(5);
+  });
+
+  it('locks exact Base URL string https://backlink.fuzzywigg.com', () => {
+    expect(spec).toMatch(/Base URL:\s*`https:\/\/backlink\.fuzzywigg\.com`/);
+  });
+
+  it('locks claw-mcp tool count (4) distinct from docs tool count (3)', () => {
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+    expect((spec.match(/^### `/gm) ?? []).length).toBe(3);
+  });
+
+  it('documents curator station required as name/url/genre exactly', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    const required = curate.match(/"required":\s*\[([^\]]+)\]/);
+    expect(required).toBeTruthy();
+    const fields = [...required![1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    expect(fields).toEqual(['name', 'url', 'genre']);
+  });
+
+  it('does not document Worker /openapi.json as a live Endpoint', () => {
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/openapi\.json`/);
+    expect(spec).not.toMatch(/`GET \/openapi\.json`/);
+  });
+
+  it('docs mood examples include energizing outside GENRE_MAP', () => {
+    expect(spec).toMatch(/energizing/);
+    expect(GENRE_MAP).not.toHaveProperty('energizing');
+    expect(VALID_GENRES.includes('energizing' as never)).toBe(false);
+  });
+
+  it('docs genre examples resolve via VALID_GENRES or GENRE_MAP', () => {
+    const examples = ['jazz', 'classical', 'ambient', 'rock', 'pop', 'late night', 'focus', 'chill'];
+    for (const ex of examples) {
+      const ok =
+        (VALID_GENRES as readonly string[]).includes(ex) ||
+        Object.prototype.hasOwnProperty.call(GENRE_MAP, ex);
+      expect(ok).toBe(true);
+    }
+  });
+
+  it('documents graceful degradation top 5 with editorial null', () => {
+    expect(spec).toMatch(/top 5 raw stations with `editorial: null`/);
+  });
+
+  it('documents KV 1h TTL for /stations cache', () => {
+    expect(spec).toMatch(/1h TTL/);
+  });
 });
 

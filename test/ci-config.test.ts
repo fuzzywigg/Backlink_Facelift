@@ -826,5 +826,93 @@ describe('CI / package test wiring', () => {
     expect(npmBlock?.[1]).toBe('3');
     expect(actionsBlock?.[1]).toBe('2');
   });
+
+  it('wires deploy.yml wrangler-action CF creds from secrets', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/apiToken:\s*\$\{\{\s*secrets\.CF_API_TOKEN\s*\}\}/);
+    expect(deploy).toMatch(/accountId:\s*\$\{\{\s*secrets\.CF_ACCOUNT_ID\s*\}\}/);
+    expect(deploy).toMatch(/uses:\s*cloudflare\/wrangler-action@v4/);
+  });
+
+  it('locks vitest reporters ternary on GITHUB_ACTIONS', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(
+      /reporters:\s*process\.env\.GITHUB_ACTIONS\s*\?\s*\['default',\s*'github-actions'\]\s*:\s*\['default'\]/,
+    );
+  });
+
+  it('keeps Dependabot schema version: 2', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep.startsWith('version: 2')).toBe(true);
+    expect(dep).toMatch(/^version:\s*2\s*$/m);
+  });
+
+  it('documents DEPLOY.md local dev on localhost:8787', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/npm run dev/);
+    expect(deploy).toMatch(/http:\/\/localhost:8787/);
+  });
+
+  it('locks README Stack bullets for Hono, KV 1h TTL, and Gemini 2.0 Flash', () => {
+    const readme = read('README.md');
+    const stack = readme.slice(readme.indexOf('## Stack'), readme.indexOf('## Available Genres'));
+    expect(stack).toMatch(/Hono/);
+    expect(stack).toMatch(/Gemini 2\.0 Flash/);
+    expect(stack).toMatch(/1h TTL/);
+    expect(stack).toMatch(/Cloudflare Workers/);
+    expect(stack).toMatch(/iptv-org/);
+  });
+
+  it('lists Safe Agent Actions files including genres.ts and parser.ts', () => {
+    const agents = read('AGENTS.md');
+    const safe = agents.slice(agents.indexOf('## Safe Agent Actions'), agents.indexOf('## Verify'));
+    expect(safe).toMatch(/src\/genres\.ts/);
+    expect(safe).toMatch(/src\/parser\.ts/);
+    expect(safe).toMatch(/test\//);
+    expect(safe).toMatch(/Bump dependency versions/);
+  });
+
+  it('locks deploy workflow display name', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(
+      /^name:\s*Deploy to Cloudflare Workers\s*$/m,
+    );
+  });
+
+  it('contrasts CI cancel-in-progress true with deploy false', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(ci).toMatch(/cancel-in-progress:\s*true/);
+    expect(deploy).toMatch(/cancel-in-progress:\s*false/);
+  });
+
+  it('locks package.json description exact string', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+  });
+
+  it('keeps deploy workflow_dispatch as the only trigger', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const onBlock = deploy.slice(deploy.indexOf('\non:'), deploy.indexOf('\npermissions:'));
+    expect(onBlock).toMatch(/workflow_dispatch:/);
+    expect(onBlock).not.toMatch(/push:/);
+    expect(onBlock).not.toMatch(/pull_request:/);
+  });
+
+  it('documents AGENTS.md Escalate bullets for secrets and HITL deploy', () => {
+    const agents = read('AGENTS.md');
+    const escalate = agents.slice(agents.indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/GEMINI_API_KEY/);
+    expect(escalate).toMatch(/Production deploy/);
+    expect(escalate).toMatch(/HITL/);
+    expect(escalate).toMatch(/CORS or authentication/);
+  });
+
+  it('keeps vitest environment node and include test/**/*.test.ts', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/environment:\s*'node'/);
+    expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
+  });
 });
 

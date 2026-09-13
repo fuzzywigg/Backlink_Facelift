@@ -124,3 +124,40 @@ export function buildSimpleM3U(
   }
   return `${lines.join('\n')}\n`;
 }
+
+/** Seed a genre cache key with a JSON-serialized or raw string value. */
+export function seedStationsCache(
+  genre: string,
+  value: unknown,
+  existing: Record<string, string> = {},
+): Record<string, string> {
+  const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+  return { ...existing, [`stations:${genre}`]: serialized };
+}
+
+/**
+ * Extract the first generativelanguage.googleapis.com call from a vi fetch mock.
+ * Returns null when Gemini was never hit.
+ */
+export function captureGeminiRequest(
+  fetchMock: { mock: { calls: unknown[][] } },
+): { url: string; method: string; headers: HeadersInit | undefined; body: Record<string, unknown> } | null {
+  const call = fetchMock.mock.calls.find((c) => String(c[0]).includes('generativelanguage.googleapis.com'));
+  if (!call) return null;
+  const url = String(call[0]);
+  const init = call[1] as RequestInit | undefined;
+  const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
+  return {
+    url,
+    method: (init?.method ?? 'GET').toString().toUpperCase(),
+    headers: init?.headers,
+    body,
+  };
+}
+
+/** Return iptv-org fetch calls that unexpectedly passed a RequestInit second arg. */
+export function iptvCallsWithInit(fetchMock: { mock: { calls: unknown[][] } }): unknown[][] {
+  return fetchMock.mock.calls.filter(
+    (call) => String(call[0]).includes('iptv-org') && call[1] !== undefined,
+  );
+}

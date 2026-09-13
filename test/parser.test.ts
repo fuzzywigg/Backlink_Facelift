@@ -1510,4 +1510,137 @@ https://example.com/ok.m3u8
     expect(parseM3U(withLs)).toEqual([]);
     expect(parseM3U(withPs)).toEqual([]);
   });
+
+  it('treats #EXTINFORMATION as EXTINF via startsWith("#EXTINF")', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINFORMATION:-1 tvg-name="Info",Info
+https://example.com/info.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Info');
+  });
+
+  it('treats #EXTINFON as EXTINF via startsWith("#EXTINF")', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINFON:-1 tvg-name="On",On
+https://example.com/on.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['On']);
+  });
+
+  it('skips URL when tvg-name is empty and there is no comma fallback name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name=""
+https://example.com/empty-name.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('dedupes URLs case-sensitively (http://X ≠ http://x)', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+http://Example.com/stream.m3u8
+#EXTINF:-1 tvg-name="B",B
+http://example.com/stream.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+    expect(stations.map((s) => s.url)).toEqual([
+      'http://Example.com/stream.m3u8',
+      'http://example.com/stream.m3u8',
+    ]);
+  });
+
+  it('extracts adjacent attrs without intervening spaces', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="Adj"tvg-logo="https://cdn/a.png"group-title="G",Adj
+https://example.com/adj.m3u8
+`,
+    );
+    expect(stations[0].name).toBe('Adj');
+    expect(stations[0].logo).toBe('https://cdn/a.png');
+    expect(stations[0].group).toBe('G');
+  });
+
+  it('parses mixed LF and CRLF entries in one playlist', () => {
+    const stations = parseM3U(
+      `#EXTM3U\n#EXTINF:-1 tvg-name="Lf",Lf\nhttps://example.com/lf.m3u8\r\n#EXTINF:-1 tvg-name="Crlf",Crlf\r\nhttps://example.com/crlf.m3u8\n`,
+    );
+    expect(stations.map((s) => s.name)).toEqual(['Lf', 'Crlf']);
+  });
+
+  it('preserves angle brackets inside attribute values', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="<Radio>" group-title="<G>",<Radio>
+https://example.com/angle.m3u8
+`,
+    );
+    expect(stations[0].name).toBe('<Radio>');
+    expect(stations[0].group).toBe('<G>');
+  });
+
+  it('does not emit stations from #EXT-X-STREAM-INF alone', () => {
+    expect(
+      parseM3U(`#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=128000
+https://example.com/orphan.m3u8
+`),
+    ).toEqual([]);
+  });
+
+  it('accepts a huge EXTINF attribute payload without throwing', () => {
+    const big = 'x'.repeat(50_000);
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="${big}" group-title="${big}",${big}
+https://example.com/huge.m3u8
+`,
+    );
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe(big);
+    expect(stations[0].group).toBe(big);
+  });
+
+  it('dedupes duplicate URL after intervening non-http reset', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="First",First
+https://example.com/dup.m3u8
+#EXTINF:-1 tvg-name="Rtmp",Rtmp
+rtmp://example.com/live
+#EXTINF:-1 tvg-name="Second",Second
+https://example.com/dup.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['First']);
+  });
+
+  it('preserves tabs inside attribute values', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="A\tB" group-title="G\tH",A\tB
+https://example.com/tab.m3u8
+`,
+    );
+    expect(stations[0].name).toBe('A\tB');
+    expect(stations[0].group).toBe('G\tH');
+  });
+
+  it('skips URL when name is only whitespace after comma fallback', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,
+https://example.com/blank-name.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    // comma fallback yields "" after trim → falsy → skip
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('keeps http:// and https:// URL schemes distinct for dedupe', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Http",Http
+http://example.com/stream.m3u8
+#EXTINF:-1 tvg-name="Https",Https
+https://example.com/stream.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Http', 'Https']);
+  });
 });
