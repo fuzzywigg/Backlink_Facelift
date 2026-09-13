@@ -40,6 +40,13 @@ https://example.com/epsilon.m3u8
 https://example.com/zeta.m3u8
 `;
 
+/** Build a Gemini generateContent-shaped JSON response with the given model text. */
+export function geminiTextResponse(text: string): Response {
+  return Response.json({
+    candidates: [{ content: { parts: [{ text }] } }],
+  });
+}
+
 export function stubIptvAndGemini(opts: {
   m3u?: string | null;
   gemini?: Response | (() => Response);

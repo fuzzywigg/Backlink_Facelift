@@ -57,4 +57,24 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents no-auth read endpoints', () => {
     expect(spec).toMatch(/No auth required for read endpoints/i);
   });
+
+  it('documents /stations endpoint behavior alongside /curate and /genres', () => {
+    expect(spec).toMatch(/\/stations/i);
+    expect(spec).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(spec).toContain('GET /genres');
+  });
+
+  it('documents curator output fields that /curate returns', () => {
+    expect(spec).toContain('curated_by');
+    expect(spec).toContain('timestamp');
+    expect(spec).toContain('"editorial"');
+  });
+
+  it('keeps docs tool ids distinct from claw-mcp tool names', () => {
+    const clawNames = new Set(MCP_MANIFEST.tools.map((t) => t.name));
+    for (const docsId of ['backlink_curate', 'backlink_genres', 'backlink_now_playing']) {
+      expect(clawNames.has(docsId)).toBe(false);
+      expect(spec).toContain(docsId);
+    }
+  });
 });

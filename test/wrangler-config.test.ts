@@ -29,4 +29,11 @@ describe('wrangler.toml contracts', () => {
   it('documents secret setup via comment, not inline values', () => {
     expect(toml).toMatch(/wrangler secret put GEMINI_API_KEY/);
   });
+
+  it('routes the custom domain without embedding API keys', () => {
+    expect(toml).toMatch(/\[\[routes\]\]/);
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+    expect(toml).not.toMatch(/api[_-]?key\s*=/i);
+  });
 });

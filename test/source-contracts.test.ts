@@ -38,4 +38,29 @@ describe('source ↔ product contracts', () => {
     expect(deploy).toMatch(/HITL/i);
     expect(deploy).not.toMatch(/ANTHROPIC_API_KEY/);
   });
+
+  it('keeps Worker CORS open and routes registered in src/index.ts', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/app\.use\('\*',\s*cors\(\)\)/);
+    expect(index).toMatch(/app\.get\('\/curate'/);
+    expect(index).toMatch(/app\.get\('\/stations'/);
+    expect(index).toMatch(/app\.get\('\/genres'/);
+    expect(index).toMatch(/app\.get\('\/health'/);
+    expect(index).toMatch(/app\.get\('\/'/);
+  });
+
+  it('gracefully degrades /curate with editorial null on Gemini failure', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/editorial:\s*null/);
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it('keeps Cloud Agent bootstrap as npm ci only', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as {
+      name: string;
+      install: string;
+    };
+    expect(env.name).toBe('Backlink_Facelift');
+    expect(env.install).toBe('npm ci');
+  });
 });
