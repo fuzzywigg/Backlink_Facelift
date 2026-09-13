@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -1779,4 +1779,267 @@ describe('source ↔ product contracts', () => {
   it('locks Env comment referencing issue #8 for optional GEMINI', () => {
     expect(read('src/types.ts')).toMatch(/#8/);
   });
+
+  // --- HEAVY burn (post-#43): source ↔ product contract deepen ---
+
+  it('locks IPTV_BASE constant to iptv-org categories CDN', () => {
+    expect(read('src/index.ts')).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'",
+    );
+  });
+
+  it('locks fetchStations cacheKey template stations:${genre}', () => {
+    expect(read('src/index.ts')).toContain('const cacheKey = `stations:${genre}`');
+  });
+
+  it('locks fetchStations music.m3u fallback after primary !res.ok', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("fetch(`${IPTV_BASE}/music.m3u`)");
+    expect(index).toContain("throw new Error('Stream catalog unavailable')");
+  });
+
+  it('locks callGemini generationConfig maxOutputTokens 512 temperature 0.7', () => {
+    expect(read('src/index.ts')).toContain(
+      'generationConfig: { maxOutputTokens: 512, temperature: 0.7 }',
+    );
+  });
+
+  it('locks callGemini POST content-type application/json', () => {
+    expect(read('src/index.ts')).toContain("headers: { 'content-type': 'application/json' }");
+    expect(read('src/index.ts')).toContain("method: 'POST'");
+  });
+
+  it('locks callGemini error to Gemini API error status template', () => {
+    expect(read('src/index.ts')).toContain('throw new Error(`Gemini API error: ${resp.status}`)');
+  });
+
+  it('locks callGemini Invalid JSON from Gemini when regex misses', () => {
+    expect(read('src/index.ts')).toContain("throw new Error('Invalid JSON from Gemini')");
+  });
+
+  it('locks callGemini station list format with group language url', () => {
+    expect(read('src/index.ts')).toContain(
+      "`${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? 'en'}] — ${s.url}`",
+    );
+  });
+
+  it('locks root name Backlink and version from env', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("name: 'Backlink'");
+    expect(index).toContain('version: c.env.VERSION ?? \'0.1.0\'');
+  });
+
+  it('locks /curate Curation service unavailable 503 when key missing', () => {
+    expect(read('src/index.ts')).toContain(
+      "return c.json({ error: 'Curation service unavailable', retry_after: 60 }, 503)",
+    );
+  });
+
+  it('locks GENRE_MAP entry count and known alias targets', () => {
+    const keys = Object.keys(GENRE_MAP);
+    expect(keys.length).toBe(21);
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP.metal).toBe('rock');
+    expect(GENRE_MAP.dance).toBe('pop');
+    expect(GENRE_MAP.blues).toBe('jazz');
+  });
+
+  it('locks VALID_GENRES length 9 in documented order', () => {
+    expect([...VALID_GENRES]).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+  });
+
+  it('locks ValidGenre type export derived from VALID_GENRES', () => {
+    expect(read('src/genres.ts')).toContain(
+      'export type ValidGenre = (typeof VALID_GENRES)[number]',
+    );
+  });
+
+  it('locks MCP_MANIFEST tools length 4 with stable names', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('name: "station_select"');
+    expect(mcp).toContain('name: "now_playing"');
+    expect(mcp).toContain('name: "genre_filter"');
+    expect(mcp).toContain('name: "curator_prompt"');
+  });
+
+  it('locks MCP now_playing input_schema empty properties object', () => {
+    expect(read('src/mcp.ts')).toContain(
+      'input_schema: { type: "object", properties: {} }',
+    );
+  });
+
+  it('locks MCP description_for_model mentions IPTV radio and mood', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/AI-curated IPTV radio service/);
+    expect(mcp).toMatch(/best station for a mood/);
+  });
+
+  it('locks MCP description_for_human to iptv-org catalog phrase', () => {
+    expect(read('src/mcp.ts')).toContain(
+      'description_for_human: "AI-curated live radio from the iptv-org catalog."',
+    );
+  });
+
+  it('locks parser split map trim line pipeline', () => {
+    expect(read('src/parser.ts')).toContain(
+      "const lines = raw.split('\\n').map((l) => l.trim())",
+    );
+  });
+
+  it('locks parser name fallback via lastIndexOf comma', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('const commaIdx = line.lastIndexOf(\',\')');
+    expect(parser).toContain('current.name = line.slice(commaIdx + 1).trim()');
+  });
+
+  it('locks parser attribute regexes as case-insensitive', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('tvg-name="([^"]*)"/i');
+    expect(parser).toContain('tvg-logo="([^"]*)"/i');
+    expect(parser).toContain('group-title="([^"]*)"/i');
+    expect(parser).toContain('tvg-language="([^"]*)"/i');
+    expect(parser).toContain('tvg-country="([^"]*)"/i');
+  });
+
+  it('locks parser dedupe by URL via seen.has(line)', () => {
+    expect(read('src/parser.ts')).toContain('if (current.name && !seen.has(line))');
+    expect(read('src/parser.ts')).toContain('seen.add(line)');
+  });
+
+  it('locks types Env comment Optional at runtime for GEMINI', () => {
+    expect(read('src/types.ts')).toContain('Optional at runtime');
+    expect(read('src/types.ts')).toContain('/curate` returns 503 when unset');
+  });
+
+  it('locks index free of Anthropic Claude Haiku strings', () => {
+    expect(read('src/index.ts')).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it('locks all src modules free of process.env usage', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(rel)).not.toContain('process.env');
+    }
+  });
+
+  it('locks index free of console.log debug statements', () => {
+    expect(read('src/index.ts')).not.toMatch(/console\.(log|debug|info|warn)/);
+  });
+
+  it('locks GENRE_MAP electronic and lofi and lo-fi to ambient', () => {
+    expect(GENRE_MAP.electronic).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP['lo-fi']).toBe('ambient');
+  });
+
+  it('locks GENRE_MAP classic to classical and indie to rock', () => {
+    expect(GENRE_MAP.classic).toBe('classical');
+    expect(GENRE_MAP.indie).toBe('rock');
+  });
+
+  it('locks /genres route to return c.json with genres and aliases only', () => {
+    expect(read('src/index.ts')).toMatch(
+      /return c\.json\(\{\s*genres: \[\.\.\.VALID_GENRES\],\s*aliases: GENRE_MAP,\s*\}\)/,
+    );
+  });
+
+  it('locks callGemini return type fields name url logo editorial genre', () => {
+    expect(read('src/index.ts')).toContain(
+      'Promise<Array<{ name: string; url: string; logo?: string; editorial: string; genre: string }>>',
+    );
+  });
+
+  it('locks fetchStations to parseM3U(raw) after res.text()', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('const raw = await res.text()');
+    expect(index).toContain('const stations = parseM3U(raw)');
+  });
+
+  it('locks cors middleware registered before routes', () => {
+    const index = read('src/index.ts');
+    const cors = index.indexOf("app.use('*', cors())");
+    const root = index.indexOf("app.get('/',");
+    expect(cors).toBeGreaterThan(-1);
+    expect(root).toBeGreaterThan(cors);
+  });
+
+  it('locks MCP curator_prompt properties mood and genre', () => {
+    const mcp = read('src/mcp.ts');
+    const start = mcp.indexOf('name: "curator_prompt"');
+    const section = mcp.slice(start);
+    expect(section).toContain('mood:');
+    expect(section).toContain('genre:');
+    expect(section).toContain('required: ["mood"]');
+  });
+
+  it('locks MCP station_select required station_name only', () => {
+    const mcp = read('src/mcp.ts');
+    const start = mcp.indexOf('name: "station_select"');
+    const section = mcp.slice(start, mcp.indexOf('name: "now_playing"'));
+    expect(section).toContain('required: ["station_name"]');
+    expect(section).not.toContain('required: ["mood"]');
+  });
+
+  it('locks genres.ts file header comment about iptv-org category ids', () => {
+    expect(read('src/genres.ts')).toContain(
+      'iptv-org category ids we expose + mood aliases → category',
+    );
+  });
+
+  it('locks index default export and no named app export', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('export default app');
+    expect(index).not.toMatch(/export \{ app \}/);
+  });
+
+  it('locks parser Station export as interface not type alias', () => {
+    expect(read('src/parser.ts')).toContain('export interface Station');
+  });
+
+  it('locks resolveGenre unknown input fallback to music via VALID_GENRES check', () => {
+    expect(read('src/genres.ts')).toContain(
+      "return map[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : 'music')",
+    );
+  });
+
+  it('locks callGemini contents parts text prompt shape', () => {
+    expect(read('src/index.ts')).toContain(
+      'contents: [{ parts: [{ text: prompt }] }]',
+    );
+  });
+
+  it('locks /curate response keys query curated_by timestamp stations', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('query,');
+    expect(index).toContain("curated_by: 'Backlink/Geryon'");
+    expect(index).toContain('timestamp: new Date().toISOString()');
+    expect(index).toContain('stations: curated');
+  });
+
+  it('locks degrade path to map name url logo editorial null genre', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('name: s.name');
+    expect(index).toContain('url: s.url');
+    expect(index).toContain('logo: s.logo');
+    expect(index).toContain('editorial: null');
+  });
+
+  it('locks MCP_MANIFEST export as const object not function', () => {
+    expect(read('src/mcp.ts')).toMatch(/^export const MCP_MANIFEST = \{/m);
+  });
+
+  it('src tree stays five modules only', () => {
+    const files = readdirSync(join(root, 'src')).sort();
+    expect(files).toEqual(['genres.ts', 'index.ts', 'mcp.ts', 'parser.ts', 'types.ts']);
+  });
+
 });
