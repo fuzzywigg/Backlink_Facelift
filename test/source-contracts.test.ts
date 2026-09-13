@@ -932,5 +932,88 @@ describe('source ↔ product contracts', () => {
     expect(helpers).toContain("editorial: 'Default curated pick.'");
     expect(helpers).toContain("genre: 'music'");
   });
-});
 
+  it('locks MCP_MANIFEST export as a const object literal (not a factory)', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/export const MCP_MANIFEST = \{/);
+    expect(mcp).not.toMatch(/function\s+createManifest|MCP_MANIFEST\s*=\s*\(/);
+  });
+
+  it('locks mcp.ts free of fetch, KV, and Hono imports', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).not.toMatch(/from ['\"]hono|fetch\(|KVNamespace|GEMINI/);
+  });
+
+  it('locks genres.ts free of fetch and Hono imports', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).not.toMatch(/from ['\"]hono|fetch\(|KVNamespace/);
+  });
+
+  it('locks resolveGenre signature with optional input and defaulted map', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /export function resolveGenre\(\s*input\?: string,\s*map: Record<string, string> = GENRE_MAP,\s*\): string/,
+    );
+  });
+
+  it('locks GENRE_MAP as a Record<string, string> annotated const', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /export const GENRE_MAP: Record<string, string> = \{/,
+    );
+  });
+
+  it('locks mcp type string literals to none/openapi/object/string only', () => {
+    const mcp = read('src/mcp.ts');
+    const types = [...mcp.matchAll(/type:\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(types)).toEqual(new Set(['none', 'openapi', 'object', 'string']));
+  });
+
+  it('locks mcp.ts auth type none and api openapi url literals', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/auth:\s*\{\s*type:\s*"none"\s*\}/);
+    expect(mcp).toMatch(/api:\s*\{\s*type:\s*"openapi",\s*url:\s*"\/openapi\.json"\s*\}/);
+  });
+
+  it('locks genres module comment documenting iptv-org category ids', () => {
+    expect(read('src/genres.ts')).toMatch(/iptv-org category ids/);
+  });
+
+  it('locks VALID_GENRES length 9 in source text (nine quoted slugs)', () => {
+    const genres = read('src/genres.ts');
+    const block = genres.slice(genres.indexOf('VALID_GENRES'), genres.indexOf('as const'));
+    expect((block.match(/'[a-z]+'/g) ?? []).length).toBe(9);
+  });
+
+  it('locks MCP schema_version v1 literal in source', () => {
+    expect(read('src/mcp.ts')).toMatch(/schema_version:\s*"v1"/);
+  });
+
+  it('locks claw-mcp tool names as string literals in source order', () => {
+    const mcp = read('src/mcp.ts');
+    const names = [...mcp.matchAll(/name:\s*"(station_select|now_playing|genre_filter|curator_prompt)"/g)].map(
+      (m) => m[1],
+    );
+    expect(names).toEqual(['station_select', 'now_playing', 'genre_filter', 'curator_prompt']);
+  });
+
+  it('locks resolveGenre toLowerCase().trim() pipeline order', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /const lower = input\.toLowerCase\(\)\.trim\(\);/,
+    );
+  });
+
+  it('does not import genres into mcp or mcp into genres', () => {
+    expect(read('src/mcp.ts')).not.toMatch(/from ['\"]\.\/genres/);
+    expect(read('src/genres.ts')).not.toMatch(/from ['\"]\.\/mcp/);
+  });
+
+  it('locks GENRE_MAP late night key as a quoted multi-word literal', () => {
+    expect(read('src/genres.ts')).toMatch(/'late night':\s*'ambient'/);
+    expect(read('src/genres.ts')).toMatch(/'lo-fi':\s*'ambient'/);
+  });
+
+  it('locks MCP_MANIFEST name_for_model and name_for_human string literals', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/name_for_model:\s*"backlink"/);
+    expect(mcp).toMatch(/name_for_human:\s*"Backlink Radio"/);
+  });
+});
