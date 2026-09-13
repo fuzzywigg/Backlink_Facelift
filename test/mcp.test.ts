@@ -311,4 +311,73 @@ describe('MCP_MANIFEST', () => {
       /Optional genre to constrain/i,
     );
   });
+
+  it('survives JSON round-trip without dropping tools', () => {
+    const cloned = JSON.parse(JSON.stringify(MCP_MANIFEST)) as typeof MCP_MANIFEST;
+    expect(cloned).toEqual(MCP_MANIFEST);
+    expect(cloned.tools).toHaveLength(MCP_MANIFEST.tools.length);
+  });
+
+  it('survives structuredClone without mutating the original', () => {
+    const cloned = structuredClone(MCP_MANIFEST);
+    cloned.name_for_human = 'mutated';
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+    expect(cloned.tools[0].name).toBe(MCP_MANIFEST.tools[0].name);
+  });
+
+  it('declares openapi url /openapi.json even though the Worker has no such route', () => {
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+  });
+
+  it('keeps tool names unique and snake_case', () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const name of names) {
+      expect(name).toMatch(/^[a-z]+(_[a-z]+)*$/);
+    }
+  });
+
+  it('keeps every property description as a non-empty string', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties ?? {})) {
+        expect(typeof prop.description).toBe('string');
+        expect(prop.description!.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('does not declare authentication headers or bearer tokens', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    expect(raw).not.toMatch(/bearer|authorization|api[_-]?key|secret/i);
+  });
+
+  it('locks tool order to station_select → now_playing → genre_filter → curator_prompt', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('keeps now_playing input_schema properties empty', () => {
+    expect(toolNamed('now_playing').input_schema.properties).toEqual({});
+    expect(toolNamed('now_playing').input_schema.required).toBeUndefined();
+  });
+
+  it('keeps name_for_model as backlink lowercase', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_human).toMatch(/Backlink/);
+  });
+
+  it('mentions AI curator in the model description', () => {
+    expect(MCP_MANIFEST.description_for_model).toMatch(/AI[- ]curat/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/mood/i);
+  });
+
+  it('keeps each tool description free of absolute URLs', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/https?:\/\//i);
+    }
+  });
 });

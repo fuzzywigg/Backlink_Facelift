@@ -246,4 +246,92 @@ describe('test helpers', () => {
     const res = await fetchMock('https://generativelanguage.googleapis.com/v1beta/x');
     expect(await res.text()).toBe('boom');
   });
+
+  it('stubIptvAndGemini accepts an empty M3U string body', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '' }) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('');
+  });
+
+  it('stubIptvAndGemini honors an explicit iptvStatus 404 with null m3u', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 404 }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('countHttpStreamLines returns 0 for empty and CR-only bodies', () => {
+    expect(countHttpStreamLines('')).toBe(0);
+    expect(countHttpStreamLines('\r\n\r\n')).toBe(0);
+    expect(countHttpStreamLines('#EXTM3U\n#EXTINF:-1,X\n')).toBe(0);
+  });
+
+  it('mockKV get/put can be overridden to reject for failure-path tests', async () => {
+    const kv = mockKV();
+    (kv.get as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('get fail'));
+    (kv.put as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('put fail'));
+    await expect(kv.get('x')).rejects.toThrow('get fail');
+    await expect(kv.put('x', 'y')).rejects.toThrow('put fail');
+  });
+
+  it('curatedGeminiJson embeds custom station payloads', async () => {
+    const res = curatedGeminiJson([
+      {
+        name: 'Custom',
+        url: 'https://example.com/c.m3u8',
+        editorial: 'note',
+        genre: 'jazz',
+        logo: 'https://cdn.example/c.png',
+      },
+    ]);
+    const body = (await res.json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const parsed = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{ name: string }>;
+    expect(parsed[0].name).toBe('Custom');
+  });
+
+  it('iptvCategoryUrl appends .m3u for each genre slug', () => {
+    expect(iptvCategoryUrl('music')).toBe(
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    );
+    expect(iptvCategoryUrl('entertainment')).toContain('/entertainment.m3u');
+  });
+
+  it('SAMPLE_M3U contains only https stream lines', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(SAMPLE_M3U).not.toMatch(/^http:\/\//m);
+  });
+
+  it('geminiTextResponse wraps text in the candidates/parts shape', async () => {
+    const body = (await geminiTextResponse('hello').json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe('hello');
+  });
+
+  it('stubIptvAndGemini invokes a gemini factory each time', async () => {
+    let n = 0;
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => {
+        n += 1;
+        return new Response(`n=${n}`, { status: 200 });
+      },
+    }) as unknown as (input: string) => Promise<Response>;
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/x')).text()).toBe('n=1');
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/x')).text()).toBe('n=2');
+  });
+
+  it('testEnv spreads overrides after defaults so VERSION can be cleared', () => {
+    expect(testEnv({ VERSION: undefined }).VERSION).toBeUndefined();
+  });
+
+  it('mockKV list and getWithMetadata return empty stubs', async () => {
+    const kv = mockKV({ a: '1' });
+    await expect(kv.list()).resolves.toMatchObject({ keys: [], list_complete: true });
+    await expect(kv.getWithMetadata('a')).resolves.toMatchObject({ value: null, metadata: null });
+  });
 });

@@ -182,4 +182,47 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('does not document Anthropic or Claude in the MCP spec', () => {
     expect(spec).not.toMatch(/anthropic|claude|haiku/i);
   });
+
+  it('documents top 3 curation while the Worker does not enforce array length', () => {
+    expect(spec).toMatch(/top 3 radio stations/i);
+    // Runtime passthrough is locked in routes tests; docs remain aspirational.
+    expect(spec).not.toMatch(/exactly 3 stations/i);
+  });
+
+  it('does not document /health or /stations as first-class MCP tools', () => {
+    expect(spec).not.toMatch(/### `backlink_health`/);
+    expect(spec).not.toMatch(/### `backlink_stations`/);
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*\s*`GET \/health`/);
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*\s*`GET \/stations/);
+  });
+
+  it('does not claim an /openapi.json Worker route in the docs tools list', () => {
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/openapi\.json`/);
+  });
+
+  it('keeps docs tool ids prefixed with backlink_', () => {
+    const ids = [...spec.matchAll(/### `(backlink_[a-z_]+)`/g)].map((m) => m[1]);
+    expect(ids).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+
+  it('documents curated_by as a string field on curate output', () => {
+    expect(spec).toMatch(/"curated_by":\s*\{\s*"type":\s*"string"/);
+  });
+
+  it('documents timestamp as date-time format', () => {
+    expect(spec).toMatch(/"timestamp":\s*\{[^}]*"format":\s*"date-time"/s);
+  });
+
+  it('does not embed live API keys or Cloudflare tokens', () => {
+    expect(spec).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(spec).not.toMatch(/CF_API_TOKEN|GEMINI_API_KEY\s*=/);
+  });
+
+  it('documents additionalProperties false on curated input schemas', () => {
+    expect(spec).toMatch(/"additionalProperties":\s*false/);
+  });
+
+  it('mentions iptv-org in the genres tool description', () => {
+    expect(spec).toMatch(/iptv-org genre categories/i);
+  });
 });
