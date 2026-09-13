@@ -3,12 +3,22 @@ name: Deploy to Cloudflare Workers
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7

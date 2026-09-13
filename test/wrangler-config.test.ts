@@ -47,4 +47,18 @@ describe('wrangler.toml contracts', () => {
     const bindings = [...toml.matchAll(/binding\s*=\s*"([^"]+)"/g)].map((m) => m[1]);
     expect(bindings).toEqual(['CATALOG_CACHE']);
   });
+
+  it('locks compatibility_date to a concrete YYYY-MM-DD value', () => {
+    expect(toml).toMatch(/compatibility_date\s*=\s*"2025-01-01"/);
+  });
+
+  it('does not declare [ai] or r2 / d1 bindings', () => {
+    expect(toml).not.toMatch(/\[\[?r2/i);
+    expect(toml).not.toMatch(/\[\[?d1/i);
+    expect(toml).not.toMatch(/^\s*\[ai\]/m);
+  });
+
+  it('keeps worker name aligned with package name', () => {
+    expect(toml).toMatch(/name\s*=\s*"backlink"/);
+  });
 });

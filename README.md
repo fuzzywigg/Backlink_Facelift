@@ -19,7 +19,7 @@ npm test
 npm run test:coverage
 ```
 
-Unit suites live under [`test/`](./test/) (`parser`, `genres`, `routes`, `mcp`, `helpers`, plus `mcp-spec` / CI / wrangler / source contracts). Coverage floors stay at **100%** statements/branches/functions/lines.
+Unit suites live under [`test/`](./test/) (`parser`, `genres`, `routes`, `mcp`, `helpers`, plus `mcp-spec` / CI / wrangler / source contracts). Coverage floors stay at **100%** statements/branches/functions/lines. CI pins Node 20, disables checkout credentials persistence, and asserts `coverage/lcov.info` exists before artifact upload.
 ## API
 
 ```

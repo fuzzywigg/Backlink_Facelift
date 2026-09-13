@@ -93,4 +93,25 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(spec).toMatch(/Optional if mood is provided/i);
     expect(spec).toMatch(/Optional if genre is provided/i);
   });
+
+  it('documents Base URL host matching the custom domain route', () => {
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(spec).not.toMatch(/workers\.dev/);
+  });
+
+  it('documents editorial as nullable in curator output', () => {
+    expect(spec).toMatch(/"editorial":\s*\{\s*"type":\s*\[["']string["'],\s*["']null["']\]/);
+  });
+
+  it('lists all three docs tools as markdown headings', () => {
+    expect(spec).toMatch(/^### `backlink_curate`/m);
+    expect(spec).toMatch(/^### `backlink_genres`/m);
+    expect(spec).toMatch(/^### `backlink_now_playing`/m);
+  });
+
+  it('documents Integration Notes section for cache and degradation', () => {
+    expect(spec).toMatch(/## Integration Notes/);
+    expect(spec).toMatch(/1h TTL/i);
+    expect(spec).toMatch(/graceful degradation/i);
+  });
 });

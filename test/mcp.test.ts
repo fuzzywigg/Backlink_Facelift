@@ -153,4 +153,50 @@ describe('MCP_MANIFEST', () => {
     expect(MCP_MANIFEST.name_for_human).toContain('Backlink');
     expect(MCP_MANIFEST.name_for_model).not.toBe(MCP_MANIFEST.name_for_human);
   });
+
+  it('locks top-level manifest keys to the known claw-mcp set', () => {
+    expect(Object.keys(MCP_MANIFEST).sort()).toEqual(
+      [
+        'api',
+        'auth',
+        'description_for_human',
+        'description_for_model',
+        'name_for_human',
+        'name_for_model',
+        'schema_version',
+        'tools',
+      ].sort(),
+    );
+  });
+
+  it('gives station_select exactly one property', () => {
+    const tool = toolNamed('station_select');
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['station_name']);
+  });
+
+  it('gives genre_filter exactly one property', () => {
+    const tool = toolNamed('genre_filter');
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['genre']);
+  });
+
+  it('gives curator_prompt exactly mood + genre properties', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(Object.keys(tool.input_schema.properties).sort()).toEqual(['genre', 'mood']);
+  });
+
+  it('gives now_playing zero properties', () => {
+    const tool = toolNamed('now_playing');
+    expect(Object.keys(tool.input_schema.properties)).toEqual([]);
+    expect(tool.input_schema.required).toBeUndefined();
+  });
+
+  it('mentions IPTV radio service in the model description', () => {
+    expect(MCP_MANIFEST.description_for_model).toMatch(/station/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/genre/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/curator|mood/i);
+  });
+
+  it('keeps schema_version as a simple vN token', () => {
+    expect(MCP_MANIFEST.schema_version).toMatch(/^v\d+$/);
+  });
 });
