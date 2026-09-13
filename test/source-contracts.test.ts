@@ -2216,5 +2216,265 @@ describe('source ↔ product contracts', () => {
     expect(files).toEqual(['genres.ts', 'index.ts', 'mcp.ts', 'parser.ts', 'types.ts']);
   });
 
+  // --- HEAVY burn (post-#53): source ↔ product contract deepen ---
 
+  it('locks callGemini generationConfig maxOutputTokens 512 temperature 0.7', () => {
+    expect(read('src/index.ts')).toContain(
+      'generationConfig: { maxOutputTokens: 512, temperature: 0.7 }',
+    );
+  });
+
+  it('locks Gemini generateContent URL path v1beta models gemini-2.0-flash', () => {
+    expect(read('src/index.ts')).toContain(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=',
+    );
+  });
+
+  it('locks Gemini JSON extract regex open-bracket object close-bracket', () => {
+    expect(read('src/index.ts')).toContain('text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+  });
+
+  it('locks callGemini candidates[0] parts[0] text coalesce empty', () => {
+    expect(read('src/index.ts')).toContain(
+      "const text = data.candidates[0]?.content?.parts[0]?.text ?? ''",
+    );
+  });
+
+  it('locks /curate query join mood genreParam fallback genre', () => {
+    expect(read('src/index.ts')).toContain(
+      "const query = [mood, genreParam].filter(Boolean).join(' ') || genre",
+    );
+  });
+
+  it('locks callGemini query join mood genre with slash separator', () => {
+    expect(read('src/index.ts')).toContain(
+      "const query = [mood, genre].filter(Boolean).join(' / ')",
+    );
+  });
+
+  it('locks root powered_by Backlink/Geryon crab emoji', () => {
+    expect(read('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('locks root endpoints map keys /curate /stations /genres /health', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("'/curate': 'GET ?genre=&mood= — AI-curated station picks'");
+    expect(index).toContain("'/stations': 'GET ?genre= — Raw station list'");
+    expect(index).toContain("'/genres': 'GET — Available genre categories'");
+    expect(index).toContain("'/health': 'GET — Health check'");
+  });
+
+  it('locks /stations response shape genre count stations', () => {
+    expect(read('src/index.ts')).toContain('return c.json({ genre, count: stations.length, stations })');
+  });
+
+  it('locks /stations and /curate catalog 503 identical error payload', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/error: 'Stream catalog unavailable', retry_after: 60/g)]).toHaveLength(
+      2,
+    );
+  });
+
+  it('locks exactly three retry_after 60 occurrences', () => {
+    expect([...read('src/index.ts').matchAll(/retry_after:\s*60/g)]).toHaveLength(3);
+  });
+
+  it('locks exactly three , 503) status returns', () => {
+    expect([...read('src/index.ts').matchAll(/,\s*503\)/g)]).toHaveLength(3);
+  });
+
+  it('locks exactly five app.get route registrations', () => {
+    expect([...read('src/index.ts').matchAll(/app\.get\(/g)]).toHaveLength(5);
+  });
+
+  it('locks route registration order / then /health /genres /stations /curate', () => {
+    const index = read('src/index.ts');
+    const root = index.indexOf("app.get('/',");
+    const health = index.indexOf("app.get('/health'");
+    const genres = index.indexOf("app.get('/genres'");
+    const stations = index.indexOf("app.get('/stations'");
+    const curate = index.indexOf("app.get('/curate'");
+    expect(root).toBeGreaterThan(-1);
+    expect(health).toBeGreaterThan(root);
+    expect(genres).toBeGreaterThan(health);
+    expect(stations).toBeGreaterThan(genres);
+    expect(curate).toBeGreaterThan(stations);
+  });
+
+  it('locks Hono Bindings Env generic on app', () => {
+    expect(read('src/index.ts')).toContain("const app = new Hono<{ Bindings: Env }>()");
+  });
+
+  it('locks imports cors from hono/cors and Hono from hono', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("import { Hono } from 'hono'");
+    expect(index).toContain("import { cors } from 'hono/cors'");
+  });
+
+  it('locks genres import GENRE_MAP VALID_GENRES resolveGenre', () => {
+    expect(read('src/index.ts')).toContain(
+      "import { GENRE_MAP, VALID_GENRES, resolveGenre } from './genres'",
+    );
+  });
+
+  it('locks parser import parseM3U Station', () => {
+    expect(read('src/index.ts')).toContain("import { parseM3U, Station } from './parser'");
+  });
+
+  it('locks types import Env', () => {
+    expect(read('src/index.ts')).toContain("import { Env } from './types'");
+  });
+
+  it('locks /curate resolveGenre(genreParam ?? mood)', () => {
+    expect(read('src/index.ts')).toContain('const genre = resolveGenre(genreParam ?? mood)');
+  });
+
+  it('locks /stations resolveGenre(genreParam) without mood', () => {
+    const index = read('src/index.ts');
+    const stations = index.slice(index.indexOf("app.get('/stations'"), index.indexOf("app.get('/curate'"));
+    expect(stations).toContain('const genre = resolveGenre(genreParam)');
+    expect(stations).not.toContain('mood');
+  });
+
+  it('locks fetchStations signature genre string kv KVNamespace', () => {
+    expect(read('src/index.ts')).toContain(
+      'async function fetchStations(genre: string, kv: KVNamespace): Promise<Station[]>',
+    );
+  });
+
+  it('locks callGemini signature apiKey stations genre mood optional', () => {
+    expect(read('src/index.ts')).toContain(
+      'async function callGemini(\n  apiKey: string,\n  stations: Station[],\n  genre: string,\n  mood?: string,\n)',
+    );
+  });
+
+  it('locks curated_by exact Backlink/Geryon without crab on /curate', () => {
+    expect(read('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+    expect(read('src/index.ts')).not.toContain("curated_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('locks Env interface export with three fields only', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/^export interface Env \{/m);
+    expect(types).toContain('CATALOG_CACHE: KVNamespace');
+    expect(types).toContain('GEMINI_API_KEY?: string');
+    expect(types).toContain('VERSION?: string');
+    expect(types).not.toContain('ACCOUNT_ID');
+  });
+
+  it('locks types.ts file length under 10 lines lean', () => {
+    expect(read('src/types.ts').split('\n').length).toBeLessThanOrEqual(10);
+  });
+
+  it('locks index.ts free of eval Function new Function', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/\beval\s*\(/);
+    expect(index).not.toContain('new Function');
+  });
+
+  it('locks index.ts free of WebSocket DurableObject', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/WebSocket|DurableObject|D1Database/i);
+  });
+
+  it('locks index free of fetchStations export — private helper', () => {
+    expect(read('src/index.ts')).not.toMatch(/export\s+(async\s+)?function\s+fetchStations/);
+    expect(read('src/index.ts')).not.toMatch(/export\s+(async\s+)?function\s+callGemini/);
+  });
+
+  it('locks MCP_MANIFEST tools required mood only on curator_prompt in source', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('required: ["mood"]');
+    expect(mcp).toContain('required: ["station_name"]');
+    expect(mcp).toContain('required: ["genre"]');
+  });
+
+  it('locks MCP api url /openapi.json in source text', () => {
+    expect(read('src/mcp.ts')).toContain('url: "/openapi.json"');
+    expect(read('src/mcp.ts')).toContain('type: "openapi"');
+  });
+
+  it('locks parser Station fields name url logo group language country optional mix', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('name: string');
+    expect(parser).toContain('url: string');
+    expect(parser).toContain('logo?: string');
+    expect(parser).toContain('group?: string');
+    expect(parser).toContain('language?: string');
+    expect(parser).toContain('country?: string');
+  });
+
+  it('locks parser export function parseM3U', () => {
+    expect(read('src/parser.ts')).toMatch(/export function parseM3U\(raw: string\): Station\[\]/);
+  });
+
+  it('locks genres VALID_GENRES as readonly array export', () => {
+    expect(read('src/genres.ts')).toMatch(/export const VALID_GENRES = \[/);
+    expect(read('src/genres.ts')).toContain('] as const');
+  });
+
+  it('locks genres GENRE_MAP as Record or satisfies string values in source', () => {
+    expect(read('src/genres.ts')).toMatch(/export const GENRE_MAP/);
+  });
+
+  it('locks resolveGenre export function signature', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /export function resolveGenre\(/,
+    );
+  });
+
+  it('cross-locks root description with package.json description', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(read('src/index.ts')).toContain(`description: '${pkg.description}'`);
+  });
+
+  it('cross-locks VERSION fallback 0.1.0 with package.json version', () => {
+    const pkg = JSON.parse(read('package.json')) as { version: string };
+    expect(pkg.version).toBe('0.1.0');
+    expect(read('src/index.ts')).toContain(`c.env.VERSION ?? '${pkg.version}'`);
+  });
+
+  it('locks index line count under 160 lean worker budget', () => {
+    expect(read('src/index.ts').split('\n').length).toBeLessThanOrEqual(160);
+  });
+
+  it('locks mcp.ts line count under 80 lean manifest budget', () => {
+    expect(read('src/mcp.ts').split('\n').length).toBeLessThanOrEqual(80);
+  });
+
+  it('locks no TODO FIXME HACK XXX in src tree', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(rel)).not.toMatch(/TODO|FIXME|HACK|XXX/);
+    }
+  });
+
+  it('locks no any type assertions in index via as any', () => {
+    expect(read('src/index.ts')).not.toContain('as any');
+    expect(read('src/parser.ts')).not.toContain('as any');
+    expect(read('src/genres.ts')).not.toContain('as any');
+  });
+
+  it('locks expirationTtl 3600 exactly once in index', () => {
+    expect([...read('src/index.ts').matchAll(/expirationTtl:\s*3600/g)]).toHaveLength(1);
+  });
+
+  it('locks stations.slice(0, 50) and stations.slice(0, 5) both present', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/\.slice\(0,\s*50\)/);
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it('locks top 3 stations wording in Gemini prompt', () => {
+    expect(read('src/index.ts')).toContain('pick the top 3 stations');
+  });
+
+  it('locks Return JSON only array-of-objects instruction in prompt', () => {
+    expect(read('src/index.ts')).toContain('Return JSON only:');
+  });
+
+  it('locks User request and Available stations prompt labels', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('User request: ${query}');
+    expect(index).toContain('Available stations:\\n${stationList}');
+  });
 });
