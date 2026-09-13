@@ -11,11 +11,19 @@ LLM-curated internet radio on CF Workers. Proof of work for public build page.
 Domain target: backlink.fuzzywigg.com
 
 ## Safe Agent Actions
-- Update station genre mappings in `src/index.ts`
+- Update station genre mappings in `src/genres.ts` (wired from `src/index.ts`)
 - Improve M3U parser in `src/parser.ts`
+- Add / extend unit tests under `test/` for existing behavior
 - Add new endpoints (e.g., `/playlist`, `/now-playing`)
 - Update docs and deploy guides
 - Bump dependency versions
+
+## Verify
+```bash
+npm ci
+npm run typecheck
+npm test
+```
 
 ## Escalate to Human
 - Changes to GEMINI_API_KEY handling or any secret management
