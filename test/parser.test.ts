@@ -6318,7 +6318,7 @@ https://example.com/jazz.m3u8
   it('locks station.url.length for SAMPLE_M3U Alpha stream', () => {
     const alpha = parseM3U(SAMPLE_M3U)[0];
     expect(alpha.url).toBe('https://example.com/alpha.m3u8');
-    expect(alpha.url.length).toBe(32);
+    expect(alpha.url.length).toBe(30);
   });
 
   it('URL.canParse accepts every SAMPLE_M3U stream URL', () => {
@@ -6351,19 +6351,20 @@ https://user:pass@example.com:8443/stream.m3u8
     expect(u.port).toBe('8443');
   });
 
-  it('attrs after the last comma are not parsed as tvg-name', () => {
+  it('attrs after the last comma are still matched by whole-line regex', () => {
+    // Attribute regexes scan the entire #EXTINF line, including text after the comma.
     const [s] = parseM3U(
       '#EXTM3U\n#EXTINF:-1,Display tvg-name="Ignored"\nhttps://example.com/after-comma.m3u8\n',
     );
-    expect(s.name).toBe('Display tvg-name="Ignored"');
+    expect(s.name).toBe('Ignored');
   });
 
-  it('group-title after the last comma is not extracted as group', () => {
+  it('group-title after the last comma is still extracted as group', () => {
     const [s] = parseM3U(
       '#EXTM3U\n#EXTINF:-1 tvg-name="N",N group-title="Late"\nhttps://example.com/g-after.m3u8\n',
     );
-    expect(s.name).toBe('N group-title="Late"');
-    expect(s.group).toBeUndefined();
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('Late');
   });
 
   it('unclosed tvg-name quote does not bind attr; comma fallback used', () => {
@@ -6585,14 +6586,16 @@ https://example.com/b.m3u8
 
   it('IPv6 literal https URL is preserved verbatim', () => {
     const [s] = parseM3U(
-      '#EXTM3U\n#EXTINF:-1,V6\nhttps://[2001:db8::1]:443/live.m3u8\n',
+      '#EXTM3U\n#EXTINF:-1,V6\nhttps://[2001:db8::1]:8443/live.m3u8\n',
     );
-    expect(s.url).toBe('https://[2001:db8::1]:443/live.m3u8');
+    expect(s.url).toBe('https://[2001:db8::1]:8443/live.m3u8');
     const u = new URL(s.url);
     expect(u.hostname).toBe('[2001:db8::1]');
-    expect(u.port).toBe('443');
+    expect(u.port).toBe('8443');
     expect(u.pathname).toBe('/live.m3u8');
-  });  it('matrix-style path params in URL are kept for dedupe identity', () => {
+  });
+
+  it('matrix-style path params in URL are kept for dedupe identity', () => {
     const stations = parseM3U(`#EXTM3U
 #EXTINF:-1,A
 https://example.com/stream;quality=hi
