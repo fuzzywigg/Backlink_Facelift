@@ -8871,9 +8871,13 @@ https://example.com/s.m3u8
     }
   });
 
-  it('rejects TRACE method on /health with non-success', async () => {
-    const res = await app.request('/health', { method: 'TRACE' }, testEnv());
+  it('rejects unsupported FOOBAR method on /health with non-success', async () => {
+    const res = await app.request('/health', { method: 'FOOBAR' }, testEnv());
     expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+
+  it('TRACE method is unsupported by the request runtime (throws sync)', () => {
+    expect(() => app.request('/health', { method: 'TRACE' }, testEnv())).toThrow(/TRACE/i);
   });
 
   it('GET /stations empty catalog returns count 0 and empty stations', async () => {
