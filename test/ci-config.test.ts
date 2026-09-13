@@ -2113,5 +2113,189 @@ describe('CI / package test wiring', () => {
     expect(pkg.bin).toBeUndefined();
     expect(pkg.engines).toBeUndefined();
   });
-});
 
+  it('locks CI concurrency group exact string ci-${{ github.workflow }}-${{ github.ref }}', () => {
+    expect(read('.github/workflows/ci.yml')).toContain(
+      'group: ci-${{ github.workflow }}-${{ github.ref }}',
+    );
+  });
+
+  it('locks deploy concurrency group exact string deploy-${{ github.workflow }}', () => {
+    expect(read('.github/workflows/deploy.yml')).toContain(
+      'group: deploy-${{ github.workflow }}',
+    );
+  });
+
+  it('locks CI job timeout-minutes numbers typecheck 10 test 15 hygiene 5', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const typecheck = ci.split(/^ {2}typecheck:/m)[1].split(/^ {2}test:/m)[0];
+    const test = ci.split(/^ {2}test:/m)[1].split(/^ {2}hygiene:/m)[0];
+    const hygiene = ci.split(/^ {2}hygiene:/m)[1];
+    expect(typecheck).toMatch(/timeout-minutes:\s*10\b/);
+    expect(test).toMatch(/timeout-minutes:\s*15\b/);
+    expect(hygiene).toMatch(/timeout-minutes:\s*5\b/);
+  });
+
+  it('locks deploy job timeout-minutes to 20', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(/timeout-minutes:\s*20\b/);
+  });
+
+  it('locks node-version "20" in both CI and deploy setup-node steps', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/node-version:\s*"20"/);
+    expect(read('.github/workflows/deploy.yml')).toMatch(/node-version:\s*"20"/);
+    expect((read('.github/workflows/ci.yml').match(/node-version:\s*"20"/g) ?? []).length).toBe(3);
+  });
+
+  it('locks coverage artifact retention-days exactly 14', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/retention-days:\s*14\b/);
+    expect(ci).not.toMatch(/retention-days:\s*(?!14)\d+/);
+  });
+
+  it('locks package-lock.json lockfileVersion exact integer 3', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { lockfileVersion: number };
+    expect(lock.lockfileVersion).toBe(3);
+    expect(Number.isInteger(lock.lockfileVersion)).toBe(true);
+  });
+
+  it('CI on: block has push and pull_request but never pull_request_target', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const onBlock = ci.slice(ci.indexOf('\non:'), ci.indexOf('\nconcurrency:'));
+    expect(onBlock).toMatch(/^\s*push:/m);
+    expect(onBlock).toMatch(/^\s*pull_request:/m);
+    expect(onBlock).not.toMatch(/pull_request_target/);
+  });
+
+  it('hygiene Check required files includes every test/*.test.ts suite file', () => {
+    const hygiene = read('.github/workflows/ci.yml').split('name: Check required files')[1];
+    for (const file of [
+      'test/parser.test.ts',
+      'test/genres.test.ts',
+      'test/routes.test.ts',
+      'test/mcp.test.ts',
+      'test/helpers.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+      'test/helpers.ts',
+    ]) {
+      expect(hygiene).toContain(`test -f ${file}`);
+    }
+  });
+
+  it('locks vitest include pattern to test/**/*.test.ts exactly', () => {
+    expect(read('vitest.config.ts')).toContain("include: ['test/**/*.test.ts']");
+  });
+
+  it('locks vitest coverage exclude to src/types.ts only (array length 1)', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/exclude:\s*\['src\/types\.ts'\]/);
+    const excludeMatch = cfg.match(/exclude:\s*\[([^\]]+)\]/);
+    expect(excludeMatch?.[1].trim()).toBe("'src/types.ts'");
+  });
+
+  it('deploy workflow on: is workflow_dispatch only (no push/pull_request)', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const onBlock = deploy.slice(deploy.indexOf('\non:'), deploy.indexOf('\npermissions:'));
+    expect(onBlock).toMatch(/workflow_dispatch/);
+    expect(onBlock).not.toMatch(/^\s*push:/m);
+    expect(onBlock).not.toMatch(/^\s*pull_request:/m);
+    expect(onBlock).not.toMatch(/pull_request_target/);
+  });
+
+  it('tsconfig include locks src test and vitest.config.ts', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as { include: string[] };
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('tsconfig strict and noEmit stay enabled', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+    };
+    expect(ts.compilerOptions.strict).toBe(true);
+    expect(ts.compilerOptions.noEmit).toBe(true);
+    expect(ts.compilerOptions.target).toBe('ES2022');
+  });
+
+  it('dependabot npm ignore locks semver-major update-types array', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('update-types: ["version-update:semver-major"]');
+    expect(dep).toMatch(/package-ecosystem:\s*"npm"/);
+    expect(dep).toMatch(/interval:\s*"monthly"/);
+  });
+
+  it('gitignore locks coverage/ node_modules/ and .dev.vars secret paths', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^coverage\/$/m);
+    expect(gi).toMatch(/^node_modules\/$/m);
+    expect(gi).toMatch(/^\.dev\.vars$/m);
+    expect(gi).toMatch(/^\.env$/m);
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+  });
+
+  it('README documents verify scripts aligning with package.json', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/npm (run )?typecheck|typecheck/);
+    expect(readme.toLowerCase()).toMatch(/test/);
+  });
+
+  it('DEPLOY.md documents HITL and wrangler secret put GEMINI_API_KEY', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/HITL/i);
+    expect(deploy).toContain('wrangler secret put GEMINI_API_KEY');
+    expect(deploy).not.toMatch(/ANTHROPIC_API_KEY\s*=/);
+  });
+
+  it('AGENTS.md verify block lists npm ci typecheck test and test:coverage', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+  });
+
+  it('environment.json stays name+install only with no secrets keys', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, unknown>;
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+    expect(env).not.toHaveProperty('secrets');
+    expect(env).not.toHaveProperty('GEMINI_API_KEY');
+    expect(env).not.toHaveProperty('CF_API_TOKEN');
+    expect(JSON.stringify(env)).not.toMatch(/sk-|api[_-]?key|token/i);
+  });
+
+  it('package.json scripts lock typecheck test test:coverage and test:watch', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+    expect(pkg.scripts['test:watch']).toBe('vitest');
+  });
+
+  it('CI defaults.run.shell is bash and permissions contents read', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/);
+    expect(ci).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+  });
+
+  it('hygiene asserts vitest thresholds lines functions statements and branches 100', () => {
+    const hygiene = read('.github/workflows/ci.yml').split('name: Hygiene')[1];
+    expect(hygiene).toContain("grep -q 'lines: 100' vitest.config.ts");
+    expect(hygiene).toContain("grep -q 'functions: 100' vitest.config.ts");
+    expect(hygiene).toContain("grep -q 'statements: 100' vitest.config.ts");
+    expect(hygiene).toContain("grep -q 'branches: 100' vitest.config.ts");
+  });
+
+  it('vitest coverage include is src/**/*.ts and provider v8', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toContain("include: ['src/**/*.ts']");
+    expect(cfg).toMatch(/provider:\s*'v8'/);
+    expect(cfg).toContain("'lcov'");
+  });
+
+  it('CI cancel-in-progress true while deploy cancel-in-progress false', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/cancel-in-progress:\s*true/);
+    expect(read('.github/workflows/deploy.yml')).toMatch(/cancel-in-progress:\s*false/);
+  });
+
+});

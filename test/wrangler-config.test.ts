@@ -891,5 +891,121 @@ VERSION = "0.1.0"
   it('vars table appears exactly once', () => {
     expect((toml.match(/^\[vars\]/gm) ?? []).length).toBe(1);
   });
-});
 
+  it('wrangler.toml uses LF-only newlines with zero CR bytes', () => {
+    expect(toml.includes('\r')).toBe(false);
+    expect(toml.split('\n').join('\n')).toBe(toml);
+  });
+
+  it('wrangler.toml contains no tab characters', () => {
+    expect(toml.includes('\t')).toBe(false);
+  });
+
+  it('wrangler.toml has no UTF-8 BOM prefix', () => {
+    expect(toml.charCodeAt(0)).not.toBe(0xfeff);
+    expect(toml.startsWith('\ufeff')).toBe(false);
+    const buf = readFileSync(join(root, 'wrangler.toml'));
+    expect(buf[0]).not.toBe(0xef);
+  });
+
+  it('locks top-level key order name → main → compatibility_date', () => {
+    const nameIdx = toml.indexOf('name = "backlink"');
+    const mainIdx = toml.indexOf('main = "src/index.ts"');
+    const compatIdx = toml.indexOf('compatibility_date = "2025-01-01"');
+    expect(nameIdx).toBeGreaterThan(-1);
+    expect(mainIdx).toBeGreaterThan(nameIdx);
+    expect(compatIdx).toBeGreaterThan(mainIdx);
+  });
+
+  it('locks table order kv_namespaces → routes → vars', () => {
+    const kv = toml.indexOf('[[kv_namespaces]]');
+    const routes = toml.indexOf('[[routes]]');
+    const vars = toml.indexOf('[vars]');
+    expect(kv).toBeGreaterThan(-1);
+    expect(routes).toBeGreaterThan(kv);
+    expect(vars).toBeGreaterThan(routes);
+  });
+
+  it('locks kv_namespaces binding before id key order', () => {
+    const block = toml.slice(toml.indexOf('[[kv_namespaces]]'), toml.indexOf('[[routes]]'));
+    expect(block.indexOf('binding = "CATALOG_CACHE"')).toBeLessThan(block.indexOf('id = "'));
+  });
+
+  it('locks routes pattern before custom_domain key order', () => {
+    const block = toml.slice(toml.indexOf('[[routes]]'), toml.indexOf('[vars]'));
+    expect(block.indexOf('pattern = "backlink.fuzzywigg.com"')).toBeLessThan(
+      block.indexOf('custom_domain = true'),
+    );
+  });
+
+  it('does not declare R2 D1 Durable Objects or AI bindings', () => {
+    expect(toml).not.toMatch(/r2_buckets|\[\[r2/i);
+    expect(toml).not.toMatch(/d1_databases|\[\[d1/i);
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/^\s*\[ai\]/m);
+    expect(toml).not.toMatch(/workers_ai/i);
+  });
+
+  it('VERSION var aligns with package.json version 0.1.0', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+      version: string;
+    };
+    expect(pkg.version).toBe('0.1.0');
+    expect(toml).toContain(`VERSION = "${pkg.version}"`);
+  });
+
+  it('locks single KV binding name CATALOG_CACHE exactly', () => {
+    const bindings = [...toml.matchAll(/binding\s*=\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(bindings).toEqual(['CATALOG_CACHE']);
+  });
+
+  it('secrets are documented via CLI comment not assigned values', () => {
+    expect(toml).toContain('# Secrets (set via CLI, never commit):');
+    expect(toml).toContain('# wrangler secret put GEMINI_API_KEY');
+    expect(toml).not.toMatch(/^\s*GEMINI_API_KEY\s*=/m);
+  });
+
+  it('lean line budget: non-empty lines stay under 16', () => {
+    const nonEmpty = toml.split('\n').filter((l) => l.trim().length > 0);
+    expect(nonEmpty.length).toBeLessThan(16);
+    expect(nonEmpty.length).toBeGreaterThan(8);
+  });
+
+  it('file byte length stays under 400 for lean config', () => {
+    expect(Buffer.byteLength(toml, 'utf8')).toBeLessThan(400);
+    expect(Buffer.byteLength(toml, 'utf8')).toBeGreaterThan(100);
+  });
+
+  it('compatibility_date locks exact 2025-01-01 quoted string', () => {
+    expect(toml).toMatch(/^compatibility_date = "2025-01-01"$/m);
+  });
+
+  it('worker name and main entry are double-quoted strings', () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).toMatch(/^main = "src\/index\.ts"$/m);
+  });
+
+  it('custom_domain is bare boolean true not a string', () => {
+    expect(toml).toMatch(/^custom_domain = true$/m);
+    expect(toml).not.toMatch(/custom_domain\s*=\s*"/);
+  });
+
+  it('KV id is 32 lowercase hex chars', () => {
+    const id = toml.match(/id = "([a-f0-9]{32})"/)?.[1];
+    expect(id).toBe('edb6ca4df12f4f45b40508b3dda3c432');
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+  });
+
+  it('does not declare workers_dev triggers or env.* tables', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+    expect(toml).not.toMatch(/\[triggers\]/);
+    expect(toml).not.toMatch(/\[env\./);
+  });
+
+  it('cross-locks CATALOG_CACHE binding with src/types.ts Env field', () => {
+    const types = readFileSync(join(root, 'src/types.ts'), 'utf8');
+    expect(toml).toContain('binding = "CATALOG_CACHE"');
+    expect(types).toContain('CATALOG_CACHE: KVNamespace');
+  });
+
+});

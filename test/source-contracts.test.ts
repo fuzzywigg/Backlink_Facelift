@@ -1779,4 +1779,185 @@ describe('source ↔ product contracts', () => {
   it('locks Env comment referencing issue #8 for optional GEMINI', () => {
     expect(read('src/types.ts')).toMatch(/#8/);
   });
+
+  it('locks IPTV_BASE exact const string assignment', () => {
+    expect(read('src/index.ts')).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'",
+    );
+  });
+
+  it('locks cacheKey shape stations:${genre} adjacent to kv.get', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('const cacheKey = `stations:${genre}`');
+    expect(index).toContain('const cached = await kv.get(cacheKey)');
+    expect(index.indexOf('const cacheKey')).toBeLessThan(index.indexOf('kv.get(cacheKey)'));
+  });
+
+  it('locks Gemini generationConfig maxOutputTokens 512 and temperature 0.7 order', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('generationConfig: { maxOutputTokens: 512, temperature: 0.7 }');
+    const genIdx = index.indexOf('generationConfig:');
+    const maxIdx = index.indexOf('maxOutputTokens: 512', genIdx);
+    const tempIdx = index.indexOf('temperature: 0.7', genIdx);
+    expect(maxIdx).toBeGreaterThan(genIdx);
+    expect(tempIdx).toBeGreaterThan(maxIdx);
+  });
+
+  it('locks 503 Stream catalog unavailable payload with retry_after 60', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain(
+      "return c.json({ error: 'Stream catalog unavailable', retry_after: 60 }, 503)",
+    );
+    expect(
+      (index.match(/error: 'Stream catalog unavailable', retry_after: 60/g) ?? []).length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it('locks 503 Curation service unavailable payload with retry_after 60', () => {
+    expect(read('src/index.ts')).toContain(
+      "return c.json({ error: 'Curation service unavailable', retry_after: 60 }, 503)",
+    );
+  });
+
+  it('locks Hono Bindings Env generic on app construction', () => {
+    expect(read('src/index.ts')).toContain('const app = new Hono<{ Bindings: Env }>()');
+  });
+
+  it('locks index export default app fence at file end', () => {
+    const index = read('src/index.ts').trimEnd();
+    expect(index.endsWith('export default app')).toBe(true);
+  });
+
+  it('locks callGemini prompt join with User request and Available stations labels', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('User request: ${query}');
+    expect(index).toContain('Available stations:\\n${stationList}');
+    expect(index.indexOf('User request:')).toBeLessThan(index.indexOf('Available stations:'));
+  });
+
+  it('locks query join mood / genre with filter(Boolean)', () => {
+    expect(read('src/index.ts')).toContain(
+      "const query = [mood, genre].filter(Boolean).join(' / ')",
+    );
+  });
+
+  it('locks IPTV fetch URL template `${IPTV_BASE}/${genre}.m3u`', () => {
+    expect(read('src/index.ts')).toContain('const url = `${IPTV_BASE}/${genre}.m3u`');
+  });
+
+  it('locks music.m3u fallback path `${IPTV_BASE}/music.m3u`', () => {
+    expect(read('src/index.ts')).toContain('await fetch(`${IPTV_BASE}/music.m3u`)');
+  });
+
+  it('locks Gemini fetch URL template with gemini-2.0-flash:generateContent', () => {
+    expect(read('src/index.ts')).toContain(
+      '`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`',
+    );
+  });
+
+  it('locks content-type application/json header adjacent to POST method', () => {
+    const index = read('src/index.ts');
+    const methodIdx = index.indexOf("method: 'POST'");
+    const headerIdx = index.indexOf("'content-type': 'application/json'");
+    expect(methodIdx).toBeGreaterThan(-1);
+    expect(headerIdx).toBeGreaterThan(methodIdx);
+  });
+
+  it('locks parser Station interface field order name url logo group language country', () => {
+    const parser = read('src/parser.ts');
+    const iface = parser.slice(parser.indexOf('export interface Station'), parser.indexOf('}'));
+    const nameIdx = iface.indexOf('name: string');
+    const urlIdx = iface.indexOf('url: string');
+    const logoIdx = iface.indexOf('logo?: string');
+    const groupIdx = iface.indexOf('group?: string');
+    const langIdx = iface.indexOf('language?: string');
+    const countryIdx = iface.indexOf('country?: string');
+    expect(nameIdx).toBeLessThan(urlIdx);
+    expect(urlIdx).toBeLessThan(logoIdx);
+    expect(logoIdx).toBeLessThan(groupIdx);
+    expect(groupIdx).toBeLessThan(langIdx);
+    expect(langIdx).toBeLessThan(countryIdx);
+  });
+
+  it('locks parser http scheme filter startsWith http:// or https://', () => {
+    expect(read('src/parser.ts')).toContain(
+      "line.startsWith('http://') || line.startsWith('https://')",
+    );
+  });
+
+  it('locks genres VALID_GENRES export fence and GENRE_MAP export', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toContain('export const GENRE_MAP');
+    expect(genres).toContain('export const VALID_GENRES');
+    expect(genres).toContain('] as const');
+  });
+
+  it('locks VALID_GENRES tuple order starting music ambient jazz', () => {
+    const genres = read('src/genres.ts');
+    const block = genres.slice(genres.indexOf('export const VALID_GENRES'), genres.indexOf('] as const'));
+    expect(block.indexOf("'music'")).toBeLessThan(block.indexOf("'ambient'"));
+    expect(block.indexOf("'ambient'")).toBeLessThan(block.indexOf("'jazz'"));
+    expect(block.indexOf("'jazz'")).toBeLessThan(block.indexOf("'classical'"));
+  });
+
+  it('locks MCP_MANIFEST schema_version v1 and auth type none', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('schema_version: "v1"');
+    expect(mcp).toContain('auth: { type: "none" }');
+    expect(mcp).toContain('name_for_model: "backlink"');
+  });
+
+  it('locks MCP tool name order station_select now_playing genre_filter curator_prompt', () => {
+    const mcp = read('src/mcp.ts');
+    const select = mcp.indexOf('name: "station_select"');
+    const now = mcp.indexOf('name: "now_playing"');
+    const genre = mcp.indexOf('name: "genre_filter"');
+    const curator = mcp.indexOf('name: "curator_prompt"');
+    expect(select).toBeGreaterThan(-1);
+    expect(now).toBeGreaterThan(select);
+    expect(genre).toBeGreaterThan(now);
+    expect(curator).toBeGreaterThan(genre);
+  });
+
+  it('locks types Env field order CATALOG_CACHE then optional GEMINI then VERSION', () => {
+    const types = read('src/types.ts');
+    const cache = types.indexOf('CATALOG_CACHE: KVNamespace');
+    const gemini = types.indexOf('GEMINI_API_KEY?: string');
+    const version = types.indexOf('VERSION?: string');
+    expect(cache).toBeGreaterThan(-1);
+    expect(gemini).toBeGreaterThan(cache);
+    expect(version).toBeGreaterThan(gemini);
+  });
+
+  it('locks cors middleware registration before route handlers', () => {
+    const index = read('src/index.ts');
+    expect(index.indexOf("app.use('*', cors())")).toBeLessThan(index.indexOf("app.get('/'"));
+  });
+
+  it('locks /health ok true version fallback 0.1.0', () => {
+    expect(read('src/index.ts')).toContain(
+      "return c.json({ ok: true, version: c.env.VERSION ?? '0.1.0' })",
+    );
+  });
+
+  it('locks stationList map template with group language and url', () => {
+    expect(read('src/index.ts')).toContain(
+      '`${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? \'en\'}] — ${s.url}`',
+    );
+  });
+
+  it('locks Backlink curator prompt opening sentence fence', () => {
+    expect(read('src/index.ts')).toContain(
+      'You are Backlink, an AI radio curator. Given this list of radio stations',
+    );
+  });
+
+  it('cross-locks IPTV_BASE host with wrangler custom domain host family', () => {
+    const index = read('src/index.ts');
+    const toml = read('wrangler.toml');
+    expect(index).toContain('iptv-org.github.io');
+    expect(toml).toContain('backlink.fuzzywigg.com');
+    expect(index).not.toContain('backlink.fuzzywigg.com');
+  });
+
 });
