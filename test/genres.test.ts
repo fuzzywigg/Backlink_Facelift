@@ -122,4 +122,33 @@ describe('resolveGenre', () => {
     expect(GENRE_MAP.sports).toBe('sports');
     expect(resolveGenre('sports')).toBe('sports');
   });
+
+  it('resolves every VALID_GENRES id through an empty custom map', () => {
+    for (const genre of VALID_GENRES) {
+      expect(resolveGenre(genre, {})).toBe(genre);
+    }
+  });
+
+  it('falls back to music for unknown labels even with an empty custom map', () => {
+    expect(resolveGenre('k-pop', {})).toBe('music');
+    expect(resolveGenre('radio', {})).toBe('music');
+  });
+
+  it('lets a custom map override a canonical genre id', () => {
+    expect(resolveGenre('jazz', { jazz: 'rock' })).toBe('rock');
+    // Default map is unchanged
+    expect(resolveGenre('jazz')).toBe('jazz');
+  });
+
+  it('defaults missing/blank input even when a custom map is provided', () => {
+    expect(resolveGenre(undefined, { chill: 'ambient' })).toBe('music');
+    expect(resolveGenre('', { chill: 'ambient' })).toBe('music');
+    expect(resolveGenre('   ', { chill: 'ambient' })).toBe('music');
+  });
+
+  it('keeps GENRE_MAP values within VALID_GENRES', () => {
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES).toContain(value);
+    }
+  });
 });

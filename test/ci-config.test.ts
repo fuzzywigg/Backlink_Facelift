@@ -75,4 +75,55 @@ describe('CI / package test wiring', () => {
       expect(read(rel).length).toBeGreaterThan(0);
     }
   });
+
+  it('keeps TypeScript on the 5.x line (skip TS7 major)', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    const ts = pkg.devDependencies.typescript;
+    expect(ts).toMatch(/^\^?5\./);
+    expect(ts).not.toMatch(/^[\^~]?[67]\./);
+  });
+
+  it('pins CI to Node 20 with npm ci + coverage artifact upload', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/node-version:\s*"20"/);
+    expect(ci).toMatch(/npm ci/);
+    expect(ci).toMatch(/upload-artifact@v4/);
+    expect(ci).toMatch(/coverage-report/);
+    expect(ci).toMatch(/retention-days:\s*14/);
+  });
+
+  it('documents AGENTS.md verify scripts matching package.json', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+  });
+
+  it('ignores coverage output and local secrets in .gitignore', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^coverage\/$/m);
+    expect(gi).toMatch(/^\.env$/m);
+    expect(gi).toMatch(/^\.dev\.vars$/m);
+  });
+
+  it('keeps Dependabot npm major updates ignored (safe patch/minor only)', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/dependency-name:\s*"\*"/);
+    expect(dep).toMatch(/update-types:\s*\["version-update:semver-major"\]/);
+  });
+
+  it('exports package as ESM named backlink', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      name: string;
+      type: string;
+      scripts: Record<string, string>;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.type).toBe('module');
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+  });
 });

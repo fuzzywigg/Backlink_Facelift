@@ -73,4 +73,41 @@ describe('MCP_MANIFEST', () => {
     const tool = toolNamed('curator_prompt');
     expect(tool.input_schema.properties.mood?.description).toMatch(/focus work|late night jazz|morning energy/i);
   });
+
+  it('keeps tool descriptions unique', () => {
+    const descriptions = MCP_MANIFEST.tools.map((t) => t.description);
+    expect(new Set(descriptions).size).toBe(descriptions.length);
+  });
+
+  it('documents every required property with a non-empty description', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const required = tool.input_schema.required ?? [];
+      for (const key of required) {
+        const prop = tool.input_schema.properties[key as keyof typeof tool.input_schema.properties];
+        expect(prop, `${tool.name}.${key}`).toBeDefined();
+        expect(prop?.description?.trim().length).toBeGreaterThan(5);
+      }
+    }
+  });
+
+  it('does not mark optional curator_prompt.genre as required', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(tool.input_schema.required).not.toContain('genre');
+    expect(tool.input_schema.properties.genre?.description).toMatch(/Optional genre/i);
+  });
+
+  it('locks station_select property description to name matching', () => {
+    const tool = toolNamed('station_select');
+    expect(tool.input_schema.properties.station_name?.description).toMatch(/Partial or full name/i);
+  });
+
+  it('exposes exactly four tools (no silent additions)', () => {
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('keeps human/model descriptions distinct and non-empty', () => {
+    expect(MCP_MANIFEST.description_for_human.trim().length).toBeGreaterThan(10);
+    expect(MCP_MANIFEST.description_for_model.trim().length).toBeGreaterThan(20);
+    expect(MCP_MANIFEST.description_for_human).not.toBe(MCP_MANIFEST.description_for_model);
+  });
 });

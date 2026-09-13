@@ -258,4 +258,91 @@ https://example.com/gap.m3u8
     expect(stations).toHaveLength(1);
     expect(stations[0].name).toBe('Gap');
   });
+
+  it('skips mms and udp schemes the same way as rtmp', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="MMS",MMS
+mms://example.com/live
+#EXTINF:-1 tvg-name="UDP",UDP
+udp://239.0.0.1:1234
+#EXTINF:-1 tvg-name="HTTPS",HTTPS
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['HTTPS']);
+  });
+
+  it('accepts both http and https stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="HTTP",HTTP
+http://example.com/plain.m3u8
+#EXTINF:-1 tvg-name="HTTPS",HTTPS
+https://example.com/secure.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual([
+      'http://example.com/plain.m3u8',
+      'https://example.com/secure.m3u8',
+    ]);
+  });
+
+  it('preserves hash fragments on stream URLs', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Frag",Frag
+https://example.com/stream.m3u8#cell=0
+`);
+    expect(stations[0].url).toBe('https://example.com/stream.m3u8#cell=0');
+  });
+
+  it('keeps EXTINF state across intervening non-EXTINF comments', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Kept",Kept
+#EXTVLCOPT:http-user-agent=Backlink
+#EXTGRP:Music
+https://example.com/kept.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Kept',
+        url: 'https://example.com/kept.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('does not treat relative paths as stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Rel",Rel
+../streams/rel.m3u8
+#EXTINF:-1 tvg-name="Abs",Abs
+https://example.com/abs.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Abs']);
+  });
+
+  it('handles mixed tabs and spaces around EXTINF attributes', () => {
+    const stations = parseM3U(
+      '#EXTM3U\n#EXTINF:-1\ttvg-name="Tabby"\tgroup-title="Jazz",Tabby\nhttps://example.com/tabby.m3u8\n',
+    );
+    expect(stations[0]).toMatchObject({ name: 'Tabby', group: 'Jazz' });
+  });
+
+  it('parses EXTINF duration variants without changing attribute extraction', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:0 tvg-name="Zero",Zero
+https://example.com/zero.m3u8
+#EXTINF:10.5 tvg-name="Float",Float
+https://example.com/float.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Zero', 'Float']);
+  });
+
+  it('resets current entry after a successful push so orphan URLs are ignored', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="One",One
+https://example.com/one.m3u8
+https://example.com/orphan-after.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://example.com/one.m3u8']);
+  });
 });

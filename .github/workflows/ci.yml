@@ -78,7 +78,10 @@ jobs:
           test -f wrangler.toml
           test -f .cursor/environment.json
           test -f .github/workflows/ci.yml
+          test -f .github/workflows/deploy.yml
+          test -f .github/dependabot.yml
           test -f vitest.config.ts
+          test -f tsconfig.json
           test -d test
           test -f test/parser.test.ts
           test -f test/genres.test.ts
@@ -90,12 +93,24 @@ jobs:
           test -f test/wrangler-config.test.ts
           test -f test/source-contracts.test.ts
           test -f docs/mcp-spec.md
+          test -f src/index.ts
+          test -f src/parser.ts
+          test -f src/genres.ts
+          test -f src/mcp.ts
+          test -f src/types.ts
           grep -q 'thresholds' vitest.config.ts
           grep -q 'branches: 100' vitest.config.ts
+          grep -q 'lines: 100' vitest.config.ts
+          grep -q 'functions: 100' vitest.config.ts
+          grep -q 'statements: 100' vitest.config.ts
           grep -q 'test:coverage' package.json
           grep -q 'permissions:' .github/workflows/ci.yml
           grep -q 'timeout-minutes:' .github/workflows/ci.yml
+          grep -q 'node-version: "20"' .github/workflows/ci.yml
+          grep -q 'workflow_dispatch' .github/workflows/deploy.yml
           grep -q 'gemini-2.0-flash' src/index.ts
+          grep -qE '"typescript": "\^5\.' package.json
+          ! grep -qE '"typescript": "\^[67]\.' package.json
           ! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'
 
       - name: Check for committed secret material
