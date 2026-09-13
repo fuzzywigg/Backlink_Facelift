@@ -442,5 +442,68 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents KV 1h TTL for /stations cache', () => {
     expect(spec).toMatch(/1h TTL/);
   });
+
+  it('locks Integration Notes bullet texts exactly', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+    expect(bullets).toEqual([
+      'Base URL: `https://backlink.fuzzywigg.com`',
+      'No auth required for read endpoints',
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+      'On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('parses all three Input Schema fences as objects with expected property keys', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    const inputSchemas = fences.filter((f) => f.includes('"additionalProperties": false'));
+    expect(inputSchemas).toHaveLength(3);
+    const parsed = inputSchemas.map((f) => JSON.parse(f) as {
+      type: string;
+      properties: Record<string, unknown>;
+      additionalProperties: boolean;
+    });
+    expect(parsed.every((p) => p.type === 'object' && p.additionalProperties === false)).toBe(true);
+    expect(Object.keys(parsed[0].properties).sort()).toEqual(['genre', 'mood']);
+    expect(Object.keys(parsed[1].properties)).toEqual([]);
+    expect(Object.keys(parsed[2].properties).sort()).toEqual(['genre', 'mood']);
+  });
+
+  it('documents now_playing logo as nullable uri', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    expect(section).toMatch(/"logo":\s*\{\s*"type":\s*\["string",\s*"null"\],\s*"format":\s*"uri"\s*\}/);
+  });
+
+  it('documents genres aliases additionalProperties as string and items as string', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(/"additionalProperties":\s*\{\s*"type":\s*"string"\s*\}/);
+    expect(section).toMatch(/"items":\s*\{\s*"type":\s*"string"\s*\}/);
+  });
+
+  it('keeps editorial and logo out of curate station required array', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    const required = curate.match(/"required":\s*\[([^\]]+)\]/);
+    expect(required).not.toBeNull();
+    const items = required![1].split(',').map((s) => s.trim().replace(/['"]/g, ''));
+    expect(items).toEqual(['name', 'url', 'genre']);
+    expect(items).not.toContain('editorial');
+    expect(items).not.toContain('logo');
+  });
+
+  it('names /stations in the KV cache Integration Notes bullet', () => {
+    expect(spec).toContain(
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+    );
+  });
 });
 

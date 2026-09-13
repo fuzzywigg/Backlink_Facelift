@@ -95,6 +95,7 @@ jobs:
           test -f package.json
           test -f package-lock.json
           test -f wrangler.toml
+          test -f .gitattributes
           test -f .cursor/environment.json
           test -f .github/workflows/ci.yml
           test -f .github/workflows/deploy.yml
@@ -157,6 +158,7 @@ jobs:
           grep -q 'coverage-report' .github/workflows/ci.yml
           grep -q 'if: always()' .github/workflows/ci.yml
           grep -q 'contents: read' .github/workflows/deploy.yml
+          grep -q 'name: CI' .github/workflows/ci.yml
           # Trigger must be push/pull_request only (not pull_request_target)
           awk '/^on:/{f=1} f && /^jobs:/{exit} f' .github/workflows/ci.yml | grep -q 'pull_request:'
           ! awk '/^on:/{f=1} f && /^[^[:space:]#]/{if($0 !~ /^on:/) exit} f' .github/workflows/ci.yml | grep -q 'pull_request_target'

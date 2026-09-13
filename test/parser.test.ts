@@ -1643,4 +1643,78 @@ https://example.com/stream.m3u8
 `);
     expect(stations.map((s) => s.name)).toEqual(['Http', 'Https']);
   });
+
+  it('does not treat ZWSP-prefixed https URL as a stream line', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Zwsp",Zwsp
+\u200bhttps://example.com/zwsp.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('lets x-group-title / x-tvg-language / x-tvg-country win via substring regex', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="X" x-group-title="Fake" group-title="Real" x-tvg-language="xx" tvg-language="en" x-tvg-country="XX" tvg-country="US",X
+https://example.com/x.m3u8
+`);
+    expect(stations[0].group).toBe('Fake');
+    expect(stations[0].language).toBe('xx');
+    expect(stations[0].country).toBe('XX');
+  });
+
+  it('treats mixed-case #ExtInf as a comment, not an EXTINF record', () => {
+    const stations = parseM3U(`#EXTM3U
+#ExtInf:-1 tvg-name="No",No
+https://example.com/no.m3u8
+#EXTINF:-1 tvg-name="Yes",Yes
+https://example.com/yes.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Yes']);
+  });
+
+  it('does not split on U+0085 NEL between EXTINF and URL', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="Nel",Nel\u0085https://example.com/nel.m3u8\n`,
+    );
+    expect(stations).toEqual([]);
+  });
+
+  it('preserves internal tab characters inside stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Tab",Tab
+https://example.com/\tstream.m3u8
+`);
+    expect(stations[0].url).toBe('https://example.com/\tstream.m3u8');
+  });
+
+  it('locks every station object key set to name/url/logo/group/language/country', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Sparse",Sparse
+https://example.com/sparse.m3u8
+#EXTINF:-1 tvg-name="Full" tvg-logo="https://l" group-title="G" tvg-language="en" tvg-country="US",Full
+https://example.com/full.m3u8
+`);
+    for (const s of stations) {
+      expect(Object.keys(s).sort()).toEqual([
+        'country',
+        'group',
+        'language',
+        'logo',
+        'name',
+        'url',
+      ]);
+    }
+  });
+
+  it('treats # fragment and %23 as distinct URLs for dedupe', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Hash",Hash
+https://example.com/stream.m3u8#x
+#EXTINF:-1 tvg-name="Encoded",Encoded
+https://example.com/stream.m3u8%23x
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Hash', 'Encoded']);
+  });
 });

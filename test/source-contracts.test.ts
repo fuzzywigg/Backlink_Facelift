@@ -567,5 +567,38 @@ describe('source ↔ product contracts', () => {
       /map:\s*Record<string,\s*string>\s*=\s*GENRE_MAP/,
     );
   });
+
+  it('locks Station interface fields to name/url plus optional logo/group/language/country', () => {
+    const parser = read('src/parser.ts');
+    const iface = parser.slice(
+      parser.indexOf('export interface Station'),
+      parser.indexOf('}', parser.indexOf('export interface Station')) + 1,
+    );
+    const keys = [...iface.matchAll(/^\s*([a-z]+)\??:/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['name', 'url', 'logo', 'group', 'language', 'country']);
+  });
+
+  it('does not log via console in Worker source', () => {
+    expect(read('src/index.ts')).not.toMatch(/console\./);
+    expect(read('src/parser.ts')).not.toMatch(/console\./);
+    expect(read('src/genres.ts')).not.toMatch(/console\./);
+    expect(read('src/mcp.ts')).not.toMatch(/console\./);
+  });
+
+  it('uses zero-arg cors() without an options object', () => {
+    expect(read('src/index.ts')).toMatch(/app\.use\('\*',\s*cors\(\)\)/);
+    expect(read('src/index.ts')).not.toMatch(/cors\(\s*\{/);
+  });
+
+  it('locks Gemini JSON extraction regex literal', () => {
+    expect(read('src/index.ts')).toContain('text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+  });
+
+  it('keeps types.ts exporting only the Env interface', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/export interface Env/);
+    expect(types).not.toMatch(/export (type|const|function|class|enum)/);
+    expect([...types.matchAll(/^export /gm)]).toHaveLength(1);
+  });
 });
 

@@ -227,6 +227,7 @@ describe('CI / package test wiring', () => {
       'test/wrangler-config.test.ts',
       'test/source-contracts.test.ts',
       'test/mcp-spec-contract.test.ts',
+      '.gitattributes',
     ]) {
       expect(ci).toContain(f);
     }
@@ -913,6 +914,56 @@ describe('CI / package test wiring', () => {
     const vitest = read('vitest.config.ts');
     expect(vitest).toMatch(/environment:\s*'node'/);
     expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
+  });
+
+  it('locks package.json scripts key set exactly', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(Object.keys(pkg.scripts).sort()).toEqual([
+      'deploy',
+      'dev',
+      'test',
+      'test:coverage',
+      'test:watch',
+      'typecheck',
+    ]);
+    expect(pkg.scripts['test:watch']).toBe('vitest');
+    expect(pkg.scripts.test).toBe('vitest run');
+  });
+
+  it('locks .gitattributes to LF normalization via text=auto', () => {
+    const attrs = read('.gitattributes');
+    expect(attrs).toMatch(/^\*\s+text=auto\s*$/m);
+  });
+
+  it('locks Dependabot directory "/" on both ecosystems', () => {
+    const dep = read('.github/dependabot.yml');
+    const directories = [...dep.matchAll(/directory:\s*"(\/)"/g)].map((m) => m[1]);
+    expect(directories).toEqual(['/', '/']);
+  });
+
+  it('locks CI workflow display name', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/^name:\s*CI\s*$/m);
+  });
+
+  it('keeps Dependabot ignore major-only without minor or patch ignores', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/version-update:semver-major/);
+    expect(dep).not.toMatch(/semver-minor/);
+    expect(dep).not.toMatch(/semver-patch/);
+  });
+
+  it('locks vitest coverage include and exclude arrays exactly', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/include:\s*\['src\/\*\*\/\*\.ts'\]/);
+    expect(vitest).toMatch(/exclude:\s*\['src\/types\.ts'\]/);
+  });
+
+  it('hygiene required-files list includes .gitattributes', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f \.gitattributes/);
+    expect(ci).toMatch(/test -f README\.md/);
+    expect(ci).toMatch(/test -f AGENTS\.md/);
+    expect(ci).toMatch(/grep -q 'name: CI'/);
   });
 });
 

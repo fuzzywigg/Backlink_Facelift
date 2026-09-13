@@ -296,5 +296,23 @@ describe('wrangler.toml contracts', () => {
     const afterVars = toml.slice(toml.indexOf('[vars]'));
     expect(afterVars).toMatch(/\[vars\]\s*\nVERSION = "0\.1\.0"\s*\n\n# Secrets/);
   });
+
+  it('does not declare a [dev] table', () => {
+    expect(toml).not.toMatch(/\[dev\]/);
+  });
+
+  it('does not declare preview_id on the KV namespace', () => {
+    expect(toml).not.toMatch(/preview_id\s*=/);
+  });
+
+  it('locks exact Secrets header comment after [vars]', () => {
+    expect(toml).toContain('# Secrets (set via CLI, never commit):');
+    expect(toml).toContain('# wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('locks TOML table header set to kv_namespaces, routes, and vars only', () => {
+    const headers = [...toml.matchAll(/^\[+([^\]]+)\]+/gm)].map((m) => m[1]);
+    expect(headers).toEqual(['kv_namespaces', 'routes', 'vars']);
+  });
 });
 

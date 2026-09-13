@@ -679,5 +679,41 @@ describe('MCP_MANIFEST', () => {
       expect(tool).not.toHaveProperty('examples');
     }
   });
+
+  it('keeps every input_schema property key set to type and description only', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(Object.keys(prop).sort()).toEqual(['description', 'type']);
+      }
+    }
+  });
+
+  it('does not declare strict, outputSchema, or $defs on tools or schemas', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('strict');
+      expect(tool).not.toHaveProperty('outputSchema');
+      expect(tool.input_schema).not.toHaveProperty('$defs');
+      expect(tool.input_schema).not.toHaveProperty('strict');
+      expect(tool.input_schema).not.toHaveProperty('outputSchema');
+    }
+  });
+
+  it('locks schema_version + auth + api as one exact snapshot', () => {
+    expect({
+      schema_version: MCP_MANIFEST.schema_version,
+      auth: MCP_MANIFEST.auth,
+      api: MCP_MANIFEST.api,
+    }).toEqual({
+      schema_version: 'v1',
+      auth: { type: 'none' },
+      api: { type: 'openapi', url: '/openapi.json' },
+    });
+  });
+
+  it('serializes now_playing input_schema without a required key', () => {
+    const tool = toolNamed('now_playing');
+    expect(JSON.stringify(tool.input_schema)).not.toMatch(/"required"/);
+    expect(tool.input_schema).not.toHaveProperty('required');
+  });
 });
 
