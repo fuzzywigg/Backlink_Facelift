@@ -7039,8 +7039,9 @@ https://example.com/s.m3u8
       testEnv({ CATALOG_CACHE: mockKV(seed) }),
     );
     expect(fetchMock).not.toHaveBeenCalled();
-    expect((await json(res)).genre).toBe('ambient');
-    expect((await json(res)).stations).toEqual([
+    const body = await json(res);
+    expect(body.genre).toBe('ambient');
+    expect(body.stations).toEqual([
       { name: 'Warm Amb', url: 'https://example.com/wa.m3u8' },
     ]);
   });
