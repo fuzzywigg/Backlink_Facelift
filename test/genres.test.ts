@@ -407,4 +407,65 @@ describe('resolveGenre', () => {
       .sort();
     expect(aliasedTo).toEqual(['entertainment', 'news', 'sports']);
   });
+
+  it('resolves against an Object.create(null) map without prototype pollution', () => {
+    const map = Object.create(null) as Record<string, string>;
+    map.jazz = 'classical';
+    expect(resolveGenre('jazz', map)).toBe('classical');
+    expect(resolveGenre('toString', map)).toBe('music');
+  });
+
+  it('returns whitespace-only custom map values (?? treats them as defined)', () => {
+    expect(resolveGenre('chill', { chill: '   ' })).toBe('   ');
+  });
+
+  it('does not coerce non-string inputs at the TypeScript boundary (empty string still defaults)', () => {
+    expect(resolveGenre('')).toBe('music');
+    expect(resolveGenre('\t\n')).toBe('music');
+  });
+
+  it('prefers custom map over VALID_GENRES identity for overlapping keys', () => {
+    expect(resolveGenre('news', { news: 'sports' })).toBe('sports');
+  });
+
+  it('falls through to VALID_GENRES when custom map misses but slug is valid', () => {
+    expect(resolveGenre('entertainment', {})).toBe('entertainment');
+    expect(resolveGenre('SPORTS', {})).toBe('sports');
+  });
+
+  it('does not trim interior whitespace in multi-word aliases', () => {
+    expect(resolveGenre('late  night')).toBe('music');
+    expect(resolveGenre(' late night ')).toBe('ambient');
+  });
+
+  it('keeps GENRE_MAP values as a subset of VALID_GENRES', () => {
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES).toContain(value);
+    }
+  });
+
+  it('exports ValidGenre-compatible lowercase ASCII slugs only', () => {
+    for (const genre of VALID_GENRES) {
+      expect(genre).toMatch(/^[a-z]+$/);
+    }
+  });
+
+  it('does not mutate GENRE_MAP when resolveGenre is called repeatedly', () => {
+    const before = JSON.stringify(GENRE_MAP);
+    for (let i = 0; i < 20; i++) resolveGenre('chill');
+    expect(JSON.stringify(GENRE_MAP)).toBe(before);
+  });
+
+  it('returns music for numeric-looking strings that are not mapped', () => {
+    expect(resolveGenre('0')).toBe('music');
+    expect(resolveGenre('123')).toBe('music');
+  });
+
+  it('accepts a custom map that remaps every VALID_GENRES identity', () => {
+    const map: Record<string, string> = Object.fromEntries(
+      VALID_GENRES.map((g) => [g, 'music']),
+    );
+    expect(resolveGenre('jazz', map)).toBe('music');
+    expect(resolveGenre('ambient', map)).toBe('music');
+  });
 });

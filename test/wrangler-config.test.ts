@@ -114,4 +114,41 @@ describe('wrangler.toml contracts', () => {
     expect(routeSection).toMatch(/custom_domain\s*=\s*true/);
     expect(routeSection).not.toMatch(/pattern\s*=\s*"\*"/);
   });
+
+  it('does not declare [env.*] environment overrides', () => {
+    expect(toml).not.toMatch(/\[env\./);
+  });
+
+  it('keeps top-level keys limited to known Worker config', () => {
+    expect(toml).toMatch(/name\s*=/);
+    expect(toml).toMatch(/main\s*=/);
+    expect(toml).toMatch(/compatibility_date\s*=/);
+    expect(toml).not.toMatch(/account_id\s*=/);
+    expect(toml).not.toMatch(/api_token\s*=/i);
+  });
+
+  it('documents GEMINI via comment without Anthropic leftovers', () => {
+    expect(toml).toMatch(/GEMINI_API_KEY/);
+    expect(toml).not.toMatch(/ANTHROPIC|Claude|anthropic/i);
+  });
+
+  it('keeps KV id as lowercase hex only', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1] ?? '';
+    expect(id).toBe(id.toLowerCase());
+    expect(id).not.toMatch(/[A-F]/);
+  });
+
+  it('does not enable logpush or observability blocks', () => {
+    expect(toml).not.toMatch(/logpush/i);
+    expect(toml).not.toMatch(/\[observability\]/i);
+  });
+
+  it('keeps routes pattern host-only without path wildcards beyond the domain', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"\*backlink/);
+  });
+
+  it('does not embed npm tokens or private registry URLs', () => {
+    expect(toml).not.toMatch(/npm[_-]?token|registry\.npmjs|\/\/npm\./i);
+  });
 });

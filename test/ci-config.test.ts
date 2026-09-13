@@ -157,7 +157,7 @@ describe('CI / package test wiring', () => {
     const ci = read('.github/workflows/ci.yml');
     expect(ci).toMatch(/Upload coverage report/);
     expect(ci).toMatch(/if:\s*always\(\)/);
-    expect(ci).toMatch(/if-no-files-found:\s*ignore/);
+    expect(ci).toMatch(/if-no-files-found:\s*error/);
   });
 
   it('locks Cloud Agent environment.json to npm ci without secrets', () => {
@@ -352,5 +352,118 @@ describe('CI / package test wiring', () => {
     const pkg = JSON.parse(read('package.json')) as { name: string };
     const lock = JSON.parse(read('package-lock.json')) as { name: string };
     expect(lock.name).toBe(pkg.name);
+  });
+
+  it('aligns deploy workflow secrets with Gemini (not Anthropic)', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/GEMINI_API_KEY/);
+    expect(deploy).toMatch(/secrets:\s*\|\s*\n\s*GEMINI_API_KEY/);
+    expect(deploy).toMatch(/GEMINI_API_KEY:\s*\$\{\{\s*secrets\.GEMINI_API_KEY\s*\}\}/);
+    expect(deploy).not.toMatch(/ANTHROPIC_API_KEY/);
+    expect(deploy).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it('runs typecheck + coverage before HITL wrangler deploy', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const typecheck = deploy.indexOf('npm run typecheck');
+    const coverage = deploy.indexOf('npm run test:coverage');
+    const wrangler = deploy.indexOf('cloudflare/wrangler-action@v4');
+    expect(typecheck).toBeGreaterThan(-1);
+    expect(coverage).toBeGreaterThan(typecheck);
+    expect(wrangler).toBeGreaterThan(coverage);
+  });
+
+  it('keeps deploy concurrency group cancel-in-progress false', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/group:\s*deploy-\$\{\{\s*github\.workflow\s*\}\}/);
+    expect(deploy).toMatch(/cancel-in-progress:\s*false/);
+  });
+
+  it('hygiene bans Anthropic leftovers in workflow YAML', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/!\s*grep -RqiE 'anthropic\|claude\|haiku' \.github\/workflows/);
+    expect(ci).toMatch(/GEMINI_API_KEY.*deploy\.yml|grep -q 'GEMINI_API_KEY' \.github\/workflows\/deploy\.yml/);
+  });
+
+  it('keeps coverage artifact upload failing when lcov is missing', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/if-no-files-found:\s*error/);
+    expect(ci).toMatch(/Assert coverage artifacts exist/);
+    expect(ci).toMatch(/grep -q 'SF:src\/'/);
+  });
+
+  it('pins wrangler-action to v4 and setup-node to v7 on deploy', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/actions\/checkout@v7/);
+    expect(deploy).toMatch(/actions\/setup-node@v7/);
+    expect(deploy).toMatch(/cloudflare\/wrangler-action@v4/);
+    expect(deploy).toMatch(/node-version:\s*"20"/);
+  });
+
+  it('keeps deploy secrets block listing only GEMINI_API_KEY', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const secretsBlock = deploy.match(/secrets:\s*\|\s*\n((?:.+\n)*?)\s*env:/)?.[1] ?? '';
+    expect(secretsBlock).toMatch(/GEMINI_API_KEY/);
+    expect(secretsBlock.trim().split(/\s+/)).toEqual(['GEMINI_API_KEY']);
+  });
+
+  it('does not grant write permissions in deploy workflow', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(deploy).not.toMatch(/contents:\s*write/);
+    expect(deploy).not.toMatch(/id-token:\s*write/);
+  });
+
+  it('keeps CI hygiene checking deploy typecheck and coverage gates', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/npm run typecheck.*deploy\.yml|grep -q 'npm run typecheck' \.github\/workflows\/deploy\.yml/);
+    expect(ci).toMatch(/npm run test:coverage.*deploy\.yml|grep -q 'npm run test:coverage' \.github\/workflows\/deploy\.yml/);
+  });
+
+  it('locks vitest coverage provider to v8', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/provider:\s*['"]v8['"]/);
+  });
+
+  it('keeps package scripts free of invented credential env exports', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    for (const script of Object.values(pkg.scripts)) {
+      expect(script).not.toMatch(/GEMINI_API_KEY=|ANTHROPIC_API_KEY=|CF_API_TOKEN=/);
+    }
+  });
+
+  it('documents DEPLOY.md Gemini secret without Anthropic leftovers', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/Gemini API key/i);
+    expect(deploy).toMatch(/wrangler secret put GEMINI_API_KEY/);
+    expect(deploy).not.toMatch(/ANTHROPIC|Anthropic|Claude/);
+  });
+
+  it('keeps CI job timeouts finite and under an hour', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const timeouts = [...ci.matchAll(/timeout-minutes:\s*(\d+)/g)].map((m) => Number(m[1]));
+    expect(timeouts.length).toBeGreaterThanOrEqual(3);
+    expect(timeouts.every((t) => t > 0 && t <= 60)).toBe(true);
+  });
+
+  it('requires npm cache on setup-node in CI and deploy', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(ci).toMatch(/cache:\s*"npm"/);
+    expect(deploy).toMatch(/cache:\s*"npm"/);
+  });
+
+  it('keeps ISSUE_TEMPLATE files present without embedding secrets', () => {
+    for (const f of [
+      '.github/ISSUE_TEMPLATE/bug.yml',
+      '.github/ISSUE_TEMPLATE/chore.yml',
+      '.github/ISSUE_TEMPLATE/feature.yml',
+      '.github/ISSUE_TEMPLATE/config.yml',
+    ]) {
+      const body = read(f);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+      expect(body).not.toMatch(/ANTHROPIC_API_KEY/);
+    }
   });
 });

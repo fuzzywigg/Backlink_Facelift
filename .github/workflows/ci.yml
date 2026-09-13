@@ -75,7 +75,7 @@ jobs:
           path: |
             coverage/
             coverage/lcov.info
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 14
 
   hygiene:
@@ -134,8 +134,13 @@ jobs:
           grep -qE '"typescript": "\^5\.' package.json
           ! grep -qE '"typescript": "\^[67]\.' package.json
           ! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'
+          ! grep -RqiE 'anthropic|claude|haiku' .github/workflows --include='*.yml'
+          grep -q 'GEMINI_API_KEY' .github/workflows/deploy.yml
+          grep -q 'npm run typecheck' .github/workflows/deploy.yml
+          grep -q 'npm run test:coverage' .github/workflows/deploy.yml
           grep -q 'cancel-in-progress: true' .github/workflows/ci.yml
           grep -q 'upload-artifact@v4' .github/workflows/ci.yml
+          grep -q 'if-no-files-found: error' .github/workflows/ci.yml
           grep -q "src/types.ts" vitest.config.ts
           grep -q 'github-actions' vitest.config.ts
           grep -q 'lcov' vitest.config.ts

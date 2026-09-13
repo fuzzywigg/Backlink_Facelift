@@ -208,4 +208,57 @@ describe('source ↔ product contracts', () => {
       /const IPTV_BASE\s*=\s*['"]https:\/\/iptv-org\.github\.io\/iptv\/categories['"]/,
     );
   });
+
+  it('indexes Gemini candidates with optional chaining after [0]', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/data\.candidates\[0\]\?\.content\?\.parts\[0\]\?\.text/);
+    expect(index).not.toMatch(/data\.candidates\?\.\[0\]/);
+  });
+
+  it('degrades with slice(0, 5) and maps editorial null', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)\.map/);
+    expect(index).toMatch(/editorial:\s*null/);
+  });
+
+  it('does not register an /openapi.json route on the Worker', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/app\.get\(['"]\/openapi\.json['"]/);
+  });
+
+  it('guards Gemini HTTP errors by throwing before JSON parse', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/if\s*\(!resp\.ok\)\s*throw new Error\(`Gemini API error:/);
+  });
+
+  it('extracts Gemini JSON via a bracket-object regex', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/const jsonMatch = text\.match/);
+    expect(index).toContain('[\\s\\S]*');
+    expect(index).toMatch(/Invalid JSON from Gemini/);
+  });
+
+  it('keeps truthy GEMINI_API_KEY guard without trim()', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/if\s*\(!c\.env\.GEMINI_API_KEY\)/);
+    expect(index).not.toMatch(/GEMINI_API_KEY\.trim\(/);
+  });
+
+  it('documents README catalog fallback behavior for live categories', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/404 and fall back to `music\.m3u`/i);
+    expect(readme).toMatch(/editorial:\s*null/);
+  });
+
+  it('keeps parser attribute matchers case-insensitive', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/tvg-name="\(\[\^"\]\*\)"\/i/);
+    expect(parser).toMatch(/group-title="\(\[\^"\]\*\)"\/i/);
+  });
+
+  it('resets current station on non-http non-comment lines', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/Non-http URL \(rtmp:\/\/, etc\.\)/);
+    expect(parser).toMatch(/current = \{\}/);
+  });
 });
