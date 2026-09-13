@@ -1496,5 +1496,57 @@ describe('CI / package test wiring', () => {
     expect(vitest).toMatch(/'html'/);
     expect(vitest).toMatch(/'lcov'/);
   });
+
+  it('hygiene requires mcp and genres suites alongside mcp-spec contracts', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f test\/mcp\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/genres\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/mcp-spec-contract\.test\.ts/);
+    expect(ci).toMatch(/test -f src\/mcp\.ts/);
+    expect(ci).toMatch(/test -f src\/genres\.ts/);
+    expect(ci).toMatch(/test -f docs\/mcp-spec\.md/);
+  });
+
+  it('lists mcp/genres/mcp-spec among expanded contract suites on disk', () => {
+    for (const rel of [
+      'test/mcp.test.ts',
+      'test/genres.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/source-contracts.test.ts',
+      'src/mcp.ts',
+      'src/genres.ts',
+      'docs/mcp-spec.md',
+    ]) {
+      expect(read(rel).length).toBeGreaterThan(100);
+    }
+  });
+
+  it('keeps README unit suites list mentioning mcp and genres', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/`genres`/);
+    expect(readme).toMatch(/`mcp`/);
+    expect(readme).toMatch(/mcp-spec/);
+  });
+
+  it('locks package.json free of mcp SDK runtime dependencies', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+    expect(JSON.stringify(pkg)).not.toMatch(/@modelcontextprotocol|mcp-server|fastmcp/i);
+  });
+
+  it('keeps docs/mcp-spec.md present and titled as MCP Tool Specification', () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec).toMatch(/^# Backlink MCP Tool Specification/m);
+    expect(spec).toContain('backlink_curate');
+    expect(spec).toContain('backlink_genres');
+    expect(spec).toContain('backlink_now_playing');
+  });
+
+  it('locks AGENTS.md Safe Actions to mention genres.ts', () => {
+    expect(read('AGENTS.md')).toMatch(/src\/genres\.ts/);
+  });
 });
 

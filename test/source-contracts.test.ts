@@ -1177,4 +1177,244 @@ describe('source ↔ product contracts', () => {
     expect(helpers).toMatch(/\.map\(\(l\) => l\.trim\(\)\)/);
     expect(helpers).toMatch(/l\.startsWith\('http:\/\/'\) \|\| l\.startsWith\('https:\/\/'\)/);
   });
+
+  it('locks /genres handler to spread VALID_GENRES and pass GENRE_MAP by reference', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/genres:\s*\[\.\.\.VALID_GENRES\]/);
+    expect(index).toMatch(/aliases:\s*GENRE_MAP/);
+  });
+
+  it('locks resolveGenre import into Worker from ./genres', () => {
+    expect(read('src/index.ts')).toMatch(
+      /import\s*\{\s*GENRE_MAP,\s*VALID_GENRES,\s*resolveGenre\s*\}\s*from\s*['"]\.\/genres['"]/,
+    );
+  });
+
+  it('locks /stations to resolveGenre(genreParam) without mood coalescing', () => {
+    const index = read('src/index.ts');
+    const stations = index.slice(index.indexOf("app.get('/stations'"));
+    expect(stations).toMatch(/const genre = resolveGenre\(genreParam\);/);
+    expect(stations.slice(0, stations.indexOf("app.get('/curate'"))).not.toMatch(
+      /resolveGenre\(genreParam\s*\?\?/,
+    );
+  });
+
+  it('locks /curate to resolveGenre(genreParam ?? mood)', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const genre = resolveGenre\(genreParam \?\? mood\);/,
+    );
+  });
+
+  it('locks MCP_MANIFEST auth none while Worker uses cors() open', () => {
+    expect(read('src/mcp.ts')).toMatch(/auth:\s*\{\s*type:\s*"none"\s*\}/);
+    expect(read('src/index.ts')).toMatch(/app\.use\('\*',\s*cors\(\)\)/);
+  });
+
+  it('locks MCP_MANIFEST api.url /openapi.json without a matching Worker route', () => {
+    expect(read('src/mcp.ts')).toMatch(/url:\s*"\/openapi\.json"/);
+    expect(read('src/index.ts')).not.toMatch(/app\.get\(['"]\/openapi\.json['"]/);
+  });
+
+  it('locks claw-mcp tool names distinct from docs/mcp-spec backlink_* ids', () => {
+    const mcp = read('src/mcp.ts');
+    const spec = read('docs/mcp-spec.md');
+    for (const name of ['station_select', 'genre_filter', 'curator_prompt']) {
+      expect(mcp).toContain(`name: "${name}"`);
+      expect(spec).not.toContain(name);
+    }
+    // now_playing is a substring of docs id backlink_now_playing — lock that asymmetry
+    expect(mcp).toContain('name: "now_playing"');
+    expect(spec).toContain('backlink_now_playing');
+    expect(spec).not.toMatch(/### `now_playing`/);
+    for (const id of ['backlink_curate', 'backlink_genres', 'backlink_now_playing']) {
+      expect(spec).toContain(id);
+      expect(mcp).not.toContain(id);
+    }
+  });
+
+  it('locks GENRE_MAP and VALID_GENRES exports as const in genres.ts', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/export const GENRE_MAP/);
+    expect(genres).toMatch(/export const VALID_GENRES/);
+    expect(genres).toMatch(/\] as const;/);
+    expect(genres).toMatch(/export type ValidGenre/);
+    expect(genres).toMatch(/export function resolveGenre/);
+  });
+
+  it('locks ValidGenre as typeof VALID_GENRES number indexed type', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /export type ValidGenre = \(typeof VALID_GENRES\)\[number\];/,
+    );
+  });
+
+  it('locks resolveGenre includes check cast to ValidGenre', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /VALID_GENRES\.includes\(lower as ValidGenre\)\s*\?\s*lower\s*:\s*'music'/,
+    );
+  });
+
+  it('locks genres module header comment about iptv-org category ids', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /\/\*\* iptv-org category ids we expose \+ mood aliases → category\./,
+    );
+  });
+
+  it('locks MCP_MANIFEST schema_version v1 double-quoted string', () => {
+    expect(read('src/mcp.ts')).toMatch(/schema_version:\s*"v1"/);
+  });
+
+  it('locks MCP tools array length at 4 via source count of name: fields under tools', () => {
+    const mcp = read('src/mcp.ts');
+    const toolNames = [...mcp.matchAll(/name:\s*"([a-z_]+)"/g)]
+      .map((m) => m[1])
+      .filter((n) => n !== 'backlink');
+    // name_for_model is "backlink"; tool names are the four snake_case tools
+    expect(toolNames.filter((n) => n.includes('_') || n === 'now_playing')).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('locks Env GEMINI_API_KEY optional comment referencing issue #8', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/\/\*\* Optional at runtime — `\/curate` returns 503 when unset \(#8\)\./);
+    expect(types).toMatch(/GEMINI_API_KEY\?:\s*string;/);
+  });
+
+  it('locks types.ts to export only Env (no Station duplication)', () => {
+    const types = read('src/types.ts');
+    expect(types).not.toMatch(/interface Station/);
+    expect(types).not.toMatch(/GENRE_MAP|VALID_GENRES|MCP_MANIFEST/);
+  });
+
+  it('locks callGemini prompt top 3 stations wording', () => {
+    expect(read('src/index.ts')).toContain('pick the top 3 stations with a short editorial blurb');
+  });
+
+  it('locks docs mcp-spec top 3 wording against Worker prompt top 3', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(/top 3 radio stations/i);
+    expect(read('src/index.ts')).toContain('top 3 stations');
+  });
+
+  it('locks docs graceful degradation top 5 against Worker slice(0, 5)', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(/top 5 raw stations/);
+    expect(read('src/index.ts')).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it('locks /genres as the only route that returns GENRE_MAP aliases', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/aliases:\s*GENRE_MAP/g) ?? []).length).toBe(1);
+    expect(index).toMatch(/app\.get\('\/genres'/);
+  });
+
+  it('does not reference MCP_MANIFEST from genres or types', () => {
+    expect(read('src/genres.ts')).not.toMatch(/MCP_MANIFEST|mcp/);
+    expect(read('src/types.ts')).not.toMatch(/MCP_MANIFEST|mcp/);
+  });
+
+  it('locks README Available Genres middot list to VALID_GENRES order', () => {
+    const readme = read('README.md');
+    const line = readme
+      .split('\n')
+      .find((l) => l.includes('`music`') && l.includes('·') && l.includes('`entertainment`'));
+    const listed = [...(line ?? '').matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+    expect(listed).toEqual([...VALID_GENRES]);
+  });
+
+  it('locks README alias examples subset of GENRE_MAP', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/`late night` → ambient/);
+    expect(readme).toMatch(/`chill` → ambient/);
+    expect(readme).toMatch(/`lofi` → ambient/);
+    expect(readme).toMatch(/`blues` → jazz/);
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP.blues).toBe('jazz');
+  });
+
+  it('locks AGENTS.md Safe Actions to include genres.ts mapping updates', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/Update station genre mappings in `src\/genres\.ts`/);
+    expect(agents).toMatch(/wired from `src\/index\.ts`/);
+  });
+
+  it('locks MCP description_for_human iptv-org catalog substring', () => {
+    expect(read('src/mcp.ts')).toContain('iptv-org catalog');
+  });
+
+  it('locks MCP description_for_model AI-curated IPTV radio substring', () => {
+    expect(read('src/mcp.ts')).toContain('AI-curated IPTV radio service');
+  });
+
+  it('locks curator_prompt required mood and optional genre in source', () => {
+    const mcp = read('src/mcp.ts');
+    const curator = mcp.slice(mcp.indexOf('name: "curator_prompt"'));
+    expect(curator).toMatch(/required:\s*\["mood"\]/);
+    expect(curator).toMatch(/genre:\s*\{\s*\n\s*type:\s*"string"/);
+  });
+
+  it('locks now_playing input_schema to empty properties object in source', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/name: "now_playing"[\s\S]*?input_schema:\s*\{\s*type:\s*"object",\s*properties:\s*\{\s*\}/);
+  });
+
+  it('locks station_select required station_name in source', () => {
+    expect(read('src/mcp.ts')).toMatch(/required:\s*\["station_name"\]/);
+  });
+
+  it('locks genre_filter required genre in source', () => {
+    expect(read('src/mcp.ts')).toMatch(/required:\s*\["genre"\]/);
+  });
+
+  it('locks /curate query fallback || genre when mood and genreParam absent', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const query = \[mood, genreParam\]\.filter\(Boolean\)\.join\(' '\) \|\| genre/,
+    );
+  });
+
+  it('locks Worker root name Backlink and package description alignment', () => {
+    const index = read('src/index.ts');
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(index).toMatch(/name:\s*'Backlink'/);
+    expect(index).toContain(`description: '${pkg.description}'`);
+  });
+
+  it('locks genres.ts free of Hono and fetch', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).not.toMatch(/hono|fetch\(|KVNamespace|GEMINI/);
+  });
+
+  it('locks mcp.ts free of Hono and fetch', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).not.toMatch(/hono|fetch\(|KVNamespace|GEMINI/);
+  });
+
+  it('locks docs/mcp-spec Base URL to https://backlink.fuzzywigg.com', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(
+      /Base URL:\s*`https:\/\/backlink\.fuzzywigg\.com`/,
+    );
+  });
+
+  it('locks GENRE_MAP entry count at 21 in source object literal', () => {
+    const genres = read('src/genres.ts');
+    const block = genres.slice(genres.indexOf('export const GENRE_MAP'), genres.indexOf('};') + 1);
+    const keys = [...block.matchAll(/^\s*(?:'([^']+)'|([a-z-]+))\s*:/gm)].map(
+      (m) => m[1] ?? m[2],
+    );
+    expect(keys).toHaveLength(21);
+  });
+
+  it('locks VALID_GENRES length at 9 in source array literal', () => {
+    const genres = read('src/genres.ts');
+    const block = genres.slice(
+      genres.indexOf('export const VALID_GENRES'),
+      genres.indexOf('] as const'),
+    );
+    const items = [...block.matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
+    expect(items).toHaveLength(9);
+    expect(items).toEqual([...VALID_GENRES]);
+  });
 });
