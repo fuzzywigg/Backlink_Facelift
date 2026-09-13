@@ -90,4 +90,27 @@ describe('source ↔ product contracts', () => {
     expect(spec).toContain('### `backlink_genres`');
     expect(spec).toContain('### `backlink_now_playing`');
   });
+
+  it('falls back to music.m3u when the primary category fetch is not ok', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/Fallback to music\.m3u/);
+    expect(index).toMatch(/\$\{IPTV_BASE\}\/music\.m3u/);
+  });
+
+  it('exports the Hono app as the Worker default', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/export default app/);
+    expect(index).toMatch(/new Hono/);
+  });
+
+  it('joins mood and genre with slash separator in the Gemini prompt query', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/\[mood,\s*genre\]\.filter\(Boolean\)\.join\(' \/ '\)/);
+  });
+
+  it('keeps package description aligned with Gemini curation positioning', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string; version: string };
+    expect(pkg.description).toMatch(/iptv-org/i);
+    expect(pkg.version).toBe('0.1.0');
+  });
 });

@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   SAMPLE_M3U,
+  countHttpStreamLines,
   curatedGeminiJson,
   geminiTextResponse,
+  iptvCategoryUrl,
   mockKV,
   stubIptvAndGemini,
   testEnv,
@@ -81,5 +83,38 @@ describe('test helpers', () => {
     const degraded = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
     const boom = await degraded('https://generativelanguage.googleapis.com/v1beta/x');
     expect(boom.status).toBe(500);
+  });
+
+  it('builds iptv category URLs matching the Worker CDN layout', () => {
+    expect(iptvCategoryUrl('jazz')).toBe(
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+    );
+    expect(iptvCategoryUrl('music')).toMatch(/\/music\.m3u$/);
+  });
+
+  it('counts http(s) stream lines in SAMPLE_M3U', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(countHttpStreamLines('#EXTM3U\n')).toBe(0);
+    expect(countHttpStreamLines('rtmp://x\nhttps://ok\n')).toBe(1);
+  });
+
+  it('curatedGeminiJson defaults to a single Alpha FM pick', async () => {
+    const body = (await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{
+      name: string;
+    }>;
+    expect(picks).toHaveLength(1);
+    expect(picks[0].name).toBe('Alpha FM');
+  });
+
+  it('mockKV list/getWithMetadata stubs return empty-shaped results', async () => {
+    const kv = mockKV();
+    await expect(kv.list()).resolves.toMatchObject({ keys: [], list_complete: true });
+    await expect(kv.getWithMetadata('missing')).resolves.toMatchObject({
+      value: null,
+      metadata: null,
+    });
   });
 });

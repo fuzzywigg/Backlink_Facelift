@@ -13,6 +13,10 @@ concurrency:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   typecheck:
     name: Typecheck
@@ -20,6 +24,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -39,6 +45,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -51,6 +59,13 @@ jobs:
 
       - name: Unit / integration tests with coverage
         run: npm run test:coverage
+
+      - name: Assert coverage artifacts exist
+        run: |
+          test -d coverage
+          test -f coverage/lcov.info
+          test -s coverage/lcov.info
+          grep -q 'SF:src/' coverage/lcov.info
 
       - name: Upload coverage report
         if: always()
@@ -69,12 +84,15 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Check required files
         run: |
           test -f README.md
           test -f AGENTS.md
           test -f package.json
+          test -f package-lock.json
           test -f wrangler.toml
           test -f .cursor/environment.json
           test -f .github/workflows/ci.yml
@@ -109,6 +127,9 @@ jobs:
           grep -q 'timeout-minutes:' .github/workflows/ci.yml
           grep -q 'node-version: "20"' .github/workflows/ci.yml
           grep -q 'workflow_dispatch' .github/workflows/deploy.yml
+          grep -q 'persist-credentials: false' .github/workflows/ci.yml
+          grep -q 'Assert coverage artifacts exist' .github/workflows/ci.yml
+          grep -q 'shell: bash' .github/workflows/ci.yml
           grep -q 'gemini-2.0-flash' src/index.ts
           grep -qE '"typescript": "\^5\.' package.json
           ! grep -qE '"typescript": "\^[67]\.' package.json
@@ -116,16 +137,24 @@ jobs:
           grep -q 'cancel-in-progress: true' .github/workflows/ci.yml
           grep -q 'upload-artifact@v4' .github/workflows/ci.yml
           grep -q "src/types.ts" vitest.config.ts
+          grep -q 'github-actions' vitest.config.ts
+          grep -q 'lcov' vitest.config.ts
           grep -q '"hono"' package.json
           ! grep -q 'GEMINI_API_KEY=' wrangler.toml
           ! grep -qiE 'api[_-]?key\s*=' wrangler.toml
-
+          # Trigger must be push/pull_request only (not pull_request_target)
+          awk '/^on:/{f=1} f && /^jobs:/{exit} f' .github/workflows/ci.yml | grep -q 'pull_request:'
+          ! awk '/^on:/{f=1} f && /^[^[:space:]#]/{if($0 !~ /^on:/) exit} f' .github/workflows/ci.yml | grep -q 'pull_request_target'
+          ! awk '/^on:/{f=1} f && /^[^[:space:]#]/{if($0 !~ /^on:/) exit} f' .github/workflows/deploy.yml | grep -q 'pull_request_target'
       - name: Check for committed secret material
         run: |
-          ! grep -RInE '(api[_-]?key|secret|token|password)\s*[:=]\s*["'\'']?[A-Za-z0-9_\-]{8,}' \
+          ! grep -RInE '(api[_-]?key|secret|token|password|private[_-]?key)\s*[:=]\s*["'\'']?[A-Za-z0-9_\-]{8,}' \
             --exclude-dir=.git \
             --exclude-dir=node_modules \
             --exclude-dir=coverage \
             --exclude='*.md' \
             --exclude='package-lock.json' \
             .
+          ! test -f .env
+          ! test -f .dev.vars
+          ! find . \( -name '*.pem' -o -name '*.key' \) ! -path './node_modules/*' ! -path './.git/*' | grep -q .

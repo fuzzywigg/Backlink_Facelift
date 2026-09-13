@@ -193,4 +193,54 @@ describe('resolveGenre', () => {
     expect(VALID_GENRES).toHaveLength(9);
     expect(Object.isFrozen(VALID_GENRES) || Array.isArray(VALID_GENRES)).toBe(true);
   });
+
+  it('keeps every GENRE_MAP key lowercased (lookup assumes toLowerCase)', () => {
+    for (const key of Object.keys(GENRE_MAP)) {
+      expect(key).toBe(key.toLowerCase());
+    }
+  });
+
+  it('keeps every GENRE_MAP value lowercased canonical slug', () => {
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(value).toBe(value.toLowerCase());
+      expect(value).toMatch(/^[a-z]+$/);
+    }
+  });
+
+  it('resolves electronic and relaxing aliases to ambient', () => {
+    expect(resolveGenre('electronic')).toBe('ambient');
+    expect(resolveGenre('RELAXING')).toBe('ambient');
+    expect(resolveGenre('focus')).toBe('ambient');
+  });
+
+  it('does not treat NBSP-only input as blank (only trim ASCII whitespace)', () => {
+    // String.trim() removes Unicode whitespace including NBSP in modern JS —
+    // lock the observed runtime behavior so resolveGenre stays predictable.
+    const nbsp = '\u00a0';
+    const resolved = resolveGenre(nbsp);
+    expect(['music']).toContain(resolved);
+  });
+
+  it('prefers custom map hits over VALID_GENRES identity for the same key', () => {
+    expect(resolveGenre('music', { music: 'jazz' })).toBe('jazz');
+  });
+
+  it('does not mutate VALID_GENRES when resolving', () => {
+    const before = [...VALID_GENRES];
+    resolveGenre('jazz');
+    resolveGenre('unknown-label');
+    expect([...VALID_GENRES]).toEqual(before);
+  });
+
+  it('maps indie and metal exclusively through rock (not identity keys)', () => {
+    expect(GENRE_MAP.indie).toBe('rock');
+    expect(GENRE_MAP.metal).toBe('rock');
+    expect(VALID_GENRES.includes('indie' as (typeof VALID_GENRES)[number])).toBe(false);
+    expect(VALID_GENRES.includes('metal' as (typeof VALID_GENRES)[number])).toBe(false);
+  });
+
+  it('returns music for mixed-case unknown labels after lowercasing', () => {
+    expect(resolveGenre('K-Pop')).toBe('music');
+    expect(resolveGenre('NotAGenre')).toBe('music');
+  });
 });

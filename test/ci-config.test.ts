@@ -176,4 +176,47 @@ describe('CI / package test wiring', () => {
     expect(ts.compilerOptions.types).toEqual(['@cloudflare/workers-types', 'node']);
     expect(ts.include).toEqual(expect.arrayContaining(['src/**/*.ts', 'test/**/*.ts']));
   });
+
+  it('hardens checkout with persist-credentials disabled', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/persist-credentials:\s*false/);
+    expect(ci).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/);
+    expect(ci).toMatch(/Assert coverage artifacts exist/);
+    expect(ci).toMatch(/coverage\/lcov\.info/);
+    // Exact trigger block — push + pull_request to main only
+    expect(ci).toMatch(
+      /^on:\n {2}push:\n {4}branches: \[main\]\n {2}pull_request:\n {4}branches: \[main\]\n/m,
+    );
+  });
+
+  it('keeps deploy workflow HITL with read-only permissions and timeout', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/workflow_dispatch/);
+    expect(deploy).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(deploy).toMatch(/timeout-minutes:\s*20/);
+    expect(deploy).toMatch(/persist-credentials:\s*false/);
+    expect(deploy).toMatch(/cancel-in-progress:\s*false/);
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).toMatch(/^on:\n {2}workflow_dispatch:\s*$/m);
+  });
+
+  it('locks Node engines expectation via CI pin (Node 20)', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const matches = ci.match(/node-version:\s*"20"/g) ?? [];
+    expect(matches.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('requires package-lock.json alongside package.json', () => {
+    expect(read('package-lock.json').length).toBeGreaterThan(100);
+    const lock = JSON.parse(read('package-lock.json')) as { name: string; lockfileVersion: number };
+    expect(lock.name).toBe('backlink');
+    expect(lock.lockfileVersion).toBeGreaterThanOrEqual(3);
+  });
+
+  it('keeps secret-scan hygiene patterns broad enough for private keys', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/private\[_-\]\?key/);
+    expect(ci).toMatch(/!\s*test -f \.env/);
+    expect(ci).toMatch(/!\s*test -f \.dev\.vars/);
+  });
 });

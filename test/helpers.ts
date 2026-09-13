@@ -81,3 +81,16 @@ export function curatedGeminiJson(
 ): Response {
   return geminiTextResponse(JSON.stringify(stations));
 }
+
+/** Build an iptv-org category URL the Worker fetchStations helper would hit. */
+export function iptvCategoryUrl(genre: string): string {
+  return `https://iptv-org.github.io/iptv/categories/${genre}.m3u`;
+}
+
+/** Count http(s) stream URL lines in an M3U body (post-trim lines). */
+export function countHttpStreamLines(m3u: string): number {
+  return m3u
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith('http://') || l.startsWith('https://')).length;
+}
