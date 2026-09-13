@@ -6057,4 +6057,305 @@ https://example.com/pay-recover.m3u8
     const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="A\u200bB",A\nhttps://u\n');
     expect(s.name).toBe('A\u200bB');
   });
+
+
+  // --- HEAVY burn (post-#56): parser unit deepen — orthogonal to mcp/CI/source/mcp-spec ---
+
+  it('locks Station key set to name url logo group language country only', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-logo="https://l" group-title="G" tvg-language="en" tvg-country="US",A\nhttps://a\n');
+    expect(Object.keys(s).sort()).toEqual(['country', 'group', 'language', 'logo', 'name', 'url'].sort());
+  });
+
+  it('Reflect.ownKeys on parsed station matches Object.keys', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Reflect.ownKeys(s)).toEqual(Object.keys(s));
+  });
+
+  it('structuredClone of parsed stations is deep-equal not identity', () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const clone = structuredClone(stations);
+    expect(clone).toEqual(stations);
+    expect(clone).not.toBe(stations);
+    expect(clone[0]).not.toBe(stations[0]);
+  });
+
+  it('JSON.parse(JSON.stringify) round-trip preserves undefined as omitted then absent', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const round = JSON.parse(JSON.stringify(s)) as Record<string, unknown>;
+    expect(round.name).toBe('A');
+    expect(round.url).toBe('https://a');
+    expect('logo' in round).toBe(false);
+  });
+
+  it('Proxy get trap on station still surfaces name and url', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const proxied = new Proxy(s, { get: (t, p, r) => Reflect.get(t, p, r) });
+    expect(proxied.name).toBe('A');
+    expect(proxied.url).toBe('https://a');
+  });
+
+  it('Map from url→name for SAMPLE_M3U has six entries Alpha→Zeta', () => {
+    const m = new Map(parseM3U(SAMPLE_M3U).map((s) => [s.url, s.name] as const));
+    expect(m.size).toBe(6);
+    expect(m.get('https://example.com/alpha.m3u8')).toBe('Alpha FM');
+    expect(m.get('https://example.com/zeta.m3u8')).toBe('Zeta FM');
+  });
+
+  it('Set of SAMPLE_M3U urls has size 6 matching parse length', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(new Set(stations.map((s) => s.url)).size).toBe(stations.length);
+  });
+
+  it('WeakMap can key station objects without affecting JSON.stringify', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const wm = new WeakMap<object, string>();
+    wm.set(s, 'tagged');
+    expect(wm.get(s)).toBe('tagged');
+    expect(JSON.stringify(s)).not.toContain('tagged');
+  });
+
+  it('dedupe keeps first name when duplicate urls appear later', () => {
+    const stations = parseM3U(
+      '#EXTM3U\n#EXTINF:-1,First\nhttps://same\n#EXTINF:-1,Second\nhttps://same\n',
+    );
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('First');
+  });
+
+  it('http and https are both accepted as stream schemes', () => {
+    const stations = parseM3U(
+      '#EXTM3U\n#EXTINF:-1,H\nhttp://h\n#EXTINF:-1,S\nhttps://s\n',
+    );
+    expect(stations.map((s) => s.url)).toEqual(['http://h', 'https://s']);
+  });
+
+  it('uppercase HTTP:// after trim is not accepted (case-sensitive prefix)', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,U\nHTTP://u\n')).toEqual([]);
+  });
+
+  it('rtmp resets pending EXTINF so following http without new EXTINF is orphan', () => {
+    const stations = parseM3U(
+      '#EXTM3U\n#EXTINF:-1,R\nrtmp://r\nhttps://orphan\n#EXTINF:-1,Ok\nhttps://ok\n',
+    );
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('empty tvg-name falls back to comma display name', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="",Display\nhttps://d\n');
+    expect(s.name).toBe('Display');
+  });
+
+  it('whitespace-only tvg-name is kept (truthy) and skips comma fallback', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="   ",Display\nhttps://d\n');
+    expect(s.name).toBe('   ');
+  });
+
+  it('attribute matching is case-insensitive for tvg-name and group-title', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 TVG-NAME="Case" GROUP-TITLE="G",Case\nhttps://c\n',
+    );
+    expect(s.name).toBe('Case');
+    expect(s.group).toBe('G');
+  });
+
+  it('last comma wins for display-name fallback when multiple commas present', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 foo,bar,Baz Name\nhttps://b\n');
+    expect(s.name).toBe('Baz Name');
+  });
+
+  it('does not parse stations from comments alone', () => {
+    expect(parseM3U('#EXTM3U\n# comment\n#EXTINF:-1,A\n# still comment\n')).toEqual([]);
+  });
+
+  it('trim removes leading spaces before https detection', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n   https://spaced\n');
+    expect(s.url).toBe('https://spaced');
+  });
+
+  it('CR-only line endings still split via \\n absence yields single blob edge', () => {
+    // split on \\n only — CR-only playlist has no newlines → one trimmed line, no stations
+    expect(parseM3U('#EXTM3U\r#EXTINF:-1,A\rhttps://a\r')).toEqual([]);
+  });
+
+  it('buildSimpleM3U fixtures parse with all optional attrs undefined when omitted', () => {
+    const [s] = parseM3U(buildSimpleM3U([{ name: 'X', url: 'https://x' }]));
+    expect(s).toEqual({
+      name: 'X',
+      url: 'https://x',
+      logo: undefined,
+      group: undefined,
+      language: undefined,
+      country: undefined,
+    });
+  });
+
+  it('Array.prototype.reduce builds name→url map for SAMPLE_M3U', () => {
+    const map = parseM3U(SAMPLE_M3U).reduce<Record<string, string>>((acc, s) => {
+      acc[s.name] = s.url;
+      return acc;
+    }, {});
+    expect(map['Beta FM']).toBe('https://example.com/beta.m3u8');
+    expect(Object.keys(map)).toHaveLength(6);
+  });
+
+  it('freeze of parsed array clone does not freeze live parse result', () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const clone = [...stations];
+    Object.freeze(clone);
+    expect(Object.isFrozen(clone)).toBe(true);
+    expect(Object.isFrozen(stations)).toBe(false);
+  });
+
+  it('does not invent bitrate codec duration fields on Station', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(s).not.toHaveProperty('bitrate');
+    expect(s).not.toHaveProperty('codec');
+    expect(s).not.toHaveProperty('duration');
+  });
+
+  it('tvg-id attribute is ignored and not copied onto Station', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-id="id1" tvg-name="A",A\nhttps://a\n',
+    );
+    expect(s).not.toHaveProperty('id');
+    expect(s).not.toHaveProperty('tvg-id');
+    expect(s.name).toBe('A');
+  });
+
+  it('duplicate consecutive identical urls still dedupe to one', () => {
+    expect(
+      parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u\n#EXTINF:-1,C\nhttps://u\n'),
+    ).toHaveLength(1);
+  });
+
+  it('mixed http https duplicate urls are distinct keys in seen set', () => {
+    const stations = parseM3U(
+      '#EXTM3U\n#EXTINF:-1,A\nhttp://u\n#EXTINF:-1,B\nhttps://u\n',
+    );
+    expect(stations).toHaveLength(2);
+  });
+
+  it('EXTINF without comma and without tvg-name yields no bindable name', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1\nhttps://x\n')).toEqual([]);
+  });
+
+  it('logo group language country independently optional and combinable', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-language="fr" tvg-country="FR",A\nhttps://a\n',
+    );
+    expect(s.language).toBe('fr');
+    expect(s.country).toBe('FR');
+    expect(s.logo).toBeUndefined();
+    expect(s.group).toBeUndefined();
+  });
+
+  it('TextEncoder of station url lengths match string lengths for ascii urls', () => {
+    for (const s of parseM3U(SAMPLE_M3U)) {
+      expect(new TextEncoder().encode(s.url).length).toBe(s.url.length);
+    }
+  });
+
+  it('localeCompare of SAMPLE_M3U names is not pre-sorted alpha', () => {
+    const names = parseM3U(SAMPLE_M3U).map((s) => s.name);
+    expect([...names].sort((a, b) => a.localeCompare(b))).not.toEqual(names);
+  });
+
+  it('findIndex of Gamma FM in SAMPLE_M3U parse is 2', () => {
+    expect(parseM3U(SAMPLE_M3U).findIndex((s) => s.name === 'Gamma FM')).toBe(2);
+  });
+
+  it('findLastIndex of Music group in SAMPLE_M3U is last station', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    const lastMusic = [...stations]
+      .map((s, i) => ({ s, i }))
+      .reverse()
+      .find(({ s }) => s.group === 'Music')?.i;
+    expect(lastMusic).toBe(stations.length - 1);
+  });
+
+  it('every SAMPLE_M3U station url starts with https://example.com/', () => {
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.url.startsWith('https://example.com/'))).toBe(true);
+  });
+
+  it('some SAMPLE_M3U station name ends with FM', () => {
+    expect(parseM3U(SAMPLE_M3U).some((s) => s.name.endsWith('FM'))).toBe(true);
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.name.endsWith('FM'))).toBe(true);
+  });
+
+  it('flatMap identity on parse result equals spread copy', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.flatMap((s) => [s])).toEqual([...stations]);
+  });
+
+  it('concat empty array yields new array equal to parse result', () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const c = stations.concat([]);
+    expect(c).toEqual(stations);
+    expect(c).not.toBe(stations);
+  });
+
+  it('Object.is on identical url strings from duplicate parse calls', () => {
+    const a = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')[0].url;
+    const b = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')[0].url;
+    expect(Object.is(a, b)).toBe(true);
+  });
+
+  it('does not use template-looking ${} in parsed names from literal fixtures', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,Plain\nhttps://p\n');
+    expect(s.name).not.toContain('${');
+  });
+
+  it('countHttpStreamLines parity with parseM3U for buildSimpleM3U http+https mix', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'https://a' },
+      { name: 'B', url: 'http://b' },
+      { name: 'C', url: 'https://c' },
+    ]);
+    expect(countHttpStreamLines(m3u)).toBe(3);
+    expect(parseM3U(m3u)).toHaveLength(3);
+  });
+
+  it('non-http scheme magnet: resets pending attrs', () => {
+    expect(
+      parseM3U('#EXTM3U\n#EXTINF:-1,M\nmagnet:?xt=urn:btih:x\n#EXTINF:-1,Ok\nhttps://ok\n').map(
+        (s) => s.name,
+      ),
+    ).toEqual(['Ok']);
+  });
+
+  it('unicode station names round-trip from tvg-name', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="Москва FM",X\nhttps://ru\n');
+    expect(s.name).toBe('Москва FM');
+  });
+
+  it('emoji in tvg-name is preserved', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="🎵 Beats",X\nhttps://e\n');
+    expect(s.name).toBe('🎵 Beats');
+  });
+
+  it('Array.prototype.keys on parse result yields 0..n-1', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect([...stations.keys()]).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('values() identities match bracket access for parse result', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect([...stations.values()]).toEqual(stations.map((_, i) => stations[i]));
+  });
+
+  it('entries() tuples stay synchronized with index access', () => {
+    for (const [i, s] of parseM3U(SAMPLE_M3U).entries()) {
+      expect(parseM3U(SAMPLE_M3U)[i].url).toBe(s.url);
+    }
+  });
+
+  it('cross-lock: SAMPLE_M3U parse length equals countHttpStreamLines', () => {
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(countHttpStreamLines(SAMPLE_M3U));
+  });
+
+  it('cross-lock: empty playlist parse and countHttpStreamLines both zero', () => {
+    expect(parseM3U('')).toEqual([]);
+    expect(countHttpStreamLines('')).toBe(0);
+  });
+
 });

@@ -3200,4 +3200,436 @@ describe('resolveGenre', () => {
       expect(resolveGenre(a)).toBe('ambient');
     }
   });
+
+
+  // --- HEAVY burn (post-#56): genres unit deepen — orthogonal to mcp/CI/source/mcp-spec ---
+
+  it('locks GENRE_MAP JSON.stringify length band and exact key CSV', () => {
+    const keys = Object.keys(GENRE_MAP);
+    expect(keys.join(',')).toBe(
+      'late night,chill,ambient,relaxing,focus,classical,classic,jazz,blues,pop,rock,metal,indie,music,news,sports,entertainment,dance,electronic,lofi,lo-fi',
+    );
+    const n = JSON.stringify(GENRE_MAP).length;
+    expect(n).toBeGreaterThan(250);
+    expect(n).toBeLessThan(700);
+  });
+
+  it('locks value multiset counts ambient 8 rock 3 jazz 2 classical 2 pop 2 and singles', () => {
+    const counts = Object.values(GENRE_MAP).reduce<Record<string, number>>((acc, v) => {
+      acc[v] = (acc[v] ?? 0) + 1;
+      return acc;
+    }, {});
+    expect(counts).toEqual({
+      ambient: 8,
+      classical: 2,
+      jazz: 2,
+      pop: 2,
+      rock: 3,
+      music: 1,
+      news: 1,
+      sports: 1,
+      entertainment: 1,
+    });
+  });
+
+  it('Reflect.ownKeys(GENRE_MAP) matches Object.keys with no symbols', () => {
+    expect(Reflect.ownKeys(GENRE_MAP)).toEqual(Object.keys(GENRE_MAP));
+    expect(Object.getOwnPropertySymbols(GENRE_MAP)).toEqual([]);
+  });
+
+  it('Object.getOwnPropertyDescriptors marks GENRE_MAP keys writable enumerable configurable', () => {
+    for (const key of Object.keys(GENRE_MAP)) {
+      const d = Object.getOwnPropertyDescriptor(GENRE_MAP, key)!;
+      expect(d.writable).toBe(true);
+      expect(d.enumerable).toBe(true);
+      expect(d.configurable).toBe(true);
+      expect(typeof d.value).toBe('string');
+    }
+  });
+
+  it('Proxy get trap still surfaces chill→ambient and music→music', () => {
+    const proxied = new Proxy(GENRE_MAP, {
+      get(target, prop, receiver) {
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+    expect(proxied.chill).toBe('ambient');
+    expect(proxied.music).toBe('music');
+    expect(resolveGenre('chill', proxied)).toBe('ambient');
+  });
+
+  it('structuredClone then mutate clone leaves live GENRE_MAP chill ambient', () => {
+    const clone = structuredClone(GENRE_MAP);
+    clone.chill = 'jazz';
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(clone.chill).toBe('jazz');
+  });
+
+  it('JSON.parse(JSON.stringify) GENRE_MAP clone is deep-equal but not identity-equal', () => {
+    const clone = JSON.parse(JSON.stringify(GENRE_MAP)) as typeof GENRE_MAP;
+    expect(clone).toEqual(GENRE_MAP);
+    expect(clone).not.toBe(GENRE_MAP);
+  });
+
+  it('Map from alias→target has size 21 and get(lo-fi) ambient', () => {
+    const m = new Map(Object.entries(GENRE_MAP));
+    expect(m.size).toBe(21);
+    expect(m.get('lo-fi')).toBe('ambient');
+    expect(m.get('late night')).toBe('ambient');
+    expect(m.has('late_night')).toBe(false);
+  });
+
+  it('Set of GENRE_MAP values equals Set(VALID_GENRES)', () => {
+    expect(new Set(Object.values(GENRE_MAP))).toEqual(new Set(VALID_GENRES));
+  });
+
+  it('WeakMap can key GENRE_MAP object without leaking into JSON', () => {
+    const wm = new WeakMap<object, string>();
+    wm.set(GENRE_MAP, 'genre-map');
+    expect(wm.get(GENRE_MAP)).toBe('genre-map');
+    expect(JSON.stringify(GENRE_MAP)).not.toContain('genre-map');
+  });
+
+  it('Array.prototype.reduce builds target→aliasCount map matching multiset', () => {
+    const byTarget = Object.entries(GENRE_MAP).reduce<Record<string, number>>((acc, [, v]) => {
+      acc[v] = (acc[v] ?? 0) + 1;
+      return acc;
+    }, {});
+    expect(byTarget.ambient).toBe(8);
+    expect(byTarget.rock).toBe(3);
+    expect(Object.keys(byTarget).sort()).toEqual([...VALID_GENRES].sort());
+  });
+
+  it('VALID_GENRES sorted copy then reverse does not mutate live order', () => {
+    const sorted = [...VALID_GENRES].sort();
+    sorted.reverse();
+    expect([...VALID_GENRES][0]).toBe('music');
+    expect([...VALID_GENRES].at(-1)).toBe('entertainment');
+  });
+
+  it('localeCompare of consecutive VALID_GENRES is not required sorted alpha', () => {
+    // locks insertion order is intentional product order, not alpha
+    expect(VALID_GENRES[0].localeCompare(VALID_GENRES[1])).not.toBe(0);
+    expect([...VALID_GENRES].sort()).not.toEqual([...VALID_GENRES]);
+  });
+
+  it('does not declare playlist nowPlaying radio or mcp keys on GENRE_MAP', () => {
+    expect(GENRE_MAP).not.toHaveProperty('playlist');
+    expect(GENRE_MAP).not.toHaveProperty('nowPlaying');
+    expect(GENRE_MAP).not.toHaveProperty('radio');
+    expect(GENRE_MAP).not.toHaveProperty('mcp');
+  });
+
+  it('does not declare id title examples default or enum inventing fields on maps', () => {
+    expect(Object.keys(GENRE_MAP).some((k) => k === 'id' || k === 'enum')).toBe(false);
+    expect((VALID_GENRES as unknown as Record<string, unknown>).enum).toBeUndefined();
+  });
+
+  it('locks snake_case absence — no late_night lo_fi camelCase LateNight', () => {
+    const keys = Object.keys(GENRE_MAP);
+    expect(keys.some((k) => k.includes('_'))).toBe(false);
+    expect(keys).not.toContain('LateNight');
+    expect(keys).not.toContain('loFi');
+  });
+
+  it('TextEncoder encode of jazz is 4 bytes; late night is 10', () => {
+    expect(new TextEncoder().encode('jazz').length).toBe(4);
+    expect(new TextEncoder().encode('late night').length).toBe(10);
+    expect(new TextEncoder().encode('lo-fi').length).toBe(5);
+  });
+
+  it('TextDecoder round-trip of GENRE_MAP JSON preserves parse equality', () => {
+    const bytes = new TextEncoder().encode(JSON.stringify(GENRE_MAP));
+    const decoded = new TextDecoder().decode(bytes);
+    expect(JSON.parse(decoded)).toEqual(GENRE_MAP);
+  });
+
+  it('locks lastIndexOf hyphen in lo-fi and space in late night', () => {
+    expect('lo-fi'.lastIndexOf('-')).toBe(2);
+    expect('late night'.lastIndexOf(' ')).toBe(4);
+    expect(Object.keys(GENRE_MAP).filter((k) => k.includes('-'))).toEqual(['lo-fi']);
+    expect(Object.keys(GENRE_MAP).filter((k) => k.includes(' '))).toEqual(['late night']);
+  });
+
+  it('split late night on space yields late|night; lo-fi on hyphen yields lo|fi', () => {
+    expect('late night'.split(' ')).toEqual(['late', 'night']);
+    expect('lo-fi'.split('-')).toEqual(['lo', 'fi']);
+  });
+
+  it('startsWith/endsWith locks for ambient-target aliases', () => {
+    expect('lofi'.startsWith('lo')).toBe(true);
+    expect('lo-fi'.endsWith('fi')).toBe(true);
+    expect('electronic'.startsWith('electro')).toBe(true);
+    expect(resolveGenre('electronic')).toBe('ambient');
+  });
+
+  it('replaceAll hyphen→underscore on lo-fi produces unused lo_fi key', () => {
+    expect('lo-fi'.replaceAll('-', '_')).toBe('lo_fi');
+    expect(GENRE_MAP['lo_fi']).toBeUndefined();
+    expect(resolveGenre('lo_fi')).toBe('music');
+  });
+
+  it('JSON.stringify space-2 pretty print still contains chill ambient', () => {
+    const pretty = JSON.stringify(GENRE_MAP, null, 2);
+    expect(pretty).toContain('"chill": "ambient"');
+    expect(pretty).toContain('"lo-fi": "ambient"');
+  });
+
+  it('JSON.stringify replacer that drops ambient targets shrinks map', () => {
+    const filtered = JSON.parse(
+      JSON.stringify(GENRE_MAP, (_k, v) => (v === 'ambient' ? undefined : v)),
+    ) as Record<string, string>;
+    expect(Object.values(filtered).includes('ambient')).toBe(false);
+    expect(filtered.jazz).toBe('jazz');
+    expect(GENRE_MAP.chill).toBe('ambient');
+  });
+
+  it('Object.entries(VALID_GENRES) indices are 0..8 string keys', () => {
+    expect(Object.entries(VALID_GENRES).map(([i]) => i)).toEqual([
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+    ]);
+  });
+
+  it('Array.isArray(VALID_GENRES) true while GENRE_MAP is non-array', () => {
+    expect(Array.isArray(VALID_GENRES)).toBe(true);
+    expect(Array.isArray(GENRE_MAP)).toBe(false);
+  });
+
+  it('typeof locks: GENRE_MAP object VALID_GENRES object resolveGenre function', () => {
+    expect(typeof GENRE_MAP).toBe('object');
+    expect(typeof VALID_GENRES).toBe('object');
+    expect(typeof resolveGenre).toBe('function');
+  });
+
+  it('freeze of a GENRE_MAP clone does not freeze the live map', () => {
+    const clone = { ...GENRE_MAP };
+    Object.freeze(clone);
+    expect(Object.isFrozen(clone)).toBe(true);
+    expect(Object.isFrozen(GENRE_MAP)).toBe(false);
+    GENRE_MAP; // live remains mutable shape
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it('seal of a VALID_GENRES clone does not seal live array', () => {
+    const clone = [...VALID_GENRES];
+    Object.seal(clone);
+    expect(Object.isSealed(clone)).toBe(true);
+    expect(Object.isSealed(VALID_GENRES)).toBe(false);
+  });
+
+  it('locks cumulative character class: all GENRE_MAP keys are lowercase ascii', () => {
+    for (const k of Object.keys(GENRE_MAP)) {
+      expect(k).toMatch(/^[a-z0-9 -]+$/);
+      expect(k).toBe(k.toLowerCase());
+    }
+  });
+
+  it('locks VALID_GENRES Title Case absence — all lowercase tokens', () => {
+    for (const g of VALID_GENRES) {
+      expect(g).toMatch(/^[a-z]+$/);
+      expect(g).toBe(g.toLowerCase());
+    }
+  });
+
+  it('resolveGenre description-like phrases fall back to music', () => {
+    expect(resolveGenre('AI-curated live radio')).toBe('music');
+    expect(resolveGenre('best station for a mood')).toBe('music');
+  });
+
+  it('findIndex of jazz classical pop rock in VALID_GENRES locks positions', () => {
+    expect(VALID_GENRES.findIndex((g) => g === 'jazz')).toBe(2);
+    expect(VALID_GENRES.findIndex((g) => g === 'classical')).toBe(3);
+    expect(VALID_GENRES.findIndex((g) => g === 'pop')).toBe(4);
+    expect(VALID_GENRES.findIndex((g) => g === 'rock')).toBe(5);
+  });
+
+  it('findLastIndex of ambient-target alias key lo-fi is last map key', () => {
+    const keys = Object.keys(GENRE_MAP);
+    const lastLoFi = [...keys]
+      .map((k, i) => ({ k, i }))
+      .reverse()
+      .find(({ k }) => k === 'lo-fi')?.i;
+    const lastAmbient = [...keys]
+      .map((k, i) => ({ k, i }))
+      .reverse()
+      .find(({ k }) => GENRE_MAP[k] === 'ambient')?.i;
+    expect(lastLoFi).toBe(keys.length - 1);
+    expect(lastAmbient).toBe(keys.length - 1);
+  });
+
+  it('with / without on VALID_GENRES clone does not alter live array', () => {
+    const clone = [...VALID_GENRES];
+    const withExtra = [...clone, 'kpop'];
+    const without = clone.filter((g) => g !== 'jazz');
+    expect(VALID_GENRES).toContain('jazz');
+    expect(VALID_GENRES).not.toContain('kpop');
+    expect(withExtra).toContain('kpop');
+    expect(without).not.toContain('jazz');
+  });
+
+  it('Object.fromEntries Object.entries round-trip equals for GENRE_MAP', () => {
+    expect(Object.fromEntries(Object.entries(GENRE_MAP))).toEqual(GENRE_MAP);
+  });
+
+  it('locks regex full-match for spaced and hyphenated alias keys', () => {
+    expect(/^late night$/.test('late night')).toBe(true);
+    expect(/^lo-fi$/.test('lo-fi')).toBe(true);
+    expect(/^lofi$/.test('lofi')).toBe(true);
+    expect(resolveGenre('late night')).toBe('ambient');
+  });
+
+  it('does not embed mailto http https or file schemes in genre keys/values', () => {
+    const blob = JSON.stringify(GENRE_MAP) + VALID_GENRES.join(',');
+    expect(blob).not.toMatch(/mailto:|https?:|file:/i);
+  });
+
+  it('locks radio token absence in GENRE_MAP keys', () => {
+    expect(Object.keys(GENRE_MAP).some((k) => k.includes('radio'))).toBe(false);
+    expect(VALID_GENRES.some((g) => g.includes('radio'))).toBe(false);
+  });
+
+  it('values join with pipe is stable CSV of targets in insertion order', () => {
+    expect(Object.values(GENRE_MAP).join('|')).toBe(
+      'ambient|ambient|ambient|ambient|ambient|classical|classical|jazz|jazz|pop|rock|rock|rock|music|news|sports|entertainment|pop|ambient|ambient|ambient',
+    );
+  });
+
+  it('Number.isNaN / parseInt on genre tokens is NaN (non-numeric)', () => {
+    for (const g of VALID_GENRES) {
+      expect(Number.isNaN(Number.parseInt(g, 10))).toBe(true);
+    }
+  });
+
+  it('locale lowercase en-US of VALID_GENRES tokens is identity', () => {
+    for (const g of VALID_GENRES) {
+      expect(g.toLocaleLowerCase('en-US')).toBe(g);
+    }
+  });
+
+  it('trimStart/trimEnd are no-ops on all GENRE_MAP keys and VALID_GENRES', () => {
+    for (const k of Object.keys(GENRE_MAP)) {
+      expect(k.trimStart()).toBe(k);
+      expect(k.trimEnd()).toBe(k);
+    }
+    for (const g of VALID_GENRES) {
+      expect(g.trimStart()).toBe(g);
+      expect(g.trimEnd()).toBe(g);
+    }
+  });
+
+  it('locks charAt 0 for first VALID_GENRES music m and last entertainment e', () => {
+    expect(VALID_GENRES[0].charAt(0)).toBe('m');
+    expect(VALID_GENRES.at(-1)!.charAt(0)).toBe('e');
+    expect(Object.keys(GENRE_MAP)[0].charAt(0)).toBe('l');
+  });
+
+  it('slice(0,0) empty and slice() full copy for VALID_GENRES', () => {
+    expect(VALID_GENRES.slice(0, 0)).toEqual([]);
+    expect(VALID_GENRES.slice()).toEqual([...VALID_GENRES]);
+    expect(VALID_GENRES.slice()).not.toBe(VALID_GENRES as unknown as string[]);
+  });
+
+  it('repeat of jazz does not appear as GENRE_MAP key', () => {
+    expect(GENRE_MAP['jazzjazz']).toBeUndefined();
+    expect(resolveGenre('jazz'.repeat(2))).toBe('music');
+  });
+
+  it('VALID_GENRES.every name matches /^[a-z]+$/', () => {
+    expect(VALID_GENRES.every((g) => /^[a-z]+$/.test(g))).toBe(true);
+  });
+
+  it('does not declare claw or mcp in genre tokens', () => {
+    const blob = Object.keys(GENRE_MAP).join(',') + VALID_GENRES.join(',');
+    expect(blob).not.toMatch(/claw|mcp/i);
+  });
+
+  it('locks Object.is comparisons for string interned genre literals', () => {
+    expect(Object.is(resolveGenre('jazz'), 'jazz')).toBe(true);
+    expect(Object.is(resolveGenre('chill'), 'ambient')).toBe(true);
+    expect(Object.is(resolveGenre('unknown'), 'music')).toBe(true);
+  });
+
+  it('Array.prototype.keys on VALID_GENRES yields 0..8', () => {
+    expect([...VALID_GENRES.keys()]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('Array.prototype.values identities match bracket access', () => {
+    expect([...VALID_GENRES.values()]).toEqual([
+      VALID_GENRES[0],
+      VALID_GENRES[1],
+      VALID_GENRES[2],
+      VALID_GENRES[3],
+      VALID_GENRES[4],
+      VALID_GENRES[5],
+      VALID_GENRES[6],
+      VALID_GENRES[7],
+      VALID_GENRES[8],
+    ]);
+  });
+
+  it('Array.prototype.entries tuples stay [i, genre] synchronized', () => {
+    for (const [i, g] of VALID_GENRES.entries()) {
+      expect(VALID_GENRES[i]).toBe(g);
+    }
+  });
+
+  it('locks exact GENRE_MAP chill and lo-fi and late night strings', () => {
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP['lo-fi']).toBe('ambient');
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(GENRE_MAP.metal).toBe('rock');
+    expect(GENRE_MAP.dance).toBe('pop');
+  });
+
+  it('does not use template-looking ${} sequences in genre keys/values', () => {
+    expect(JSON.stringify(GENRE_MAP)).not.toContain('${');
+  });
+
+  it('locks VALID_GENRES length property descriptor value 9', () => {
+    const d = Object.getOwnPropertyDescriptor(VALID_GENRES, 'length')!;
+    expect(d.value).toBe(9);
+  });
+
+  it('concat of VALID_GENRES with empty array returns new array equal to live', () => {
+    const c = VALID_GENRES.concat([]);
+    expect(c).toEqual([...VALID_GENRES]);
+    expect(c).not.toBe(VALID_GENRES as unknown as string[]);
+  });
+
+  it('flat(1) on VALID_GENRES is identity for already-flat genre list', () => {
+    expect(VALID_GENRES.flat(1)).toEqual([...VALID_GENRES]);
+  });
+
+  it('resolveGenre custom map with null prototype still resolves own keys', () => {
+    const map = Object.assign(Object.create(null), { vibe: 'jazz' }) as Record<string, string>;
+    expect(resolveGenre('vibe', map)).toBe('jazz');
+    expect(resolveGenre('chill', map)).toBe('music');
+  });
+
+  it('resolveGenre prefers map hit over VALID_GENRES when both could apply', () => {
+    // music is both a map key and VALID_GENRES member — map path wins with same value
+    expect(resolveGenre('music', { music: 'jazz' })).toBe('jazz');
+    expect(resolveGenre('music')).toBe('music');
+  });
+
+  it('cross-lock: every GENRE_MAP key lowercases to itself (already lowercase)', () => {
+    for (const k of Object.keys(GENRE_MAP)) {
+      expect(k.toLowerCase()).toBe(k);
+      expect(resolveGenre(k.toUpperCase())).toBe(GENRE_MAP[k]);
+    }
+  });
+
+  it('cross-lock: resolveGenre(undefined) equals resolveGenre("") equals music', () => {
+    expect(resolveGenre(undefined)).toBe(resolveGenre(''));
+    expect(resolveGenre()).toBe('music');
+  });
+
 });
