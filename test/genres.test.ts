@@ -887,4 +887,81 @@ describe('resolveGenre', () => {
       expect(resolveGenre(key)).toBe(value);
     }
   });
+
+  it('resolves through a Proxy map get trap', () => {
+    const map = new Proxy(
+      {} as Record<string, string>,
+      {
+        get(_t, prop) {
+          if (prop === 'jazz') return 'ambient';
+          return undefined;
+        },
+      },
+    );
+    expect(resolveGenre('jazz', map)).toBe('ambient');
+  });
+
+  it('resolves boxed String("jazz") via toLowerCase on String object', () => {
+    expect(resolveGenre(new String('jazz') as unknown as string)).toBe('jazz');
+    expect(resolveGenre(new String('CHILL') as unknown as string)).toBe('ambient');
+  });
+
+  it('still resolves when GENRE_MAP is Object.preventExtensions', () => {
+    Object.preventExtensions(GENRE_MAP);
+    expect(resolveGenre('chill')).toBe('ambient');
+    expect(resolveGenre('metal')).toBe('rock');
+  });
+
+  it('hits own-property __proto__ key on a custom map before fallback', () => {
+    const map = Object.create(null) as Record<string, string>;
+    Object.defineProperty(map, '__proto__', {
+      value: 'jazz',
+      enumerable: true,
+      configurable: true,
+    });
+    expect(resolveGenre('__proto__', map)).toBe('jazz');
+  });
+
+  it('returns music for NFD-decomposed latin that is not ASCII jazz', () => {
+    expect(resolveGenre('j\u0301azz')).toBe('music');
+  });
+
+  it('resolves jazz identity when custom map is a null-proto with only that key', () => {
+    const map = Object.create(null) as Record<string, string>;
+    map.jazz = 'ambient';
+    expect(resolveGenre('jazz', map)).toBe('ambient');
+    expect(resolveGenre('rock', map)).toBe('rock');
+  });
+
+  it('does not treat late\\tnight with tab spelling as alias in source keys', () => {
+    expect(Object.keys(GENRE_MAP)).toContain('late night');
+    expect(Object.keys(GENRE_MAP)).not.toContain('late\tnight');
+    expect(resolveGenre('late\tnight')).toBe('music');
+  });
+
+  it('locks GENRE_MAP key lo-fi distinct from lofi both → ambient', () => {
+    expect(GENRE_MAP['lo-fi']).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP['lo_fi' as keyof typeof GENRE_MAP]).toBeUndefined();
+  });
+
+  it('returns custom-map empty-string key hit after trim of whitespace-only input', () => {
+    expect(resolveGenre('  ', { '': 'jazz' })).toBe('jazz');
+  });
+
+  it('VALID_GENRES.includes path used when map deliberately omits identity keys', () => {
+    const copy = { ...GENRE_MAP };
+    delete copy.jazz;
+    expect(resolveGenre('jazz', copy)).toBe('jazz');
+    expect(resolveGenre('blues', copy)).toBe('jazz');
+  });
+
+  it('returns music for fullwidth digits and symbols only', () => {
+    expect(resolveGenre('１２３')).toBe('music');
+    expect(resolveGenre('＠＃')).toBe('music');
+  });
+
+  it('resolves sports identity with leading/trailing NBSP via trim', () => {
+    expect(resolveGenre('\u00A0sports\u00A0')).toBe('sports');
+  });
 });

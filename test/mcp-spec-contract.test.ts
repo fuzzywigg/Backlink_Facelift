@@ -516,5 +516,61 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(pattern).toBe('backlink.fuzzywigg.com');
     expect(spec).toContain(`https://${pattern}`);
   });
+
+  it('documents format: uri on curator url logo and now_playing stream_url', () => {
+    expect(spec).toMatch(/"url":\s*\{\s*"type":\s*"string",\s*"format":\s*"uri"/);
+    expect(spec).toMatch(/"logo":\s*\{\s*"type":\s*\["string",\s*"null"\],\s*"format":\s*"uri"/);
+    expect(spec).toMatch(/"stream_url":\s*\{\s*"type":\s*"string",\s*"format":\s*"uri"/);
+  });
+
+  it('documents format: date-time on timestamp exactly', () => {
+    expect(spec).toMatch(/"timestamp":\s*\{\s*"type":\s*"string",\s*"format":\s*"date-time"\s*\}/);
+  });
+
+  it('does not document backlink_stations or /mcp as tools', () => {
+    expect(spec).not.toMatch(/backlink_stations/);
+    expect(spec).not.toMatch(/### `\/mcp`/);
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/mcp/);
+  });
+
+  it('locks exact backlink_curate description first sentence', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain(
+      "**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.",
+    );
+  });
+
+  it('locks Input Schema fence count at three json blocks labeled Input Schema', () => {
+    const inputSchemas = [...spec.matchAll(/\*\*Input Schema:\*\*\s*\n```json/g)];
+    expect(inputSchemas).toHaveLength(3);
+  });
+
+  it('does not claim the Worker enforces additionalProperties false at runtime', () => {
+    expect(spec).toMatch(/"additionalProperties":\s*false/);
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(index).not.toMatch(/additionalProperties/);
+  });
+
+  it('cross-locks docs Base URL to README live worker URL', () => {
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(readme).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('documents graceful degradation editorial null matching Worker literal null', () => {
+    expect(spec).toMatch(/editorial: null/);
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toMatch(/editorial:\s*null/);
+  });
+
+  it('documents genres Endpoint exactly GET /genres', () => {
+    expect(spec).toMatch(/\*\*Endpoint:\*\*\s*`GET \/genres`/);
+  });
+
+  it('documents now_playing remaps url to stream_url in Endpoint note', () => {
+    expect(spec).toMatch(/url` remapped to `stream_url/);
+  });
 });
 

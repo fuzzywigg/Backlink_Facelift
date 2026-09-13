@@ -329,5 +329,41 @@ describe('wrangler.toml contracts', () => {
     };
     expect(toml).toMatch(new RegExp(`VERSION\\s*=\\s*"${pkg.version}"`));
   });
+
+  it('does not declare send_metrics or metrics blocks', () => {
+    expect(toml).not.toMatch(/send_metrics/i);
+    expect(toml).not.toMatch(/\[metrics\]/i);
+  });
+
+  it('does not declare a [dev] table', () => {
+    expect(toml).not.toMatch(/\[dev\]/);
+  });
+
+  it('does not declare tsconfig or build.upload rules', () => {
+    expect(toml).not.toMatch(/tsconfig\s*=/);
+    expect(toml).not.toMatch(/\[build\.upload\]/i);
+    expect(toml).not.toMatch(/upload\s*=/);
+  });
+
+  it('keeps wrangler.toml free of trailing assignment-like secret lines', () => {
+    const afterSecrets = toml.slice(toml.indexOf('# Secrets'));
+    expect(afterSecrets).not.toMatch(/^[A-Z0-9_]+\s*=/m);
+  });
+
+  it('locks KV id string length exactly 32', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toBeDefined();
+    expect(id!.length).toBe(32);
+  });
+
+  it('does not declare account_id or zone_id', () => {
+    expect(toml).not.toMatch(/account_id\s*=/);
+    expect(toml).not.toMatch(/zone_id\s*=/);
+  });
+
+  it('keeps exactly one [[kv_namespaces]] and one [[routes]] table', () => {
+    expect((toml.match(/\[\[kv_namespaces\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/\[\[routes\]\]/g) ?? []).length).toBe(1);
+  });
 });
 

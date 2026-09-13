@@ -1025,5 +1025,80 @@ describe('CI / package test wiring', () => {
     expect(env.name).toBe('Backlink_Facelift');
     expect(env.install).toBe('npm ci');
   });
+
+  it('locks Dependabot directory to / for npm and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    const dirs = [...dep.matchAll(/directory:\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(dirs).toEqual(['/', '/']);
+  });
+
+  it('locks Dependabot group names npm-dependencies and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/npm-dependencies:/);
+    expect(dep).toMatch(/github-actions:/);
+  });
+
+  it('keeps ISSUE_TEMPLATE config.yml free of contact_links', () => {
+    const cfg = read('.github/ISSUE_TEMPLATE/config.yml');
+    expect(cfg).toMatch(/blank_issues_enabled:\s*false/);
+    expect(cfg).not.toMatch(/contact_links/);
+  });
+
+  it('locks .gitignore *.swp and *~ editor swap patterns', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\*\.swp$/m);
+    expect(gi).toMatch(/^\*~$/m);
+  });
+
+  it('keeps package.json free of private sideEffects exports and files fields', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(pkg).not.toHaveProperty('private');
+    expect(pkg).not.toHaveProperty('sideEffects');
+    expect(pkg).not.toHaveProperty('exports');
+    expect(pkg).not.toHaveProperty('files');
+  });
+
+  it('locks CI workflow name exactly CI', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/^name:\s*CI\s*$/m);
+  });
+
+  it('locks deploy wrangler-action secrets block to only GEMINI_API_KEY', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const withBlock = deploy.slice(deploy.indexOf('uses: cloudflare/wrangler-action'));
+    const secretsMatch = withBlock.match(/secrets:\s*\|\s*\n([ \t]+GEMINI_API_KEY)\s*\n/);
+    expect(secretsMatch).toBeTruthy();
+    expect(secretsMatch![1].trim()).toBe('GEMINI_API_KEY');
+    expect(withBlock).toMatch(/GEMINI_API_KEY:\s*\$\{\{\s*secrets\.GEMINI_API_KEY\s*\}\}/);
+  });
+
+  it('locks bug expected and steps fields as optional', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    const expected = bug.slice(bug.indexOf('id: expected'), bug.indexOf('id: steps'));
+    const steps = bug.slice(bug.indexOf('id: steps'));
+    expect(expected).not.toMatch(/validations:\s*\n\s*required:\s*true/);
+    expect(steps).not.toMatch(/validations:\s*\n\s*required:\s*true/);
+  });
+
+  it('locks feature status dropdown options exactly', () => {
+    const feature = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(feature).toMatch(/options:\s*\[Backlog,\s*Ready,\s*"In Progress",\s*Blocked\]/);
+  });
+
+  it('documents DEPLOY.md wrangler login before kv create', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy.indexOf('wrangler login')).toBeLessThan(
+      deploy.indexOf('wrangler kv namespace create CATALOG_CACHE'),
+    );
+  });
+
+  it('locks CI concurrency cancel-in-progress true', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/cancel-in-progress:\s*true/);
+  });
+
+  it('locks package.json name backlink and version 0.1.0', () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string; version: string };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.version).toBe('0.1.0');
+  });
 });
 

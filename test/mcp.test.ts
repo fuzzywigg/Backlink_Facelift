@@ -806,5 +806,97 @@ describe('MCP_MANIFEST', () => {
     expect(streamIdx).toBeGreaterThan(genreIdx);
     expect(countryIdx).toBeGreaterThan(streamIdx);
   });
+
+  it('does not declare minLength maxLength default oneOf or $ref on any property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        const p = prop as Record<string, unknown>;
+        expect(p).not.toHaveProperty('minLength');
+        expect(p).not.toHaveProperty('maxLength');
+        expect(p).not.toHaveProperty('default');
+        expect(p).not.toHaveProperty('oneOf');
+        expect(p).not.toHaveProperty('$ref');
+      }
+    }
+  });
+
+  it('does not declare format on any tool property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(prop as object).not.toHaveProperty('format');
+      }
+    }
+  });
+
+  it('keeps property descriptions free of markdown backticks', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        const desc = (prop as { description?: string }).description ?? '';
+        expect(desc).not.toContain('`');
+      }
+    }
+  });
+
+  it('keeps tool descriptions free of HTTP method verbs GET/POST', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/\bGET\b|\bPOST\b/);
+    }
+  });
+
+  it('locks JSON.stringify top-level key order of MCP_MANIFEST', () => {
+    const keys = Object.keys(JSON.parse(JSON.stringify(MCP_MANIFEST)) as object);
+    expect(keys).toEqual([
+      'schema_version',
+      'name_for_model',
+      'name_for_human',
+      'description_for_model',
+      'description_for_human',
+      'auth',
+      'api',
+      'tools',
+    ]);
+  });
+
+  it('station_select properties do not include genre or mood', () => {
+    expect(Object.keys(toolNamed('station_select').input_schema.properties)).toEqual([
+      'station_name',
+    ]);
+    expect(toolNamed('station_select').input_schema.properties).not.toHaveProperty('genre');
+    expect(toolNamed('station_select').input_schema.properties).not.toHaveProperty('mood');
+  });
+
+  it('now_playing does not declare required mood or genre', () => {
+    const schema = toolNamed('now_playing').input_schema as {
+      required?: string[];
+      properties: Record<string, unknown>;
+    };
+    expect(schema.required).toBeUndefined();
+    expect(Object.keys(schema.properties)).toEqual([]);
+  });
+
+  it('curator_prompt genre property is not listed in required', () => {
+    expect(toolNamed('curator_prompt').input_schema.required).toEqual(['mood']);
+  });
+
+  it('keeps api.url exactly /openapi.json', () => {
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+  });
+
+  it('keeps auth.type exactly none', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+  });
+
+  it('tools array length is exactly 4', () => {
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('every required field is declared under properties', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const required = tool.input_schema.required ?? [];
+      for (const key of required) {
+        expect(tool.input_schema.properties).toHaveProperty(key);
+      }
+    }
+  });
 });
 

@@ -653,5 +653,50 @@ describe('source ↔ product contracts', () => {
       /const genre = resolveGenre\(genreParam \?\? mood\);/,
     );
   });
+
+  it('locks callGemini prompt prefix You are Backlink, an AI radio curator', () => {
+    expect(read('src/index.ts')).toContain('You are Backlink, an AI radio curator');
+  });
+
+  it('locks Return JSON only instruction in callGemini prompt', () => {
+    expect(read('src/index.ts')).toContain('Return JSON only:');
+  });
+
+  it('locks stationList line template with group and language fallbacks', () => {
+    expect(read('src/index.ts')).toContain(
+      '`${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? \'en\'}] — ${s.url}`',
+    );
+  });
+
+  it('documents DEPLOY.md wrangler login step', () => {
+    expect(read('DEPLOY.md')).toMatch(/wrangler login/);
+  });
+
+  it('documents README Example Response Drone Zone station', () => {
+    expect(read('README.md')).toMatch(/"name":\s*"Drone Zone"/);
+  });
+
+  it('locks types.ts Optional at runtime comment for GEMINI_API_KEY', () => {
+    expect(read('src/types.ts')).toMatch(/Optional at runtime/);
+    expect(read('src/types.ts')).toMatch(/#8/);
+  });
+
+  it('locks fetchStations cacheKey template stations:${genre}', () => {
+    expect(read('src/index.ts')).toMatch(/const cacheKey = `stations:\$\{genre\}`/);
+  });
+
+  it('locks Gemini generateContent URL template with key query param', () => {
+    expect(read('src/index.ts')).toMatch(
+      /generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-2\.0-flash:generateContent\?key=\$\{apiKey\}/,
+    );
+  });
+
+  it('locks curated_by literal Backlink/Geryon in /curate response', () => {
+    expect(read('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+  });
+
+  it('locks powered_by literal Backlink/Geryon crab emoji on /', () => {
+    expect(read('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
 });
 
