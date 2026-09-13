@@ -557,5 +557,34 @@ VERSION = "0.1.0"
   it('CATALOG_CACHE binding appears exactly once', () => {
     expect((toml.match(/CATALOG_CACHE/g) ?? []).length).toBe(1);
   });
+
+  it('locks exact wrangler.toml top matter name/main/compatibility_date', () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).toMatch(/^main = "src\/index\.ts"$/m);
+    expect(toml).toMatch(/^compatibility_date = "2025-01-01"$/m);
+  });
+  it('locks CATALOG_CACHE binding id UUID shape', () => {
+    expect(toml).toMatch(/binding = "CATALOG_CACHE"/);
+    expect(toml).toMatch(/id = "edb6ca4df12f4f45b40508b3dda3c432"/);
+  });
+  it('locks custom_domain true for backlink.fuzzywigg.com', () => {
+    expect(toml).toMatch(/pattern = "backlink\.fuzzywigg\.com"/);
+    expect(toml).toMatch(/custom_domain = true/);
+  });
+  it('does not declare account_id or zone_id', () => {
+    expect(toml).not.toMatch(/account_id/);
+    expect(toml).not.toMatch(/zone_id/);
+  });
+  it('does not declare [env.] tables', () => {
+    expect(toml).not.toMatch(/\[env\./);
+  });
+  it('keeps file free of GEMINI_API_KEY assignment (comment only)', () => {
+    expect(toml).not.toMatch(/^GEMINI_API_KEY\s*=/m);
+    expect(toml).toMatch(/# wrangler secret put GEMINI_API_KEY/);
+  });
+  it('locks VERSION var to semver 0.1.0 string', () => {
+    expect(toml).toMatch(/^VERSION = "0\.1\.0"$/m);
+  });
+
 });
 

@@ -1434,5 +1434,62 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/test -f test\/wrangler-config\.test\.ts/);
     expect(ci).toMatch(/test -f test\/ci-config\.test\.ts/);
   });
+
+  it('AGENTS.md Verify block lists npm ci / typecheck / test / test:coverage', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/npm ci/);
+    expect(agents).toMatch(/npm run typecheck/);
+    expect(agents).toMatch(/npm test/);
+    expect(agents).toMatch(/npm run test:coverage/);
+  });
+  it('locks vitest coverage thresholds all to 100', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/lines:\s*100/);
+    expect(vitest).toMatch(/functions:\s*100/);
+    expect(vitest).toMatch(/branches:\s*100/);
+    expect(vitest).toMatch(/statements:\s*100/);
+  });
+  it('README documents domain backlink.fuzzywigg.com', () => {
+    expect(read('README.md')).toMatch(/backlink\.fuzzywigg\.com/);
+  });
+  it('DEPLOY.md documents wrangler secret put GEMINI_API_KEY', () => {
+    expect(read('DEPLOY.md')).toMatch(/wrangler secret put GEMINI_API_KEY/);
+  });
+  it('hygiene job scans src for Anthropic leftovers', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/anthropic|ANTHROPIC|claude/i);
+  });
+  it('CI jobs include Hygiene Typecheck and Tests', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Hygiene/);
+    expect(ci).toMatch(/name:\s*Typecheck/);
+    expect(ci).toMatch(/name:\s*Tests/);
+  });
+  it('package.json keeps typescript on ^5. major (not ^6/^7)', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies.typescript).toMatch(/^\^5\./);
+  });
+  it('locks hono dependency major to 4', () => {
+    const pkg = JSON.parse(read('package.json')) as { dependencies: Record<string, string> };
+    expect(pkg.dependencies.hono).toMatch(/^\^4\./);
+  });
+  it('test suite file set includes genres mcp helpers contracts', () => {
+    const files = [
+      'test/genres.test.ts',
+      'test/mcp.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/helpers.test.ts',
+      'test/helpers.ts',
+      'test/source-contracts.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+    ];
+    for (const f of files) {
+      expect(read(f).length).toBeGreaterThan(100);
+    }
+  });
+
 });
 

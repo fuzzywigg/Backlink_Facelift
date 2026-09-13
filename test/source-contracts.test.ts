@@ -1093,4 +1093,90 @@ describe('source ↔ product contracts', () => {
   it('locks degrade editorial null literal (not undefined) in /curate catch', () => {
     expect(read('src/index.ts')).toMatch(/editorial:\s*null/);
   });
+
+  it('locks genres.ts resolveGenre signature with optional input and map default GENRE_MAP', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(
+      /export function resolveGenre\(\s*input\?:\s*string,\s*map:\s*Record<string,\s*string>\s*=\s*GENRE_MAP,\s*\):\s*string/,
+    );
+  });
+  it('locks resolveGenre falsy short-circuit to music literal', () => {
+    expect(read('src/genres.ts')).toMatch(/if\s*\(\s*!input\s*\)\s*return\s*'music'\s*;/);
+  });
+  it('locks resolveGenre lower+trim then map ?? VALID_GENRES.includes ternary', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/const lower = input\.toLowerCase\(\)\.trim\(\);/);
+    expect(genres).toMatch(
+      /return map\[lower\] \?\? \(VALID_GENRES\.includes\(lower as ValidGenre\) \? lower : 'music'\);/,
+    );
+  });
+  it('exports GENRE_MAP, VALID_GENRES, ValidGenre, and resolveGenre only from genres.ts', () => {
+    const genres = read('src/genres.ts');
+    const exports = [...genres.matchAll(/^export /gm)];
+    expect(exports).toHaveLength(4);
+    expect(genres).toMatch(/export const GENRE_MAP/);
+    expect(genres).toMatch(/export const VALID_GENRES/);
+    expect(genres).toMatch(/export type ValidGenre/);
+    expect(genres).toMatch(/export function resolveGenre/);
+  });
+  it('locks MCP_MANIFEST as a single exported const object', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/^export const MCP_MANIFEST = \{/m);
+    expect([...mcp.matchAll(/^export /gm)]).toHaveLength(1);
+  });
+  it('mcp.ts uses double-quoted string literals (not single quotes)', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/schema_version: "v1"/);
+    expect(mcp).not.toMatch(/schema_version:\s*'v1'/);
+  });
+  it('index imports GENRE_MAP, VALID_GENRES, resolveGenre from ./genres', () => {
+    expect(read('src/index.ts')).toMatch(
+      /import \{ GENRE_MAP, VALID_GENRES, resolveGenre \} from '\.\/genres';/,
+    );
+  });
+  it('index does not import MCP_MANIFEST (manifest is docs/claw-only)', () => {
+    expect(read('src/index.ts')).not.toMatch(/from '\.\/mcp'/);
+    expect(read('src/index.ts')).not.toMatch(/MCP_MANIFEST/);
+  });
+  it('locks IPTV_BASE constant exactly', () => {
+    expect(read('src/index.ts')).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories';",
+    );
+  });
+  it('locks fetchStations cacheKey template stations:${genre}', () => {
+    expect(read('src/index.ts')).toContain('const cacheKey = `stations:${genre}`');
+  });
+  it('locks callGemini stationList slice(0, 50)', () => {
+    expect(read('src/index.ts')).toMatch(/stations\s*\n?\s*\.slice\(0,\s*50\)/);
+  });
+  it('locks generationConfig maxOutputTokens 512 and temperature 0.7', () => {
+    expect(read('src/index.ts')).toMatch(
+      /generationConfig:\s*\{\s*maxOutputTokens:\s*512,\s*temperature:\s*0\.7\s*\}/,
+    );
+  });
+  it('locks /curate query join as mood + genreParam with space or genre fallback', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const query = \[mood, genreParam\]\.filter\(Boolean\)\.join\(' '\) \|\| genre;/,
+    );
+  });
+  it('locks curated_by response literal Backlink/Geryon', () => {
+    expect(read('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+  });
+  it('locks powered_by root blurb Backlink/Geryon crab emoji', () => {
+    expect(read('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
+  it('types.ts documents optional GEMINI_API_KEY with #8 comment', () => {
+    expect(read('src/types.ts')).toMatch(/Optional at runtime[\s\S]*#8/);
+  });
+  it('AGENTS.md Safe Agent Actions include genres.ts and test/ extend', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/src\/genres\.ts/);
+    expect(agents).toMatch(/unit tests under `test\/`/);
+  });
+  it('AGENTS.md Escalate lists GEMINI_API_KEY and HITL deploy', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/GEMINI_API_KEY handling/);
+    expect(agents).toMatch(/first deploy must be HITL/);
+  });
+
 });
