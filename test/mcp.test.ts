@@ -1717,4 +1717,91 @@ describe('MCP_MANIFEST', () => {
     }
   });
 
+
+  it('locks name_for_model to lowercase backlink', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_model).toBe(MCP_MANIFEST.name_for_model.toLowerCase());
+  });
+
+  it('locks name_for_human to Backlink Radio title case', () => {
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it('locks auth.type to none and api.url to root-relative openapi.json', () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+  });
+
+  it('keeps every tool description ending with a period', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description.endsWith('.')).toBe(true);
+    }
+  });
+
+  it('does not embed markdown emphasis or code fences in tool descriptions', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/[*_`#]/);
+    }
+  });
+
+  it('station_select description mentions Partial or full name', () => {
+    const tool = toolNamed('station_select');
+    expect(tool.input_schema.properties.station_name!.description).toMatch(/Partial or full name/i);
+  });
+
+  it('does not declare annotations, title, or _meta on tools', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('annotations');
+      expect(tool).not.toHaveProperty('title');
+      expect(tool).not.toHaveProperty('_meta');
+    }
+  });
+
+  it('does not declare $schema or additionalProperties on any input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema).not.toHaveProperty('$schema');
+      expect(tool.input_schema).not.toHaveProperty('additionalProperties');
+    }
+  });
+
+  it('locks description_for_human exact string', () => {
+    expect(MCP_MANIFEST.description_for_human).toBe(
+      'AI-curated live radio from the iptv-org catalog.',
+    );
+  });
+
+  it('keeps schema_version exactly v1 with no semver patch', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+    expect(MCP_MANIFEST.schema_version).not.toMatch(/\./);
+  });
+
+  it('curator_prompt mood description mentions focus work and late night jazz', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(tool.input_schema.properties.mood!.description).toMatch(/focus work/i);
+    expect(tool.input_schema.properties.mood!.description).toMatch(/late night jazz/i);
+  });
+
+  it('genre_filter description lists jazz news classical examples', () => {
+    const tool = toolNamed('genre_filter');
+    expect(tool.description).toMatch(/jazz/);
+    expect(tool.description).toMatch(/news/);
+    expect(tool.description).toMatch(/classical/);
+  });
+
+  it('now_playing description lists name genre stream URL and country', () => {
+    const tool = toolNamed('now_playing');
+    expect(tool.description).toMatch(/name/);
+    expect(tool.description).toMatch(/genre/);
+    expect(tool.description).toMatch(/stream URL/);
+    expect(tool.description).toMatch(/country/);
+  });
+
+  it('tools array is dense with no holes from 0..length-1', () => {
+    for (let i = 0; i < MCP_MANIFEST.tools.length; i++) {
+      expect(MCP_MANIFEST.tools[i]).toBeDefined();
+      expect(typeof MCP_MANIFEST.tools[i].name).toBe('string');
+    }
+  });
+
 });

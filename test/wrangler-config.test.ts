@@ -632,5 +632,78 @@ VERSION = "0.1.0"
     expect(toml).not.toMatch(/^\[vars\.[^\]]+\]/m);
   });
 
-});
 
+  it('locks compatibility_date as ISO calendar date 2025-01-01 only', () => {
+    const m = toml.match(/compatibility_date\s*=\s*"([^"]+)"/);
+    expect(m?.[1]).toBe('2025-01-01');
+    expect(m?.[1]).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('does not enable nodejs_compat or node_compat flags', () => {
+    expect(toml).not.toMatch(/nodejs_compat/i);
+    expect(toml).not.toMatch(/node_compat/i);
+    expect(toml).not.toMatch(/compatibility_flags/i);
+  });
+
+  it('does not set minify, no_bundle, or upload_source_maps', () => {
+    expect(toml).not.toMatch(/minify\s*=/);
+    expect(toml).not.toMatch(/no_bundle\s*=/);
+    expect(toml).not.toMatch(/upload_source_maps\s*=/);
+  });
+
+  it('KV namespace id is exactly 32 hex chars', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toHaveLength(32);
+  });
+
+  it('separates top-level / kv / routes / vars with blank lines', () => {
+    expect(toml).toMatch(/compatibility_date = "2025-01-01"\n\n\[\[kv_namespaces\]\]/);
+    expect(toml).toMatch(/id = "[a-f0-9]{32}"\n\n\[\[routes\]\]/);
+    expect(toml).toMatch(/custom_domain = true\n\n\[vars\]/);
+  });
+
+  it('does not declare services, dispatch_namespaces, or unsafe bindings', () => {
+    expect(toml).not.toMatch(/\[\[services\]\]/);
+    expect(toml).not.toMatch(/dispatch_namespaces/);
+    expect(toml).not.toMatch(/\[unsafe\]/);
+  });
+
+  it('does not declare queues producers or consumers', () => {
+    expect(toml).not.toMatch(/\[\[queues\./);
+    expect(toml).not.toMatch(/queue\s*=/);
+  });
+
+  it('pattern host has no scheme path or port', () => {
+    const pattern = toml.match(/pattern\s*=\s*"([^"]+)"/)?.[1];
+    expect(pattern).toBe('backlink.fuzzywigg.com');
+    expect(pattern).not.toMatch(/https?:\/\//);
+    expect(pattern).not.toContain('/');
+    expect(pattern).not.toContain(':');
+  });
+
+  it('does not set workers_dev, preview_urls, or route zone_name', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+    expect(toml).not.toMatch(/preview_urls\s*=/);
+    expect(toml).not.toMatch(/zone_name\s*=/);
+  });
+
+  it('Secrets documentation comment block is exactly two lines before EOF content', () => {
+    const lines = toml.trimEnd().split('\n');
+    expect(lines.slice(-2)).toEqual([
+      '# Secrets (set via CLI, never commit):',
+      '# wrangler secret put GEMINI_API_KEY',
+    ]);
+  });
+
+  it('does not declare durable_objects migrations or new_classes', () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/new_classes/i);
+    expect(toml).not.toMatch(/migrations/i);
+  });
+
+  it('binding and VERSION identifiers are SCREAMING_SNAKE', () => {
+    expect(toml).toMatch(/binding = "CATALOG_CACHE"/);
+    expect(toml).toMatch(/VERSION = "0\.1\.0"/);
+  });
+
+});

@@ -1452,4 +1452,98 @@ describe('source ↔ product contracts', () => {
     const parser = read('src/parser.ts');
     expect(parser).toContain('if (current.name && !seen.has(line))');
   });
+
+  it('index does not import mcp.ts or MCP_MANIFEST', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/from ['"]\.\/mcp['"]/);
+    expect(index).not.toContain('MCP_MANIFEST');
+  });
+
+  it('parser does not import genres or hono', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).not.toMatch(/from ['"]\.\/genres['"]/);
+    expect(parser).not.toMatch(/from ['"]hono['"]/);
+  });
+
+  it('genres module has no default export', () => {
+    expect(read('src/genres.ts')).not.toMatch(/export\s+default\b/);
+  });
+
+  it('mcp module exports only MCP_MANIFEST const', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/export const MCP_MANIFEST/);
+    expect(mcp).not.toMatch(/export\s+default\b/);
+    expect(mcp).not.toMatch(/export\s+function\b/);
+  });
+
+  it('types.ts exports only Env interface', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/export interface Env/);
+    expect(types).not.toMatch(/export type /);
+    expect(types).not.toMatch(/export const /);
+  });
+
+  it('index wires cors() with no options object', () => {
+    expect(read('src/index.ts')).toMatch(/app\.use\('\*',\s*cors\(\)\)/);
+  });
+
+  it('index IPTV_BASE is https iptv-org categories without trailing slash file', () => {
+    expect(read('src/index.ts')).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'",
+    );
+  });
+
+  it('index does not reference Anthropic OpenAI or Claude model ids', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/anthropic|openai|claude|gpt-4|haiku/i);
+  });
+
+  it('parser Station interface fields match push object keys order', () => {
+    const parser = read('src/parser.ts');
+    const iface = parser.slice(parser.indexOf('export interface Station'), parser.indexOf('export function parseM3U'));
+    expect(iface).toMatch(/name:\s*string/);
+    expect(iface).toMatch(/url:\s*string/);
+    expect(iface).toMatch(/logo\?:\s*string/);
+    expect(iface).toMatch(/group\?:\s*string/);
+    expect(iface).toMatch(/language\?:\s*string/);
+    expect(iface).toMatch(/country\?:\s*string/);
+  });
+
+  it('resolveGenre uses VALID_GENRES.includes after map miss', () => {
+    expect(read('src/genres.ts')).toContain(
+      'return map[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : \'music\')',
+    );
+  });
+
+  it('helpers stub never invents product routes beyond iptv and gemini hosts', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).not.toContain('/playlist');
+    expect(helpers).not.toContain('/now-playing');
+    expect(helpers).toContain("url.includes('iptv-org')");
+    expect(helpers).toContain("url.includes('generativelanguage.googleapis.com')");
+  });
+
+  it('DEPLOY.md Cost Estimate mentions CF Workers free tier and Gemini 2.0 Flash', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/CF Workers free tier/);
+    expect(deploy).toMatch(/Gemini 2\.0 Flash/);
+  });
+
+  it('README notes jazz/ambient/classical/pop/rock files 404 fall back to music.m3u', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/fall back to `music\.m3u`/);
+    expect(readme).toMatch(/jazz/);
+    expect(readme).toMatch(/ambient/);
+  });
+
+  it('index degrade maps editorial null not undefined', () => {
+    expect(read('src/index.ts')).toContain('editorial: null');
+  });
+
+  it('index Gemini fetch uses POST with application/json content-type', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("method: 'POST'");
+    expect(index).toContain("headers: { 'content-type': 'application/json' }");
+  });
+
 });

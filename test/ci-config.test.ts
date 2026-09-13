@@ -1599,5 +1599,110 @@ describe('CI / package test wiring', () => {
     expect(deploy).not.toMatch(/CLOUDFLARE_API_TOKEN\s*:\s*['\"][^$]/);
     expect(deploy).toContain('GEMINI_API_KEY');
   });
-});
 
+  it('locks ISSUE_TEMPLATE config blank_issues_enabled false', () => {
+    const cfg = read('.github/ISSUE_TEMPLATE/config.yml');
+    expect(cfg).toMatch(/^blank_issues_enabled:\s*false\s*$/m);
+  });
+
+  it('locks bug chore feature ISSUE_TEMPLATE filenames present', () => {
+    for (const name of ['bug.yml', 'chore.yml', 'feature.yml', 'config.yml']) {
+      expect(read(`.github/ISSUE_TEMPLATE/${name}`).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('bug template includes Parser Curator API Deploy CF-AI KV-Cache components', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    for (const opt of ['Parser', 'Curator', 'API', 'Deploy', 'CF-AI', 'KV-Cache']) {
+      expect(bug).toContain(opt);
+    }
+  });
+
+  it('locks package.json name backlink and version 0.1.0', () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string; version: string; type: string };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.version).toBe('0.1.0');
+    expect(pkg.type).toBe('module');
+  });
+
+  it('package.json does not set private true or engines field', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(pkg).not.toHaveProperty('private');
+    expect(pkg).not.toHaveProperty('engines');
+  });
+
+  it('Dependabot ignores semver-major for npm ecosystem', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('version-update:semver-major');
+    expect(dep).toMatch(/package-ecosystem:\s*"npm"/);
+  });
+
+  it('locks CI concurrency group formula ci-${{ github.workflow }}-${{ github.ref }}', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('group: ci-${{ github.workflow }}-${{ github.ref }}');
+  });
+
+  it('locks deploy concurrency group deploy-${{ github.workflow }} with cancel false', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('group: deploy-${{ github.workflow }}');
+    expect(deploy).toMatch(/cancel-in-progress:\s*false/);
+  });
+
+  it('README documents npm ci typecheck test and test:coverage verify block', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('npm ci');
+    expect(readme).toContain('npm run typecheck');
+    expect(readme).toContain('npm test');
+    expect(readme).toContain('npm run test:coverage');
+  });
+
+  it('README CI badge points at fuzzywigg/Backlink_Facelift actions ci.yml', () => {
+    const readme = read('README.md');
+    expect(readme).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg',
+    );
+  });
+
+  it('DEPLOY.md requires HITL first production deploy by Andrew', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/First production deploy must be reviewed by Andrew/i);
+    expect(deploy).toMatch(/HITL Required/i);
+  });
+
+  it('AGENTS.md Escalate to Human lists GEMINI_API_KEY and CORS', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/GEMINI_API_KEY/);
+    expect(agents).toMatch(/CORS/);
+    expect(agents).toMatch(/Escalate to Human/);
+  });
+
+  it('hygiene job asserts source-contracts and mcp-spec-contract test files', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('test/source-contracts.test.ts');
+    expect(ci).toContain('test/mcp-spec-contract.test.ts');
+  });
+
+  it('locks .gitattributes to text=auto LF normalization', () => {
+    const ga = read('.gitattributes');
+    expect(ga).toContain('* text=auto');
+    expect(ga).toMatch(/LF normalization/i);
+    expect(ga.trim().split('\n').at(-1)).toBe('* text=auto');
+  });
+
+  it('package scripts include dev and deploy wrangler commands', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+  });
+
+  it('vitest coverage reporters include text text-summary html lcov', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/reporter:\s*\['text',\s*'text-summary',\s*'html',\s*'lcov'\]/);
+  });
+
+  it('CI Assert coverage artifacts greps SF:src/ in lcov.info', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("grep -q 'SF:src/' coverage/lcov.info");
+  });
+
+});

@@ -1209,4 +1209,76 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(section).toMatch(/url[\s\S]*remapped to[\s\S]*stream_url/);
   });
 
+
+  it('locks Base URL exact https://backlink.fuzzywigg.com bullet', () => {
+    expect(spec).toContain('- Base URL: `https://backlink.fuzzywigg.com`');
+  });
+
+  it('documents No auth required for read endpoints', () => {
+    expect(spec).toContain('No auth required for read endpoints');
+  });
+
+  it('documents /curate always calls Gemini fresh — no LLM response caching', () => {
+    expect(spec).toContain('/curate` always calls Gemini fresh — no LLM response caching');
+  });
+
+  it('cross-locks Integration Notes degrade top 5 against Worker slice(0, 5)', () => {
+    expect(spec).toMatch(/top 5 raw stations/);
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain('stations.slice(0, 5)');
+  });
+
+  it('documents backlink_now_playing Endpoint remaps url to stream_url', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    expect(section).toMatch(/url` remapped to `stream_url`/);
+  });
+
+  it('keeps exactly three ### tool headings under ## Tools', () => {
+    const tools = spec.slice(spec.indexOf('## Tools'), spec.indexOf('## Integration Notes'));
+    expect([...tools.matchAll(/^### `/gm)]).toHaveLength(3);
+  });
+
+  it('does not document WebSocket or SSE transports', () => {
+    expect(spec).not.toMatch(/websocket|server-sent|SSE/i);
+  });
+
+  it('does not mention Anthropic Claude or OpenAI in the MCP spec', () => {
+    expect(spec).not.toMatch(/anthropic|claude|openai|gpt-4/i);
+  });
+
+  it('locks curate Endpoint query shape genre and mood', () => {
+    expect(spec).toContain('`GET /curate?genre={genre}&mood={mood}`');
+  });
+
+  it('documents genres Endpoint as GET /genres only', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('**Endpoint:** `GET /genres`');
+  });
+
+  it('keeps markdown H1 title Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('does not document rate limits or quotas', () => {
+    expect(spec).not.toMatch(/rate limit|quota|throttle/i);
+  });
+
+  it('Integration Notes bullet count is exactly 5 dashes', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- /gm)];
+    expect(bullets).toHaveLength(5);
+  });
+
+  it('does not reference wrangler.toml or GEMINI_API_KEY in Integration Notes', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    expect(notes).not.toMatch(/wrangler\.toml/);
+    expect(notes).not.toContain('GEMINI_API_KEY');
+    expect(notes).toMatch(/Gemini/); // product name is documented; secret name is not
+  });
+
 });

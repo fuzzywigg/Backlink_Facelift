@@ -1716,4 +1716,101 @@ describe('resolveGenre', () => {
     ]);
   });
 
+
+  it('locks GENRE_MAP exact key count at 21', () => {
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it('keeps every GENRE_MAP key lowercase (no uppercase entries)', () => {
+    for (const key of Object.keys(GENRE_MAP)) {
+      expect(key).toBe(key.toLowerCase());
+    }
+  });
+
+  it('identity-maps ambient jazz pop rock music news sports entertainment classical', () => {
+    for (const g of [
+      'ambient',
+      'jazz',
+      'pop',
+      'rock',
+      'music',
+      'news',
+      'sports',
+      'entertainment',
+      'classical',
+    ]) {
+      expect(GENRE_MAP[g]).toBe(g);
+      expect(resolveGenre(g)).toBe(g);
+    }
+  });
+
+  it('resolveGenre(undefined) and resolveGenre() both default to music', () => {
+    expect(resolveGenre()).toBe('music');
+    expect(resolveGenre(undefined)).toBe('music');
+  });
+
+  it('returns Infinity map values via ?? without falling through', () => {
+    const map = { chill: Number.POSITIVE_INFINITY } as unknown as Record<string, string>;
+    expect(resolveGenre('chill', map) as unknown as number).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('preserves -0 map values via Object.is', () => {
+    const map = { chill: -0 } as unknown as Record<string, string>;
+    expect(Object.is(resolveGenre('chill', map) as unknown as number, -0)).toBe(true);
+  });
+
+  it('still resolves against an Object.freeze copy of GENRE_MAP', () => {
+    const frozen = Object.freeze({ ...GENRE_MAP });
+    expect(Object.isFrozen(frozen)).toBe(true);
+    expect(resolveGenre('metal', frozen)).toBe('rock');
+    expect(resolveGenre('lofi', frozen)).toBe('ambient');
+    expect(Object.isExtensible(GENRE_MAP)).toBe(true);
+  });
+
+  it('custom map getters are invoked on lookup', () => {
+    let hits = 0;
+    const map = {
+      get chill() {
+        hits += 1;
+        return 'jazz';
+      },
+    } as Record<string, string>;
+    expect(resolveGenre('chill', map)).toBe('jazz');
+    expect(hits).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not resolve classical via unknown alias classiccal typo', () => {
+    expect(resolveGenre('classiccal')).toBe('music');
+    expect(resolveGenre('classics')).toBe('music');
+  });
+
+  it('maps metal and indie both to rock without overlapping other targets', () => {
+    expect(resolveGenre('metal')).toBe('rock');
+    expect(resolveGenre('indie')).toBe('rock');
+    expect(resolveGenre('blues')).toBe('jazz');
+    expect(resolveGenre('dance')).toBe('pop');
+  });
+
+  it('returns music for empty string and pure whitespace alike', () => {
+    expect(resolveGenre('')).toBe('music');
+    expect(resolveGenre(' ')).toBe('music');
+    expect(resolveGenre('\r')).toBe('music');
+  });
+
+  it('VALID_GENRES membership is checked only after lowercasing', () => {
+    expect(resolveGenre('SPORTS')).toBe('sports');
+    expect(resolveGenre('Entertainment')).toBe('entertainment');
+  });
+
+  it('does not treat GENRE_MAP values as resolvable alias keys unless also present as keys', () => {
+    // every value happens to also be a VALID_GENRES id; unknown value-like keys still miss
+    expect(resolveGenre('not-a-real-alias')).toBe('music');
+  });
+
+  it('custom map null values fall through via ?? to VALID_GENRES or music', () => {
+    const map = { chill: null } as unknown as Record<string, string>;
+    expect(resolveGenre('chill', map)).toBe('music');
+    expect(resolveGenre('jazz', { jazz: null } as unknown as Record<string, string>)).toBe('jazz');
+  });
+
 });
