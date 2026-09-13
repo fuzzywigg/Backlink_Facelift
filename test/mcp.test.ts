@@ -679,5 +679,130 @@ describe('MCP_MANIFEST', () => {
       expect(tool).not.toHaveProperty('examples');
     }
   });
+
+  it('locks exact name_for_model and name_for_human strings with length ceilings', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+    expect(MCP_MANIFEST.name_for_model.length).toBeLessThanOrEqual(32);
+    expect(MCP_MANIFEST.name_for_human.length).toBeLessThanOrEqual(64);
+  });
+
+  it('deep-freezes a full manifest JSON snapshot for drift detection', () => {
+    expect(JSON.parse(JSON.stringify(MCP_MANIFEST))).toEqual({
+      schema_version: 'v1',
+      name_for_model: 'backlink',
+      name_for_human: 'Backlink Radio',
+      description_for_model:
+        'Interact with Backlink, an AI-curated IPTV radio service. Select stations, filter by genre, get now-playing info, and ask the AI curator to pick the best station for a mood.',
+      description_for_human: 'AI-curated live radio from the iptv-org catalog.',
+      auth: { type: 'none' },
+      api: { type: 'openapi', url: '/openapi.json' },
+      tools: [
+        {
+          name: 'station_select',
+          description: 'Set the currently playing station by name.',
+          input_schema: {
+            type: 'object',
+            properties: {
+              station_name: {
+                type: 'string',
+                description: 'Partial or full name of the station to select.',
+              },
+            },
+            required: ['station_name'],
+          },
+        },
+        {
+          name: 'now_playing',
+          description:
+            'Get the currently playing station including name, genre, stream URL, and country.',
+          input_schema: { type: 'object', properties: {} },
+        },
+        {
+          name: 'genre_filter',
+          description:
+            'Return a list of stations filtered by genre keyword (e.g. jazz, news, classical).',
+          input_schema: {
+            type: 'object',
+            properties: {
+              genre: {
+                type: 'string',
+                description: 'Genre keyword to filter by.',
+              },
+            },
+            required: ['genre'],
+          },
+        },
+        {
+          name: 'curator_prompt',
+          description:
+            'Ask the AI curator to pick and set the best station for a given mood or context.',
+          input_schema: {
+            type: 'object',
+            properties: {
+              mood: {
+                type: 'string',
+                description:
+                  'Describe the mood, activity, or vibe (e.g. focus work, late night jazz, morning energy).',
+              },
+              genre: {
+                type: 'string',
+                description: 'Optional genre to constrain the selection.',
+              },
+            },
+            required: ['mood'],
+          },
+        },
+      ],
+    });
+  });
+
+  it('keeps station_select.properties key order exactly station_name', () => {
+    expect(Object.keys(toolNamed('station_select').input_schema.properties)).toEqual([
+      'station_name',
+    ]);
+  });
+
+  it('keeps genre_filter description examples jazz, news, classical', () => {
+    expect(toolNamed('genre_filter').description).toContain('jazz, news, classical');
+  });
+
+  it('keeps curator_prompt mood examples focus work / late night jazz / morning energy', () => {
+    const desc = toolNamed('curator_prompt').input_schema.properties.mood.description as string;
+    expect(desc).toContain('focus work');
+    expect(desc).toContain('late night jazz');
+    expect(desc).toContain('morning energy');
+  });
+
+  it('does not declare logo_url / contact_email / legal_info_url on manifest', () => {
+    expect(MCP_MANIFEST).not.toHaveProperty('logo_url');
+    expect(MCP_MANIFEST).not.toHaveProperty('contact_email');
+    expect(MCP_MANIFEST).not.toHaveProperty('legal_info_url');
+  });
+
+  it('keeps auth and api as plain objects (not arrays)', () => {
+    expect(Array.isArray(MCP_MANIFEST.auth)).toBe(false);
+    expect(Array.isArray(MCP_MANIFEST.api)).toBe(false);
+    expect(typeof MCP_MANIFEST.auth).toBe('object');
+    expect(typeof MCP_MANIFEST.api).toBe('object');
+  });
+
+  it('tool descriptions do not mention Gemini, KV, or Workers', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/Gemini|KV|Workers/i);
+    }
+  });
+
+  it('keeps now_playing field mention order name→genre→stream URL→country', () => {
+    const d = toolNamed('now_playing').description;
+    const nameIdx = d.indexOf('name');
+    const genreIdx = d.indexOf('genre');
+    const streamIdx = d.indexOf('stream URL');
+    const countryIdx = d.indexOf('country');
+    expect(nameIdx).toBeGreaterThanOrEqual(0);
+    expect(genreIdx).toBeGreaterThan(nameIdx);
+    expect(streamIdx).toBeGreaterThan(genreIdx);
+    expect(countryIdx).toBeGreaterThan(streamIdx);
+  });
 });
 

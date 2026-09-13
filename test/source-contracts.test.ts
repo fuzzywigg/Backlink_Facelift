@@ -567,5 +567,91 @@ describe('source ↔ product contracts', () => {
       /map:\s*Record<string,\s*string>\s*=\s*GENRE_MAP/,
     );
   });
+
+  it('locks exact IPTV_BASE string', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const IPTV_BASE = 'https:\/\/iptv-org\.github\.io\/iptv\/categories';/,
+    );
+  });
+
+  it('invokes cors() with zero args on app.use("*")', () => {
+    expect(read('src/index.ts')).toMatch(/app\.use\('\*',\s*cors\(\)\)/);
+  });
+
+  it('registers only GET /, /health, /genres, /stations, /curate', () => {
+    const index = read('src/index.ts');
+    const routes = [...index.matchAll(/app\.get\('([^']+)'/g)].map((m) => m[1]);
+    expect(routes).toEqual(['/', '/health', '/genres', '/stations', '/curate']);
+    expect(index).not.toMatch(/app\.(post|put|patch|delete)\(/);
+  });
+
+  it('locks exact error and throw literal strings', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("throw new Error('Stream catalog unavailable')");
+    expect(index).toContain("throw new Error(`Gemini API error: ${resp.status}`)");
+    expect(index).toContain("throw new Error('Invalid JSON from Gemini')");
+    expect(index).toContain("error: 'Stream catalog unavailable'");
+    expect(index).toContain("error: 'Curation service unavailable'");
+  });
+
+  it('locks expirationTtl: 3600 exactly in fetchStations', () => {
+    expect(read('src/index.ts')).toMatch(/expirationTtl:\s*3600/);
+  });
+
+  it('locks degrade editorial: null literal (not undefined)', () => {
+    expect(read('src/index.ts')).toMatch(/editorial:\s*null/);
+    expect(read('src/index.ts')).not.toMatch(/editorial:\s*undefined/);
+  });
+
+  it('keeps filter(Boolean) on both Gemini query and response query joins', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/\.filter\(Boolean\)/g) ?? []).length).toBe(2);
+  });
+
+  it('documents README smtp.eth ecosystem and Andrew link', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/Part of the smtp\.eth ecosystem/);
+    expect(readme).toMatch(/\[Andrew Pappas\]\(https:\/\/fuzzywigg\.com\)/);
+  });
+
+  it('lists /playlist and /now-playing as allowed Safe Agent Action additions', () => {
+    const agents = read('AGENTS.md');
+    const safe = agents.slice(agents.indexOf('## Safe Agent Actions'), agents.indexOf('## Verify'));
+    expect(safe).toMatch(/\/playlist/);
+    expect(safe).toMatch(/\/now-playing/);
+  });
+
+  it('escalates billing and CF account configuration to human', () => {
+    const escalate = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/billing or CF account configuration/i);
+  });
+
+  it('keeps types.ts optional markers only on GEMINI_API_KEY and VERSION', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/CATALOG_CACHE:\s*KVNamespace/);
+    expect(types).toMatch(/GEMINI_API_KEY\?:/);
+    expect(types).toMatch(/VERSION\?:/);
+    expect(types).toMatch(/#8/);
+  });
+
+  it('locks Station optional fields exactly logo/group/language/country', () => {
+    const parser = read('src/parser.ts');
+    const iface = parser.slice(
+      parser.indexOf('export interface Station'),
+      parser.indexOf('}', parser.indexOf('export interface Station')) + 1,
+    );
+    const keys = [...iface.matchAll(/^\s*([a-z]+)\??:/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['name', 'url', 'logo', 'group', 'language', 'country']);
+    expect(iface).toMatch(/logo\?:/);
+    expect(iface).toMatch(/group\?:/);
+    expect(iface).toMatch(/language\?:/);
+    expect(iface).toMatch(/country\?:/);
+  });
+
+  it('locks /curate resolveGenre(genreParam ?? mood) nullish coalescing', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const genre = resolveGenre\(genreParam \?\? mood\);/,
+    );
+  });
 });
 

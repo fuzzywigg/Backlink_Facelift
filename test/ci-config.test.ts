@@ -914,5 +914,116 @@ describe('CI / package test wiring', () => {
     expect(vitest).toMatch(/environment:\s*'node'/);
     expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
   });
+
+  it('locks bug template labels/title and required description id', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(bug).toMatch(/^name:\s*Bug\s*$/m);
+    expect(bug).toMatch(/title:\s*"\[Bug\]:\s*"/);
+    expect(bug).toMatch(/labels:\s*\["bug"\]/);
+    expect(bug).toMatch(/id:\s*description/);
+    expect(bug).toMatch(/id:\s*expected/);
+    expect(bug).toMatch(/id:\s*steps/);
+  });
+
+  it('locks feature template enhancement label and acceptance field', () => {
+    const feature = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(feature).toMatch(/title:\s*"\[Feature\]:\s*"/);
+    expect(feature).toMatch(/labels:\s*\["enhancement"\]/);
+    expect(feature).toMatch(/id:\s*acceptance/);
+  });
+
+  it('locks chore template title and required type dropdown', () => {
+    const chore = read('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(chore).toMatch(/title:\s*"\[Chore\]:\s*"/);
+    expect(chore).toMatch(/labels:\s*\["chore"\]/);
+    expect(chore).toMatch(/id:\s*type/);
+    expect(chore).toMatch(/options:\s*\[Chore,\s*Infra,\s*Docs,\s*Research\]/);
+  });
+
+  it('locks .gitignore dependency/editor/coverage entries', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^node_modules\/$/m);
+    expect(gi).toMatch(/^dist\/$/m);
+    expect(gi).toMatch(/^\.DS_Store$/m);
+    expect(gi).toMatch(/^\.idea\/$/m);
+    expect(gi).toMatch(/^\.vscode\/$/m);
+    expect(gi).toMatch(/^coverage\/$/m);
+  });
+
+  it('documents DEPLOY prerequisites CF Workers, wrangler, Gemini, Node 18+', () => {
+    const deploy = read('DEPLOY.md');
+    const prereq = deploy.slice(deploy.indexOf('## Prerequisites'), deploy.indexOf('## Steps'));
+    expect(prereq).toMatch(/Cloudflare account with Workers/);
+    expect(prereq).toMatch(/wrangler/);
+    expect(prereq).toMatch(/Gemini API key/);
+    expect(prereq).toMatch(/Node\.js 18\+/);
+  });
+
+  it('documents DEPLOY npm install and kv namespace create CATALOG_CACHE', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/npm install/);
+    expect(deploy).toMatch(/wrangler kv namespace create CATALOG_CACHE/);
+  });
+
+  it('locks DEPLOY cost token math and $0.00075 per request', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/2,000 input tokens \+ 200 output tokens/);
+    expect(deploy).toMatch(/\$0\.00075 per request/);
+  });
+
+  it('locks DEPLOY HITL Required to exactly 3 warning bullets', () => {
+    const deploy = read('DEPLOY.md');
+    const hitl = deploy.slice(deploy.indexOf('## HITL Required'));
+    expect((hitl.match(/^- ⚠️ /gm) ?? []).length).toBe(3);
+  });
+
+  it('hygiene workflow greps gemini-2.0-flash in src', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/gemini-2\.0-flash/);
+  });
+
+  it('locks Dependabot ignore semver-major YAML shape', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/update-types:\s*\["version-update:semver-major"\]/);
+    expect(dep).toMatch(/dependency-name:\s*"\*"/);
+  });
+
+  it('uploads coverage-report artifact with if-no-files-found error', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*coverage-report/);
+    expect(ci).toMatch(/if-no-files-found:\s*error/);
+  });
+
+  it('README CI badge points at fuzzywigg/Backlink_Facelift', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/github\.com\/fuzzywigg\/Backlink_Facelift\/actions/);
+  });
+
+  it('locks package.json scripts to exactly six keys', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(Object.keys(pkg.scripts).sort()).toEqual([
+      'deploy',
+      'dev',
+      'test',
+      'test:coverage',
+      'test:watch',
+      'typecheck',
+    ]);
+  });
+
+  it('locks tsconfig noEmit true and lib ES2022 only', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: { noEmit: boolean; lib: string[]; target: string };
+    };
+    expect(ts.compilerOptions.noEmit).toBe(true);
+    expect(ts.compilerOptions.lib).toEqual(['ES2022']);
+    expect(ts.compilerOptions.target).toBe('ES2022');
+  });
+
+  it('locks .cursor/environment.json name Backlink_Facelift', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+    expect(env.name).toBe('Backlink_Facelift');
+    expect(env.install).toBe('npm ci');
+  });
 });
 
