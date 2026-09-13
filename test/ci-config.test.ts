@@ -1192,5 +1192,247 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/test -s coverage\/lcov\.info/);
     expect(ci).toMatch(/test -d coverage/);
   });
+
+  it('locks deploy cancel-in-progress to false (HITL-safe)', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/cancel-in-progress:\s*false/);
+    expect(deploy).not.toMatch(/cancel-in-progress:\s*true/);
+  });
+
+  it('locks deploy trigger to workflow_dispatch only', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/^on:\s*\n\s*workflow_dispatch:\s*$/m);
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).not.toMatch(/^\s*pull_request:/m);
+  });
+
+  it('locks deploy timeout-minutes to 20', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(/timeout-minutes:\s*20/);
+  });
+
+  it('locks deploy to cloudflare/wrangler-action@v4 with CF secrets', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/uses:\s*cloudflare\/wrangler-action@v4/);
+    expect(deploy).toMatch(/apiToken:\s*\$\{\{\s*secrets\.CF_API_TOKEN\s*\}\}/);
+    expect(deploy).toMatch(/accountId:\s*\$\{\{\s*secrets\.CF_ACCOUNT_ID\s*\}\}/);
+  });
+
+  it('locks deploy step order Typecheck → coverage → Deploy', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const typecheck = deploy.indexOf('npm run typecheck');
+    const coverage = deploy.indexOf('npm run test:coverage');
+    const wrangler = deploy.indexOf('cloudflare/wrangler-action@v4');
+    expect(typecheck).toBeGreaterThan(-1);
+    expect(coverage).toBeGreaterThan(typecheck);
+    expect(wrangler).toBeGreaterThan(coverage);
+  });
+
+  it('locks CI timeouts typecheck 10 / test 15 / hygiene 5', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Typecheck[\s\S]*?timeout-minutes:\s*10/);
+    expect(ci).toMatch(/name:\s*Tests[\s\S]*?timeout-minutes:\s*15/);
+    expect(ci).toMatch(/name:\s*Hygiene[\s\S]*?timeout-minutes:\s*5/);
+  });
+
+  it('locks CI permissions to contents:read only', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const perms = ci.slice(ci.indexOf('permissions:'), ci.indexOf('defaults:'));
+    expect(perms).toMatch(/contents:\s*read/);
+    expect(perms).not.toMatch(/write/);
+    expect(perms).not.toMatch(/id-token/);
+    expect(perms).not.toMatch(/pull-requests/);
+  });
+
+  it('locks CI defaults.run.shell to bash', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(
+      /defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/,
+    );
+  });
+
+  it('locks every checkout to persist-credentials false', () => {
+    for (const rel of ['.github/workflows/ci.yml', '.github/workflows/deploy.yml']) {
+      const body = read(rel);
+      const checkoutBlocks = [
+        ...body.matchAll(
+          /uses:\s*actions\/checkout@v7\s*\n\s*with:\s*\n\s*persist-credentials:\s*false/g,
+        ),
+      ];
+      const checkouts = [...body.matchAll(/uses:\s*actions\/checkout@v7/g)];
+      expect(checkouts.length).toBeGreaterThanOrEqual(1);
+      expect(checkoutBlocks.length).toBe(checkouts.length);
+    }
+  });
+
+  it('locks coverage artifact name coverage-report and retention-days 14', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*coverage-report/);
+    expect(ci).toMatch(/retention-days:\s*14/);
+    expect(ci).toMatch(/if-no-files-found:\s*error/);
+    expect(ci).toMatch(/if:\s*always\(\)/);
+  });
+
+  it('locks Dependabot schedule interval monthly on both ecosystems', () => {
+    const dep = read('.github/dependabot.yml');
+    const intervals = [...dep.matchAll(/interval:\s*"(\w+)"/g)].map((m) => m[1]);
+    expect(intervals).toEqual(['monthly', 'monthly']);
+  });
+
+  it('locks Dependabot group names npm-dependencies and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/npm-dependencies:/);
+    expect(dep).toMatch(/github-actions:/);
+    expect(dep).toMatch(/patterns:\s*\n\s*-\s*"\*"/);
+  });
+
+  it('locks Dependabot ecosystems to npm then github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    const ecosystems = [...dep.matchAll(/package-ecosystem:\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(ecosystems).toEqual(['npm', 'github-actions']);
+  });
+
+  it('locks package.json dependency to hono only under dependencies', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+    expect(pkg.dependencies.hono).toMatch(/^\^4\./);
+  });
+
+  it('locks package.json devDependency set for Workers test toolchain', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.devDependencies).sort()).toEqual([
+      '@cloudflare/workers-types',
+      '@types/node',
+      '@vitest/coverage-v8',
+      'typescript',
+      'vitest',
+      'wrangler',
+    ]);
+  });
+
+  it('locks tsconfig include to src, test, and vitest.config.ts', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as { include: string[] };
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('locks tsconfig moduleResolution Bundler and skipLibCheck true', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: { moduleResolution: string; skipLibCheck: boolean };
+    };
+    expect(ts.compilerOptions.moduleResolution).toBe('Bundler');
+    expect(ts.compilerOptions.skipLibCheck).toBe(true);
+  });
+
+  it('locks tsconfig types to workers-types and node', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: { types: string[] };
+    };
+    expect(ts.compilerOptions.types).toEqual(['@cloudflare/workers-types', 'node']);
+  });
+
+  it('locks vitest environment node and include test/**/*.test.ts', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/environment:\s*'node'/);
+    expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
+  });
+
+  it('locks vitest coverage provider v8 and all four 100 thresholds', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/provider:\s*'v8'/);
+    expect(vitest).toMatch(/lines:\s*100/);
+    expect(vitest).toMatch(/functions:\s*100/);
+    expect(vitest).toMatch(/branches:\s*100/);
+    expect(vitest).toMatch(/statements:\s*100/);
+  });
+
+  it('locks .cursor/environment.json to exactly name + install keys', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, string>;
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+  });
+
+  it('locks .gitignore secret and coverage entries', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.env$/m);
+    expect(gi).toMatch(/^\.env\.\*$/m);
+    expect(gi).toMatch(/^!\.env\.example$/m);
+    expect(gi).toMatch(/^\.dev\.vars$/m);
+    expect(gi).toMatch(/^\*\.pem$/m);
+    expect(gi).toMatch(/^\*\.key$/m);
+  });
+
+  it('locks CI job display names Typecheck / Tests / Hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/^\s{4}name:\s*Typecheck\s*$/m);
+    expect(ci).toMatch(/^\s{4}name:\s*Tests\s*$/m);
+    expect(ci).toMatch(/^\s{4}name:\s*Hygiene\s*$/m);
+  });
+
+  it('locks CI setup-node cache to npm on every job', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const caches = [...ci.matchAll(/cache:\s*"npm"/g)];
+    expect(caches.length).toBe(2); // typecheck + test (hygiene has no node)
+  });
+
+  it('hygiene job does not install npm dependencies', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const hygiene = ci.slice(ci.indexOf('name: Hygiene'));
+    expect(hygiene).not.toMatch(/npm ci/);
+    expect(hygiene).not.toMatch(/setup-node/);
+  });
+
+  it('locks deploy workflow display name Deploy to Cloudflare Workers', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(
+      /^name:\s*Deploy to Cloudflare Workers\s*$/m,
+    );
+  });
+
+  it('locks package-lock.json lockfileVersion 3', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { lockfileVersion: number };
+    expect(lock.lockfileVersion).toBe(3);
+  });
+
+  it('CI on: triggers are push+pull_request to main only', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const onBlock = ci.slice(ci.indexOf('\non:'), ci.indexOf('\nconcurrency:'));
+    expect(onBlock).toMatch(/push:\s*\n\s*branches:\s*\[main\]/);
+    expect(onBlock).toMatch(/pull_request:\s*\n\s*branches:\s*\[main\]/);
+    expect(onBlock).not.toMatch(/workflow_dispatch/);
+  });
+
+  it('locks actions/setup-node@v7 and checkout@v7 pins', () => {
+    for (const rel of ['.github/workflows/ci.yml', '.github/workflows/deploy.yml']) {
+      const body = read(rel);
+      expect(body).toMatch(/actions\/checkout@v7/);
+      expect(body).toMatch(/actions\/setup-node@v7/);
+      expect(body).not.toMatch(/actions\/checkout@v[1-6]\b/);
+      expect(body).not.toMatch(/actions\/setup-node@v[1-6]\b/);
+    }
+  });
+
+  it('locks upload-artifact@v4 pin in CI only', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/actions\/upload-artifact@v4/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/upload-artifact/);
+  });
+
+  it('locks package.json description for LLM-curated internet radio', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toMatch(/LLM-curated internet radio/i);
+    expect(pkg.description).toMatch(/iptv-org/i);
+  });
+
+  it('keeps wrangler.toml listed in hygiene required files', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/test -f wrangler\.toml/);
+  });
+
+  it('keeps test/helpers.ts and helpers.test.ts in hygiene required files', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f test\/helpers\.ts/);
+    expect(ci).toMatch(/test -f test\/helpers\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/wrangler-config\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/ci-config\.test\.ts/);
+  });
 });
 

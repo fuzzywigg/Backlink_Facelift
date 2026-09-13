@@ -386,5 +386,176 @@ describe('wrangler.toml contracts', () => {
       if (line.length > 0) expect(line).not.toMatch(/\s$/);
     }
   });
+
+  it('locks exact wrangler.toml file contents snapshot', () => {
+    expect(toml).toBe(`name = "backlink"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "CATALOG_CACHE"
+id = "edb6ca4df12f4f45b40508b3dda3c432"
+
+[[routes]]
+pattern = "backlink.fuzzywigg.com"
+custom_domain = true
+
+[vars]
+VERSION = "0.1.0"
+
+# Secrets (set via CLI, never commit):
+# wrangler secret put GEMINI_API_KEY
+`);
+  });
+
+  it('uses only LF newlines (no CR)', () => {
+    expect(toml.includes('\r')).toBe(false);
+  });
+
+  it('contains no tab characters', () => {
+    expect(toml.includes('\t')).toBe(false);
+  });
+
+  it('is ASCII-only (no non-ASCII bytes in Worker config)', () => {
+    expect([...toml].every((ch) => ch.charCodeAt(0) < 128)).toBe(true);
+  });
+
+  it('declares exactly one [[kv_namespaces]] and one [[routes]] table', () => {
+    expect((toml.match(/\[\[kv_namespaces\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/\[\[routes\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/^\[vars\]/gm) ?? []).length).toBe(1);
+  });
+
+  it('orders tables as kv_namespaces → routes → vars', () => {
+    const kv = toml.indexOf('[[kv_namespaces]]');
+    const routes = toml.indexOf('[[routes]]');
+    const vars = toml.indexOf('[vars]');
+    expect(kv).toBeGreaterThan(-1);
+    expect(routes).toBeGreaterThan(kv);
+    expect(vars).toBeGreaterThan(routes);
+  });
+
+  it('keeps blank line between top-level keys and first table', () => {
+    expect(toml).toMatch(
+      /compatibility_date = "2025-01-01"\n\n\[\[kv_namespaces\]\]/,
+    );
+  });
+
+  it('keeps blank line between kv_namespaces and routes tables', () => {
+    expect(toml).toMatch(/id = "edb6ca4df12f4f45b40508b3dda3c432"\n\n\[\[routes\]\]/);
+  });
+
+  it('keeps blank line between routes and vars tables', () => {
+    expect(toml).toMatch(/custom_domain = true\n\n\[vars\]/);
+  });
+
+  it('does not declare account_id, api_token, or oauth tokens', () => {
+    expect(toml).not.toMatch(/account_id\s*=/i);
+    expect(toml).not.toMatch(/api_token\s*=/i);
+    expect(toml).not.toMatch(/oauth/i);
+  });
+
+  it('does not declare durable_objects, r2_buckets, or services bindings', () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/r2_buckets/i);
+    expect(toml).not.toMatch(/\[\[services\]\]/i);
+  });
+
+  it('does not declare analytics_engine or send_email bindings', () => {
+    expect(toml).not.toMatch(/analytics_engine/i);
+    expect(toml).not.toMatch(/send_email/i);
+  });
+
+  it('does not declare hyperdrive, mtls, or pipelines', () => {
+    expect(toml).not.toMatch(/hyperdrive/i);
+    expect(toml).not.toMatch(/mtls/i);
+    expect(toml).not.toMatch(/pipelines/i);
+  });
+
+  it('pattern host is backlink.fuzzywigg.com without scheme or path', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:/);
+    expect(toml).not.toMatch(/pattern\s*=\s*".*\//);
+  });
+
+  it('keeps only VERSION under [vars] (single assignment)', () => {
+    const varsBlock = toml.slice(toml.indexOf('[vars]'));
+    const assigns = [...varsBlock.matchAll(/^\s*([A-Z0-9_]+)\s*=/gm)].map((m) => m[1]);
+    expect(assigns).toEqual(['VERSION']);
+  });
+
+  it('comment lines are only the two Secrets documentation lines', () => {
+    const comments = toml.split('\n').filter((l) => l.trimStart().startsWith('#'));
+    expect(comments).toEqual([
+      '# Secrets (set via CLI, never commit):',
+      '# wrangler secret put GEMINI_API_KEY',
+    ]);
+  });
+
+  it('ends with a trailing newline after the secret put comment', () => {
+    expect(toml.endsWith('GEMINI_API_KEY\n')).toBe(true);
+  });
+
+  it('does not use single-quoted TOML strings for binding/id/pattern/VERSION', () => {
+    expect(toml).not.toMatch(/binding\s*=\s'/);
+    expect(toml).not.toMatch(/id\s*=\s'/);
+    expect(toml).not.toMatch(/pattern\s*=\s'/);
+    expect(toml).not.toMatch(/VERSION\s*=\s'/);
+  });
+
+  it('keeps name/main/compatibility_date as double-quoted strings', () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).toMatch(/^main = "src\/index\.ts"$/m);
+    expect(toml).toMatch(/^compatibility_date = "2025-01-01"$/m);
+  });
+
+  it('does not declare logpush, tail_consumers, or observability', () => {
+    expect(toml).not.toMatch(/logpush/i);
+    expect(toml).not.toMatch(/tail_consumers/i);
+    expect(toml).not.toMatch(/observability/i);
+  });
+
+  it('does not declare wasm_modules or text_blobs', () => {
+    expect(toml).not.toMatch(/wasm_modules/i);
+    expect(toml).not.toMatch(/text_blobs/i);
+  });
+
+  it('line count is stable at 18 split entries including trailing blank', () => {
+    // 17 content lines + trailing newline → split length 18
+    expect(toml.split('\n')).toHaveLength(18);
+    expect(toml.endsWith('\n')).toBe(true);
+  });
+
+  it('KV id is lowercase hex only (no uppercase)', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toBeDefined();
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+    expect(id).not.toMatch(/[A-F]/);
+  });
+
+  it('does not set keep_vars or define secrets via toml', () => {
+    expect(toml).not.toMatch(/keep_vars\s*=/);
+    expect(toml).not.toMatch(/\[secrets\]/i);
+    expect(toml).not.toMatch(/\[\[secrets\]\]/i);
+  });
+
+  it('main path is relative src/index.ts without leading ./', () => {
+    expect(toml).toMatch(/main = "src\/index\.ts"/);
+    expect(toml).not.toMatch(/main = "\.\/src\/index\.ts"/);
+  });
+
+  it('does not declare rules, build, or site upload config', () => {
+    expect(toml).not.toMatch(/\[\[rules\]\]/);
+    expect(toml).not.toMatch(/\[build\]/);
+    expect(toml).not.toMatch(/\[site\]/);
+  });
+
+  it('custom_domain appears exactly once', () => {
+    expect((toml.match(/custom_domain/g) ?? []).length).toBe(1);
+  });
+
+  it('CATALOG_CACHE binding appears exactly once', () => {
+    expect((toml.match(/CATALOG_CACHE/g) ?? []).length).toBe(1);
+  });
 });
 
