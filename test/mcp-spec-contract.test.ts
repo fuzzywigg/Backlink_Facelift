@@ -1504,4 +1504,143 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(Buffer.byteLength(spec, 'utf8')).toBeLessThan(8 * 1024);
     expect(Buffer.byteLength(spec, 'utf8')).toBeGreaterThan(1500);
   });
+
+  it('locks docs tool heading order backlink_curate → genres → now_playing', () => {
+    const curate = spec.indexOf('### `backlink_curate`');
+    const genres = spec.indexOf('### `backlink_genres`');
+    const now = spec.indexOf('### `backlink_now_playing`');
+    expect(curate).toBeGreaterThan(-1);
+    expect(genres).toBeGreaterThan(curate);
+    expect(now).toBeGreaterThan(genres);
+  });
+
+  it('locks curate Input Schema additionalProperties false after properties', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    const props = section.indexOf('"properties"');
+    const addl = section.indexOf('"additionalProperties": false');
+    expect(props).toBeGreaterThan(-1);
+    expect(addl).toBeGreaterThan(props);
+  });
+
+  it('locks curate Output required station fields name url genre', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain('"required": ["name", "url", "genre"]');
+  });
+
+  it('locks genres Output genres array and aliases object schemas', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('"genres":');
+    expect(section).toContain('"aliases":');
+    expect(section).toContain('"additionalProperties": { "type": "string" }');
+  });
+
+  it('locks now_playing Output required name stream_url genre order', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    expect(section).toContain('"required": ["name", "stream_url", "genre"]');
+  });
+
+  it('locks Integration Notes section after all three tools', () => {
+    const toolsEnd = spec.indexOf('## Integration Notes');
+    expect(spec.indexOf('### `backlink_now_playing`')).toBeLessThan(toolsEnd);
+    expect(spec.slice(toolsEnd)).toContain('Base URL:');
+  });
+
+  it('locks Integration Notes five bullets in documented order', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+    expect(bullets).toEqual([
+      'Base URL: `https://backlink.fuzzywigg.com`',
+      'No auth required for read endpoints',
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+      'On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('JSON fences parse and each input schema is type object', () => {
+    const blocks = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(blocks.length).toBeGreaterThanOrEqual(5);
+    for (const block of blocks) {
+      const parsed = JSON.parse(block) as { type?: string };
+      expect(parsed.type).toBe('object');
+    }
+  });
+
+  it('cross-locks Base URL host with wrangler.toml routes pattern', () => {
+    const toml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+  });
+
+  it('does not embed model ids auth schemes or WebSocket transports', () => {
+    expect(spec).not.toMatch(/gemini-\d|gpt-\d|claude/i);
+    expect(spec).not.toMatch(/Bearer |api[_-]?key\s*=/i);
+    expect(spec).not.toMatch(/websocket|WebSocket|SSE\b/);
+    expect(spec).not.toMatch(/Authorization/i);
+  });
+
+  it('locks curate Endpoint exact GET /curate query template', () => {
+    expect(spec).toContain('**Endpoint:** `GET /curate?genre={genre}&mood={mood}`');
+  });
+
+  it('locks genres Endpoint exact GET /genres', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('**Endpoint:** `GET /genres`');
+  });
+
+  it('locks now_playing Endpoint remap note with stations[0] and stream_url', () => {
+    expect(spec).toContain('returns `stations[0]` only, with `url` remapped to `stream_url`');
+  });
+
+  it('locks title Heading Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('locks Tools H2 before Integration Notes H2 and no other H2s', () => {
+    const h2 = [...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(h2).toEqual(['Tools', 'Integration Notes']);
+  });
+
+  it('curate timestamp format date-time is documented', () => {
+    expect(spec).toContain('"timestamp": { "type": "string", "format": "date-time" }');
+  });
+
+  it('logo fields use string|null uri union in curate and now_playing', () => {
+    const logoUnions = spec.match(/"logo": \{ "type": \["string", "null"\], "format": "uri" \}/g) ?? [];
+    expect(logoUnions.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('cross-locks graceful degradation editorial null with Worker source', () => {
+    expect(spec).toContain('editorial: null');
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain('editorial: null');
+  });
+
+  it('does not document claw-mcp tool names as docs tools', () => {
+    const tools = spec.slice(spec.indexOf('## Tools'), spec.indexOf('## Integration Notes'));
+    expect(tools).not.toContain('station_select');
+    expect(tools).not.toContain('curator_prompt');
+    expect(tools).not.toContain('genre_filter');
+    expect(tools).not.toContain('### `now_playing`');
+  });
+
+  it('spec stays under 8KB lean docs budget with trailing newline', () => {
+    expect(spec.endsWith('\n')).toBe(true);
+    expect(Buffer.byteLength(spec, 'utf8')).toBeLessThan(8 * 1024);
+  });
+
 });

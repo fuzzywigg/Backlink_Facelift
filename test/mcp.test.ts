@@ -2117,4 +2117,257 @@ describe('MCP_MANIFEST', () => {
     expect(MCP_MANIFEST.auth.type.length).toBeLessThan(16);
   });
 
+  it('TextEncoder byte length of name_for_model equals char length (ASCII-only)', () => {
+    const enc = new TextEncoder();
+    expect(enc.encode(MCP_MANIFEST.name_for_model).length).toBe(MCP_MANIFEST.name_for_model.length);
+    expect(enc.encode(MCP_MANIFEST.schema_version).length).toBe(MCP_MANIFEST.schema_version.length);
+  });
+
+  it('TextEncoder byte lengths for tool names match exact char lengths', () => {
+    const enc = new TextEncoder();
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(enc.encode(tool.name).byteLength).toBe(tool.name.length);
+      expect([...tool.name].every((c) => c.charCodeAt(0) < 128)).toBe(true);
+    }
+  });
+
+  it('locks TextEncoder UTF-8 byte bands for human and model descriptions', () => {
+    const enc = new TextEncoder();
+    const human = enc.encode(MCP_MANIFEST.description_for_human).length;
+    const model = enc.encode(MCP_MANIFEST.description_for_model).length;
+    expect(human).toBeGreaterThan(20);
+    expect(human).toBeLessThan(200);
+    expect(model).toBeGreaterThan(80);
+    expect(model).toBeLessThan(500);
+    expect(model).toBeGreaterThan(human);
+  });
+
+  it('property description length bands stay within 10..120 chars', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        const n = (prop as { description: string }).description.length;
+        expect(n).toBeGreaterThanOrEqual(10);
+        expect(n).toBeLessThanOrEqual(120);
+      }
+    }
+  });
+
+  it('locks insertion-order Object.keys for top-level manifest', () => {
+    expect(Object.keys(MCP_MANIFEST)).toEqual([
+      'schema_version',
+      'name_for_model',
+      'name_for_human',
+      'description_for_model',
+      'description_for_human',
+      'auth',
+      'api',
+      'tools',
+    ]);
+  });
+
+  it('locks insertion-order Object.keys for station_select properties', () => {
+    expect(Object.keys(toolNamed('station_select').input_schema.properties)).toEqual([
+      'station_name',
+    ]);
+  });
+
+  it('locks insertion-order Object.keys for curator_prompt properties mood then genre', () => {
+    expect(Object.keys(toolNamed('curator_prompt').input_schema.properties)).toEqual([
+      'mood',
+      'genre',
+    ]);
+  });
+
+  it('structuredClone independence: mutating clone.auth does not touch live auth', () => {
+    const cloned = structuredClone(MCP_MANIFEST);
+    cloned.auth.type = 'bearer';
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(cloned.auth.type).toBe('bearer');
+  });
+
+  it('structuredClone independence: splicing clone.tools leaves live length 4', () => {
+    const cloned = structuredClone(MCP_MANIFEST);
+    cloned.tools.splice(0, 1);
+    expect(cloned.tools).toHaveLength(3);
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+  });
+
+  it('declares no extra top-level keys beyond the locked eight', () => {
+    const allowed = new Set([
+      'schema_version',
+      'name_for_model',
+      'name_for_human',
+      'description_for_model',
+      'description_for_human',
+      'auth',
+      'api',
+      'tools',
+    ]);
+    for (const k of Object.keys(MCP_MANIFEST)) {
+      expect(allowed.has(k)).toBe(true);
+    }
+    expect(Object.keys(MCP_MANIFEST)).toHaveLength(8);
+  });
+
+  it('tool objects declare exactly name description input_schema keys', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.keys(tool).sort()).toEqual(['description', 'input_schema', 'name']);
+    }
+  });
+
+  it('ASCII-only names for model human schema_version and every tool', () => {
+    const blobs = [
+      MCP_MANIFEST.name_for_model,
+      MCP_MANIFEST.name_for_human,
+      MCP_MANIFEST.schema_version,
+      ...MCP_MANIFEST.tools.map((t) => t.name),
+    ];
+    for (const b of blobs) {
+      expect(/^[\x20-\x7E]+$/.test(b)).toBe(true);
+    }
+  });
+
+  it('every tool name is snake_case with at least one underscore segment', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).toMatch(/^[a-z]+(_[a-z]+)+$/);
+      expect(tool.name.startsWith('_')).toBe(false);
+      expect(tool.name.endsWith('_')).toBe(false);
+    }
+  });
+
+  it('tools.at(-1) is curator_prompt and tools.at(-2) is genre_filter', () => {
+    expect(MCP_MANIFEST.tools.at(-1)?.name).toBe('curator_prompt');
+    expect(MCP_MANIFEST.tools.at(-2)?.name).toBe('genre_filter');
+    expect(MCP_MANIFEST.tools.at(3)?.name).toBe(MCP_MANIFEST.tools.at(-1)?.name);
+  });
+
+  it('Array.from(tools) yields same names as map callback', () => {
+    expect(Array.from(MCP_MANIFEST.tools, (t) => t.name)).toEqual(
+      MCP_MANIFEST.tools.map((t) => t.name),
+    );
+    expect(Array.from({ length: MCP_MANIFEST.tools.length }, (_, i) => MCP_MANIFEST.tools[i].name)).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('JSON.stringify key order for auth is type-first singleton', () => {
+    expect(JSON.stringify(MCP_MANIFEST.auth)).toBe('{"type":"none"}');
+  });
+
+  it('JSON.stringify key order for api is type then url', () => {
+    expect(JSON.stringify(MCP_MANIFEST.api)).toBe('{"type":"openapi","url":"/openapi.json"}');
+  });
+
+  it('JSON key order for input_schema places type before properties', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const s = JSON.stringify(tool.input_schema);
+      expect(s.indexOf('"type"')).toBeLessThan(s.indexOf('"properties"'));
+    }
+  });
+
+  it('Object.preventExtensions on structuredClone manifest still allows deep reads', () => {
+    const copy = structuredClone(MCP_MANIFEST);
+    Object.preventExtensions(copy);
+    Object.preventExtensions(copy.auth);
+    Object.preventExtensions(copy.api);
+    expect(Object.isExtensible(copy)).toBe(false);
+    expect(copy.tools).toHaveLength(4);
+    expect(copy.api.url).toBe('/openapi.json');
+    expect(() => {
+      (copy as { extra?: string }).extra = 'nope';
+    }).toThrow();
+  });
+
+  it('Object.preventExtensions on each tool copy preserves snake_case names', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const copy = Object.preventExtensions({ ...tool, input_schema: { ...tool.input_schema } });
+      expect(copy.name).toMatch(/^[a-z_]+$/);
+      expect(Object.isExtensible(copy)).toBe(false);
+    }
+  });
+
+  it('TextEncoder byte length of JSON.stringify(tools) stays in a stable band', () => {
+    const n = new TextEncoder().encode(JSON.stringify(MCP_MANIFEST.tools)).length;
+    expect(n).toBeGreaterThan(400);
+    expect(n).toBeLessThan(3000);
+  });
+
+  it('no extra keys on auth or api beyond locked sets', () => {
+    expect(Object.keys(MCP_MANIFEST.auth)).toEqual(['type']);
+    expect(Object.keys(MCP_MANIFEST.api)).toEqual(['type', 'url']);
+    expect(Object.getOwnPropertyNames(MCP_MANIFEST.auth)).toEqual(['type']);
+    expect(Object.getOwnPropertyNames(MCP_MANIFEST.api).sort()).toEqual(['type', 'url']);
+  });
+
+  it('Array.from(Object.keys(tools[0])) matches insertion order name description input_schema', () => {
+    expect(Array.from(Object.keys(MCP_MANIFEST.tools[0]))).toEqual([
+      'name',
+      'description',
+      'input_schema',
+    ]);
+  });
+
+  it('structuredClone then preventExtensions nest does not alias live tools array', () => {
+    const cloned = structuredClone(MCP_MANIFEST);
+    Object.preventExtensions(cloned.tools);
+    cloned.tools[0] = {
+      name: 'hijacked',
+      description: 'x',
+      input_schema: { type: 'object', properties: {} },
+    };
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+    expect(cloned.tools[0].name).toBe('hijacked');
+  });
+
+  it('locks exact snake_case underscore counts across tools', () => {
+    const counts = Object.fromEntries(
+      MCP_MANIFEST.tools.map((t) => [t.name, (t.name.match(/_/g) ?? []).length]),
+    );
+    expect(counts).toEqual({
+      station_select: 1,
+      now_playing: 1,
+      genre_filter: 1,
+      curator_prompt: 1,
+    });
+  });
+
+  it('tools.at(out of range) is undefined while length stays 4', () => {
+    expect(MCP_MANIFEST.tools.at(4)).toBeUndefined();
+    expect(MCP_MANIFEST.tools.at(-5)).toBeUndefined();
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('JSON.parse(JSON.stringify) preserves insertion-order Object.keys for tools names', () => {
+    const round = JSON.parse(JSON.stringify(MCP_MANIFEST)) as typeof MCP_MANIFEST;
+    expect(round.tools.map((t) => t.name)).toEqual(Object.keys(
+      Object.fromEntries(MCP_MANIFEST.tools.map((t) => [t.name, true])),
+    ));
+    expect(Object.keys(round)).toEqual(Object.keys(MCP_MANIFEST));
+  });
+
+  it('description_for_model TextEncoder length equals String length (BMP ASCII-heavy)', () => {
+    const d = MCP_MANIFEST.description_for_model;
+    expect(new TextEncoder().encode(d).length).toBe(d.length);
+    expect([...d].length).toBe(d.length);
+  });
+
+  it('now_playing properties object has zero keys and Array.from empty', () => {
+    const props = toolNamed('now_playing').input_schema.properties;
+    expect(Object.keys(props)).toEqual([]);
+    expect(Array.from(Object.keys(props))).toEqual([]);
+    expect(Object.keys(props)).toHaveLength(0);
+  });
+
+  it('genre_filter property description length band is tight', () => {
+    const d = (toolNamed('genre_filter').input_schema.properties.genre as { description: string })
+      .description;
+    expect(d.length).toBeGreaterThan(15);
+    expect(d.length).toBeLessThan(60);
+    expect(new TextEncoder().encode(d).length).toBe(d.length);
+  });
+
 });
