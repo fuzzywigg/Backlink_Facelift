@@ -1,10 +1,16 @@
 # Backlink 📻
 
+[![CI](https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg)](https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml)
+
 > JSON API over iptv-org category M3Us. Live worker: https://backlink.fuzzywigg.com
 >
 > Catalog is IPTV *video* channels, not internet radio. `jazz`/`ambient`/`classical`/`pop`/`rock` files 404 and fall back to `music.m3u`. Live `/curate` often returns `editorial: null` when Gemini degrades.
 
 Backlink wraps [iptv-org](https://github.com/iptv-org/iptv) category playlists with Gemini 2.0 Flash. Real matching categories today: `music`, `news`, `sports`, `entertainment`.
+
+## Cloud agents
+
+Bootstrap lives in [`.cursor/environment.json`](.cursor/environment.json) (`npm ci` only; no secrets in the file). PR CI runs `npm run typecheck` via [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Deploy remains HITL — see [DEPLOY.md](./DEPLOY.md) and [AGENTS.md](./AGENTS.md).
 
 ## API
 

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Local env / secrets (never commit)
+.env
+.env.*
+!.env.example
+.dev.vars
+*.pem
+*.key
+
+# Wrangler / Workers local state
+.wrangler/
+.mf/
+dist/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
