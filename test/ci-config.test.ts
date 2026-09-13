@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -677,6 +677,126 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/name:\s*Hygiene/);
     expect(ci).toMatch(/name:\s*coverage-report/);
     expect(ci).toMatch(/if:\s*always\(\)/);
+  });
+
+  it('locks AGENTS.md parent_governance, Tier A, Autonomy L2, and domain target', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/parent_governance:\s*github\.com\/fuzzywigg\/agents-governance/);
+    expect(agents).toMatch(/Tier:\s*A\b/);
+    expect(agents).toMatch(/Autonomy:\s*L2\b/);
+    expect(agents).toMatch(/Domain target:\s*backlink\.fuzzywigg\.com/);
+  });
+
+  it('locks README CI badge URL to this repo ci.yml', () => {
+    const readme = read('README.md');
+    expect(readme).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg',
+    );
+    expect(readme).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml',
+    );
+  });
+
+  it('disables blank issues and locks bug template component/priority/effort enums', () => {
+    const config = read('.github/ISSUE_TEMPLATE/config.yml');
+    expect(config).toMatch(/blank_issues_enabled:\s*false/);
+
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(bug).toMatch(/options:\s*\[Parser, Curator, API, Deploy, CF-AI, KV-Cache\]/);
+    expect(bug).toMatch(/options:\s*\[Critical, High, Medium, Low\]/);
+    expect(bug).toMatch(/options:\s*\[XS, S, M, L, XL\]/);
+  });
+
+  it('locks feature template component options including New plus shared enums', () => {
+    const feature = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(feature).toMatch(
+      /options:\s*\[Parser, Curator, API, Deploy, CF-AI, KV-Cache, New\]/,
+    );
+    expect(feature).toMatch(/options:\s*\[Critical, High, Medium, Low\]/);
+    expect(feature).toMatch(/options:\s*\[XS, S, M, L, XL\]/);
+    expect(feature).toMatch(/options:\s*\[Backlog, Ready, "In Progress", Blocked\]/);
+  });
+
+  it('ignores .mf/ in .gitignore for wrangler miniflare state', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.mf\/$/m);
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+    expect(gi).toMatch(/^coverage\/$/m);
+  });
+
+  it('documents DEPLOY.md Node.js 18+ while CI pins Node 20', () => {
+    const deploy = read('DEPLOY.md');
+    const ci = read('.github/workflows/ci.yml');
+    expect(deploy).toMatch(/Node\.js 18\+/);
+    expect(ci).toMatch(/node-version:\s*['"]?20['"]?/);
+  });
+
+  it('documents DEPLOY.md cost estimate bullets for Workers KV and Gemini', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/100,000 requests\/day/);
+    expect(deploy).toMatch(/100,000 reads\/day free/);
+    expect(deploy).toMatch(/\$0\.25\/1M input tokens/);
+    expect(deploy).toMatch(/\$0\.75 per 1,000 curation requests/);
+  });
+
+  it('hygiene suite list includes every test/*.test.ts file on disk', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const files = readdirSync(join(root, 'test')).filter((f) => f.endsWith('.test.ts'));
+    expect(files.length).toBeGreaterThanOrEqual(9);
+    for (const file of files) {
+      expect(ci).toContain(`test/${file}`);
+    }
+    expect(ci).toContain('test/helpers.ts');
+  });
+
+  it('keeps package.json type module and private-safe name', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      name: string;
+      type: string;
+      version: string;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.type).toBe('module');
+    expect(pkg.version).toBe('0.1.0');
+  });
+
+  it('keeps chore issue template present without blank issues', () => {
+    const chore = read('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(chore).toMatch(/name:\s*Chore \/ Infra \/ Docs/);
+    expect(chore).toMatch(/labels:\s*\["chore"\]/);
+    expect(chore).toMatch(/options:\s*\[Chore, Infra, Docs, Research\]/);
+  });
+
+  it('pins CI coverage upload path to coverage/', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/path:\s*\|\s*\n\s*coverage\//);
+    expect(ci).toMatch(/coverage\/lcov\.info/);
+  });
+
+  it('keeps Dependabot open-pull-requests-limit and monthly schedule', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/open-pull-requests-limit:\s*\d+/);
+    expect(dep).toMatch(/interval:\s*"monthly"/);
+    expect(dep).not.toMatch(/interval:\s*"weekly"/);
+  });
+
+  it('keeps package.json free of scripts that invoke wrangler deploy', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(JSON.stringify(pkg.scripts)).not.toMatch(/wrangler secret/);
+  });
+
+  it('documents README Cloud agents bootstrap as npm ci only', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/`npm ci` only/);
+    expect(readme).toMatch(/no secrets in the file/i);
+  });
+
+  it('keeps vitest coverage exclude limited to src/types.ts', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/exclude:\s*\[['"]src\/types\.ts['"]\]/);
+    expect(vitest).toMatch(/include:\s*\[['"]src\/\*\*\/\*\.ts['"]\]/);
   });
 });
 

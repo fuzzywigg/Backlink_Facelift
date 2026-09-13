@@ -505,5 +505,120 @@ describe('MCP_MANIFEST', () => {
   it('keeps schema_version exactly v1', () => {
     expect(MCP_MANIFEST.schema_version).toBe('v1');
   });
+
+  it('locks exact description_for_model and description_for_human strings', () => {
+    expect(MCP_MANIFEST.description_for_model).toBe(
+      'Interact with Backlink, an AI-curated IPTV radio service. Select stations, filter by genre, get now-playing info, and ask the AI curator to pick the best station for a mood.',
+    );
+    expect(MCP_MANIFEST.description_for_human).toBe(
+      'AI-curated live radio from the iptv-org catalog.',
+    );
+  });
+
+  it('locks exact tool description strings', () => {
+    expect(toolNamed('station_select').description).toBe(
+      'Set the currently playing station by name.',
+    );
+    expect(toolNamed('now_playing').description).toBe(
+      'Get the currently playing station including name, genre, stream URL, and country.',
+    );
+    expect(toolNamed('genre_filter').description).toBe(
+      'Return a list of stations filtered by genre keyword (e.g. jazz, news, classical).',
+    );
+    expect(toolNamed('curator_prompt').description).toBe(
+      'Ask the AI curator to pick and set the best station for a given mood or context.',
+    );
+  });
+
+  it('locks exact property description strings', () => {
+    expect(toolNamed('station_select').input_schema.properties.station_name!.description).toBe(
+      'Partial or full name of the station to select.',
+    );
+    expect(toolNamed('genre_filter').input_schema.properties.genre!.description).toBe(
+      'Genre keyword to filter by.',
+    );
+    expect(toolNamed('curator_prompt').input_schema.properties.mood!.description).toBe(
+      'Describe the mood, activity, or vibe (e.g. focus work, late night jazz, morning energy).',
+    );
+    expect(toolNamed('curator_prompt').input_schema.properties.genre!.description).toBe(
+      'Optional genre to constrain the selection.',
+    );
+  });
+
+  it('allows only type/properties/required keys on each input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const keys = Object.keys(tool.input_schema).sort();
+      expect(keys.every((k) => ['type', 'properties', 'required'].includes(k))).toBe(true);
+      expect(keys).toContain('type');
+      expect(keys).toContain('properties');
+      expect(tool.input_schema).not.toHaveProperty('$id');
+      expect(tool.input_schema).not.toHaveProperty('title');
+      expect(tool.input_schema).not.toHaveProperty('examples');
+      expect(tool.input_schema).not.toHaveProperty('additionalProperties');
+    }
+  });
+
+  it('omits required on now_playing (undefined, not empty array)', () => {
+    expect(toolNamed('now_playing').input_schema.required).toBeUndefined();
+    expect(toolNamed('now_playing').input_schema).not.toHaveProperty('required');
+  });
+
+  it('round-trips a deep mutate-then-restore on name_for_model', () => {
+    const original = MCP_MANIFEST.name_for_model;
+    (MCP_MANIFEST as { name_for_model: string }).name_for_model = 'mutated';
+    expect(MCP_MANIFEST.name_for_model).toBe('mutated');
+    (MCP_MANIFEST as { name_for_model: string }).name_for_model = original;
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+  });
+
+  it('keeps every property type exactly string', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(prop.type).toBe('string');
+      }
+    }
+  });
+
+  it('keeps top-level manifest key set stable', () => {
+    expect(Object.keys(MCP_MANIFEST).sort()).toEqual([
+      'api',
+      'auth',
+      'description_for_human',
+      'description_for_model',
+      'name_for_human',
+      'name_for_model',
+      'schema_version',
+      'tools',
+    ]);
+  });
+
+  it('keeps each tool top-level keys exactly name/description/input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.keys(tool).sort()).toEqual(['description', 'input_schema', 'name']);
+    }
+  });
+
+  it('requires mood only on curator_prompt and genre only on genre_filter', () => {
+    expect(toolNamed('curator_prompt').input_schema.required).toEqual(['mood']);
+    expect(toolNamed('genre_filter').input_schema.required).toEqual(['genre']);
+    expect(toolNamed('station_select').input_schema.required).toEqual(['station_name']);
+  });
+
+  it('keeps description_for_model longer than description_for_human', () => {
+    expect(MCP_MANIFEST.description_for_model.length).toBeGreaterThan(
+      MCP_MANIFEST.description_for_human.length,
+    );
+  });
+
+  it('does not use snake_case spaces in tool names', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).toMatch(/^[a-z_]+$/);
+      expect(tool.name).not.toMatch(/\s/);
+    }
+  });
+
+  it('keeps api.type exactly openapi', () => {
+    expect(MCP_MANIFEST.api.type).toBe('openapi');
+  });
 });
 

@@ -631,4 +631,106 @@ describe('resolveGenre', () => {
     expect(resolveGenre('NeWs')).toBe('news');
   });
 
+  it('returns music when resolveGenre receives null (falsy → default)', () => {
+    expect(resolveGenre(null as unknown as string)).toBe('music');
+  });
+
+  it('throws when resolveGenre receives a plain object', () => {
+    expect(() => resolveGenre({} as unknown as string)).toThrow();
+  });
+
+  it('returns music for late+NBSP+night (not the late night alias)', () => {
+    expect(resolveGenre('late\u00A0night')).toBe('music');
+    expect(resolveGenre('late night')).toBe('ambient');
+  });
+
+  it('returns non-string custom map values via the map hit path', () => {
+    expect(resolveGenre('x', { x: 1 as unknown as string })).toBe(1 as unknown as string);
+  });
+
+  it('does not match custom map keys that have leading/trailing spaces', () => {
+    expect(resolveGenre('jazz', { ' jazz ': 'ambient' })).toBe('jazz');
+    expect(resolveGenre(' jazz ', { ' jazz ': 'ambient' })).toBe('jazz');
+  });
+
+  it('still resolves multiple VALID_GENRES when identity keys are deleted from a custom map', () => {
+    const map = { ...GENRE_MAP };
+    delete map.sports;
+    delete map.news;
+    delete map.entertainment;
+    expect(resolveGenre('sports', map)).toBe('sports');
+    expect(resolveGenre('news', map)).toBe('news');
+    expect(resolveGenre('entertainment', map)).toBe('entertainment');
+  });
+
+  it('locks GENRE_MAP values in insertion order', () => {
+    expect(Object.values(GENRE_MAP)).toEqual([
+      'ambient',
+      'ambient',
+      'ambient',
+      'ambient',
+      'ambient',
+      'classical',
+      'classical',
+      'jazz',
+      'jazz',
+      'pop',
+      'rock',
+      'rock',
+      'rock',
+      'music',
+      'news',
+      'sports',
+      'entertainment',
+      'pop',
+      'ambient',
+      'ambient',
+      'ambient',
+    ]);
+  });
+
+  it('resolves ambient-family aliases via a case+pad matrix', () => {
+    const cases: Array<[string, string]> = [
+      ['relaxing', 'ambient'],
+      ['  Relaxing  ', 'ambient'],
+      ['FOCUS', 'ambient'],
+      ['\telectronic\n', 'ambient'],
+      ['LoFi', 'ambient'],
+      ['LO-FI', 'ambient'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(resolveGenre(input)).toBe(expected);
+    }
+  });
+
+  it('returns music for zero-width and soft-hyphen only labels', () => {
+    expect(resolveGenre('\u200B')).toBe('music');
+    expect(resolveGenre('\u00AD')).toBe('music');
+    expect(resolveGenre('\u200Bjazz\u200B')).toBe('music');
+  });
+
+  it('keeps Object.entries(GENRE_MAP) length equal to key count', () => {
+    expect(Object.entries(GENRE_MAP)).toHaveLength(Object.keys(GENRE_MAP).length);
+    expect(Object.entries(GENRE_MAP).length).toBe(21);
+  });
+
+  it('returns music for boolean true/false cast as strings via String path only when stringified externally', () => {
+    expect(resolveGenre('true')).toBe('music');
+    expect(resolveGenre('false')).toBe('music');
+  });
+
+  it('resolves entertainment identity padded and mixed-case', () => {
+    expect(resolveGenre('  Entertainment ')).toBe('entertainment');
+    expect(resolveGenre('ENTERTAINMENT')).toBe('entertainment');
+  });
+
+  it('lets custom map override VALID_GENRES identity for music', () => {
+    expect(resolveGenre('music', { music: 'jazz' })).toBe('jazz');
+    expect(resolveGenre('music')).toBe('music');
+  });
+
+  it('returns music for empty custom map with unknown input', () => {
+    expect(resolveGenre('jazz', {})).toBe('jazz');
+    expect(resolveGenre('unknown', {})).toBe('music');
+  });
 });

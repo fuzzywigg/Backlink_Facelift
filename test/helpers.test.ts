@@ -491,4 +491,71 @@ https://example.com/a.m3u8
     expect(res.status).toBe(200);
     expect(await res.text()).toBe('');
   });
+
+  it('stubIptvAndGemini with m3u null uses iptvStatus default 503', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null }) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('stubIptvAndGemini with m3u null honors custom iptvStatus', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 418 }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/rock.m3u');
+    expect(res.status).toBe(418);
+  });
+
+  it('stubIptvAndGemini gemini callback form is invoked per request', async () => {
+    let calls = 0;
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => {
+        calls += 1;
+        return geminiTextResponse('[]');
+      },
+    }) as unknown as (input: string) => Promise<Response>;
+    await fetchMock('https://generativelanguage.googleapis.com/v1beta/models/x');
+    await fetchMock('https://generativelanguage.googleapis.com/v1beta/models/x');
+    expect(calls).toBe(2);
+  });
+
+  it('stubIptvAndGemini returns 404 for unrelated hosts', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://example.com/other');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+  });
+
+  it('buildSimpleM3U ends with a trailing newline and starts with #EXTM3U', () => {
+    const m3u = buildSimpleM3U([{ name: 'A', url: 'https://example.com/a.m3u8' }]);
+    expect(m3u.startsWith('#EXTM3U\n')).toBe(true);
+    expect(m3u.endsWith('\n')).toBe(true);
+  });
+
+  it('countHttpStreamLines trims before counting', () => {
+    expect(countHttpStreamLines('  https://example.com/a.m3u8  \nhttp://example.com/b')).toBe(2);
+  });
+
+  it('iptvCategoryUrl encodes no extra path segments for plain genre ids', () => {
+    expect(iptvCategoryUrl('jazz')).toBe('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(iptvCategoryUrl('late night')).toBe(
+      'https://iptv-org.github.io/iptv/categories/late night.m3u',
+    );
+  });
+
+  it('mockKV delete removes keys and list stays empty stub', async () => {
+    const kv = mockKV({ a: '1' });
+    await kv.delete('a');
+    await expect(kv.get('a')).resolves.toBeNull();
+    await expect(kv.list()).resolves.toMatchObject({ keys: [], list_complete: true });
+  });
+
+  it('curatedGeminiJson default fixture names Alpha FM', async () => {
+    const body = (await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{ name: string }>;
+    expect(picks[0].name).toBe('Alpha FM');
+  });
 });
