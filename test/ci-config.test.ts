@@ -2113,5 +2113,414 @@ describe('CI / package test wiring', () => {
     expect(pkg.bin).toBeUndefined();
     expect(pkg.engines).toBeUndefined();
   });
+
+  it('locks CI job step display names for Typecheck install and typecheck', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const typecheck = ci.slice(ci.indexOf('typecheck:'), ci.indexOf('test:'));
+    expect(typecheck).toContain('name: Set up Node.js');
+    expect(typecheck).toContain('name: Install dependencies');
+    expect(typecheck).toContain('name: Typecheck');
+    expect(typecheck).toContain('run: npm ci');
+    expect(typecheck).toContain('run: npm run typecheck');
+  });
+
+  it('locks CI test job step order coverage then assert then upload', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const testJob = ci.slice(ci.indexOf('test:'), ci.indexOf('hygiene:'));
+    const coverage = testJob.indexOf('npm run test:coverage');
+    const assert = testJob.indexOf('Assert coverage artifacts exist');
+    const upload = testJob.indexOf('Upload coverage report');
+    expect(coverage).toBeGreaterThan(-1);
+    expect(assert).toBeGreaterThan(coverage);
+    expect(upload).toBeGreaterThan(assert);
+  });
+
+  it('locks deploy step order npm ci → typecheck → coverage → wrangler-action', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const ci = deploy.indexOf('npm ci');
+    const tc = deploy.indexOf('npm run typecheck');
+    const cov = deploy.indexOf('npm run test:coverage');
+    const wr = deploy.indexOf('cloudflare/wrangler-action@v4');
+    expect(ci).toBeLessThan(tc);
+    expect(tc).toBeLessThan(cov);
+    expect(cov).toBeLessThan(wr);
+  });
+
+  it('locks package.json scripts keys to exactly six entries', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(Object.keys(pkg.scripts).sort()).toEqual([
+      'deploy',
+      'dev',
+      'test',
+      'test:coverage',
+      'test:watch',
+      'typecheck',
+    ]);
+  });
+
+  it('locks package scripts.deploy to wrangler deploy without --minify inventing', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+    expect(pkg.scripts.deploy).not.toMatch(/minify|env=/);
+  });
+
+  it('locks package.json free of private true/false and license field inventing', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(pkg.private).toBeUndefined();
+    expect(pkg.license).toBeUndefined();
+    expect(pkg.main).toBeUndefined();
+  });
+
+  it('locks package-lock root package dependencies to hono only', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      packages: Record<string, { dependencies?: Record<string, string> }>;
+    };
+    expect(Object.keys(lock.packages[''].dependencies ?? {})).toEqual(['hono']);
+  });
+
+  it('locks @types/node on the 22.x line in package.json', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies['@types/node']).toMatch(/^\^22\./);
+  });
+
+  it('locks typescript on ^5.7 line not 6+', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies.typescript).toMatch(/^\^5\./);
+    expect(pkg.devDependencies.typescript).not.toMatch(/^\^[67]\./);
+  });
+
+  it('locks vitest.config defineConfig import from vitest/config', () => {
+    expect(read('vitest.config.ts')).toContain(
+      "import { defineConfig } from 'vitest/config'",
+    );
+  });
+
+  it('locks vitest coverage reporters to text text-summary html lcov in order', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(
+      /reporter:\s*\['text',\s*'text-summary',\s*'html',\s*'lcov'\]/,
+    );
+  });
+
+  it('locks CI Assert coverage artifacts to four shell checks', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const block = ci.slice(
+      ci.indexOf('Assert coverage artifacts exist'),
+      ci.indexOf('Upload coverage report'),
+    );
+    expect(block).toContain('test -d coverage');
+    expect(block).toContain('test -f coverage/lcov.info');
+    expect(block).toContain('test -s coverage/lcov.info');
+    expect(block).toContain("grep -q 'SF:src/' coverage/lcov.info");
+  });
+
+  it('locks hygiene required files to include docs/mcp-spec.md and all test suites', () => {
+    const hygiene = read('.github/workflows/ci.yml').slice(
+      read('.github/workflows/ci.yml').indexOf('Check required files'),
+    );
+    for (const f of [
+      'docs/mcp-spec.md',
+      'test/helpers.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+      'test/mcp-spec-contract.test.ts',
+    ]) {
+      expect(hygiene).toContain(`test -f ${f}`);
+    }
+  });
+
+  it('locks hygiene coverage threshold greps for all four metrics', () => {
+    const ci = read('.github/workflows/ci.yml');
+    for (const metric of ['branches', 'lines', 'functions', 'statements']) {
+      expect(ci).toContain(`grep -q '${metric}: 100' vitest.config.ts`);
+    }
+  });
+
+  it('locks README API docs for /curate /stations /genres /health', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('GET /curate?genre=ambient&mood=late+night');
+    expect(readme).toContain('GET /stations?genre=classical');
+    expect(readme).toContain('GET /genres');
+    expect(readme).toContain('GET /health');
+  });
+
+  it('locks README Available Genres middot-separated VALID_GENRES order', () => {
+    const readme = read('README.md');
+    expect(readme).toContain(
+      '`music` · `ambient` · `jazz` · `classical` · `pop` · `rock` · `news` · `sports` · `entertainment`',
+    );
+  });
+
+  it('locks README Cloud agents bootstrap to npm ci only', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/npm ci` only/);
+    expect(readme).toContain('.cursor/environment.json');
+  });
+
+  it('locks DEPLOY.md prerequisites Node.js 18+ while CI pins 20', () => {
+    expect(read('DEPLOY.md')).toContain('Node.js 18+');
+    expect(read('.github/workflows/ci.yml')).toContain('node-version: "20"');
+  });
+
+  it('locks DEPLOY.md HITL bullets for first deploy GEMINI and data sources', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/First production deploy must be reviewed by Andrew/);
+    expect(deploy).toMatch(/GEMINI_API_KEY handling require approval/);
+    expect(deploy).toMatch(/new external data sources requires approval/);
+  });
+
+  it('locks AGENTS.md Classification Tier A and Autonomy L2', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('Tier: A (Active Strategic — Andrew flagged HIGH PRIORITY)');
+    expect(agents).toContain('Autonomy: L2 (Standard — non-critical infra)');
+  });
+
+  it('locks AGENTS.md parent_governance URL', () => {
+    expect(read('AGENTS.md')).toContain(
+      'parent_governance: github.com/fuzzywigg/agents-governance',
+    );
+  });
+
+  it('locks bug ISSUE_TEMPLATE component options including CF-AI and KV-Cache', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(bug).toContain('options: [Parser, Curator, API, Deploy, CF-AI, KV-Cache]');
+    expect(bug).toContain('labels: ["bug"]');
+    expect(bug).toContain('title: "[Bug]: "');
+  });
+
+  it('locks feature ISSUE_TEMPLATE labels enhancement and shared priority effort enums', () => {
+    const feature = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(feature).toContain('labels: ["enhancement"]');
+    expect(feature).toContain('options: [Critical, High, Medium, Low]');
+    expect(feature).toContain('options: [XS, S, M, L, XL]');
+  });
+
+  it('locks chore ISSUE_TEMPLATE present with chore label', () => {
+    const chore = read('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(chore).toContain('labels: ["chore"]');
+    expect(chore).toMatch(/name:\s*Chore/i);
+  });
+
+  it('locks ISSUE_TEMPLATE config blank_issues_enabled false without contact_links inventing', () => {
+    const config = read('.github/ISSUE_TEMPLATE/config.yml');
+    expect(config.trim()).toBe('blank_issues_enabled: false');
+    expect(config).not.toContain('contact_links');
+  });
+
+  it('locks .gitignore Wrangler state dirs .wrangler/ and .mf/', () => {
+    const gi = read('.gitignore');
+    expect(gi).toContain('.wrangler/');
+    expect(gi).toContain('.mf/');
+    expect(gi).toContain('dist/');
+  });
+
+  it('locks .gitignore editor noise .DS_Store .idea .vscode swp and tilde', () => {
+    const gi = read('.gitignore');
+    expect(gi).toContain('.DS_Store');
+    expect(gi).toContain('.idea/');
+    expect(gi).toContain('.vscode/');
+    expect(gi).toContain('*.swp');
+    expect(gi).toContain('*~');
+  });
+
+  it('locks .gitattributes to LF normalization via text=auto', () => {
+    const attrs = read('.gitattributes');
+    expect(attrs).toContain('* text=auto');
+    expect(attrs).toMatch(/LF normalization/i);
+    expect(attrs.trim().split('\n').filter((l) => !l.startsWith('#') && l.trim())).toEqual([
+      '* text=auto',
+    ]);
+  });
+
+  it('locks .cursor/environment.json to exactly name and install npm ci', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, string>;
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+  });
+
+  it('locks dependabot npm group name npm-dependencies with star pattern', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('npm-dependencies:');
+    expect(dep).toMatch(/patterns:\s*\n\s*-\s*"\*"/);
+  });
+
+  it('locks dependabot github-actions group name and monthly interval', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('github-actions:');
+    expect((dep.match(/interval:\s*"monthly"/g) ?? []).length).toBe(2);
+  });
+
+  it('locks CI concurrency cancel-in-progress true and deploy false', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/cancel-in-progress:\s*true/);
+    expect(read('.github/workflows/deploy.yml')).toMatch(/cancel-in-progress:\s*false/);
+  });
+
+  it('locks CI permissions to contents read only without packages or id-token', () => {
+    const head = read('.github/workflows/ci.yml').split('jobs:')[0];
+    expect(head).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(head).not.toMatch(/packages:|id-token:|pull-requests:/);
+  });
+
+  it('locks deploy permissions contents read without write scopes', () => {
+    const head = read('.github/workflows/deploy.yml').split('jobs:')[0];
+    expect(head).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(head).not.toMatch(/contents:\s*write/);
+  });
+
+  it('locks CI node-version quoted 20 on both typecheck and test jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect((ci.match(/node-version:\s*"20"/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('locks deploy node-version quoted 20 and npm cache', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('node-version: "20"');
+    expect(deploy).toContain('cache: "npm"');
+  });
+
+  it('locks tsconfig target lib ES2022 and noEmit true', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+    };
+    expect(ts.compilerOptions.target).toBe('ES2022');
+    expect(ts.compilerOptions.lib).toEqual(['ES2022']);
+    expect(ts.compilerOptions.noEmit).toBe(true);
+  });
+
+  it('locks package description exact product string', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+  });
+
+  it('locks hygiene secret-scan excludes for md package-lock and dirs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("--exclude='*.md'");
+    expect(ci).toContain("--exclude='package-lock.json'");
+    expect(ci).toContain('--exclude-dir=.git');
+    expect(ci).toContain('--exclude-dir=node_modules');
+    expect(ci).toContain('--exclude-dir=coverage');
+  });
+
+  it('locks hygiene ban on committed .env .dev.vars pem and key files', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('! test -f .env');
+    expect(ci).toContain('! test -f .dev.vars');
+    expect(ci).toContain("-name '*.pem'");
+    expect(ci).toContain("-name '*.key'");
+    expect(ci).toMatch(/! find \. \\\(/);
+  });
+
+  it('locks CI workflow name CI and deploy name Deploy to Cloudflare Workers', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/^name:\s*CI\s*$/m);
+    expect(read('.github/workflows/deploy.yml')).toMatch(
+      /^name:\s*Deploy to Cloudflare Workers\s*$/m,
+    );
+  });
+
+  it('locks deploy secrets env mapping GEMINI_API_KEY from secrets context', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}');
+    expect(deploy).toContain('apiToken: ${{ secrets.CF_API_TOKEN }}');
+    expect(deploy).toContain('accountId: ${{ secrets.CF_ACCOUNT_ID }}');
+  });
+
+  it('locks vitest include glob so helpers.ts is not collected as a suite', () => {
+    expect(read('vitest.config.ts')).toContain("include: ['test/**/*.test.ts']");
+    expect(read('vitest.config.ts')).not.toContain('test/**/*.ts]');
+  });
+
+  it('locks coverage exclude to src/types.ts only as a single-element array', () => {
+    expect(read('vitest.config.ts')).toMatch(/exclude:\s*\['src\/types\.ts'\]/);
+  });
+
+  it('locks package type module and name backlink version 0.1.0', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      name: string;
+      version: string;
+      type: string;
+    };
+    expect(pkg).toMatchObject({ name: 'backlink', version: '0.1.0', type: 'module' });
+  });
+
+  it('locks CI on: to push and pull_request against main only', () => {
+    const onBlock = read('.github/workflows/ci.yml').split('jobs:')[0];
+    expect(onBlock).toContain('branches: [main]');
+    expect(onBlock).toContain('push:');
+    expect(onBlock).toContain('pull_request:');
+    expect(onBlock).not.toContain('pull_request_target');
+    expect(onBlock).not.toContain('workflow_dispatch');
+  });
+
+  it('locks deploy on: to workflow_dispatch only', () => {
+    const onBlock = read('.github/workflows/deploy.yml').split('permissions:')[0];
+    expect(onBlock).toContain('workflow_dispatch:');
+    expect(onBlock).not.toContain('push:');
+    expect(onBlock).not.toContain('pull_request:');
+  });
+
+  it('locks README CI badge pointing at this repo ci.yml', () => {
+    expect(read('README.md')).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg',
+    );
+  });
+
+  it('locks DEPLOY.md custom domain backlink.fuzzywigg.com', () => {
+    expect(read('DEPLOY.md')).toContain('backlink.fuzzywigg.com');
+  });
+
+  it('locks AGENTS.md Verify scripts matching package.json', () => {
+    const agents = read('AGENTS.md');
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+    expect(pkg.scripts.typecheck).toBeTruthy();
+    expect(pkg.scripts.test).toBeTruthy();
+    expect(pkg.scripts['test:coverage']).toBeTruthy();
+  });
+
+  it('locks hygiene Anthropic bans under src and workflows', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'");
+    expect(ci).toContain(
+      "! grep -RqiE 'anthropic|claude|haiku' .github/workflows --include='*.yml'",
+    );
+  });
+
+  it('locks CI defaults.run.shell bash at workflow level', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(
+      /defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/,
+    );
+  });
+
+  it('locks coverage upload if: always and if-no-files-found error', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const upload = ci.slice(ci.indexOf('Upload coverage report'));
+    expect(upload).toMatch(/if:\s*always\(\)/);
+    expect(upload).toContain('if-no-files-found: error');
+    expect(upload).toContain('retention-days: 14');
+    expect(upload).toContain('name: coverage-report');
+  });
+
+  it('locks package-lock lockfileVersion 3 and requires true', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      lockfileVersion: number;
+      requires: boolean;
+    };
+    expect(lock.lockfileVersion).toBe(3);
+    expect(lock.requires).toBe(true);
+  });
+
+  it('locks no root .env or .dev.vars files on disk', () => {
+    const files = readdirSync(root);
+    expect(files).not.toContain('.env');
+    expect(files).not.toContain('.dev.vars');
+  });
 });
 

@@ -891,5 +891,205 @@ VERSION = "0.1.0"
   it('vars table appears exactly once', () => {
     expect((toml.match(/^\[vars\]/gm) ?? []).length).toBe(1);
   });
+
+  it('locks exact worker name main and compatibility_date triplet at file top', () => {
+    const head = toml.trimStart().split('\n').slice(0, 3);
+    expect(head).toEqual([
+      'name = "backlink"',
+      'main = "src/index.ts"',
+      'compatibility_date = "2025-01-01"',
+    ]);
+  });
+
+  it('locks KV id as lowercase hex without dashes or uppercase', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toBe('edb6ca4df12f4f45b40508b3dda3c432');
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+    expect(id).not.toMatch(/[A-F]/);
+    expect(id).not.toContain('-');
+  });
+
+  it('does not declare triggers cron or scheduled handlers', () => {
+    expect(toml).not.toMatch(/\[triggers\]|crons\s*=|scheduled/i);
+  });
+
+  it('does not declare [assets] or static site bindings', () => {
+    expect(toml).not.toMatch(/\[assets\]|\[site\]|bucket\s*=/);
+  });
+
+  it('does not declare pipelines or workflow bindings', () => {
+    expect(toml).not.toMatch(/pipelines|workflows|workflow_bindings/i);
+  });
+
+  it('does not declare container or sandbox bindings', () => {
+    expect(toml).not.toMatch(/containers|sandboxes|browser_rendering/i);
+  });
+
+  it('does not set logpush or tail_consumers', () => {
+    expect(toml).not.toMatch(/logpush\s*=|tail_consumers/);
+  });
+
+  it('does not declare limits cpu_ms or subrequests', () => {
+    expect(toml).not.toMatch(/\[limits\]|cpu_ms\s*=|subrequests\s*=/);
+  });
+
+  it('custom_domain true appears only under [[routes]]', () => {
+    const routesIdx = toml.indexOf('[[routes]]');
+    const customIdx = toml.indexOf('custom_domain = true');
+    expect(routesIdx).toBeGreaterThanOrEqual(0);
+    expect(customIdx).toBeGreaterThan(routesIdx);
+  });
+
+  it('pattern is a bare hostname without scheme or path', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:\/\//);
+    expect(toml).not.toMatch(/pattern\s*=\s*".*\/"/);
+  });
+
+  it('does not declare zone_name or zone_id', () => {
+    expect(toml).not.toMatch(/zone_id\s*=|zone_name\s*=/);
+  });
+
+  it('Secrets comment block is exactly two consecutive comment lines', () => {
+    const lines = toml.split('\n');
+    const secretIdx = lines.findIndex((l) => l.includes('Secrets'));
+    expect(lines[secretIdx]).toMatch(/^# Secrets/);
+    expect(lines[secretIdx + 1]).toMatch(/^# wrangler secret put GEMINI_API_KEY$/);
+    expect(lines[secretIdx + 2] ?? '').not.toMatch(/^#/);
+  });
+
+  it('does not set send_metrics true or false', () => {
+    expect(toml).not.toMatch(/send_metrics\s*=/);
+  });
+
+  it('does not declare define or [vars] secrets that look like API keys', () => {
+    expect(toml).not.toMatch(/API_KEY\s*=\s*"/);
+    expect(toml).not.toMatch(/TOKEN\s*=\s*"/);
+  });
+
+  it('main points at TypeScript source not a prebuilt dist bundle', () => {
+    expect(toml).toMatch(/main\s*=\s*"src\/index\.ts"/);
+    expect(toml).not.toMatch(/main\s*=\s*"dist\//);
+    expect(toml).not.toMatch(/main\s*=\s*"\.wrangler\//);
+  });
+
+  it('does not declare [[durable_objects.bindings]] or migrations', () => {
+    expect(toml).not.toMatch(/durable_objects|\[\[migrations\]\]/);
+  });
+
+  it('does not declare r2_buckets d1_databases or vectorize', () => {
+    expect(toml).not.toMatch(/r2_buckets|d1_databases|vectorize/);
+  });
+
+  it('does not declare ai or ratelimits bindings', () => {
+    expect(toml).not.toMatch(/\[ai\]|ratelimits|\[\[ratelimits\]\]/);
+  });
+
+  it('VERSION string matches wrangler.toml and package.json without -test suffix', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+      version: string;
+    };
+    expect(toml).toContain(`VERSION = "${pkg.version}"`);
+    expect(pkg.version).toBe('0.1.0');
+  });
+
+  it('file has no BOM and uses only ASCII printable plus newline', () => {
+    expect(toml.charCodeAt(0)).not.toBe(0xfeff);
+    expect([...toml].every((ch) => {
+      const c = ch.charCodeAt(0);
+      return c === 10 || (c >= 32 && c <= 126);
+    })).toBe(true);
+  });
+
+  it('does not declare [dev] local port overrides', () => {
+    expect(toml).not.toMatch(/^\[dev\]/m);
+    expect(toml).not.toMatch(/ip\s*=|port\s*=|local_protocol\s*=/);
+  });
+
+  it('does not declare rules find_additional_modules or base_dir', () => {
+    expect(toml).not.toMatch(/find_additional_modules|base_dir\s*=|\[\[rules\]\]/);
+  });
+
+  it('kv binding name is exactly CATALOG_CACHE quoted', () => {
+    expect(toml).toMatch(/binding\s*=\s*"CATALOG_CACHE"/);
+    expect(toml).not.toMatch(/binding\s*=\s*'CATALOG_CACHE'/);
+    expect(toml).not.toMatch(/binding\s*=\s*CATALOG_CACHE\s*$/m);
+  });
+
+  it('does not embed placeholder your-kv-id-here', () => {
+    expect(toml).not.toContain('your-kv-id-here');
+  });
+
+  it('blank line separates top-level keys from first table', () => {
+    const beforeKv = toml.slice(0, toml.indexOf('[[kv_namespaces]]'));
+    expect(beforeKv.endsWith('\n\n')).toBe(true);
+  });
+
+  it('does not declare services binding or dispatch namespace', () => {
+    expect(toml).not.toMatch(/\[\[services\]\]|dispatch_namespaces/);
+  });
+
+  it('does not declare queues producers or consumers', () => {
+    expect(toml).not.toMatch(/\[\[queues\.(producers|consumers)\]\]/);
+  });
+
+  it('compatibility_date is before or equal to year 2026 and after 2024', () => {
+    const date = toml.match(/compatibility_date\s*=\s*"(\d{4}-\d{2}-\d{2})"/)?.[1];
+    expect(date).toBe('2025-01-01');
+    expect(date! >= '2024-01-01').toBe(true);
+    expect(date! <= '2026-12-31').toBe(true);
+  });
+
+  it('does not set no_bundle upload_source_maps or jsx flags', () => {
+    expect(toml).not.toMatch(/no_bundle\s*=|upload_source_maps\s*=|jsx_factory\s*=/);
+  });
+
+  it('routes pattern matches AGENTS.md domain target host', () => {
+    const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    expect(agents).toContain('backlink.fuzzywigg.com');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+  });
+
+  it('does not declare hyperdrive analytics_engine or mtls certificates', () => {
+    expect(toml).not.toMatch(/hyperdrive|analytics_engine|mtls_certificates/);
+  });
+
+  it('table order is kv_namespaces then routes then vars', () => {
+    const kv = toml.indexOf('[[kv_namespaces]]');
+    const routes = toml.indexOf('[[routes]]');
+    const vars = toml.indexOf('[vars]');
+    expect(kv).toBeLessThan(routes);
+    expect(routes).toBeLessThan(vars);
+  });
+
+  it('does not declare placement mode smart or regions list', () => {
+    expect(toml).not.toMatch(/\[placement\]|mode\s*=\s*"smart"|regions\s*=/);
+  });
+
+  it('GEMINI secret is documented only as CLI put comment', () => {
+    expect(toml).toContain('wrangler secret put GEMINI_API_KEY');
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+  });
+
+  it('file line count stays lean between 14 and 20 inclusive', () => {
+    const n = toml.split('\n').length;
+    expect(n).toBeGreaterThanOrEqual(14);
+    expect(n).toBeLessThanOrEqual(20);
+  });
+
+  it('does not use single-quoted TOML strings for name main or pattern', () => {
+    expect(toml).not.toMatch(/name\s*=\s*'backlink'/);
+    expect(toml).not.toMatch(/main\s*=\s*'src\/index\.ts'/);
+    expect(toml).not.toMatch(/pattern\s*=\s*'backlink/);
+  });
+
+  it('does not declare unsafe metadata or captcha bindings', () => {
+    expect(toml).not.toMatch(/\[unsafe\]|captcha|turnstile/i);
+  });
+
+  it('VERSION assignment uses double quotes around 0.1.0', () => {
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+    expect(toml).not.toMatch(/VERSION\s*=\s*0\.1\.0\s*$/m);
+  });
 });
 

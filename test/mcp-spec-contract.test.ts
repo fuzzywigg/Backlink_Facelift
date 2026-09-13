@@ -1504,4 +1504,267 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(Buffer.byteLength(spec, 'utf8')).toBeLessThan(8 * 1024);
     expect(Buffer.byteLength(spec, 'utf8')).toBeGreaterThan(1500);
   });
+
+  it('locks H1 title exact markdown Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('locks intro sentence mentioning claw-mcp tool set', () => {
+    expect(spec).toContain(
+      'This spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink API endpoint.',
+    );
+  });
+
+  it('locks exactly three tool headings with backtick-wrapped ids', () => {
+    const headings = [...spec.matchAll(/^### `([^`]+)`$/gm)].map((m) => m[1]);
+    expect(headings).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+
+  it('locks horizontal rules to exactly four --- separators', () => {
+    expect((spec.match(/^---$/gm) ?? []).length).toBe(4);
+  });
+
+  it('locks ## Tools before ## Integration Notes with no other H2s', () => {
+    const h2 = [...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(h2).toEqual(['Tools', 'Integration Notes']);
+  });
+
+  it('locks curate Input Schema genre examples jazz classical ambient rock pop', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop']) {
+      expect(section).toContain(`'${g}'`);
+    }
+  });
+
+  it('locks curate mood examples late night focus chill energizing', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain("'late night'");
+    expect(section).toContain("'focus'");
+    expect(section).toContain("'chill'");
+    expect(section).toContain("'energizing'");
+  });
+
+  it('energizing appears in spec mood docs but not in GENRE_MAP keys', () => {
+    expect(spec).toContain('energizing');
+    expect(Object.keys(GENRE_MAP)).not.toContain('energizing');
+  });
+
+  it('locks curate station required array to name url genre without logo editorial', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain('"required": ["name", "url", "genre"]');
+    expect(section).not.toContain('"required": ["name", "url", "logo"');
+  });
+
+  it('locks now_playing required array to name stream_url genre', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toContain('"required": ["name", "stream_url", "genre"]');
+  });
+
+  it('locks now_playing Endpoint remapping note for stations[0] and stream_url', () => {
+    expect(spec).toContain(
+      '**Endpoint:** `GET /curate?genre={genre}&mood={mood}` — returns `stations[0]` only, with `url` remapped to `stream_url`.',
+    );
+  });
+
+  it('locks genres Endpoint to GET /genres only without query template', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('**Endpoint:** `GET /genres`');
+    expect(section).not.toContain('?genre=');
+  });
+
+  it('locks Integration Notes five bullets exact texts', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+    expect(bullets).toEqual([
+      'Base URL: `https://backlink.fuzzywigg.com`',
+      'No auth required for read endpoints',
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+      'On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('cross-locks Base URL with wrangler routes pattern and README live URL', () => {
+    const toml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(toml).toContain('backlink.fuzzywigg.com');
+    expect(readme).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('cross-locks graceful top 5 with Worker stations.slice(0, 5)', () => {
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(spec).toMatch(/top 5 raw stations/);
+    expect(index).toContain('stations.slice(0, 5)');
+  });
+
+  it('cross-locks 1h TTL note with expirationTtl 3600 in Worker', () => {
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(spec).toContain('1h TTL');
+    expect(index).toContain('expirationTtl: 3600');
+  });
+
+  it('documents logo and editorial as string|null unions on curate items', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain('"type": ["string", "null"]');
+    expect((section.match(/"type": \["string", "null"\]/g) ?? []).length).toBeGreaterThanOrEqual(
+      2,
+    );
+  });
+
+  it('documents logo format uri on curate and now_playing when string', () => {
+    expect(spec).toMatch(/"logo": \{ "type": \["string", "null"\], "format": "uri" \}/);
+  });
+
+  it('documents timestamp format date-time on curate output', () => {
+    expect(spec).toContain('"timestamp": { "type": "string", "format": "date-time" }');
+  });
+
+  it('documents station url format uri on curate items', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toContain('"url": { "type": "string", "format": "uri" }');
+  });
+
+  it('documents stream_url format uri on now_playing', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toContain('"stream_url": { "type": "string", "format": "uri" }');
+  });
+
+  it('locks genres aliases description Friendly name mapping', () => {
+    expect(spec).toContain('Friendly name → canonical slug mapping');
+  });
+
+  it('locks genres output genres description Canonical genre slugs', () => {
+    expect(spec).toContain(
+      'Canonical genre slugs accepted by /curate and /stations',
+    );
+  });
+
+  it('locks additionalProperties false on all three input schemas', () => {
+    expect((spec.match(/"additionalProperties": false/g) ?? []).length).toBe(3);
+  });
+
+  it('locks genres input properties to empty object', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('"properties": {}');
+  });
+
+  it('does not document Authorization Bearer or API keys', () => {
+    expect(spec).not.toMatch(/Authorization|Bearer |api[_-]?key/i);
+  });
+
+  it('does not document rate limits quotas or 429', () => {
+    expect(spec).not.toMatch(/rate limit|quota|429/i);
+  });
+
+  it('does not document workers.dev or localhost Base URLs', () => {
+    expect(spec).not.toMatch(/workers\.dev|localhost/i);
+  });
+
+  it('does not embed Gemini model ids or Anthropic names', () => {
+    expect(spec).not.toMatch(/gemini-2\.0|gemini-1\.5|anthropic|claude|haiku/i);
+  });
+
+  it('json fences are valid JSON and use json language tag', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences.length).toBeGreaterThanOrEqual(5);
+    for (const f of fences) {
+      expect(() => JSON.parse(f)).not.toThrow();
+    }
+    const langs = [...spec.matchAll(/```(\w+)/g)].map((m) => m[1]);
+    expect(langs.every((l) => l === 'json')).toBe(true);
+  });
+
+  it('each tool section includes Description Input Schema Output Endpoint labels', () => {
+    for (const tool of ['backlink_curate', 'backlink_genres', 'backlink_now_playing']) {
+      const start = spec.indexOf(`### \`${tool}\``);
+      const next = spec.indexOf('### `', start + 1);
+      const section = next === -1 ? spec.slice(start) : spec.slice(start, next);
+      expect(section).toContain('**Description:**');
+      expect(section).toContain('**Input Schema:**');
+      expect(section).toContain('**Output:**');
+      expect(section).toContain('**Endpoint:**');
+    }
+  });
+
+  it('locks curate Description top 3 radio stations wording', () => {
+    expect(spec).toContain('pick the top 3 radio stations');
+  });
+
+  it('locks genres Description iptv-org genre categories wording', () => {
+    expect(spec).toContain('iptv-org genre categories supported by Backlink');
+  });
+
+  it('locks now_playing Description single best station wording', () => {
+    expect(spec).toContain('the single best station right now');
+  });
+
+  it('docs tool ids stay distinct from claw-mcp MCP_MANIFEST tool names', () => {
+    const docsTools = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'];
+    const clawTools = MCP_MANIFEST.tools.map((t) => t.name);
+    for (const d of docsTools) {
+      expect(clawTools).not.toContain(d);
+    }
+    for (const c of clawTools) {
+      expect(spec).not.toContain(`### \`${c}\``);
+    }
+  });
+
+  it('VALID_GENRES examples in curate genre description are all valid slugs', () => {
+    const allowed = new Set<string>(VALID_GENRES);
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop']) {
+      expect(allowed.has(g)).toBe(true);
+    }
+  });
+
+  it('file uses LF only and ends with trailing newline', () => {
+    expect(spec.includes('\r')).toBe(false);
+    expect(spec.endsWith('\n')).toBe(true);
+  });
+
+  it('does not use HTML tags in the markdown body', () => {
+    expect(spec).not.toMatch(/<\/?[a-z][\s\S]*?>/i);
+  });
+
+  it('does not document WebSocket SSE or gRPC transports', () => {
+    expect(spec).not.toMatch(/websocket|server-sent|SSE|gRPC/i);
+  });
+
+  it('does not document MCP resources or prompts sections', () => {
+    expect(spec).not.toMatch(/^## Resources/m);
+    expect(spec).not.toMatch(/^## Prompts/m);
+  });
+
+  it('locks curate Endpoint query template genre and mood placeholders', () => {
+    expect(spec).toContain('`GET /curate?genre={genre}&mood={mood}`');
+  });
+
+  it('locks aliases additionalProperties type string under genres output', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toContain('"additionalProperties": { "type": "string" }');
+  });
 });
