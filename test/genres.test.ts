@@ -887,4 +887,25 @@ describe('resolveGenre', () => {
       expect(resolveGenre(key)).toBe(value);
     }
   });
+
+  it('resolves own __proto__ key on Object.create(null) map', () => {
+    const map = Object.create(null) as Record<string, string>;
+    map['__proto__'] = 'jazz';
+    expect(resolveGenre('__proto__', map)).toBe('jazz');
+  });
+
+  it('resolves boxed String inputs via toLowerCase/trim', () => {
+    expect(resolveGenre(new String('jazz') as unknown as string)).toBe('jazz');
+    expect(resolveGenre(new String('  CHILL ') as unknown as string)).toBe('ambient');
+  });
+
+  it('keeps GENRE_MAP extensible and unsealed', () => {
+    expect(Object.isSealed(GENRE_MAP)).toBe(false);
+    expect(Object.isExtensible(GENRE_MAP)).toBe(true);
+  });
+
+  it('returns NaN map values via ?? without falling through to VALID_GENRES', () => {
+    const map = { chill: Number.NaN } as unknown as Record<string, string>;
+    expect(Number.isNaN(resolveGenre('chill', map) as unknown as number)).toBe(true);
+  });
 });
