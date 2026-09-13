@@ -320,5 +320,73 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('does not promise MCP bearer or OAuth auth', () => {
     expect(spec).not.toMatch(/oauth|bearer token|api key required/i);
   });
+
+  it('does not list claw-mcp tool names as docs headings', () => {
+    expect(spec).not.toMatch(/### `station_select`/);
+    expect(spec).not.toMatch(/### `now_playing`/);
+    expect(spec).not.toMatch(/### `genre_filter`/);
+    expect(spec).not.toMatch(/### `curator_prompt`/);
+  });
+
+  it('documents curate input schema without a required array', () => {
+    const curate = spec.slice(spec.indexOf('### `backlink_curate`'), spec.indexOf('### `backlink_genres`'));
+    const fence = curate.match(/```json\n([\s\S]*?)```/);
+    expect(fence).toBeTruthy();
+    const schema = JSON.parse(fence![1]) as { required?: string[] };
+    expect(schema.required).toBeUndefined();
+  });
+
+  it('does not claim the Worker validates curated array length 3', () => {
+    expect(spec).toMatch(/top 3 radio stations/i);
+    expect(spec).not.toMatch(/enforces (array )?length 3|validates (exactly )?3/i);
+  });
+
+  it('documents Integration Notes that Gemini calls are uncached', () => {
+    expect(spec).toMatch(/\/curate` always calls Gemini fresh/i);
+    expect(spec).toMatch(/no LLM response caching/i);
+  });
+
+  it('keeps exactly three ### tool headings', () => {
+    const headings = [...spec.matchAll(/^### `/gm)];
+    expect(headings).toHaveLength(3);
+  });
+
+  it('documents genres output with aliases object', () => {
+    expect(spec).toMatch(/"aliases":\s*\{\s*"type":\s*"object"/);
+  });
+
+  it('documents now_playing station fields including stream_url', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toMatch(/stream_url/);
+    expect(section).toMatch(/"name":\s*\{\s*"type":\s*"string"/);
+  });
+
+  it('does not claim entertainment is an unsupported genre', () => {
+    expect(spec).not.toMatch(/unsupported genres?:.*entertainment/i);
+  });
+
+  it('keeps Output fences as json language tags', () => {
+    const fences = [...spec.matchAll(/```(\w*)/g)].map((m) => m[1]);
+    expect(fences.every((lang) => lang === 'json' || lang === '')).toBe(true);
+    expect(fences.filter((lang) => lang === 'json').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('documents backlink_genres Endpoint as GET /genres exactly', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(/Endpoint:\*\*\s*`GET \/genres`/);
+  });
+
+  it('documents curate Endpoint query placeholders for genre and mood', () => {
+    expect(spec).toMatch(/GET \/curate\?genre=\{genre\}&mood=\{mood\}/);
+  });
+
+  it('keeps Integration Notes as a bullet list', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    expect(notes).toMatch(/^- /m);
+    expect((notes.match(/^- /gm) ?? []).length).toBeGreaterThanOrEqual(4);
+  });
 });
 

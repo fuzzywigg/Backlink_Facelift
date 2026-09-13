@@ -233,5 +233,30 @@ describe('wrangler.toml contracts', () => {
   it('documents secrets via CLI comment exactly once', () => {
     expect((toml.match(/wrangler secret put GEMINI_API_KEY/g) ?? []).length).toBe(1);
   });
+
+  it('keeps exactly one [[kv_namespaces]] and one [[routes]] table', () => {
+    expect((toml.match(/\[\[kv_namespaces\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/\[\[routes\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/^\[vars\]/gm) ?? []).length).toBe(1);
+  });
+
+  it('binds CATALOG_CACHE exactly once', () => {
+    expect((toml.match(/binding\s*=\s*"CATALOG_CACHE"/g) ?? []).length).toBe(1);
+  });
+
+  it('does not declare durable_objects or r2_buckets', () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/r2_buckets/i);
+    expect(toml).not.toMatch(/d1_databases/i);
+  });
+
+  it('keeps custom_domain true without zone_id', () => {
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+    expect(toml).not.toMatch(/zone_id\s*=/);
+  });
+
+  it('does not embed GEMINI_API_KEY as a [vars] assignment', () => {
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+  });
 });
 

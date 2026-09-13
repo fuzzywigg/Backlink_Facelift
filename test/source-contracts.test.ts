@@ -400,5 +400,81 @@ describe('source ↔ product contracts', () => {
       expect(read(file)).not.toMatch(/from\s+['\"]\.\/mcp['\"]/);
     }
   });
+
+  it('locks README Available Genres middot list to VALID_GENRES', () => {
+    const readme = read('README.md');
+    const genres = read('src/genres.ts');
+    const listLine = readme
+      .split('\n')
+      .find((l) => l.includes('`music`') && l.includes('·') && l.includes('`entertainment`'));
+    expect(listLine).toBeTruthy();
+    const fromReadme = [...listLine!.matchAll(/`([a-z]+)`/g)].map((m) => m[1]);
+    const fromSrc = [...genres.matchAll(/'([a-z]+)'/g)]
+      .map((m) => m[1])
+      .filter((g, i, arr) => arr.indexOf(g) === i)
+      .slice(0, 9);
+    // Prefer explicit VALID_GENRES block order
+    const validBlock = genres.slice(genres.indexOf('VALID_GENRES'), genres.indexOf('] as const'));
+    const valid = [...validBlock.matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
+    expect(fromReadme).toEqual(valid);
+    expect(fromReadme).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+    expect(fromSrc.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it('locks README alias examples as a subset of GENRE_MAP', () => {
+    const readme = read('README.md');
+    const genres = read('src/genres.ts');
+    expect(readme).toMatch(/`late night` → ambient/);
+    expect(readme).toMatch(/`chill` → ambient/);
+    expect(readme).toMatch(/`lofi` → ambient/);
+    expect(readme).toMatch(/`blues` → jazz/);
+    expect(genres).toMatch(/'late night':\s*'ambient'/);
+    expect(genres).toMatch(/chill:\s*'ambient'/);
+    expect(genres).toMatch(/lofi:\s*'ambient'/);
+    expect(genres).toMatch(/blues:\s*'jazz'/);
+  });
+
+  it('locks AGENTS.md Verify block to the four npm scripts', () => {
+    const agents = read('AGENTS.md');
+    const verify = agents.slice(agents.indexOf('## Verify'), agents.indexOf('## Escalate'));
+    expect(verify).toMatch(/npm ci/);
+    expect(verify).toMatch(/npm run typecheck/);
+    expect(verify).toMatch(/npm test/);
+    expect(verify).toMatch(/npm run test:coverage/);
+  });
+
+  it('keeps README live caveat category list for 404→music.m3u', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(
+      /`jazz`\/`ambient`\/`classical`\/`pop`\/`rock` files 404 and fall back to `music\.m3u`/,
+    );
+    expect(readme).toMatch(/Real matching categories today:\s*`music`,\s*`news`,\s*`sports`,\s*`entertainment`/);
+  });
+
+  it('keeps callGemini stationList slice at 50 and degrade at 5', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/\.slice\(0,\s*50\)/);
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it('exports default app from src/index.ts', () => {
+    expect(read('src/index.ts')).toMatch(/export default app/);
+  });
+
+  it('keeps parser seen Set keyed by URL string only', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/seen\.has\(line\)/);
+    expect(parser).toMatch(/seen\.add\(line\)/);
+  });
 });
 
