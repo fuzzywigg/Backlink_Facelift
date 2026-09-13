@@ -849,5 +849,88 @@ describe('source ↔ product contracts', () => {
     expect(index).toMatch(/'\/health':/);
     expect(index).toContain("powered_by: 'Backlink/Geryon 🦀'");
   });
+
+  it('exports the full helpers.ts surface used by route tests', () => {
+    const helpers = read('test/helpers.ts');
+    for (const name of [
+      'mockKV',
+      'testEnv',
+      'SAMPLE_M3U',
+      'geminiTextResponse',
+      'stubIptvAndGemini',
+      'curatedGeminiJson',
+      'iptvCategoryUrl',
+      'countHttpStreamLines',
+      'buildSimpleM3U',
+      'seedStationsCache',
+      'captureGeminiRequest',
+      'iptvCallsWithInit',
+    ]) {
+      expect(helpers).toMatch(new RegExp(`export (function|const) ${name}\\b`));
+    }
+  });
+
+  it('locks helpers stubIptvAndGemini host match substrings', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).toContain("url.includes('iptv-org')");
+    expect(helpers).toContain("url.includes('generativelanguage.googleapis.com')");
+  });
+
+  it('locks helpers iptvCategoryUrl base to iptv-org categories path', () => {
+    expect(read('test/helpers.ts')).toContain(
+      'https://iptv-org.github.io/iptv/categories/${genre}.m3u',
+    );
+  });
+
+  it('locks helpers seedStationsCache key template stations:${genre}', () => {
+    expect(read('test/helpers.ts')).toContain('stations:${genre}');
+  });
+
+  it('locks helpers countHttpStreamLines to http:// and https:// startsWith only', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).toMatch(
+      /l\.startsWith\('http:\/\/'\) \|\| l\.startsWith\('https:\/\/'\)/,
+    );
+  });
+
+  it('locks helpers mockKV get miss to null (not undefined)', () => {
+    expect(read('test/helpers.ts')).toMatch(/store\.get\(key\) \?\? null/);
+  });
+
+  it('locks helpers testEnv default VERSION to 0.1.0-test', () => {
+    expect(read('test/helpers.ts')).toMatch(/VERSION:\s*'0\.1\.0-test'/);
+  });
+
+  it('locks helpers buildSimpleM3U attr order name/logo/group/language/country', () => {
+    const helpers = read('test/helpers.ts');
+    const block = helpers.slice(
+      helpers.indexOf('export function buildSimpleM3U'),
+      helpers.indexOf('export function seedStationsCache'),
+    );
+    const nameIdx = block.indexOf('tvg-name=');
+    const logoIdx = block.indexOf('tvg-logo=');
+    const groupIdx = block.indexOf('group-title=');
+    const langIdx = block.indexOf('tvg-language=');
+    const countryIdx = block.indexOf('tvg-country=');
+    expect(nameIdx).toBeGreaterThan(-1);
+    expect(logoIdx).toBeGreaterThan(nameIdx);
+    expect(groupIdx).toBeGreaterThan(logoIdx);
+    expect(langIdx).toBeGreaterThan(groupIdx);
+    expect(countryIdx).toBeGreaterThan(langIdx);
+  });
+
+  it('locks helpers captureGeminiRequest to first generativelanguage call', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).toMatch(/fetchMock\.mock\.calls\.find/);
+    expect(helpers).toContain("includes('generativelanguage.googleapis.com')");
+  });
+
+  it('locks helpers curatedGeminiJson default Alpha FM fixture fields', () => {
+    const helpers = read('test/helpers.ts');
+    expect(helpers).toContain("name: 'Alpha FM'");
+    expect(helpers).toContain("url: 'https://example.com/alpha.m3u8'");
+    expect(helpers).toContain("editorial: 'Default curated pick.'");
+    expect(helpers).toContain("genre: 'music'");
+  });
 });
 
