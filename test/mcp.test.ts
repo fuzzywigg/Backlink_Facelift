@@ -842,5 +842,215 @@ describe('MCP_MANIFEST', () => {
     expect(JSON.stringify(tool.input_schema)).not.toMatch(/"required"/);
     expect(tool.input_schema).not.toHaveProperty('required');
   });
+
+  it('locks description_for_model verb set: Select/filter/get/ask', () => {
+    const d = MCP_MANIFEST.description_for_model;
+    expect(d).toMatch(/Select stations/);
+    expect(d).toMatch(/filter by genre/);
+    expect(d).toMatch(/get now-playing/);
+    expect(d).toMatch(/ask the AI curator/);
+  });
+
+  it('keeps description_for_human free of tool names and endpoint paths', () => {
+    expect(MCP_MANIFEST.description_for_human).not.toMatch(/station_select|now_playing|curator_prompt/);
+    expect(MCP_MANIFEST.description_for_human).not.toMatch(/\/curate|\/genres|\/stations/);
+  });
+
+  it('JSON round-trip preserves tool property insertion order', () => {
+    const cloned = JSON.parse(JSON.stringify(MCP_MANIFEST)) as typeof MCP_MANIFEST;
+    expect(Object.keys(cloned.tools[3].input_schema.properties)).toEqual(['mood', 'genre']);
+    expect(Object.keys(cloned.tools[0].input_schema.properties)).toEqual(['station_name']);
+  });
+
+  it('keeps every required array as a mutable Array instance', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      if (tool.input_schema.required) {
+        expect(Array.isArray(tool.input_schema.required)).toBe(true);
+        expect(Object.isFrozen(tool.input_schema.required)).toBe(false);
+      }
+    }
+  });
+
+  it('does not declare minLength/maxLength/pattern/format on any property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(prop).not.toHaveProperty('minLength');
+        expect(prop).not.toHaveProperty('maxLength');
+        expect(prop).not.toHaveProperty('pattern');
+        expect(prop).not.toHaveProperty('format');
+        expect(prop).not.toHaveProperty('enum');
+        expect(prop).not.toHaveProperty('default');
+      }
+    }
+  });
+
+  it('locks genre_filter.properties key order exactly genre', () => {
+    expect(Object.keys(toolNamed('genre_filter').input_schema.properties)).toEqual(['genre']);
+  });
+
+  it('locks curator_prompt.required to mood only (genre optional)', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(tool.input_schema.required).toEqual(['mood']);
+    expect(Object.keys(tool.input_schema.properties)).toContain('genre');
+  });
+
+  it('keeps tools array extensible and unsealed', () => {
+    expect(Object.isExtensible(MCP_MANIFEST.tools)).toBe(true);
+    expect(Object.isSealed(MCP_MANIFEST.tools)).toBe(false);
+    expect(Object.isFrozen(MCP_MANIFEST.tools)).toBe(false);
+  });
+
+  it('does not declare name_for_model with spaces or uppercase', () => {
+    expect(MCP_MANIFEST.name_for_model).toMatch(/^[a-z]+$/);
+  });
+
+  it('name_for_human title-cases Backlink Radio with single space', () => {
+    expect(MCP_MANIFEST.name_for_human.split(' ')).toEqual(['Backlink', 'Radio']);
+  });
+
+  it('api.url ends with .json and has exactly one slash', () => {
+    expect(MCP_MANIFEST.api.url.endsWith('.json')).toBe(true);
+    expect([...MCP_MANIFEST.api.url].filter((c) => c === '/')).toHaveLength(1);
+  });
+
+  it('every tool name contains an underscore (multi-token snake_case)', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).toContain('_');
+      expect(tool.name.split('_').length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('structuredClone tools are deep-equal but not same references', () => {
+    const cloned = structuredClone(MCP_MANIFEST);
+    expect(cloned).toEqual(MCP_MANIFEST);
+    expect(cloned.tools).not.toBe(MCP_MANIFEST.tools);
+    expect(cloned.tools[0]).not.toBe(MCP_MANIFEST.tools[0]);
+  });
+
+  it('does not declare parameters / arguments aliases for input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('parameters');
+      expect(tool).not.toHaveProperty('arguments');
+      expect(tool).not.toHaveProperty('inputSchema');
+    }
+  });
+
+  it('locks exact station_select description string length', () => {
+    expect(toolNamed('station_select').description).toBe(
+      'Set the currently playing station by name.',
+    );
+    expect(toolNamed('station_select').description.length).toBe(42);
+  });
+
+  it('locks now_playing description to mention stream URL with capital URL', () => {
+    expect(toolNamed('now_playing').description).toContain('stream URL');
+    expect(toolNamed('now_playing').description).not.toContain('stream url');
+  });
+
+  it('genre_filter examples list is jazz, news, classical in that order', () => {
+    const d = toolNamed('genre_filter').description;
+    const m = d.match(/\(e\.g\.\s*([^)]+)\)/);
+    expect(m?.[1]).toBe('jazz, news, classical');
+  });
+
+  it('curator_prompt mood e.g. list order focus work, late night jazz, morning energy', () => {
+    const d = toolNamed('curator_prompt').input_schema.properties.mood!.description as string;
+    const m = d.match(/\(e\.g\.\s*([^)]+)\)/);
+    expect(m?.[1]).toBe('focus work, late night jazz, morning energy');
+  });
+
+  it('serializes entire manifest without null or undefined tokens', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    expect(raw).not.toMatch(/:null/);
+    expect(raw).not.toMatch(/undefined/);
+  });
+
+  it('keeps auth.type and api.type as lowercase tokens', () => {
+    expect(MCP_MANIFEST.auth.type).toBe(MCP_MANIFEST.auth.type.toLowerCase());
+    expect(MCP_MANIFEST.api.type).toBe(MCP_MANIFEST.api.type.toLowerCase());
+  });
+
+  it('tool count equals unique tool name count equals 4', () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(names).toHaveLength(4);
+    expect(new Set(names).size).toBe(4);
+  });
+
+  it('does not declare servers, endpoints, or resources at top level', () => {
+    expect(MCP_MANIFEST).not.toHaveProperty('servers');
+    expect(MCP_MANIFEST).not.toHaveProperty('endpoints');
+    expect(MCP_MANIFEST).not.toHaveProperty('resources');
+    expect(MCP_MANIFEST).not.toHaveProperty('prompts');
+  });
+
+  it('input_schema.properties for now_playing is === empty object reference stable', () => {
+    const props = toolNamed('now_playing').input_schema.properties;
+    expect(props).toEqual({});
+    expect(Object.keys(props)).toHaveLength(0);
+  });
+
+  it('locks property description lengths within stable ceilings', () => {
+    expect(toolNamed('station_select').input_schema.properties.station_name!.description!.length).toBe(
+      46,
+    );
+    expect(toolNamed('genre_filter').input_schema.properties.genre!.description!.length).toBe(27);
+    expect(toolNamed('curator_prompt').input_schema.properties.mood!.description!.length).toBe(88);
+    expect(toolNamed('curator_prompt').input_schema.properties.genre!.description!.length).toBe(42);
+  });
+
+  it('description_for_model mentions Backlink by name once', () => {
+    const matches = MCP_MANIFEST.description_for_model.match(/Backlink/g) ?? [];
+    expect(matches).toHaveLength(1);
+  });
+
+  it('does not use camelCase tool names or kebab-case', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).not.toMatch(/[A-Z]/);
+      expect(tool.name).not.toContain('-');
+    }
+  });
+
+  it('keeps Object.keys(auth) and Object.keys(api) insertion order', () => {
+    expect(Object.keys(MCP_MANIFEST.auth)).toEqual(['type']);
+    expect(Object.keys(MCP_MANIFEST.api)).toEqual(['type', 'url']);
+  });
+
+  it('deep equality of tools[i] to find-by-name for all four tools', () => {
+    for (const name of ['station_select', 'now_playing', 'genre_filter', 'curator_prompt'] as const) {
+      expect(toolNamed(name)).toBe(MCP_MANIFEST.tools.find((t) => t.name === name));
+    }
+  });
+
+  it('JSON.stringify tools preserves required key only when present', () => {
+    const tools = JSON.parse(JSON.stringify(MCP_MANIFEST.tools)) as Array<{
+      name: string;
+      input_schema: { required?: string[] };
+    }>;
+    expect(tools.find((t) => t.name === 'now_playing')!.input_schema.required).toBeUndefined();
+    expect(tools.find((t) => t.name === 'station_select')!.input_schema.required).toEqual([
+      'station_name',
+    ]);
+  });
+
+  it('manifest descriptions do not contain angle brackets or HTML', () => {
+    expect(MCP_MANIFEST.description_for_model).not.toMatch(/<[^>]+>/);
+    expect(MCP_MANIFEST.description_for_human).not.toMatch(/<[^>]+>/);
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/<[^>]+>/);
+    }
+  });
+
+  it('locks top-level key insertion order snapshot', () => {
+    expect(Object.keys(MCP_MANIFEST)).toEqual([
+      'schema_version',
+      'name_for_model',
+      'name_for_human',
+      'description_for_model',
+      'description_for_human',
+      'auth',
+      'api',
+      'tools',
+    ]);
+  });
 });
 

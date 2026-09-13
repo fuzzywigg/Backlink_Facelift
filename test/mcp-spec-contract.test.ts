@@ -560,5 +560,159 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(items).not.toContain('editorial');
     expect(items).not.toContain('logo');
   });
+
+  it('documents exactly three backlink_* tool headings', () => {
+    const headings = [...spec.matchAll(/^### `(backlink_[a-z_]+)`/gm)].map((m) => m[1]);
+    expect(headings).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+
+  it('documents curated_by as a string property on curate output', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"curated_by":\s*\{\s*"type":\s*"string"\s*\}/);
+  });
+
+  it('documents timestamp format date-time on curate output', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"timestamp":\s*\{\s*"type":\s*"string",\s*"format":\s*"date-time"\s*\}/);
+  });
+
+  it('documents curate station url as uri format', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"url":\s*\{\s*"type":\s*"string",\s*"format":\s*"uri"\s*\}/);
+  });
+
+  it('documents now_playing stream_url remap note exactly', () => {
+    expect(spec).toMatch(
+      /returns `stations\[0\]` only, with `url` remapped to `stream_url`/,
+    );
+  });
+
+  it('documents genres output description for canonical slugs', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(/Canonical genre slugs accepted by \/curate and \/stations/);
+  });
+
+  it('documents aliases as Friendly name → canonical slug mapping', () => {
+    expect(spec).toMatch(/Friendly name → canonical slug mapping/);
+  });
+
+  it('curate Input Schema treats genre and mood as mutually optional', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    const inputSchema = curate.slice(
+      curate.indexOf('**Input Schema:**'),
+      curate.indexOf('**Output:**'),
+    );
+    expect(inputSchema).toMatch(/Optional if mood is provided/);
+    expect(inputSchema).toMatch(/Optional if genre is provided/);
+    expect(inputSchema).not.toMatch(/"required"/);
+  });
+
+  it('genres Input Schema is empty properties with additionalProperties false', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(/"properties":\s*\{\s*\}/);
+    expect(section).toMatch(/"additionalProperties":\s*false/);
+  });
+
+  it('now_playing Endpoint reuses /curate query shape', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toMatch(
+      /\*\*Endpoint:\*\*\s*`GET \/curate\?genre=\{genre\}&mood=\{mood\}`/,
+    );
+  });
+
+  it('does not document claw-mcp tool names station_select etc in docs', () => {
+    expect(spec).not.toMatch(/station_select/);
+    expect(spec).not.toMatch(/genre_filter/);
+    expect(spec).not.toMatch(/curator_prompt/);
+  });
+
+  it('Integration Notes Base URL uses https scheme only', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    expect(notes).toMatch(/Base URL: `https:\/\//);
+    expect(notes).not.toMatch(/http:\/\//);
+  });
+
+  it('documents no LLM response caching for /curate', () => {
+    expect(spec).toMatch(/`\/curate` always calls Gemini fresh — no LLM response caching/);
+  });
+
+  it('documents No auth required for read endpoints bullet', () => {
+    expect(spec).toMatch(/^- No auth required for read endpoints$/m);
+  });
+
+  it('curate genre examples are all VALID_GENRES members', () => {
+    const examples = ['jazz', 'classical', 'ambient', 'rock', 'pop'];
+    for (const ex of examples) {
+      expect(VALID_GENRES as readonly string[]).toContain(ex);
+    }
+  });
+
+  it('now_playing genre examples resolve via map or VALID_GENRES', () => {
+    for (const ex of ['ambient', 'late night', 'jazz']) {
+      const ok =
+        (VALID_GENRES as readonly string[]).includes(ex) ||
+        Object.prototype.hasOwnProperty.call(GENRE_MAP, ex);
+      expect(ok).toBe(true);
+    }
+  });
+
+  it('locks title exactly Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('intro sentence mentions claw-mcp tool set', () => {
+    expect(spec).toMatch(/claw-mcp tool set/);
+  });
+
+  it('does not document /health or /stations as MCP tools', () => {
+    expect(spec).not.toMatch(/backlink_health/);
+    expect(spec).not.toMatch(/backlink_stations/);
+  });
+
+  it('parses curate output stations items required as JSON-compatible', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    const output = fences.find((f) => f.includes('"curated_by"'));
+    expect(output).toBeTruthy();
+    const parsed = JSON.parse(output!) as {
+      properties: { stations: { items: { required: string[] } } };
+    };
+    expect(parsed.properties.stations.items.required).toEqual(['name', 'url', 'genre']);
+  });
+
+  it('parses now_playing output required as name/stream_url/genre', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    const output = fences.find((f) => f.includes('"stream_url"'));
+    expect(output).toBeTruthy();
+    const parsed = JSON.parse(output!) as { required: string[] };
+    expect(parsed.required).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it('keeps Integration Notes as the final ## section', () => {
+    const headings = [...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(headings[headings.length - 1]).toBe('Integration Notes');
+  });
+
+  it('cross-locks docs top-3 wording to Worker prompt top 3', () => {
+    expect(spec).toMatch(/top 3 radio stations/);
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toMatch(/pick the top 3 stations/);
+  });
 });
 
