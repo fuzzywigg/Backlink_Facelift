@@ -2133,4 +2133,245 @@ describe('resolveGenre', () => {
     expect(resolveGenre('\uFEFFCHILL')).toBe('ambient');
   });
 
+  it('pads with THIN SPACE U+2009 around jazz still resolves', () => {
+    expect(resolveGenre('\u2009jazz\u2009')).toBe('jazz');
+    expect(resolveGenre('\u2009CHILL\u2009')).toBe('ambient');
+  });
+
+  it('pads with MEDIUM MATHEMATICAL SPACE U+205F around pop still resolves', () => {
+    expect(resolveGenre('\u205Fpop\u205F')).toBe('pop');
+    expect(resolveGenre('\u205F\u205Frock\u205F')).toBe('rock');
+  });
+
+  it('thin space alone trims to empty and defaults to music', () => {
+    expect(resolveGenre('\u2009')).toBe('music');
+    expect(resolveGenre('\u2009\u2009\u205F')).toBe('music');
+  });
+
+  it('does not trim soft hyphen U+00AD pads around jazz', () => {
+    expect(resolveGenre('\u00ADjazz\u00AD')).toBe('music');
+    expect(resolveGenre('\u00ADCHILL\u00AD')).toBe('music');
+  });
+
+  it('does not resolve Arabic tatweel U+0640 inserted into jazz', () => {
+    expect(resolveGenre('ja\u0640zz')).toBe('music');
+    expect(resolveGenre('jazz\u0640')).toBe('music');
+    expect(resolveGenre('\u0640jazz')).toBe('music');
+  });
+
+  it('does not resolve zero-width no-break space U+FEFF inserted mid-label', () => {
+    expect(resolveGenre('ja\uFEFFzz')).toBe('music');
+    expect(resolveGenre('chi\uFEFFll')).toBe('music');
+  });
+
+  it('fullwidth ideographic space U+3000 pads resolve; interior breaks', () => {
+    expect(resolveGenre('\u3000jazz\u3000')).toBe('jazz');
+    expect(resolveGenre('late\u3000night')).toBe('music');
+  });
+
+  it('Map instance is not a Record lookup target (falls through to identity/default)', () => {
+    const asMap = new Map<string, string>([
+      ['chill', 'ambient'],
+      ['metal', 'rock'],
+    ]);
+    expect(resolveGenre('chill', asMap as unknown as Record<string, string>)).toBe('music');
+    expect(resolveGenre('jazz', asMap as unknown as Record<string, string>)).toBe('jazz');
+    expect(resolveGenre('metal', asMap as unknown as Record<string, string>)).toBe('music');
+  });
+
+  it('plain object with same entries as Map resolves aliases', () => {
+    const asObj = { chill: 'ambient', metal: 'rock' };
+    expect(resolveGenre('chill', asObj)).toBe('ambient');
+    expect(resolveGenre('metal', asObj)).toBe('rock');
+  });
+
+  it('non-enumerable Symbol keys on custom maps are ignored by string lookup', () => {
+    const map = { chill: 'ambient' } as Record<string, string>;
+    const sym = Symbol('chill');
+    Object.defineProperty(map, sym, { value: 'jazz', enumerable: false });
+    expect(Object.getOwnPropertySymbols(map)).toEqual([sym]);
+    expect(resolveGenre('chill', map)).toBe('ambient');
+    expect(resolveGenre(String(sym) as string, map)).toBe('music');
+  });
+
+  it('Object.keys skips non-enumerable defineProperty keys but resolveGenre still finds them', () => {
+    const map = {} as Record<string, string>;
+    Object.defineProperty(map, 'indie', {
+      value: 'rock',
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
+    expect(Object.keys(map)).toEqual([]);
+    expect(Object.getOwnPropertyNames(map)).toContain('indie');
+    expect(resolveGenre('indie', map)).toBe('rock');
+    expect(resolveGenre('INDIE', map)).toBe('rock');
+  });
+
+  it('Proxy deleteProperty trap blocks delete but resolveGenre still reads', () => {
+    const target = { chill: 'ambient', metal: 'rock' };
+    const proxy = new Proxy(target, {
+      deleteProperty() {
+        return false;
+      },
+    });
+    expect(delete (proxy as Record<string, string>).chill).toBe(false);
+    expect(resolveGenre('chill', proxy)).toBe('ambient');
+    expect(resolveGenre('metal', proxy)).toBe('rock');
+  });
+
+  it('Proxy deleteProperty that allows delete removes alias for subsequent resolve', () => {
+    const target = { chill: 'ambient' };
+    const proxy = new Proxy(target, {
+      deleteProperty(t, p) {
+        return Reflect.deleteProperty(t, p);
+      },
+    });
+    expect(resolveGenre('chill', proxy)).toBe('ambient');
+    expect(delete (proxy as Record<string, string>).chill).toBe(true);
+    expect(resolveGenre('chill', proxy)).toBe('music');
+  });
+
+  it('Object.seal on GENRE_MAP clone still resolves every identity and alias', () => {
+    const sealed = Object.seal({ ...GENRE_MAP });
+    expect(Object.isSealed(sealed)).toBe(true);
+    expect(resolveGenre('lo-fi', sealed)).toBe('ambient');
+    expect(resolveGenre('dance', sealed)).toBe('pop');
+    for (const g of VALID_GENRES) {
+      expect(resolveGenre(g, sealed)).toBe(g);
+    }
+  });
+
+  it('Object.freeze on GENRE_MAP clone locks key count 21 and still resolves', () => {
+    const frozen = Object.freeze({ ...GENRE_MAP });
+    expect(Object.keys(frozen)).toHaveLength(21);
+    expect(Object.isFrozen(frozen)).toBe(true);
+    expect(resolveGenre('blues', frozen)).toBe('jazz');
+    expect(resolveGenre('classic', frozen)).toBe('classical');
+    expect(() => {
+      (frozen as Record<string, string>).vaporwave = 'ambient';
+    }).toThrow();
+  });
+
+  it('keeps VALID_GENRES length 9 and GENRE_MAP key count 21 after freeze/seal probes', () => {
+    Object.freeze({ ...GENRE_MAP });
+    Object.seal({ ...GENRE_MAP });
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+    expect(VALID_GENRES).toHaveLength(9);
+    expect(Object.isFrozen(GENRE_MAP)).toBe(false);
+    expect(Object.isSealed(GENRE_MAP)).toBe(false);
+  });
+
+  it('mixed thin space and medium math space pads still resolve electronic→ambient', () => {
+    expect(resolveGenre('\u2009electronic\u205F')).toBe('ambient');
+    expect(resolveGenre('\u205F\u2009lofi\u2009\u205F')).toBe('ambient');
+  });
+
+  it('does not resolve soft hyphen between late and night', () => {
+    expect(resolveGenre('late\u00ADnight')).toBe('music');
+    expect(resolveGenre('late \u00ADnight')).toBe('music');
+  });
+
+  it('tatweel-only and soft-hyphen-only labels default to music', () => {
+    expect(resolveGenre('\u0640')).toBe('music');
+    expect(resolveGenre('\u0640\u0640\u0640')).toBe('music');
+    expect(resolveGenre('\u00AD\u00AD')).toBe('music');
+  });
+
+  it('Proxy getOwnPropertyDescriptor does not hide enumerable GENRE_MAP aliases', () => {
+    const proxy = new Proxy(
+      { ...GENRE_MAP },
+      {
+        getOwnPropertyDescriptor(t, p) {
+          return Reflect.getOwnPropertyDescriptor(t, p);
+        },
+      },
+    );
+    expect(resolveGenre('relaxing', proxy)).toBe('ambient');
+    expect(Object.keys(proxy)).toHaveLength(21);
+  });
+
+  it('custom map with Symbol.iterator does not make resolveGenre iterate entries', () => {
+    const map = {
+      chill: 'ambient',
+      [Symbol.iterator]: function* () {
+        yield ['metal', 'rock'];
+      },
+    } as unknown as Record<string, string>;
+    expect(resolveGenre('chill', map)).toBe('ambient');
+    expect(resolveGenre('metal', map)).toBe('music');
+  });
+
+  it('locks ambient fan-in aliases excluding identity at 7 after unicode probes', () => {
+    expect(resolveGenre('\u2009chill\u2009')).toBe('ambient');
+    expect(resolveGenre('\u205Ffocus\u205F')).toBe('ambient');
+    const aliases = Object.entries(GENRE_MAP).filter(([k, v]) => v === 'ambient' && k !== 'ambient');
+    expect(aliases).toHaveLength(7);
+  });
+
+  it('rock fan-in locks metal indie and rock only', () => {
+    expect(
+      Object.entries(GENRE_MAP)
+        .filter(([, v]) => v === 'rock')
+        .map(([k]) => k)
+        .sort(),
+    ).toEqual(['indie', 'metal', 'rock']);
+  });
+
+  it('pop fan-in locks dance and pop only', () => {
+    expect(
+      Object.entries(GENRE_MAP)
+        .filter(([, v]) => v === 'pop')
+        .map(([k]) => k)
+        .sort(),
+    ).toEqual(['dance', 'pop']);
+  });
+
+  it('classical fan-in locks classic and classical only', () => {
+    expect(
+      Object.entries(GENRE_MAP)
+        .filter(([, v]) => v === 'classical')
+        .map(([k]) => k)
+        .sort(),
+    ).toEqual(['classic', 'classical']);
+  });
+
+  it('does not coerce Map.size or Map.prototype keys into genre labels', () => {
+    const m = new Map([['jazz', 'jazz']]);
+    expect(resolveGenre('size', m as unknown as Record<string, string>)).toBe('music');
+    expect(resolveGenre('get', m as unknown as Record<string, string>)).toBe('music');
+  });
+
+  it('Object.defineProperty writable:false still allows resolveGenre reads', () => {
+    const map = {} as Record<string, string>;
+    Object.defineProperty(map, 'blues', {
+      value: 'jazz',
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    });
+    expect(resolveGenre('blues', map)).toBe('jazz');
+    expect(() => {
+      map.blues = 'news';
+    }).toThrow();
+  });
+
+  it('combines BOM trim with thin-space pads for late night alias', () => {
+    expect(resolveGenre('\uFEFF\u2009late night\u2009')).toBe('ambient');
+    expect(resolveGenre('\u2009\uFEFFlo-fi\uFEFF\u2009')).toBe('ambient');
+  });
+
+  it('VALID_GENRES length 9 lock survives JSON round-trip', () => {
+    const round = JSON.parse(JSON.stringify(VALID_GENRES)) as string[];
+    expect(round).toHaveLength(9);
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it('GENRE_MAP key count 21 lock survives structuredClone', () => {
+    const cloned = structuredClone(GENRE_MAP);
+    expect(Object.keys(cloned)).toHaveLength(21);
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+    expect(resolveGenre('indie', cloned)).toBe('rock');
+  });
+
 });
