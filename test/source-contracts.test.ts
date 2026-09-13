@@ -671,5 +671,67 @@ describe('source ↔ product contracts', () => {
     expect(types).not.toMatch(/export (type|const|function|class|enum)/);
     expect([...types.matchAll(/^export /gm)]).toHaveLength(1);
   });
+
+  it('locks all five parser attribute regexes as case-insensitive double-quote captures', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('tvg-name="([^"]*)"/i');
+    expect(parser).toContain('tvg-logo="([^"]*)"/i');
+    expect(parser).toContain('group-title="([^"]*)"/i');
+    expect(parser).toContain('tvg-language="([^"]*)"/i');
+    expect(parser).toContain('tvg-country="([^"]*)"/i');
+  });
+
+  it('locks parseM3U http stream detection to lowercase http:// OR https:// startsWith', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(
+      /line\.startsWith\('http:\/\/'\)\s*\|\|\s*line\.startsWith\('https:\/\/'\)/,
+    );
+  });
+
+  it('locks parseM3U URL dedupe via Set.has before push', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/const seen = new Set<string>\(\)/);
+    expect(parser).toMatch(/!seen\.has\(line\)/);
+    expect(parser).toMatch(/seen\.add\(line\)/);
+  });
+
+  it('locks comma display-name fallback via lastIndexOf', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/line\.lastIndexOf\(','\)/);
+    expect(parser).toMatch(/line\.slice\(commaIdx \+ 1\)\.trim\(\)/);
+  });
+
+  it('locks parseM3U line split to \\n only (no \\r\\n pre-normalize)', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/raw\.split\('\\n'\)\.map\(\(l\) => l\.trim\(\)\)/);
+    expect(parser).not.toMatch(/replace\(\/\\r\\n\?\/g/);
+    expect(parser).not.toMatch(/split\(\/\\r\?\\n\/\)/);
+  });
+
+  it('exports Station interface and parseM3U only from parser.ts', () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/^export /gm)].map((m) => m[0] + parser.slice(m.index! + 7, m.index! + 40))).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^export interface Station/),
+        expect.stringMatching(/^export function parseM3U/),
+      ]),
+    );
+    expect([...parser.matchAll(/^export /gm)]).toHaveLength(2);
+  });
+
+  it('always pushes logo/group/language/country even when undefined', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/logo:\s*current\.logo/);
+    expect(parser).toMatch(/group:\s*current\.group/);
+    expect(parser).toMatch(/language:\s*current\.language/);
+    expect(parser).toMatch(/country:\s*current\.country/);
+  });
+
+  it('resets current = {} after successful http push and on EXTINF start', () => {
+    const parser = read('src/parser.ts');
+    const resets = parser.match(/current = \{\}/g) ?? [];
+    // EXTINF start, after http push, and non-http non-comment branch
+    expect(resets.length).toBe(3);
+  });
 });
 
