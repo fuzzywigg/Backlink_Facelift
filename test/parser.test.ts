@@ -5034,7 +5034,7 @@ https://example.com/round.m3u8
     expect(stations).toHaveLength(6);
     expect(stations[0].name).toBe('Alpha FM');
     expect(() => {
-      (stations as { push: (v: unknown) => number }).push({ name: 'X' });
+      (stations as unknown as { push: (v: unknown) => number }).push({ name: 'X' });
     }).toThrow();
   });
 
@@ -5070,15 +5070,17 @@ https://example.com/pe.m3u8
     expect(stations.map((s) => s.name)).toHaveLength(6);
     expect(stations.filter((s) => s.url.includes('zeta'))).toHaveLength(1);
     expect(stations.find((s) => s.name === 'Missing')).toBeUndefined();
-    expect(stations.findLast((s) => s.name.endsWith('FM'))?.name).toBe('Zeta FM');
-    expect(stations.toSorted((a, b) => a.name.localeCompare(b.name))[0].name).toBe('Alpha FM');
+    expect([...stations].reverse().find((s) => s.name.endsWith('FM'))?.name).toBe('Zeta FM');
+    expect(
+      [...stations].sort((a, b) => a.name.localeCompare(b.name))[0].name,
+    ).toBe('Alpha FM');
     expect(stations).toHaveLength(6);
   });
 
-  it('Array.toReversed on parse result does not mutate original order', () => {
+  it('spread-reverse copy of parse result does not mutate original order', () => {
     const stations = parseM3U(SAMPLE_M3U);
     const names = stations.map((s) => s.name);
-    const reversed = stations.toReversed();
+    const reversed = [...stations].reverse();
     expect(reversed.map((s) => s.name)).toEqual([...names].reverse());
     expect(stations.map((s) => s.name)).toEqual(names);
   });
@@ -5859,9 +5861,12 @@ https://example.com/pay-recover.m3u8
     expect(stations.map((s) => s.name)).toEqual(['Ok']);
   });
 
-  it('findLastIndex of last https station matches length-1 for SAMPLE_M3U', () => {
+  it('last https station index matches length-1 for SAMPLE_M3U', () => {
     const stations = parseM3U(SAMPLE_M3U);
-    const idx = stations.findLastIndex((s) => s.url.startsWith('https://'));
+    let idx = -1;
+    for (let i = 0; i < stations.length; i++) {
+      if (stations[i].url.startsWith('https://')) idx = i;
+    }
     expect(idx).toBe(stations.length - 1);
     expect(stations.at(-1)?.name).toBe('Zeta FM');
   });
