@@ -37,8 +37,11 @@ export const VALID_GENRES = [
 
 export type ValidGenre = (typeof VALID_GENRES)[number];
 
-export function resolveGenre(input?: string): string {
+export function resolveGenre(
+  input?: string,
+  map: Record<string, string> = GENRE_MAP,
+): string {
   if (!input) return 'music';
   const lower = input.toLowerCase().trim();
-  return GENRE_MAP[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : 'music');
+  return map[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : 'music');
 }

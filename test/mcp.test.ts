@@ -57,4 +57,20 @@ describe('MCP_MANIFEST', () => {
       expect(tool.input_schema.properties).toBeTypeOf('object');
     }
   });
+
+  it('gives every tool a non-empty description', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description.trim().length).toBeGreaterThan(10);
+    }
+  });
+
+  it('keeps tool names unique', () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('documents curator_prompt mood examples in the property description', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(tool.input_schema.properties.mood?.description).toMatch(/focus work|late night jazz|morning energy/i);
+  });
 });

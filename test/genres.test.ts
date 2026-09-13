@@ -109,4 +109,17 @@ describe('resolveGenre', () => {
     expect(resolveGenre('rockabilly')).toBe('music');
     expect(resolveGenre('popcorn')).toBe('music');
   });
+
+  it('falls back to VALID_GENRES when a canonical id is absent from the lookup map', () => {
+    // Defensive branch: map[lower] ?? VALID_GENRES.includes(...)
+    const mapWithoutSports = { ...GENRE_MAP };
+    delete mapWithoutSports.sports;
+    expect(mapWithoutSports.sports).toBeUndefined();
+    expect(resolveGenre('sports', mapWithoutSports)).toBe('sports');
+    expect(resolveGenre('SPORTS', mapWithoutSports)).toBe('sports');
+    expect(resolveGenre('  Sports  ', mapWithoutSports)).toBe('sports');
+    // Default map still has the identity mapping
+    expect(GENRE_MAP.sports).toBe('sports');
+    expect(resolveGenre('sports')).toBe('sports');
+  });
 });

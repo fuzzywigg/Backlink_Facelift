@@ -49,4 +49,12 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(spec).toMatch(/late night/i);
     expect(GENRE_MAP['late night']).toBe('ambient');
   });
+
+  it('documents that /curate calls Gemini fresh (no LLM response caching)', () => {
+    expect(spec).toMatch(/\/curate`?\s+always calls Gemini fresh/i);
+  });
+
+  it('documents no-auth read endpoints', () => {
+    expect(spec).toMatch(/No auth required for read endpoints/i);
+  });
 });

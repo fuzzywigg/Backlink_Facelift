@@ -560,4 +560,123 @@ https://example.com/bare.m3u8
     ).contents[0].parts[0].text as string;
     expect(prompt).toContain('User request: focus / ambient');
   });
+
+  it('extracts JSON picks from markdown-fenced Gemini replies', async () => {
+    const curated = [
+      {
+        name: 'Alpha FM',
+        url: 'https://example.com/alpha.m3u8',
+        editorial: 'Solid pick.',
+        genre: 'music',
+      },
+    ];
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: `\`\`\`json\n${JSON.stringify(curated)}\n\`\`\``,
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'test-key' }));
+    expect(res.status).toBe(200);
+    await expect(json(res)).resolves.toMatchObject({ stations: curated });
+  });
+
+  it('does not fetch music.m3u when the requested category succeeds', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/news.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+      if (url.endsWith('/music.m3u')) return new Response('should-not-fetch', { status: 200 });
+      return new Response('nope', { status: 404 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await app.request('/stations?genre=news', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      'https://iptv-org.github.io/iptv/categories/news.m3u',
+    );
+  });
+
+  it('defaults /stations with no genre query to music', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+
+    const res = await app.request('/stations', undefined, testEnv());
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect(body.genre).toBe('music');
+    expect(body.count).toBe(6);
+  });
+
+  it('serves JSON content-type on catalog endpoints', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('returns 404 for unknown paths', async () => {
+    const res = await app.request('/not-a-real-endpoint', undefined, testEnv());
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 503 on /curate when KV cache JSON is corrupt', async () => {
+    const kv = mockKV({ 'stations:music': '{not-json' });
+    vi.stubGlobal('fetch', vi.fn());
+
+    const res = await app.request(
+      '/curate?genre=music',
+      undefined,
+      testEnv({ CATALOG_CACHE: kv, GEMINI_API_KEY: 'test-key' }),
+    );
+    expect(res.status).toBe(503);
+    await expect(json(res)).resolves.toEqual({
+      error: 'Stream catalog unavailable',
+      retry_after: 60,
+    });
+  });
+
+  it('passes through entertainment / sports / classical as catalog keys', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+
+    for (const genre of ['entertainment', 'sports', 'classical'] as const) {
+      const res = await app.request(`/stations?genre=${genre}`, undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect((await json(res)).genre).toBe(genre);
+    }
+
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/entertainment.m3u',
+      'https://iptv-org.github.io/iptv/categories/sports.m3u',
+      'https://iptv-org.github.io/iptv/categories/classical.m3u',
+    ]);
+  });
 });
