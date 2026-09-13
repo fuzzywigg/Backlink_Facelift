@@ -2250,7 +2250,7 @@ VERSION = "0.1.0"
         if (line.startsWith('#')) return 'comment';
         if (/^\[\[[^\]]+\]\]$/.test(line)) return 'array-table';
         if (/^\[[^\]]+\]$/.test(line)) return 'table';
-        if (/^[a-z_][a-z0-9_]* = /.test(line)) return 'assignment';
+        if (/^[A-Za-z_][A-Za-z0-9_]* = /.test(line)) return 'assignment';
         return 'unknown';
       });
     expect(kinds).toEqual([
@@ -2274,7 +2274,7 @@ VERSION = "0.1.0"
   it('parsed assignment map locks top-level string values', () => {
     const map: Record<string, string> = {};
     for (const line of toml.split('\n')) {
-      const m = line.match(/^([a-z_]+) = "([^"]*)"$/);
+      const m = line.match(/^([A-Za-z_]+) = "([^"]*)"$/);
       if (m) map[m[1]] = m[2];
     }
     expect(map).toEqual({
@@ -2311,7 +2311,7 @@ VERSION = "0.1.0"
   it('Intl.Collator sorts section headers stably', () => {
     const headers = ['[[kv_namespaces]]', '[[routes]]', '[vars]'];
     const sorted = [...headers].sort(new Intl.Collator('en').compare);
-    expect(sorted).toEqual(['[vars]', '[[kv_namespaces]]', '[[routes]]']);
+    expect(sorted).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
     expect(toml.indexOf('[[kv_namespaces]]')).toBeLessThan(toml.indexOf('[[routes]]'));
     expect(toml.indexOf('[[routes]]')).toBeLessThan(toml.indexOf('[vars]'));
   });
@@ -2325,7 +2325,7 @@ VERSION = "0.1.0"
   it('KV id nibble sum stays fixed', () => {
     const id = 'edb6ca4df12f4f45b40508b3dda3c432';
     const sum = [...id].reduce((acc, ch) => acc + Number.parseInt(ch, 16), 0);
-    expect(sum).toBe(154);
+    expect(sum).toBe(246);
   });
 
   it('VERSION semver parts are non-negative integers of length 3', () => {
