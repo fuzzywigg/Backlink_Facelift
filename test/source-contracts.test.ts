@@ -319,4 +319,86 @@ describe('source ↔ product contracts', () => {
     const index = read('src/index.ts');
     expect(index).not.toMatch(/app\.post\(/);
   });
+  it('uses stations: cache key prefix in fetchStations', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/cacheKey\s*=\s*`stations:\$\{genre\}`/);
+  });
+
+  it('registers cors middleware exactly once', () => {
+    const index = read('src/index.ts');
+    const matches = index.match(/app\.use\('\*',\s*cors\(\)\)/g) ?? [];
+    expect(matches).toHaveLength(1);
+  });
+
+  it('does not register put or delete HTTP handlers', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/app\.put\(/);
+    expect(index).not.toMatch(/app\.delete\(/);
+    expect(index).not.toMatch(/app\.patch\(/);
+  });
+
+  it('pins Gemini model id to gemini-2.0-flash', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/models\/gemini-2\.0-flash:generateContent/);
+    expect(index).not.toMatch(/gemini-1\.5|flash-lite|gemini-2\.5/);
+  });
+
+  it('keeps callGemini error string literals stable', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/Gemini API error: \$\{resp\.status\}/);
+    expect(index).toMatch(/Invalid JSON from Gemini/);
+  });
+
+  it('degrade map copies name url logo only (no language/country)', () => {
+    const index = read('src/index.ts');
+    const degrade = index.slice(index.indexOf('Graceful degradation'));
+    expect(degrade).toMatch(/name:\s*s\.name/);
+    expect(degrade).toMatch(/url:\s*s\.url/);
+    expect(degrade).toMatch(/logo:\s*s\.logo/);
+    expect(degrade).toMatch(/editorial:\s*null/);
+    expect(degrade).not.toMatch(/language:/);
+    expect(degrade).not.toMatch(/country:/);
+  });
+
+  it('resolves /curate genre via genreParam ?? mood order', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/resolveGenre\(genreParam\s*\?\?\s*mood\)/);
+  });
+
+  it('documents optional GEMINI_API_KEY and issue #8 in types.ts', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/GEMINI_API_KEY\?:/);
+    expect(types).toMatch(/#8/);
+    expect(types).toMatch(/Optional at runtime/);
+  });
+
+  it('keeps README live caveats for genre 404 fallback and editorial null', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/jazz.*ambient.*404|404.*fall back to `music\.m3u`/s);
+    expect(readme).toMatch(/editorial:\s*null/);
+  });
+
+  it('keeps DEPLOY.md HITL bullets without push-triggered deploy', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/First production deploy must be reviewed by Andrew/);
+    expect(deploy).toMatch(/GEMINI_API_KEY handling require approval/);
+    expect(deploy).toMatch(/external data sources requires approval/);
+    expect(deploy).not.toMatch(/on:\s*push/i);
+  });
+
+  it('keeps AGENTS.md Safe Actions and Escalate sections', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/## Safe Agent Actions/);
+    expect(agents).toMatch(/## Escalate to Human/);
+    expect(agents).toMatch(/secret management/i);
+    expect(agents).toMatch(/CORS or authentication/i);
+    expect(agents).toMatch(/CF account configuration/i);
+  });
+
+  it('does not import src/mcp from Worker runtime modules', () => {
+    for (const file of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/types.ts']) {
+      expect(read(file)).not.toMatch(/from\s+['\"]\.\/mcp['\"]/);
+    }
+  });
 });
+

@@ -193,4 +193,45 @@ describe('wrangler.toml contracts', () => {
     expect(toml).not.toMatch(/preview_urls/i);
     expect(toml).not.toMatch(/zone_name\s*=/);
   });
+  it('locks compatibility_date exactly to 2025-01-01', () => {
+    expect(toml).toMatch(/compatibility_date\s*=\s*"2025-01-01"/);
+  });
+
+  it('locks CATALOG_CACHE KV id exactly', () => {
+    expect(toml).toMatch(/id\s*=\s*"edb6ca4df12f4f45b40508b3dda3c432"/);
+  });
+
+  it('locks custom domain pattern exactly to backlink.fuzzywigg.com', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+  });
+
+  it('does not declare queues, services, or tail_consumers', () => {
+    expect(toml).not.toMatch(/\[\[queues/i);
+    expect(toml).not.toMatch(/\[\[services/i);
+    expect(toml).not.toMatch(/tail_consumers/i);
+    expect(toml).not.toMatch(/\[triggers\]/i);
+  });
+
+  it('keeps main entry exact quoted src/index.ts', () => {
+    expect(toml).toMatch(/^\s*main\s*=\s*"src\/index\.ts"\s*$/m);
+  });
+
+  it('does not declare account_id or api_token fields', () => {
+    expect(toml).not.toMatch(/account_id\s*=/);
+    expect(toml).not.toMatch(/api_token\s*=/);
+  });
+
+  it('keeps [vars] limited to VERSION only', () => {
+    const varsSection = toml.split('[vars]')[1] ?? '';
+    const nextSection = varsSection.search(/\n\[/);
+    const body = nextSection === -1 ? varsSection : varsSection.slice(0, nextSection);
+    const assignments = [...body.matchAll(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=/gm)].map((m) => m[1]);
+    expect(assignments).toEqual(['VERSION']);
+  });
+
+  it('documents secrets via CLI comment exactly once', () => {
+    expect((toml.match(/wrangler secret put GEMINI_API_KEY/g) ?? []).length).toBe(1);
+  });
 });
+

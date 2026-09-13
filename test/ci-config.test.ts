@@ -557,4 +557,126 @@ describe('CI / package test wiring', () => {
     expect(agents).toMatch(/CORS or authentication/i);
     expect(agents).toMatch(/secret management/i);
   });
+  it('limits CI on: triggers to push and pull_request against main', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const onBlock = ci.split('jobs:')[0];
+    expect(onBlock).toMatch(/^\s*push:/m);
+    expect(onBlock).toMatch(/^\s*pull_request:/m);
+    expect(onBlock).not.toMatch(/workflow_call|schedule:|release:|workflow_dispatch:/);
+    expect(onBlock).toMatch(/branches:\s*\[main\]/);
+  });
+
+  it('declares exactly three CI jobs: typecheck, test, hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const jobsBlock = ci.slice(ci.indexOf('\njobs:'));
+    const jobs = [...jobsBlock.matchAll(/^  ([a-z][a-z0-9_-]*):$/gm)].map((m) => m[1]);
+    expect(jobs).toEqual(['typecheck', 'test', 'hygiene']);
+  });
+
+  it('keeps hygiene job free of npm install/test steps', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const hygiene = ci.slice(ci.indexOf('name: Hygiene'));
+    expect(hygiene).not.toMatch(/^\s+run:\s*npm\s/m);
+    expect(hygiene).not.toMatch(/uses:\s*actions\/setup-node/);
+  });
+
+  it('uploads coverage with if: always and coverage-report artifact name', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Upload coverage report[\s\S]*?if:\s*always\(\)/);
+    expect(ci).toMatch(/name:\s*coverage-report/);
+  });
+
+  it('asserts coverage dir, non-empty lcov.info, and SF:src/ before upload', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -d coverage/);
+    expect(ci).toMatch(/test -f coverage\/lcov\.info/);
+    expect(ci).toMatch(/test -s coverage\/lcov\.info/);
+    expect(ci).toMatch(/grep -q 'SF:src\/'/);
+  });
+
+  it('secret-scan excludes .git node_modules and coverage directories', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/--exclude-dir=\.git/);
+    expect(ci).toMatch(/--exclude-dir=node_modules/);
+    expect(ci).toMatch(/--exclude-dir=coverage/);
+  });
+
+  it('bans committed .env .dev.vars pem and key files in hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/! test -f \.env/);
+    expect(ci).toMatch(/! test -f \.dev\.vars/);
+    expect(ci).toMatch(/-name '\*\.pem'/);
+    expect(ci).toMatch(/-name '\*\.key'/);
+  });
+
+  it('keeps Dependabot group patterns as star for npm and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/npm-dependencies:[\s\S]*patterns:[\s\S]*-\s*"\*"/);
+    expect(dep).toMatch(/github-actions:[\s\S]*patterns:[\s\S]*-\s*"\*"/);
+    expect(dep).toMatch(/update-types:\s*\["version-update:semver-major"\]/);
+  });
+
+  it('locks package-lock to include hono and vitest packages', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      packages: Record<string, unknown>;
+    };
+    expect(lock.packages['node_modules/hono']).toBeTruthy();
+    expect(lock.packages['node_modules/vitest']).toBeTruthy();
+  });
+
+  it('keeps tsconfig strict skipLibCheck Bundler ES2022', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+    };
+    expect(ts.compilerOptions.strict).toBe(true);
+    expect(ts.compilerOptions.skipLibCheck).toBe(true);
+    expect(ts.compilerOptions.moduleResolution).toBe('Bundler');
+    expect(ts.compilerOptions.target).toBe('ES2022');
+  });
+
+  it('limits vitest include to test/**/*.test.ts so helpers.ts is not a suite', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
+  });
+
+  it('keeps .cursor/environment.json keys exactly name and install', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, unknown>;
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+    expect(env.install).toBe('npm ci');
+    expect(JSON.stringify(env)).not.toMatch(/GEMINI|TOKEN|SECRET|API_KEY/i);
+  });
+
+  it('maps deploy GEMINI_API_KEY from secrets without printing values', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/GEMINI_API_KEY:\s*\$\{\{\s*secrets\.GEMINI_API_KEY\s*\}\}/);
+    expect(deploy).not.toMatch(/echo.*GEMINI_API_KEY/);
+    expect(deploy).not.toMatch(/::add-mask::/);
+  });
+
+  it('keeps CI and deploy permissions contents read without write scopes', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    for (const body of [ci, deploy]) {
+      expect(body).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+      expect(body).not.toMatch(/contents:\s*write/);
+      expect(body).not.toMatch(/id-token:\s*write/);
+      expect(body).not.toMatch(/write-all/);
+    }
+  });
+
+  it('hygiene locks persist-credentials false on CI checkout steps', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const persist = ci.match(/persist-credentials:\s*false/g) ?? [];
+    expect(persist.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('hygiene locks CI job display names and coverage-report artifact', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Typecheck/);
+    expect(ci).toMatch(/name:\s*Tests/);
+    expect(ci).toMatch(/name:\s*Hygiene/);
+    expect(ci).toMatch(/name:\s*coverage-report/);
+    expect(ci).toMatch(/if:\s*always\(\)/);
+  });
 });
+

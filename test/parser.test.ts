@@ -1116,4 +1116,166 @@ https://example.com/ok.m3u8
 `);
     expect(stations.map((s) => s.name)).toEqual(['   ', 'Ok']);
   });
+  it('uses the first tvg-language when duplicated on one line', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="L" tvg-language="en" tvg-language="fr",L
+https://example.com/lang.m3u8
+`,
+    );
+    expect(stations[0].language).toBe('en');
+  });
+
+  it('uses the first tvg-country when duplicated on one line', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="C" tvg-country="US" tvg-country="CA",C
+https://example.com/country.m3u8
+`,
+    );
+    expect(stations[0].country).toBe('US');
+  });
+
+  it('does not honor underscore or camelCase tvg name keys', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg_name="Nope" tvgName="Nope2",Fallback
+https://example.com/underscore.m3u8
+`);
+    expect(stations[0].name).toBe('Fallback');
+  });
+
+  it('parses language and country with comma-fallback name only', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-language="de" tvg-country="DE",Berlin FM
+https://example.com/berlin.m3u8
+`,
+    );
+    expect(stations[0]).toMatchObject({
+      name: 'Berlin FM',
+      language: 'de',
+      country: 'DE',
+    });
+  });
+
+  it('keeps # and "# " comment lines from resetting EXTINF state', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Keep",Keep
+#
+# 
+https://example.com/keep.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Keep']);
+  });
+
+  it('does not share seen URLs across separate parseM3U calls', () => {
+    const a = parseM3U(`#EXTINF:-1 tvg-name="A",A\nhttps://example.com/shared.m3u8\n`);
+    const b = parseM3U(`#EXTINF:-1 tvg-name="B",B\nhttps://example.com/shared.m3u8\n`);
+    expect(a).toHaveLength(1);
+    expect(b).toHaveLength(1);
+    expect(b[0].name).toBe('B');
+  });
+
+  it('does not share mutable state across interleaved parseM3U calls', () => {
+    const left = `#EXTINF:-1 tvg-name="Left",Left\nhttps://example.com/left.m3u8\n`;
+    const right = `#EXTINF:-1 tvg-name="Right",Right\nhttps://example.com/right.m3u8\n`;
+    const results = [parseM3U(left), parseM3U(right), parseM3U(left)];
+    expect(results.map((r) => r.map((s) => s.name))).toEqual([['Left'], ['Right'], ['Left']]);
+  });
+
+  it('does not unescape HTML entities inside attribute values', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="A&quot;B" group-title="X&amp;Y",A&quot;B
+https://example.com/entity.m3u8
+`,
+    );
+    expect(stations[0].name).toBe('A&quot;B');
+    expect(stations[0].group).toBe('X&amp;Y');
+  });
+
+  it('skips EXTINF that has duration only and no comma name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1
+https://example.com/no-name.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('keeps EXTINF state across #EXTVLCOPT and #EXTIMG tags', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Vlc",Vlc
+#EXTVLCOPT:network-caching=1000
+#EXTIMG:https://cdn.example/img.png
+https://example.com/vlc.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Vlc');
+  });
+
+  it('resets after Windows UNC-style paths', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Unc",Unc
+\\\\server\\share\\stream.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('rejects uppercase HTTP and HTTPS schemes as non-http resets', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+HTTP://example.com/a.m3u8
+#EXTINF:-1 tvg-name="B",B
+HTTPS://example.com/b.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('preserves country and language when logo is omitted', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="NoLogo" tvg-language="ja" tvg-country="JP",NoLogo
+https://example.com/nologo.m3u8
+`,
+    );
+    expect(stations[0].logo).toBeUndefined();
+    expect(stations[0]).toMatchObject({ language: 'ja', country: 'JP' });
+  });
+
+  it('parses a large playlist of 2000 entries without throwing', () => {
+    const chunks: string[] = ['#EXTM3U'];
+    for (let i = 0; i < 2000; i++) {
+      chunks.push(`#EXTINF:-1 tvg-name="S${i}",S${i}`);
+      chunks.push(`https://example.com/s${i}.m3u8`);
+    }
+    const stations = parseM3U(chunks.join('\n'));
+    expect(stations).toHaveLength(2000);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[1999].url).toBe('https://example.com/s1999.m3u8');
+  });
+
+  it('accepts attribute order permutations before the comma name', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-country="UK" group-title="News" tvg-language="en" tvg-name="Order",Order
+https://example.com/order.m3u8
+`,
+    );
+    expect(stations[0]).toMatchObject({
+      name: 'Order',
+      country: 'UK',
+      group: 'News',
+      language: 'en',
+    });
+  });
+
+  it('accepts BOM-prefixed URL lines because trim strips the BOM', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bom",Bom
+\uFEFFhttps://example.com/bom.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Bom', 'Ok']);
+    expect(stations[0].url).toBe('https://example.com/bom.m3u8');
+  });
 });

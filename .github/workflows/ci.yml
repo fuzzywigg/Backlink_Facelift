@@ -150,6 +150,12 @@ jobs:
           grep -q '"hono"' package.json
           ! grep -q 'GEMINI_API_KEY=' wrangler.toml
           ! grep -qiE 'api[_-]?key\s*=' wrangler.toml
+          grep -q 'name: Typecheck' .github/workflows/ci.yml
+          grep -q 'name: Tests' .github/workflows/ci.yml
+          grep -q 'name: Hygiene' .github/workflows/ci.yml
+          grep -q 'coverage-report' .github/workflows/ci.yml
+          grep -q 'if: always()' .github/workflows/ci.yml
+          grep -q 'contents: read' .github/workflows/deploy.yml
           # Trigger must be push/pull_request only (not pull_request_target)
           awk '/^on:/{f=1} f && /^jobs:/{exit} f' .github/workflows/ci.yml | grep -q 'pull_request:'
           ! awk '/^on:/{f=1} f && /^[^[:space:]#]/{if($0 !~ /^on:/) exit} f' .github/workflows/ci.yml | grep -q 'pull_request_target'

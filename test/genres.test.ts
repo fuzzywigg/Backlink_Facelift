@@ -560,4 +560,75 @@ describe('resolveGenre', () => {
       expect(VALID_GENRES.includes(alias as (typeof VALID_GENRES)[number])).toBe(false);
     }
   });
+  it('resolves own-property constructor key on a null-prototype custom map', () => {
+    const map = Object.create(null) as Record<string, string>;
+    Object.defineProperty(map, 'constructor', { value: 'jazz', enumerable: true });
+    expect(resolveGenre('constructor', map)).toBe('jazz');
+  });
+
+  it('inherits Object.constructor on the default GENRE_MAP lookup (reliability quirk)', () => {
+    // Plain-object maps expose prototype `constructor`; resolveGenre returns that function.
+    const result = resolveGenre('constructor');
+    expect(typeof result).toBe('function');
+    expect(result).toBe(Object.prototype.constructor as unknown as string);
+  });
+
+  it('keeps GENRE_MAP keys and values free of leading/trailing whitespace', () => {
+    for (const [k, v] of Object.entries(GENRE_MAP)) {
+      expect(k).toBe(k.trim());
+      expect(v).toBe(v.trim());
+      expect(k.length).toBeGreaterThan(0);
+      expect(v.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('resolves both lofi and lo-fi aliases to ambient', () => {
+    expect(resolveGenre('lofi')).toBe('ambient');
+    expect(resolveGenre('lo-fi')).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP['lo-fi']).toBe('ambient');
+  });
+
+  it('returns music for surrogate-pair-only labels', () => {
+    expect(resolveGenre('\uD83C\uDFB5')).toBe('music');
+    expect(resolveGenre('\uD83C\uDFB5\uD83C\uDFB5')).toBe('music');
+  });
+
+  it('resolves uppercase VALID_GENRES identities via lowercasing', () => {
+    expect(resolveGenre('MUSIC')).toBe('music');
+    expect(resolveGenre('NEWS')).toBe('news');
+    expect(resolveGenre('SPORTS')).toBe('sports');
+  });
+
+  it('does not leak custom map remaps into subsequent default-map calls', () => {
+    expect(resolveGenre('jazz', { jazz: 'music' })).toBe('music');
+    expect(resolveGenre('jazz')).toBe('jazz');
+  });
+
+  it('locks the exact ambient-bound alias key set', () => {
+    const ambient = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'ambient')
+      .map(([k]) => k);
+    expect(new Set(ambient)).toEqual(
+      new Set(['late night', 'chill', 'ambient', 'relaxing', 'focus', 'electronic', 'lofi', 'lo-fi']),
+    );
+  });
+
+  it('keeps classic→classical as the only non-identity classical mapping', () => {
+    expect(GENRE_MAP.classic).toBe('classical');
+    expect(GENRE_MAP.classical).toBe('classical');
+    const classicalTargets = Object.entries(GENRE_MAP).filter(([, v]) => v === 'classical');
+    expect(classicalTargets.map(([k]) => k).sort()).toEqual(['classic', 'classical']);
+  });
+
+  it('returns music for labels with an internal tab (not the late night alias)', () => {
+    expect(resolveGenre('late\tnight')).toBe('music');
+    expect(resolveGenre('late night')).toBe('ambient');
+  });
+
+  it('lowercases News so VALID_GENRES identity matches', () => {
+    expect(resolveGenre('News')).toBe('news');
+    expect(resolveGenre('NeWs')).toBe('news');
+  });
+
 });

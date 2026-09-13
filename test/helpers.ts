@@ -94,3 +94,24 @@ export function countHttpStreamLines(m3u: string): number {
     .map((l) => l.trim())
     .filter((l) => l.startsWith('http://') || l.startsWith('https://')).length;
 }
+
+/** Minimal EXTINF+URL fixture builder for edge-case route/parser tests. */
+export function buildSimpleM3U(
+  stations: Array<{ name: string; url: string; group?: string; language?: string; country?: string; logo?: string }>,
+): string {
+  const lines = ['#EXTM3U'];
+  for (const s of stations) {
+    const attrs = [
+      `tvg-name="${s.name}"`,
+      s.logo !== undefined ? `tvg-logo="${s.logo}"` : null,
+      s.group !== undefined ? `group-title="${s.group}"` : null,
+      s.language !== undefined ? `tvg-language="${s.language}"` : null,
+      s.country !== undefined ? `tvg-country="${s.country}"` : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    lines.push(`#EXTINF:-1 ${attrs},${s.name}`);
+    lines.push(s.url);
+  }
+  return `${lines.join('\n')}\n`;
+}
