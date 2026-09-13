@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   SAMPLE_M3U,
+  buildSimpleM3U,
   countHttpStreamLines,
   curatedGeminiJson,
   geminiTextResponse,
@@ -393,5 +394,101 @@ describe('test helpers', () => {
     const res = await fetchMock('https://example.com/');
     expect(res.status).toBe(404);
     expect(await res.text()).toBe('nope');
+  });
+  it('mockKV.put accepts expirationTtl options without throwing', async () => {
+    const kv = mockKV();
+    await expect(
+      (kv.put as unknown as (k: string, v: string, o?: object) => Promise<void>)(
+        'stations:music',
+        '[]',
+        { expirationTtl: 3600 },
+      ),
+    ).resolves.toBeUndefined();
+    await expect(kv.get('stations:music')).resolves.toBe('[]');
+  });
+
+  it('stubIptvAndGemini with m3u undefined uses SAMPLE_M3U', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(SAMPLE_M3U);
+  });
+
+  it('geminiTextResponse always has exactly one candidate and one part', async () => {
+    const body = (await geminiTextResponse('x').json()) as {
+      candidates: Array<{ content: { parts: unknown[] } }>;
+    };
+    expect(body.candidates).toHaveLength(1);
+    expect(body.candidates[0].content.parts).toHaveLength(1);
+  });
+
+  it('curatedGeminiJson round-trips model text through JSON.parse', async () => {
+    const body = (await curatedGeminiJson([
+      { name: 'X', url: 'https://x', editorial: 'e', genre: 'jazz', logo: 'https://l' },
+    ]).json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{
+      name: string;
+      logo?: string;
+    }>;
+    expect(picks).toEqual([
+      { name: 'X', url: 'https://x', editorial: 'e', genre: 'jazz', logo: 'https://l' },
+    ]);
+  });
+
+  it('countHttpStreamLines ignores http URLs inside EXTINF attribute values', () => {
+    const m3u = `#EXTINF:-1 tvg-logo="https://cdn.example/logo.png" tvg-name="A",A
+https://example.com/a.m3u8
+`;
+    expect(countHttpStreamLines(m3u)).toBe(1);
+  });
+
+  it('iptvCategoryUrl with empty genre still builds a categories path', () => {
+    expect(iptvCategoryUrl('')).toBe('https://iptv-org.github.io/iptv/categories/.m3u');
+  });
+
+  it('testEnv always exposes CATALOG_CACHE', () => {
+    expect(testEnv()).toHaveProperty('CATALOG_CACHE');
+    expect(Object.keys(testEnv()).sort()).toEqual(['CATALOG_CACHE', 'VERSION']);
+  });
+
+  it('SAMPLE_M3U omits tvg-logo and tvg-language so degrade logo paths stay honest', () => {
+    expect(SAMPLE_M3U).not.toMatch(/tvg-logo=/);
+    expect(SAMPLE_M3U).not.toMatch(/tvg-language=/);
+    expect(SAMPLE_M3U).not.toMatch(/tvg-country=/);
+  });
+
+  it('buildSimpleM3U emits EXTINF attributes only when provided', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'https://example.com/a.m3u8', group: 'Jazz', language: 'en' },
+      { name: 'B', url: 'https://example.com/b.m3u8' },
+    ]);
+    expect(m3u).toMatch(/tvg-name="A"/);
+    expect(m3u).toMatch(/group-title="Jazz"/);
+    expect(m3u).toMatch(/tvg-language="en"/);
+    expect(m3u).toMatch(/tvg-name="B"/);
+    expect(m3u.split('tvg-logo=')).toHaveLength(1); // only the header check — no logo attrs
+    expect(countHttpStreamLines(m3u)).toBe(2);
+  });
+
+  it('buildSimpleM3U can include logo and country', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'C',
+        url: 'https://example.com/c.m3u8',
+        logo: 'https://cdn/c.png',
+        country: 'US',
+      },
+    ]);
+    expect(m3u).toMatch(/tvg-logo="https:\/\/cdn\/c\.png"/);
+    expect(m3u).toMatch(/tvg-country="US"/);
+  });
+
+  it('stubIptvAndGemini with empty-string m3u returns 200 empty body', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '' }) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('');
   });
 });

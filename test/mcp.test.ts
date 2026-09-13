@@ -442,4 +442,68 @@ describe('MCP_MANIFEST', () => {
       expect(tool.description).not.toContain('```');
     }
   });
+  it('requires every required field to exist in properties', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const req of tool.input_schema.required ?? []) {
+        expect(tool.input_schema.properties).toHaveProperty(req);
+      }
+    }
+  });
+
+  it('does not declare output_schema, annotations, or examples on tools', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('output_schema');
+      expect(tool).not.toHaveProperty('annotations');
+      expect(tool).not.toHaveProperty('examples');
+    }
+  });
+
+  it('freezes tool name set length at four with stable sorted copy', () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(names).toHaveLength(4);
+    expect([...names].sort()).toEqual([
+      'curator_prompt',
+      'genre_filter',
+      'now_playing',
+      'station_select',
+    ]);
+  });
+
+  it('keeps input_schema.properties as a plain object not an array', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Array.isArray(tool.input_schema.properties)).toBe(false);
+      expect(typeof tool.input_schema.properties).toBe('object');
+    }
+  });
+
+  it('exports a mutable (unfrozen) MCP_MANIFEST object', () => {
+    expect(Object.isFrozen(MCP_MANIFEST)).toBe(false);
+    expect(Object.isFrozen(MCP_MANIFEST.tools)).toBe(false);
+  });
+
+  it('does not reference Worker /curate or /stations paths in tool descriptions', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/\/curate|\/stations|\/genres|\/health/);
+    }
+  });
+
+  it('keeps api.url exactly /openapi.json with leading slash and no query', () => {
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+    expect(MCP_MANIFEST.api.url).not.toContain('?');
+  });
+
+  it('mentions IPTV radio service in description_for_model', () => {
+    expect(MCP_MANIFEST.description_for_model).toMatch(/IPTV radio/i);
+    expect(MCP_MANIFEST.description_for_human).toMatch(/iptv-org/i);
+  });
+
+  it('keeps auth.type exactly none', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+  });
+
+  it('keeps schema_version exactly v1', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
 });
+

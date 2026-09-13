@@ -270,4 +270,55 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents stations as an array on curate output', () => {
     expect(spec).toMatch(/"stations":\s*\{\s*"type":\s*"array"/);
   });
+  it('does not claim Worker HTTP routes named after claw-mcp tools', () => {
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/station_select/);
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/now_playing/);
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/genre_filter/);
+  });
+
+  it('keeps backlink_now_playing Endpoint pointed at /curate not /now-playing', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toMatch(/Endpoint:\*\*\s*`GET \/curate\?/);
+    expect(section).not.toMatch(/Endpoint:\*\*\s*`GET \/now-playing/);
+  });
+
+  it('documents Integration Notes 1h TTL matching Worker expirationTtl 3600', () => {
+    expect(spec).toMatch(/1h TTL/);
+  });
+
+  it('does not mention CF_ACCOUNT_ID or wrangler secret put', () => {
+    expect(spec).not.toMatch(/CF_ACCOUNT_ID/);
+    expect(spec).not.toMatch(/wrangler secret put/);
+  });
+
+  it('documents Base URL host matching wrangler.toml custom domain', () => {
+    const wrangler = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+    const pattern = wrangler.match(/pattern\s*=\s*"([^"]+)"/)?.[1];
+    expect(pattern).toBeTruthy();
+    expect(spec).toContain(`https://${pattern}`);
+  });
+
+  it('locks stream_url naming on now_playing vs url on curate station items', () => {
+    expect(spec).toMatch(/"stream_url":\s*\{\s*"type":\s*"string"/);
+    expect(spec).toMatch(/url` remapped to `stream_url`/);
+  });
+
+  it('does not document a /health MCP tool', () => {
+    expect(spec).not.toMatch(/### `backlink_health`/);
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/health`/);
+  });
+
+  it('uses additionalProperties false exactly three times (one per input schema)', () => {
+    const matches = spec.match(/"additionalProperties":\s*false/g) ?? [];
+    expect(matches).toHaveLength(3);
+  });
+
+  it('documents no auth required for read endpoints', () => {
+    expect(spec).toMatch(/No auth required for read endpoints/);
+  });
+
+  it('does not promise MCP bearer or OAuth auth', () => {
+    expect(spec).not.toMatch(/oauth|bearer token|api key required/i);
+  });
 });
+
