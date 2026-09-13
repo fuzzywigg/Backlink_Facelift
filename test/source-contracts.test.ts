@@ -1016,4 +1016,81 @@ describe('source ↔ product contracts', () => {
     expect(mcp).toMatch(/name_for_model:\s*"backlink"/);
     expect(mcp).toMatch(/name_for_human:\s*"Backlink Radio"/);
   });
+
+  it('locks callGemini to read only candidates[0] and parts[0].text', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('data.candidates[0]?.content?.parts[0]?.text');
+    expect(index).not.toMatch(/candidates\[1\]/);
+    expect(index).not.toMatch(/parts\[1\]/);
+  });
+
+  it('locks /curate resolveGenre to genreParam ?? mood (genre wins when present)', () => {
+    expect(read('src/index.ts')).toMatch(/resolveGenre\(genreParam\s*\?\?\s*mood\)/);
+  });
+
+  it('locks /curate query join to [mood, genreParam].filter(Boolean).join(" ")', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const query = \[mood, genreParam\]\.filter\(Boolean\)\.join\(' '\) \|\| genre/,
+    );
+  });
+
+  it('locks Gemini user-request join to [mood, genre].filter(Boolean).join(" / ")', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const query = \[mood, genre\]\.filter\(Boolean\)\.join\(' \/ '\)/,
+    );
+  });
+
+  it('locks VERSION fallbacks to ?? \'0.1.0\' on / and /health', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/c\.env\.VERSION \?\? '0\.1\.0'/);
+    expect((index.match(/c\.env\.VERSION \?\? '0\.1\.0'/g) ?? []).length).toBe(2);
+  });
+
+  it('locks powered_by crab emoji literal on root handler', () => {
+    expect(read('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('locks curated_by Backlink/Geryon without crab emoji', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("curated_by: 'Backlink/Geryon'");
+    expect(index).not.toMatch(/curated_by: 'Backlink\/Geryon 🦀'/);
+  });
+
+  it('locks retry_after numeric literal 60 on both 503 paths', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/retry_after:\s*60/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('locks music fallback fetch to bare IPTV_BASE template with no RequestInit', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/res = await fetch\(`\$\{IPTV_BASE\}\/music\.m3u`\);/);
+    expect(index).not.toMatch(/fetch\(`\$\{IPTV_BASE\}\/music\.m3u`,\s*\{/);
+  });
+
+  it('locks Gemini JSON extract regex to require object inside array', () => {
+    expect(read('src/index.ts')).toContain('text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+  });
+
+  it('locks stationList group/language fallbacks to genre and en', () => {
+    expect(read('src/index.ts')).toContain('${s.group ?? genre}');
+    expect(read('src/index.ts')).toContain("${s.language ?? 'en'}");
+  });
+  it('does not export fetchStations or callGemini from index', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/export\s+(async\s+)?function\s+fetchStations/);
+    expect(index).not.toMatch(/export\s+(async\s+)?function\s+callGemini/);
+    expect(index).toMatch(/export default app/);
+  });
+
+  it('locks GEMINI_API_KEY falsy guard before fetchStations on /curate', () => {
+    const index = read('src/index.ts');
+    const keyGuard = index.indexOf("if (!c.env.GEMINI_API_KEY)");
+    const fetchStations = index.indexOf('stations = await fetchStations(genre', keyGuard);
+    expect(keyGuard).toBeGreaterThan(-1);
+    expect(fetchStations).toBeGreaterThan(keyGuard);
+  });
+
+  it('locks degrade editorial null literal (not undefined) in /curate catch', () => {
+    expect(read('src/index.ts')).toMatch(/editorial:\s*null/);
+  });
 });
