@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { GENRE_MAP, VALID_GENRES } from '../src/genres';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -475,6 +476,26 @@ describe('source ↔ product contracts', () => {
     const parser = read('src/parser.ts');
     expect(parser).toMatch(/seen\.has\(line\)/);
     expect(parser).toMatch(/seen\.add\(line\)/);
+  });
+
+  it('keeps README Available Genres list equal to runtime VALID_GENRES order', () => {
+    const readme = read('README.md');
+    const afterHeading = readme.split('## Available Genres')[1] ?? '';
+    const line = afterHeading.split('\n').find((l) => l.includes('`music`')) ?? '';
+    const listed = [...line.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+    expect(listed).toEqual([...VALID_GENRES]);
+  });
+
+  it('documents README alias examples that remain in runtime GENRE_MAP', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/`late night`\s*→\s*ambient/);
+    expect(readme).toMatch(/`chill`\s*→\s*ambient/);
+    expect(readme).toMatch(/`lofi`\s*→\s*ambient/);
+    expect(readme).toMatch(/`blues`\s*→\s*jazz/);
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP.blues).toBe('jazz');
   });
 });
 

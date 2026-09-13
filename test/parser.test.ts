@@ -1489,4 +1489,25 @@ https://example.com/unclosed.m3u8
       expect(stations[0].name.length).toBeGreaterThan(0);
     }
   });
+
+  it('ignores a URL glued onto the same EXTINF line (URL must be its own line)', () => {
+    // parseM3U only accepts http(s) on a non-#EXTINF line; same-line streams are dropped.
+    const stations = parseM3U(
+      `#EXTM3U
+#EXTINF:-1 tvg-name="Glued",Glued https://example.com/glued.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`,
+    );
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+    expect(stations[0].url).toBe('https://example.com/ok.m3u8');
+  });
+
+  it('does not treat Unicode line separators (U+2028/U+2029) as playlist newlines', () => {
+    // split('\\n') only — LS/PS keep EXTINF+URL on one logical line, so no stations emit.
+    const withLs = `#EXTINF:-1 tvg-name="Ls",Ls\u2028https://example.com/ls.m3u8`;
+    const withPs = `#EXTINF:-1 tvg-name="Ps",Ps\u2029https://example.com/ps.m3u8`;
+    expect(parseM3U(withLs)).toEqual([]);
+    expect(parseM3U(withPs)).toEqual([]);
+  });
 });
