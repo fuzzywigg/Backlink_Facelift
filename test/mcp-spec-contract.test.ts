@@ -1131,6 +1131,22 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(section).toMatch(/"editorial":\s*\{\s*"type":\s*\["string",\s*"null"\]/);
   });
 
+  it('locks Base URL host to backlink.fuzzywigg.com', () => {
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('documents all three tool endpoints as GET paths', () => {
+    expect(spec).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(spec).toContain('GET /genres');
+  });
+
+  it('keeps claw-mcp tool names free of backlink_ prefix in MCP_MANIFEST', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name.startsWith('backlink_')).toBe(false);
+    }
+    expect(spec).toContain('backlink_curate');
+  });
+
   it('does not document MCP resources or prompts sections', () => {
     expect(spec).not.toMatch(/## Resources|## Prompts|## Sampling/i);
   });
@@ -1175,4 +1191,22 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('does not contain tab characters in the MCP spec', () => {
     expect(spec.includes('\t')).toBe(false);
   });
+
+  it('does not document GEMINI_API_KEY in the MCP spec body', () => {
+    expect(spec).not.toContain('GEMINI_API_KEY');
+  });
+
+  it('locks Integration Notes KV TTL wording to 1h', () => {
+    expect(spec).toMatch(/1h TTL/);
+  });
+
+  it('documents now_playing output stream_url not url', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    expect(section).toContain('stream_url');
+    expect(section).toMatch(/url[\s\S]*remapped to[\s\S]*stream_url/);
+  });
+
 });

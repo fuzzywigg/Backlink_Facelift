@@ -608,5 +608,29 @@ VERSION = "0.1.0"
     expect(toml).not.toMatch(/account_id\s*=/i);
     expect(toml).not.toMatch(/route_id\s*=/i);
   });
+  it('locks custom_domain true on backlink.fuzzywigg.com route', () => {
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+  });
+
+  it('locks main entry to src/index.ts', () => {
+    expect(toml).toMatch(/main\s*=\s*"src\/index\.ts"/);
+  });
+
+  it('locks worker name to backlink', () => {
+    expect(toml).toMatch(/name\s*=\s*"backlink"/);
+  });
+
+  it('locks VERSION var to 0.1.0 matching package.json', () => {
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { version: string };
+    expect(pkg.version).toBe('0.1.0');
+  });
+
+  it('does not declare secrets table in wrangler.toml', () => {
+    expect(toml).not.toMatch(/^\[secrets\]/m);
+    expect(toml).not.toMatch(/^\[vars\.[^\]]+\]/m);
+  });
+
 });
 

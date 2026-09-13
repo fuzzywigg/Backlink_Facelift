@@ -1598,4 +1598,60 @@ https://example.com/h.m3u8
     const b = seedStationsCache('news', [{ name: 'N', url: 'https://n' }], a);
     expect(Object.keys(b).sort()).toEqual(['stations:jazz', 'stations:news']);
   });
+  it('buildSimpleM3U round-trips through parseM3U for multi-station fixtures', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'One', url: 'https://example.com/1.m3u8', group: 'G1', language: 'en', country: 'US' },
+      { name: 'Two', url: 'https://example.com/2.m3u8', logo: 'https://cdn.example/2.png' },
+    ]);
+    const stations = parseM3U(m3u);
+    expect(stations).toHaveLength(2);
+    expect(stations[0]).toMatchObject({ name: 'One', group: 'G1', language: 'en', country: 'US' });
+    expect(stations[1]).toMatchObject({ name: 'Two', logo: 'https://cdn.example/2.png' });
+  });
+
+  it('iptvCategoryUrl appends .m3u under categories path', () => {
+    expect(iptvCategoryUrl('classical')).toBe(
+      'https://iptv-org.github.io/iptv/categories/classical.m3u',
+    );
+  });
+
+  it('countHttpStreamLines counts SAMPLE_M3U as 6', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+  });
+
+  it('geminiTextResponse wraps text inside candidates[0].content.parts[0].text', async () => {
+    const data = (await geminiTextResponse('hello-quad').json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(data.candidates[0].content.parts[0].text).toBe('hello-quad');
+  });
+
+  it('curatedGeminiJson produces parseable JSON array text for stubbed Gemini', async () => {
+    const data = (await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const parsed = JSON.parse(data.candidates[0].content.parts[0].text) as unknown[];
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed.length).toBeGreaterThan(0);
+  });
+
+  it('mockKV delete removes a previously put key', async () => {
+    const kv = mockKV({ 'stations:music': '[]' });
+    await kv.delete('stations:music');
+    expect(await kv.get('stations:music')).toBeNull();
+  });
+
+  it('testEnv default VERSION is 0.1.0-test and can be overridden', () => {
+    expect(testEnv().VERSION).toBe('0.1.0-test');
+    expect(testEnv({ VERSION: '9.9.9' }).VERSION).toBe('9.9.9');
+  });
+
+  it('iptvCallsWithInit is empty when iptv fetches omit init', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
+    await fetchMock(iptvCategoryUrl('jazz'));
+    expect(iptvCallsWithInit(fetchMock as unknown as { mock: { calls: unknown[][] } })).toEqual([]);
+  });
+
 });

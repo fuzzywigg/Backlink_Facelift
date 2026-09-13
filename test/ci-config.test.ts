@@ -1548,5 +1548,56 @@ describe('CI / package test wiring', () => {
   it('locks AGENTS.md Safe Actions to mention genres.ts', () => {
     expect(read('AGENTS.md')).toMatch(/src\/genres\.ts/);
   });
+
+  it('hygiene required-file list includes all four quad suites', () => {
+    const ci = read('.github/workflows/ci.yml');
+    for (const f of [
+      'test/parser.test.ts',
+      'test/genres.test.ts',
+      'test/routes.test.ts',
+      'test/mcp.test.ts',
+    ]) {
+      expect(ci).toContain(f);
+    }
+  });
+
+  it('keeps coverage thresholds object listing all four metrics at 100', () => {
+    const vitest = read('vitest.config.ts');
+    for (const metric of ['lines', 'functions', 'branches', 'statements']) {
+      expect(vitest).toMatch(new RegExp(`${metric}: 100`));
+    }
+  });
+
+  it('AGENTS.md Safe Agent Actions lists genres parser and test/ extensions', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/src\/genres\.ts/);
+    expect(agents).toMatch(/src\/parser\.ts/);
+    expect(agents).toMatch(/test\//);
+  });
+
+  it('package scripts do not export GEMINI_API_KEY or invent secrets', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    for (const cmd of Object.values(pkg.scripts)) {
+      expect(cmd).not.toMatch(/GEMINI_API_KEY\s*=/);
+      expect(cmd).not.toMatch(/API_KEY\s*=/);
+    }
+  });
+
+  it('CI Tests job runs test:coverage not bare test', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const testJob = ci.split('name: Tests')[1].split('name: Hygiene')[0];
+    expect(testJob).toContain('npm run test:coverage');
+    expect(testJob).not.toMatch(/run: npm test\b/);
+  });
+
+  it('locks vitest include glob to test/**/*.test.ts only', () => {
+    expect(read('vitest.config.ts')).toContain("include: ['test/**/*.test.ts']");
+  });
+
+  it('keeps deploy workflow free of invented DNS or credential literals beyond secret name', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).not.toMatch(/CLOUDFLARE_API_TOKEN\s*:\s*['\"][^$]/);
+    expect(deploy).toContain('GEMINI_API_KEY');
+  });
 });
 
