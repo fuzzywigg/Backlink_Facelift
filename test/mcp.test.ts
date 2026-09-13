@@ -842,5 +842,57 @@ describe('MCP_MANIFEST', () => {
     expect(JSON.stringify(tool.input_schema)).not.toMatch(/"required"/);
     expect(tool.input_schema).not.toHaveProperty('required');
   });
+
+  it('locks tool order station_select → now_playing → genre_filter → curator_prompt', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('keeps every tool input_schema.type exactly object', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema.type).toBe('object');
+    }
+  });
+
+  it('locks curator_prompt required to mood only (genre optional)', () => {
+    const tool = toolNamed('curator_prompt');
+    expect(tool.input_schema.required).toEqual(['mood']);
+    expect(tool.input_schema.properties).toHaveProperty('genre');
+    expect(tool.input_schema.properties).toHaveProperty('mood');
+  });
+
+  it('locks station_select property key set to station_name only', () => {
+    const tool = toolNamed('station_select');
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['station_name']);
+  });
+
+  it('locks genre_filter property key set to genre only', () => {
+    const tool = toolNamed('genre_filter');
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['genre']);
+  });
+
+  it('keeps now_playing properties as an empty object', () => {
+    const tool = toolNamed('now_playing');
+    expect(tool.input_schema.properties).toEqual({});
+  });
+
+  it('JSON round-trips the full manifest without key loss', () => {
+    expect(JSON.parse(JSON.stringify(MCP_MANIFEST))).toEqual(MCP_MANIFEST);
+  });
+
+  it('description_for_model mentions mood and curator capabilities', () => {
+    expect(MCP_MANIFEST.description_for_model).toMatch(/mood/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/curator/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/genre/i);
+  });
+
+  it('does not nest tools inside api or auth objects', () => {
+    expect(MCP_MANIFEST.api).not.toHaveProperty('tools');
+    expect(MCP_MANIFEST.auth).not.toHaveProperty('tools');
+  });
 });
 

@@ -908,4 +908,54 @@ describe('resolveGenre', () => {
     const map = { chill: Number.NaN } as unknown as Record<string, string>;
     expect(Number.isNaN(resolveGenre('chill', map) as unknown as number)).toBe(true);
   });
+
+  it('returns music for whitespace-only and tab-only inputs', () => {
+    expect(resolveGenre('   ')).toBe('music');
+    expect(resolveGenre('\t\t')).toBe('music');
+    expect(resolveGenre('\n')).toBe('music');
+  });
+
+  it('resolves mixed-case multi-word late night with interior tabs after lowercasing', () => {
+    // toLowerCase then trim — interior tabs remain, so map miss → music
+    expect(resolveGenre('\tLate Night\t')).toBe('ambient');
+    expect(resolveGenre('late\tnight')).toBe('music');
+  });
+
+  it('does not trim interior spaces in unknown phrases before map lookup', () => {
+    expect(resolveGenre('  rock  ')).toBe('rock');
+    expect(resolveGenre('ro ck')).toBe('music');
+  });
+
+  it('locks GENRE_MAP value set as a subset of VALID_GENRES', () => {
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES).toContain(value);
+    }
+  });
+
+  it('locks VALID_GENRES length at exactly 9', () => {
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it('treats custom map empty-string values as hits (?? does not fall through)', () => {
+    expect(resolveGenre('chill', { chill: '' })).toBe('');
+  });
+
+  it('resolves sports and news identity with surrounding whitespace', () => {
+    expect(resolveGenre('  SPORTS  ')).toBe('sports');
+    expect(resolveGenre('\tNews\t')).toBe('news');
+  });
+
+  it('does not resolve hyphenated late-night or spaced electronic aliases', () => {
+    expect(resolveGenre('late-night')).toBe('music');
+    expect(resolveGenre('electro nic')).toBe('music');
+  });
+
+  it('custom map can redirect a VALID_GENRES identity to another category', () => {
+    expect(resolveGenre('jazz', { jazz: 'news' })).toBe('news');
+  });
+
+  it('returns 0 map values via ?? without falling through', () => {
+    const map = { chill: 0 } as unknown as Record<string, string>;
+    expect(resolveGenre('chill', map) as unknown as number).toBe(0);
+  });
 });
