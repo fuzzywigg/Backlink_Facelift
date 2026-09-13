@@ -313,4 +313,98 @@ describe('resolveGenre', () => {
     expect(resolveGenre('  NEWS  ')).toBe('news');
     expect(resolveGenre('\tEntertainment\t')).toBe('entertainment');
   });
+
+  it('treats form-feed and vertical-tab as blank after trim', () => {
+    expect(resolveGenre('\f')).toBe('music');
+    expect(resolveGenre('\v')).toBe('music');
+    expect(resolveGenre('\f\v\t')).toBe('music');
+  });
+
+  it('returns music for emoji and symbol-only labels', () => {
+    expect(resolveGenre('🎵')).toBe('music');
+    expect(resolveGenre('★')).toBe('music');
+    expect(resolveGenre('📻radio')).toBe('music');
+  });
+
+  it('returns music for very long unknown labels without throwing', () => {
+    const long = `x${'y'.repeat(10_000)}`;
+    expect(resolveGenre(long)).toBe('music');
+  });
+
+  it('maps rock-bound aliases metal and indie case-insensitively', () => {
+    expect(resolveGenre('METAL')).toBe('rock');
+    expect(resolveGenre('Indie')).toBe('rock');
+    expect(resolveGenre('  metal  ')).toBe('rock');
+  });
+
+  it('keeps GENRE_MAP free of Object.prototype own keys', () => {
+    for (const key of ['toString', 'constructor', 'hasOwnProperty', 'valueOf', '__proto__']) {
+      expect(Object.hasOwn(GENRE_MAP, key)).toBe(false);
+    }
+  });
+
+  it('lowercases before lookup so mixed-case prototype names miss Object.prototype', () => {
+    // 'toString'.toLowerCase() === 'tostring' — not an inherited own-name on Object.prototype
+    expect(resolveGenre('toString')).toBe('music');
+    expect(resolveGenre('valueOf')).toBe('music');
+    expect(resolveGenre('hasOwnProperty')).toBe('music');
+  });
+
+  it('locks inherited constructor key behavior on a plain-object map', () => {
+    // 'constructor' is already lowercase; map['constructor'] hits Object.prototype.constructor
+    // (truthy), so ?? does not fall through to VALID_GENRES / music.
+    const resolved = resolveGenre('constructor');
+    expect(typeof resolved).toBe('function');
+    expect(resolved).toBe(Object.prototype.constructor);
+  });
+
+  it('returns music for soft-hyphen and bidi-control decorated labels', () => {
+    expect(resolveGenre('jazz\u00ad')).toBe('music');
+    expect(resolveGenre('\u200ejazz')).toBe('music');
+    expect(resolveGenre('jazz\u200f')).toBe('music');
+  });
+
+  it('lets a custom map supply empty-string values (truthy check is ?? not ||)', () => {
+    expect(resolveGenre('chill', { chill: '' })).toBe('');
+  });
+
+  it('resolves every rock/pop alias family without colliding with VALID_GENRES', () => {
+    expect(resolveGenre('metal')).toBe('rock');
+    expect(resolveGenre('indie')).toBe('rock');
+    expect(resolveGenre('dance')).toBe('pop');
+    expect(VALID_GENRES).toContain('rock');
+    expect(VALID_GENRES).toContain('pop');
+  });
+
+  it('defaults when input is explicitly undefined even with a non-empty custom map', () => {
+    expect(resolveGenre(undefined, { jazz: 'classical' })).toBe('music');
+  });
+
+  it('does not resolve fullwidth latin lookalikes of valid genres', () => {
+    // fullwidth "ｊａｚｚ"
+    expect(resolveGenre('\uff4a\uff41\uff5a\uff5a')).toBe('music');
+  });
+
+  it('keeps VALID_GENRES as a readonly tuple of unique lowercase slugs', () => {
+    expect(VALID_GENRES).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+    expect(new Set(VALID_GENRES).size).toBe(VALID_GENRES.length);
+  });
+
+  it('maps news/sports/entertainment only as identity keys (no extra aliases)', () => {
+    const aliasedTo = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'news' || v === 'sports' || v === 'entertainment')
+      .map(([k]) => k)
+      .sort();
+    expect(aliasedTo).toEqual(['entertainment', 'news', 'sports']);
+  });
 });

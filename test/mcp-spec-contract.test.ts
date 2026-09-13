@@ -146,4 +146,40 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents logo as nullable uri on curator station items', () => {
     expect(spec).toMatch(/"logo":\s*\{\s*"type":\s*\[["']string["'],\s*["']null["']\].*"format":\s*"uri"/s);
   });
+
+  it('documents backlink_genres output genres + aliases properties', () => {
+    expect(spec).toMatch(/"genres":\s*\{/);
+    expect(spec).toMatch(/"aliases":\s*\{/);
+    expect(spec).toMatch(/Canonical genre slugs/i);
+    expect(spec).toMatch(/Friendly name → canonical slug/i);
+  });
+
+  it('documents backlink_curate as top 3 stations with editorial blurbs', () => {
+    expect(spec).toMatch(/top 3 radio stations/i);
+    expect(spec).toMatch(/editorial blurbs/i);
+  });
+
+  it('documents now_playing as the first /curate station only', () => {
+    expect(spec).toMatch(/stations\[0\]/);
+    expect(spec).toMatch(/Single station object/i);
+  });
+
+  it('keeps Base URL on https (not http)', () => {
+    expect(spec).toMatch(/Base URL:\s*`https:\/\//);
+    expect(spec).not.toMatch(/Base URL:\s*`http:\/\//);
+  });
+
+  it('documents energizing as a mood example even when GENRE_MAP lacks it', () => {
+    expect(spec.toLowerCase()).toContain('energizing');
+    expect(Object.keys(GENRE_MAP)).not.toContain('energizing');
+  });
+
+  it('documents Endpoint lines for all three docs tools', () => {
+    expect(spec).toMatch(/\*\*Endpoint:\*\*\s*`GET \/curate/);
+    expect(spec).toMatch(/\*\*Endpoint:\*\*\s*`GET \/genres`/);
+  });
+
+  it('does not document Anthropic or Claude in the MCP spec', () => {
+    expect(spec).not.toMatch(/anthropic|claude|haiku/i);
+  });
 });

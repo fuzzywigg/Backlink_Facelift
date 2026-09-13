@@ -279,4 +279,78 @@ describe('CI / package test wiring', () => {
     expect(pkg.version).toBe('0.1.0');
     expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
   });
+
+  it('pins setup-node to v7 across CI jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const setups = ci.match(/actions\/setup-node@v\d+/g) ?? [];
+    expect(setups.length).toBeGreaterThanOrEqual(2);
+    expect(setups.every((s) => s === 'actions/setup-node@v7')).toBe(true);
+  });
+
+  it('keeps vitest environment as node', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/environment:\s*['"]node['"]/);
+  });
+
+  it('keeps Dependabot open-pull-requests limits finite', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/open-pull-requests-limit:\s*\d+/);
+    expect((dep.match(/open-pull-requests-limit:/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('ignores .env.* variants while allowing .env.example exceptions', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.env\.\*$/m);
+    expect(gi).toMatch(/^!\.env\.example$/m);
+  });
+
+  it('keeps hygiene asserting no pull_request_target triggers', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/pull_request_target/);
+    expect(ci).toMatch(/!\s*awk/);
+  });
+
+  it('lists wrangler as a devDependency with a deploy script', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies.wrangler).toMatch(/^\^4\./);
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+  });
+
+  it('keeps CI typecheck job independent of the test job', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Typecheck/);
+    expect(ci).toMatch(/name:\s*Tests/);
+    expect(ci).not.toMatch(/needs:\s*\[?\s*typecheck/i);
+  });
+
+  it('requires Cloudflare Workers types in devDependencies', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies['@cloudflare/workers-types']).toBeTruthy();
+  });
+
+  it('keeps deploy workflow on ubuntu-latest with wrangler-action', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/runs-on:\s*ubuntu-latest/);
+    expect(deploy).toMatch(/cloudflare\/wrangler-action@v4/);
+    expect(deploy).toMatch(/npm ci/);
+  });
+
+  it('documents Safe Agent Actions including test/ extensions in AGENTS.md', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/Safe Agent Actions/i);
+    expect(agents).toMatch(/unit tests under `test\/`/);
+    expect(agents).toMatch(/src\/parser\.ts/);
+    expect(agents).toMatch(/src\/genres\.ts/);
+  });
+
+  it('keeps package-lock name aligned with package.json', () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string };
+    const lock = JSON.parse(read('package-lock.json')) as { name: string };
+    expect(lock.name).toBe(pkg.name);
+  });
 });
