@@ -69,6 +69,7 @@ describe('CI / package test wiring', () => {
       'test/ci-config.test.ts',
       'test/wrangler-config.test.ts',
       'test/source-contracts.test.ts',
+      'test/helpers.test.ts',
       'test/helpers.ts',
     ];
     for (const rel of files) {
@@ -125,5 +126,54 @@ describe('CI / package test wiring', () => {
     expect(pkg.type).toBe('module');
     expect(pkg.scripts.dev).toBe('wrangler dev');
     expect(pkg.scripts.deploy).toBe('wrangler deploy');
+  });
+
+  it('keeps hono as the sole runtime dependency', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+    expect(pkg.dependencies.hono).toMatch(/^\^4\./);
+    expect(pkg.devDependencies.vitest).toMatch(/^\^5\./);
+    expect(pkg.devDependencies['@vitest/coverage-v8']).toMatch(/^\^5\./);
+  });
+
+  it('excludes src/types.ts from coverage include scope', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/include:\s*\[['"]src\/\*\*\/\*\.ts['"]\]/);
+    expect(cfg).toMatch(/exclude:\s*\[['"]src\/types\.ts['"]\]/);
+  });
+
+  it('keeps CI jobs on ubuntu-latest with contents:read only', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/runs-on:\s*ubuntu-latest/g);
+    expect(ci).toMatch(/concurrency:/);
+    expect(ci).toMatch(/group:\s*ci-\$\{\{\s*github\.workflow\s*\}\}/);
+    expect(ci).not.toMatch(/permissions:\s*\n\s*contents:\s*write/);
+  });
+
+  it('uploads coverage artifacts even when the test step fails', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/Upload coverage report/);
+    expect(ci).toMatch(/if:\s*always\(\)/);
+    expect(ci).toMatch(/if-no-files-found:\s*ignore/);
+  });
+
+  it('locks Cloud Agent environment.json to npm ci without secrets', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, unknown>;
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+    expect(JSON.stringify(env)).not.toMatch(/api[_-]?key|secret|token/i);
+  });
+
+  it('keeps tsconfig strict with Workers + node types', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+      include: string[];
+    };
+    expect(ts.compilerOptions.strict).toBe(true);
+    expect(ts.compilerOptions.noEmit).toBe(true);
+    expect(ts.compilerOptions.types).toEqual(['@cloudflare/workers-types', 'node']);
+    expect(ts.include).toEqual(expect.arrayContaining(['src/**/*.ts', 'test/**/*.ts']));
   });
 });

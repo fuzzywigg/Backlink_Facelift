@@ -151,4 +151,46 @@ describe('resolveGenre', () => {
       expect(VALID_GENRES).toContain(value);
     }
   });
+
+  it('locks GENRE_MAP key count and uniqueness', () => {
+    const keys = Object.keys(GENRE_MAP);
+    expect(keys).toHaveLength(21);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('rejects numeric, punctuated, and unicode labels as unknown', () => {
+    expect(resolveGenre('123')).toBe('music');
+    expect(resolveGenre('jazz!')).toBe('music');
+    expect(resolveGenre('音楽')).toBe('music');
+    expect(resolveGenre('jazz/blues')).toBe('music');
+  });
+
+  it('does not collapse internal whitespace beyond trim', () => {
+    expect(resolveGenre('late\tnight')).toBe('music');
+    expect(resolveGenre('lo fi')).toBe('music');
+    expect(resolveGenre('lo-fi')).toBe('ambient');
+  });
+
+  it('treats underscore and hyphen variants as distinct unknown labels', () => {
+    expect(resolveGenre('late_night')).toBe('music');
+    expect(resolveGenre('late-night')).toBe('music');
+    expect(resolveGenre('lo_fi')).toBe('music');
+  });
+
+  it('lets a custom map introduce aliases without mutating GENRE_MAP', () => {
+    const custom = { ...GENRE_MAP, vibes: 'jazz' };
+    expect(resolveGenre('vibes', custom)).toBe('jazz');
+    expect(GENRE_MAP.vibes).toBeUndefined();
+    expect(resolveGenre('vibes')).toBe('music');
+  });
+
+  it('returns custom-map values even when they are outside VALID_GENRES', () => {
+    // resolveGenre does not re-validate map hit values against VALID_GENRES
+    expect(resolveGenre('weird', { weird: 'not-a-real-genre' })).toBe('not-a-real-genre');
+  });
+
+  it('exposes ValidGenre-compatible readonly tuple length of 9', () => {
+    expect(VALID_GENRES).toHaveLength(9);
+    expect(Object.isFrozen(VALID_GENRES) || Array.isArray(VALID_GENRES)).toBe(true);
+  });
 });

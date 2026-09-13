@@ -19,7 +19,7 @@ npm test
 npm run test:coverage
 ```
 
-Unit suites live under [`test/`](./test/) (`parser`, `genres`, `routes`, `mcp`, plus `mcp-spec` / CI / wrangler / source contracts). Coverage floors stay at **100%** statements/branches/functions/lines.
+Unit suites live under [`test/`](./test/) (`parser`, `genres`, `routes`, `mcp`, `helpers`, plus `mcp-spec` / CI / wrangler / source contracts). Coverage floors stay at **100%** statements/branches/functions/lines.
 ## API
 
 ```

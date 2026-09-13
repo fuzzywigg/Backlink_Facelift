@@ -88,6 +88,7 @@ jobs:
           test -f test/routes.test.ts
           test -f test/mcp.test.ts
           test -f test/helpers.ts
+          test -f test/helpers.test.ts
           test -f test/mcp-spec-contract.test.ts
           test -f test/ci-config.test.ts
           test -f test/wrangler-config.test.ts
@@ -112,6 +113,12 @@ jobs:
           grep -qE '"typescript": "\^5\.' package.json
           ! grep -qE '"typescript": "\^[67]\.' package.json
           ! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'
+          grep -q 'cancel-in-progress: true' .github/workflows/ci.yml
+          grep -q 'upload-artifact@v4' .github/workflows/ci.yml
+          grep -q "src/types.ts" vitest.config.ts
+          grep -q '"hono"' package.json
+          ! grep -q 'GEMINI_API_KEY=' wrangler.toml
+          ! grep -qiE 'api[_-]?key\s*=' wrangler.toml
 
       - name: Check for committed secret material
         run: |

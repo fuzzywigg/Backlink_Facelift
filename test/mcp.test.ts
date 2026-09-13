@@ -110,4 +110,47 @@ describe('MCP_MANIFEST', () => {
     expect(MCP_MANIFEST.description_for_model.trim().length).toBeGreaterThan(20);
     expect(MCP_MANIFEST.description_for_human).not.toBe(MCP_MANIFEST.description_for_model);
   });
+
+  it('locks every tool property type to string when present', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const [key, prop] of Object.entries(tool.input_schema.properties)) {
+        expect(prop, `${tool.name}.${key}`).toMatchObject({ type: 'string' });
+      }
+    }
+  });
+
+  it('keeps required arrays free of unknown property keys', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const props = Object.keys(tool.input_schema.properties);
+      for (const key of tool.input_schema.required ?? []) {
+        expect(props).toContain(key);
+      }
+    }
+  });
+
+  it('documents now_playing fields in the tool description', () => {
+    const tool = toolNamed('now_playing');
+    expect(tool.description.toLowerCase()).toMatch(/name/);
+    expect(tool.description.toLowerCase()).toMatch(/genre/);
+    expect(tool.description.toLowerCase()).toMatch(/country/);
+  });
+
+  it('keeps auth open and api openapi url rooted at /openapi.json', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(MCP_MANIFEST.api.type).toBe('openapi');
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+  });
+
+  it('orders tools with station_select first and curator_prompt last', () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(names[0]).toBe('station_select');
+    expect(names[names.length - 1]).toBe('curator_prompt');
+  });
+
+  it('keeps model/human names non-empty and distinct', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_human).toContain('Backlink');
+    expect(MCP_MANIFEST.name_for_model).not.toBe(MCP_MANIFEST.name_for_human);
+  });
 });
