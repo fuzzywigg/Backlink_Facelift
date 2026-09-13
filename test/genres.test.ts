@@ -733,4 +733,89 @@ describe('resolveGenre', () => {
     expect(resolveGenre('jazz', {})).toBe('jazz');
     expect(resolveGenre('unknown', {})).toBe('music');
   });
+
+  it('falls through custom map null via ?? to VALID_GENRES identity', () => {
+    expect(resolveGenre('jazz', { jazz: null as unknown as string })).toBe('jazz');
+    expect(resolveGenre('unknown', { unknown: null as unknown as string })).toBe('music');
+  });
+
+  it('falls through custom map undefined via ?? to VALID_GENRES identity', () => {
+    expect(resolveGenre('rock', { rock: undefined as unknown as string })).toBe('rock');
+    expect(resolveGenre('nope', { nope: undefined as unknown as string })).toBe('music');
+  });
+
+  it('keeps GENRE_MAP unfrozen and VALID_GENRES unfrozen', () => {
+    expect(Object.isFrozen(GENRE_MAP)).toBe(false);
+    expect(Object.isFrozen(VALID_GENRES)).toBe(false);
+  });
+
+  it('locks rock-bound alias key set exactly', () => {
+    const rockKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'rock')
+      .map(([k]) => k)
+      .sort();
+    expect(rockKeys).toEqual(['indie', 'metal', 'rock']);
+  });
+
+  it('locks pop-bound alias key set exactly', () => {
+    const popKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'pop')
+      .map(([k]) => k)
+      .sort();
+    expect(popKeys).toEqual(['dance', 'pop']);
+  });
+
+  it('locks jazz-bound alias key set exactly', () => {
+    const jazzKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'jazz')
+      .map(([k]) => k)
+      .sort();
+    expect(jazzKeys).toEqual(['blues', 'jazz']);
+  });
+
+  it('locks classical-bound alias key set exactly', () => {
+    const classicalKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'classical')
+      .map(([k]) => k)
+      .sort();
+    expect(classicalKeys).toEqual(['classic', 'classical']);
+  });
+
+  it('locks ambient-bound alias key set exactly', () => {
+    const ambientKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'ambient')
+      .map(([k]) => k)
+      .sort();
+    expect(ambientKeys).toEqual([
+      'ambient',
+      'chill',
+      'electronic',
+      'focus',
+      'late night',
+      'lo-fi',
+      'lofi',
+      'relaxing',
+    ]);
+  });
+
+  it('locks identity-only categories without extra aliases', () => {
+    for (const genre of ['music', 'news', 'sports', 'entertainment'] as const) {
+      const keys = Object.entries(GENRE_MAP)
+        .filter(([, v]) => v === genre)
+        .map(([k]) => k);
+      expect(keys).toEqual([genre]);
+    }
+  });
+
+  it('locks __proto__ lookup returning Object.prototype via map hit', () => {
+    // After toLowerCase, '__proto__' still hits the special Object.prototype getter.
+    expect(resolveGenre('__proto__')).toEqual({});
+    expect(resolveGenre('__PROTO__')).toEqual({});
+  });
+
+  it('resolves inherited Object.prototype-chain map keys via normal property access', () => {
+    const map = Object.create({ jazz: 'ambient' }) as Record<string, string>;
+    expect(resolveGenre('jazz', map)).toBe('ambient');
+    expect(Object.prototype.hasOwnProperty.call(map, 'jazz')).toBe(false);
+  });
 });

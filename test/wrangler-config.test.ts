@@ -258,5 +258,43 @@ describe('wrangler.toml contracts', () => {
   it('does not embed GEMINI_API_KEY as a [vars] assignment', () => {
     expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
   });
+
+  it('does not declare placement, limits, or migrations tables', () => {
+    expect(toml).not.toMatch(/\[placement\]/i);
+    expect(toml).not.toMatch(/\[limits\]/i);
+    expect(toml).not.toMatch(/\[\[migrations\]\]/i);
+    expect(toml).not.toMatch(/new_classes/i);
+  });
+
+  it('does not declare crons or scheduled handlers', () => {
+    expect(toml).not.toMatch(/crons\s*=/);
+    expect(toml).not.toMatch(/\[triggers\]/i);
+    expect(toml).not.toMatch(/scheduled/i);
+  });
+
+  it('does not declare vectorize, ai, or browser bindings', () => {
+    expect(toml).not.toMatch(/vectorize/i);
+    expect(toml).not.toMatch(/\[ai\]/i);
+    expect(toml).not.toMatch(/browser/i);
+  });
+
+  it('keeps top-level name before main before compatibility_date', () => {
+    const nameIdx = toml.indexOf('name = "backlink"');
+    const mainIdx = toml.indexOf('main = "src/index.ts"');
+    const compatIdx = toml.indexOf('compatibility_date = "2025-01-01"');
+    expect(nameIdx).toBeGreaterThanOrEqual(0);
+    expect(mainIdx).toBeGreaterThan(nameIdx);
+    expect(compatIdx).toBeGreaterThan(mainIdx);
+  });
+
+  it('does not set workers_dev or preview_urls', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+    expect(toml).not.toMatch(/preview_urls\s*=/);
+  });
+
+  it('keeps secret comment block immediately after [vars]', () => {
+    const afterVars = toml.slice(toml.indexOf('[vars]'));
+    expect(afterVars).toMatch(/\[vars\]\s*\nVERSION = "0\.1\.0"\s*\n\n# Secrets/);
+  });
 });
 

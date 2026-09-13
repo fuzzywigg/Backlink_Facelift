@@ -620,5 +620,64 @@ describe('MCP_MANIFEST', () => {
   it('keeps api.type exactly openapi', () => {
     expect(MCP_MANIFEST.api.type).toBe('openapi');
   });
+
+  it('keeps curator_prompt property key insertion order mood then genre', () => {
+    expect(Object.keys(toolNamed('curator_prompt').input_schema.properties)).toEqual([
+      'mood',
+      'genre',
+    ]);
+  });
+
+  it('does not declare $id, $schema, or jsonSchema on tools', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('$id');
+      expect(tool).not.toHaveProperty('$schema');
+      expect(tool).not.toHaveProperty('jsonSchema');
+      expect(tool.input_schema).not.toHaveProperty('$schema');
+    }
+  });
+
+  it('keeps tools array as the live MCP_MANIFEST.tools reference', () => {
+    expect(MCP_MANIFEST.tools).toBe(MCP_MANIFEST.tools);
+    const first = MCP_MANIFEST.tools[0];
+    expect(toolNamed('station_select')).toBe(first);
+  });
+
+  it('serializes to JSON without undefined holes in tool objects', () => {
+    const roundTrip = JSON.parse(JSON.stringify(MCP_MANIFEST)) as typeof MCP_MANIFEST;
+    expect(JSON.stringify(roundTrip)).not.toMatch(/undefined/);
+    for (const tool of roundTrip.tools) {
+      expect(Object.values(tool).every((v) => v !== undefined)).toBe(true);
+    }
+  });
+
+  it('keeps station_select.required exactly ["station_name"] length 1', () => {
+    const required = toolNamed('station_select').input_schema.required;
+    expect(required).toEqual(['station_name']);
+    expect(required).toHaveLength(1);
+  });
+
+  it('keeps schema_version exactly v1 string', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+    expect(typeof MCP_MANIFEST.schema_version).toBe('string');
+  });
+
+  it('keeps auth object keys exactly type=none', () => {
+    expect(Object.keys(MCP_MANIFEST.auth).sort()).toEqual(['type']);
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+  });
+
+  it('keeps api object keys exactly type and url', () => {
+    expect(Object.keys(MCP_MANIFEST.api).sort()).toEqual(['type', 'url']);
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+  });
+
+  it('does not declare output_schema or annotations on any tool', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('output_schema');
+      expect(tool).not.toHaveProperty('annotations');
+      expect(tool).not.toHaveProperty('examples');
+    }
+  });
 });
 

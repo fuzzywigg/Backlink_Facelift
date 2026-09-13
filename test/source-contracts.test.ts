@@ -497,5 +497,75 @@ describe('source ↔ product contracts', () => {
     expect(GENRE_MAP.lofi).toBe('ambient');
     expect(GENRE_MAP.blues).toBe('jazz');
   });
+
+  it('locks Gemini URL path to include /v1beta/models/', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(
+      /generativelanguage\.googleapis\.com\/v1beta\/models\/gemini-2\.0-flash:generateContent/,
+    );
+  });
+
+  it('locks iptv catalog fetch as bare fetch(url) without RequestInit', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/let res = await fetch\(url\);/);
+    expect(index).toMatch(/res = await fetch\(`\$\{IPTV_BASE\}\/music\.m3u`\);/);
+    expect(index).not.toMatch(/fetch\(url,\s*\{/);
+  });
+
+  it('locks /genres aliases assignment to live GENRE_MAP (not a spread copy)', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/aliases:\s*GENRE_MAP/);
+    expect(index).not.toMatch(/aliases:\s*\{\s*\.\.\.GENRE_MAP/);
+    expect(index).toMatch(/genres:\s*\[\.\.\.VALID_GENRES\]/);
+  });
+
+  it('locks exact / endpoint description string literals', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("'GET ?genre=&mood= — AI-curated station picks'");
+    expect(index).toContain("'GET ?genre= — Raw station list'");
+    expect(index).toContain("'GET — Available genre categories'");
+    expect(index).toContain("'GET — Health check'");
+  });
+
+  it('locks package.json description equal to Worker / description field', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    const index = read('src/index.ts');
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+    expect(index).toContain(`description: '${pkg.description}'`);
+  });
+
+  it('locks Env interface to exactly CATALOG_CACHE / GEMINI_API_KEY? / VERSION?', () => {
+    const types = read('src/types.ts');
+    const iface = types.slice(types.indexOf('export interface Env'), types.indexOf('}', types.indexOf('export interface Env')) + 1);
+    expect(iface).toMatch(/CATALOG_CACHE:\s*KVNamespace/);
+    expect(iface).toMatch(/GEMINI_API_KEY\?:\s*string/);
+    expect(iface).toMatch(/VERSION\?:\s*string/);
+    const keys = [...iface.matchAll(/^\s*([A-Z_][A-Z0-9_]*)\??:/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['CATALOG_CACHE', 'GEMINI_API_KEY', 'VERSION']);
+  });
+
+  it('locks prompt Be specific about mood sentence in callGemini', () => {
+    expect(read('src/index.ts')).toContain(
+      'Be specific about what makes each station right for the mood',
+    );
+  });
+
+  it('locks dual join separators: Gemini prompt " / " vs response query spaces', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/\.filter\(Boolean\)\.join\(' \/ '\)/);
+    expect(index).toMatch(/\.filter\(Boolean\)\.join\(' '\)/);
+  });
+
+  it('locks parseM3U startsWith("#EXTINF") prefix match', () => {
+    expect(read('src/parser.ts')).toMatch(/line\.startsWith\('#EXTINF'\)/);
+  });
+
+  it('locks resolveGenre default map parameter to GENRE_MAP', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /map:\s*Record<string,\s*string>\s*=\s*GENRE_MAP/,
+    );
+  });
 });
 
