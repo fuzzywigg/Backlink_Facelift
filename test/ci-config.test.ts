@@ -1062,5 +1062,135 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/test -f AGENTS\.md/);
     expect(ci).toMatch(/grep -q 'name: CI'/);
   });
+
+  it('locks Dependabot open-pull-requests-limit to 3 (npm) and 2 (actions)', () => {
+    const dep = read('.github/dependabot.yml');
+    const npmLimit = dep.match(
+      /package-ecosystem:\s*"npm"[\s\S]*?open-pull-requests-limit:\s*(\d+)/,
+    );
+    const ghaLimit = dep.match(
+      /package-ecosystem:\s*"github-actions"[\s\S]*?open-pull-requests-limit:\s*(\d+)/,
+    );
+    expect(npmLimit?.[1]).toBe('3');
+    expect(ghaLimit?.[1]).toBe('2');
+  });
+
+  it('hygiene includes Check for committed secret material step', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/name:\s*Check for committed secret material/);
+    expect(ci).toMatch(/! test -f \.env/);
+    expect(ci).toMatch(/! test -f \.dev\.vars/);
+  });
+
+  it('locks package.json type module and version 0.1.0', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      type: string;
+      version: string;
+      name: string;
+    };
+    expect(pkg.type).toBe('module');
+    expect(pkg.version).toBe('0.1.0');
+    expect(pkg.name).toBe('backlink');
+  });
+
+  it('disables blank GitHub issues via ISSUE_TEMPLATE config', () => {
+    const config = JSON.parse(
+      // config.yml is YAML with a single key — parse loosely via line match
+      '{"blank_issues_enabled": false}',
+    ) as { blank_issues_enabled: boolean };
+    expect(read('.github/ISSUE_TEMPLATE/config.yml')).toMatch(
+      /^blank_issues_enabled:\s*false\s*$/m,
+    );
+    expect(config.blank_issues_enabled).toBe(false);
+  });
+
+  it('locks .gitignore coverage and wrangler local-state entries', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^coverage\/$/m);
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+    expect(gi).toMatch(/^\.mf\/$/m);
+    expect(gi).toMatch(/^dist\/$/m);
+    expect(gi).toMatch(/^node_modules\/$/m);
+  });
+
+  it('locks exact CI and deploy concurrency group formulas', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(
+      /group:\s*ci-\$\{\{\s*github\.workflow\s*\}\}-\$\{\{\s*github\.ref\s*\}\}/,
+    );
+    expect(read('.github/workflows/deploy.yml')).toMatch(
+      /group:\s*deploy-\$\{\{\s*github\.workflow\s*\}\}/,
+    );
+  });
+
+  it('locks CI jobs to exactly typecheck, test, and hygiene in that order', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const jobsBlock = ci.slice(ci.indexOf('\njobs:'));
+    const jobs = [...jobsBlock.matchAll(/^  ([a-z]+):\s*$/gm)].map((m) => m[1]);
+    expect(jobs).toEqual(['typecheck', 'test', 'hygiene']);
+  });
+
+  it('locks coverage upload artifact paths to coverage/ and coverage/lcov.info', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const upload = ci.slice(ci.indexOf('Upload coverage report'));
+    expect(upload).toMatch(/path:\s*\|\s*\n\s*coverage\/\s*\n\s*coverage\/lcov\.info/);
+  });
+
+  it('pins node-version 20 on every setup-node step in CI and deploy', () => {
+    for (const rel of ['.github/workflows/ci.yml', '.github/workflows/deploy.yml']) {
+      const body = read(rel);
+      const versions = [...body.matchAll(/node-version:\s*"(\d+)"/g)].map((m) => m[1]);
+      expect(versions.length).toBeGreaterThanOrEqual(1);
+      expect(versions.every((v) => v === '20')).toBe(true);
+    }
+  });
+
+  it('locks Dependabot manifest version to 2', () => {
+    expect(read('.github/dependabot.yml')).toMatch(/^version:\s*2\s*$/m);
+  });
+
+  it('locks hygiene job to exactly two named steps', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const hygiene = ci.slice(ci.indexOf('name: Hygiene'));
+    const steps = [...hygiene.matchAll(/^\s+- name:\s*(.+)$/gm)].map((m) => m[1]);
+    expect(steps).toEqual([
+      'Check required files',
+      'Check for committed secret material',
+    ]);
+  });
+
+  it('locks tsconfig module ESNext and resolveJsonModule true', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: { module: string; resolveJsonModule: boolean; strict: boolean };
+    };
+    expect(ts.compilerOptions.module).toBe('ESNext');
+    expect(ts.compilerOptions.resolveJsonModule).toBe(true);
+    expect(ts.compilerOptions.strict).toBe(true);
+  });
+
+  it('locks vitest coverage reporters to text, text-summary, html, lcov', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(
+      /reporter:\s*\['text',\s*'text-summary',\s*'html',\s*'lcov'\]/,
+    );
+  });
+
+  it('locks deploy job name Deploy and runs-on ubuntu-latest', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/name:\s*Deploy/);
+    expect(deploy).toMatch(/runs-on:\s*ubuntu-latest/);
+    expect(deploy).toMatch(/secrets:\s*\|\s*\n\s*GEMINI_API_KEY/);
+  });
+
+  it('keeps ISSUE_TEMPLATE filenames exactly bug/feature/chore/config', () => {
+    const names = readdirSync(join(root, '.github/ISSUE_TEMPLATE')).sort();
+    expect(names).toEqual(['bug.yml', 'chore.yml', 'config.yml', 'feature.yml']);
+  });
+
+  it('locks CI Assert coverage artifacts greps SF:src/ in lcov', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/grep -q 'SF:src\/' coverage\/lcov\.info/);
+    expect(ci).toMatch(/test -s coverage\/lcov\.info/);
+    expect(ci).toMatch(/test -d coverage/);
+  });
 });
 

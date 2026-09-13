@@ -733,5 +733,121 @@ describe('source ↔ product contracts', () => {
     // EXTINF start, after http push, and non-http non-comment branch
     expect(resets.length).toBe(3);
   });
+
+  it('gates stream push on current.name && !seen.has(line)', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/if \(current\.name && !seen\.has\(line\)\)/);
+  });
+
+  it('locks non-http non-comment reset branch condition', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/else if \(line && !line\.startsWith\('#'\)\)/);
+  });
+
+  it('types the in-progress entry as Partial<Station>', () => {
+    expect(read('src/parser.ts')).toMatch(/let current: Partial<Station> = \{\}/);
+  });
+
+  it('does not default-export parser, genres, mcp, or index modules', () => {
+    expect(read('src/parser.ts')).not.toMatch(/export default/);
+    expect(read('src/genres.ts')).not.toMatch(/export default/);
+    expect(read('src/mcp.ts')).not.toMatch(/export default/);
+    // Worker entry is the Hono app default export — lock that exception
+    expect(read('src/index.ts')).toMatch(/export default app/);
+  });
+
+  it('locks Station push object field order name/url/logo/group/language/country', () => {
+    const parser = read('src/parser.ts');
+    const pushBlock = parser.slice(parser.indexOf('stations.push({'), parser.indexOf('});', parser.indexOf('stations.push({')) + 2);
+    expect(pushBlock).toMatch(/name:\s*current\.name/);
+    expect(pushBlock).toMatch(/url:\s*line/);
+    expect(pushBlock).toMatch(/logo:\s*current\.logo/);
+    expect(pushBlock).toMatch(/group:\s*current\.group/);
+    expect(pushBlock).toMatch(/language:\s*current\.language/);
+    expect(pushBlock).toMatch(/country:\s*current\.country/);
+    const nameIdx = pushBlock.indexOf('name:');
+    const urlIdx = pushBlock.indexOf('url:');
+    const logoIdx = pushBlock.indexOf('logo:');
+    const groupIdx = pushBlock.indexOf('group:');
+    const langIdx = pushBlock.indexOf('language:');
+    const countryIdx = pushBlock.indexOf('country:');
+    expect(nameIdx).toBeLessThan(urlIdx);
+    expect(urlIdx).toBeLessThan(logoIdx);
+    expect(logoIdx).toBeLessThan(groupIdx);
+    expect(groupIdx).toBeLessThan(langIdx);
+    expect(langIdx).toBeLessThan(countryIdx);
+  });
+
+  it('locks VALID_GENRES as a const array and ValidGenre derived type', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/export const VALID_GENRES = \[/);
+    expect(genres).toMatch(/\] as const/);
+    expect(genres).toMatch(
+      /export type ValidGenre = \(typeof VALID_GENRES\)\[number\]/,
+    );
+  });
+
+  it('locks MCP_MANIFEST.tools length at exactly 4 in source', () => {
+    const mcp = read('src/mcp.ts');
+    expect((mcp.match(/name:\s*"/g) ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(mcp).toContain('station_select');
+    expect(mcp).toContain('now_playing');
+    expect(mcp).toContain('genre_filter');
+    expect(mcp).toContain('curator_prompt');
+    expect((mcp.match(/^\s+name:\s*"/gm) ?? []).length).toBe(4);
+  });
+
+  it('locks IPTV_BASE as a module-local const (not exported)', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(
+      /const IPTV_BASE = 'https:\/\/iptv-org\.github\.io\/iptv\/categories'/,
+    );
+    expect(index).not.toMatch(/export.*IPTV_BASE/);
+  });
+
+  it('imports cors from hono/cors and applies via app.use', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/import \{ cors \} from 'hono\/cors'/);
+    expect(index).toMatch(/app\.use\('\*', cors\(\)\)/);
+  });
+
+  it('locks Gemini generationConfig maxOutputTokens 512 and temperature 0.7', () => {
+    expect(read('src/index.ts')).toMatch(
+      /generationConfig:\s*\{\s*maxOutputTokens:\s*512,\s*temperature:\s*0\.7\s*\}/,
+    );
+  });
+
+  it('locks catalog prompt slice(0, 50) and degrade slice(0, 5)', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/stations\s*\n?\s*\.slice\(0,\s*50\)/);
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it('locks resolveGenre falsy default return music and unknown fallback music', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/if \(!input\) return 'music'/);
+    expect(genres).toMatch(
+      /return map\[lower\] \?\? \(VALID_GENRES\.includes\(lower as ValidGenre\) \? lower : 'music'\)/,
+    );
+  });
+
+  it('locks cacheKey template stations:${genre}', () => {
+    expect(read('src/index.ts')).toContain('stations:${genre}');
+  });
+
+  it('keeps parseM3U as a pure synchronous function (no async/await)', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/export function parseM3U\(raw: string\): Station\[\]/);
+    expect(parser).not.toMatch(/async|await|Promise/);
+  });
+
+  it('locks Worker root endpoints object keys exactly', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/'\/curate':/);
+    expect(index).toMatch(/'\/stations':/);
+    expect(index).toMatch(/'\/genres':/);
+    expect(index).toMatch(/'\/health':/);
+    expect(index).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
 });
 

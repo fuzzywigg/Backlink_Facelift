@@ -560,5 +560,44 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(items).not.toContain('editorial');
     expect(items).not.toContain('logo');
   });
+
+  it('documents exactly three claw-mcp tools under ## Tools', () => {
+    const toolsSection = spec.slice(spec.indexOf('## Tools'), spec.indexOf('## Integration Notes'));
+    const headings = [...toolsSection.matchAll(/^### `([^`]+)`/gm)].map((m) => m[1]);
+    expect(headings).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+
+  it('documents curated_by as a string property on curate output', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"curated_by":\s*\{\s*"type":\s*"string"\s*\}/);
+  });
+
+  it('documents timestamp format date-time on curate output', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"timestamp":\s*\{\s*"type":\s*"string",\s*"format":\s*"date-time"\s*\}/);
+  });
+
+  it('keeps additionalProperties false on curate and genres input schemas', () => {
+    expect(spec.match(/"additionalProperties":\s*false/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not document GEMINI_API_KEY or secret material in the MCP spec', () => {
+    expect(spec).not.toMatch(/GEMINI_API_KEY|api[_-]?key\s*=/i);
+  });
+
+  it('cross-locks docs tool count (3) against VALID_GENRES existence', () => {
+    expect(VALID_GENRES.length).toBeGreaterThan(0);
+    expect(Object.keys(GENRE_MAP).length).toBeGreaterThan(VALID_GENRES.length);
+    expect(spec).toContain('backlink_curate');
+    expect(spec).toContain('backlink_genres');
+    expect(spec).toContain('backlink_now_playing');
+    expect(spec).not.toContain('backlink_station_select');
+  });
 });
 

@@ -347,5 +347,44 @@ describe('wrangler.toml contracts', () => {
     const headers = [...toml.matchAll(/^\[+([^\]]+)\]+/gm)].map((m) => m[1]);
     expect(headers).toEqual(['kv_namespaces', 'routes', 'vars']);
   });
+
+  it('locks exact wrangler.toml top-level name/main/compatibility_date block', () => {
+    expect(toml).toMatch(
+      /^name = "backlink"\nmain = "src\/index\.ts"\ncompatibility_date = "2025-01-01"\n/m,
+    );
+  });
+
+  it('does not declare node_compat, compatibility_flags, or minify', () => {
+    expect(toml).not.toMatch(/node_compat\s*=/);
+    expect(toml).not.toMatch(/compatibility_flags\s*=/);
+    expect(toml).not.toMatch(/minify\s*=/);
+  });
+
+  it('does not declare env-specific tables like env.production', () => {
+    expect(toml).not.toMatch(/\[env\./);
+    expect(toml).not.toMatch(/\[\[env\./);
+  });
+
+  it('keeps custom_domain as bare true boolean (not quoted string)', () => {
+    expect(toml).toMatch(/custom_domain\s*=\s*true\b/);
+    expect(toml).not.toMatch(/custom_domain\s*=\s*"true"/);
+  });
+
+  it('locks CATALOG_CACHE binding spelling and KV id hex length 32', () => {
+    expect(toml).toMatch(/binding\s*=\s*"CATALOG_CACHE"/);
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toHaveLength(32);
+    expect(id).toBe('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it('does not embed plaintext secret assignments of any kind', () => {
+    expect(toml).not.toMatch(/^\s*[A-Z0-9_]*(SECRET|TOKEN|PASSWORD|KEY)\s*=\s*"[^"]+"/im);
+  });
+
+  it('keeps file free of trailing spaces on non-empty lines', () => {
+    for (const line of toml.split('\n')) {
+      if (line.length > 0) expect(line).not.toMatch(/\s$/);
+    }
+  });
 });
 

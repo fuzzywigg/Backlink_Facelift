@@ -5003,5 +5003,110 @@ https://example.com/nolang.m3u8
     expect(await json(res)).toMatchObject({ genre: 'jazz', count: 0, stations: [] });
     expect(kv.put).toHaveBeenCalledWith('stations:jazz', '[]', { expirationTtl: 3600 });
   });
+
+  it('locks / health content-type to application/json', async () => {
+    const res = await app.request('/health', undefined, testEnv());
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('returns /genres genres array equal to VALID_GENRES spread copy', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(body.genres).toEqual([...VALID_GENRES]);
+    expect(body.genres).not.toBe(VALID_GENRES);
+  });
+
+  it('maps blues alias to jazz catalog URL on /stations', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.includes('iptv-org')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=blues', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).genre).toBe('jazz');
+    expect(seen[0]).toBe('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+  });
+
+  it('uses stations:ambient cache key for lofi alias on /stations', async () => {
+    const kv = mockKV(
+      seedStationsCache('ambient', [{ name: 'A', url: 'https://example.com/a.m3u8' }]),
+    );
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=lofi', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect((await json(res)).genre).toBe('ambient');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(kv.get).toHaveBeenCalledWith('stations:ambient');
+  });
+
+  it('locks /curate curated_by and omits powered_by', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+        ),
+      }),
+    );
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.curated_by).toBe('Backlink/Geryon');
+    expect(body).not.toHaveProperty('powered_by');
+  });
+
+  it('degrades to fewer than 5 when catalog has only 2 stations', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        m3u: buildSimpleM3U([
+          { name: 'A', url: 'https://example.com/a.m3u8' },
+          { name: 'B', url: 'https://example.com/b.m3u8' },
+        ]),
+        gemini: () => new Response('boom', { status: 500 }),
+      }),
+    );
+    const res = await app.request(
+      '/curate?genre=music',
+      undefined,
+      testEnv({ GEMINI_API_KEY: 'k' }),
+    );
+    expect(res.status).toBe(200);
+    const stations = (await json(res)).stations as unknown[];
+    expect(stations).toHaveLength(2);
+  });
+
+  it('returns 404 for unknown paths without throwing', async () => {
+    const res = await app.request('/nope', undefined, testEnv());
+    expect(res.status).toBe(404);
+  });
+
+  it('locks root endpoint descriptions as exact strings', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    const endpoints = body.endpoints as Record<string, string>;
+    expect(endpoints).toEqual({
+      '/curate': 'GET ?genre=&mood= — AI-curated station picks',
+      '/stations': 'GET ?genre= — Raw station list',
+      '/genres': 'GET — Available genre categories',
+      '/health': 'GET — Health check',
+    });
+  });
+
+  it('does not call Gemini when /curate has no API key even if catalog fetch would succeed', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse('[]'),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/curate?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(captureGeminiRequest(fetchMock)).toBeNull();
+    expect(fetchMock.mock.calls.some((c) => String(c[0]).includes('iptv-org'))).toBe(false);
+  });
 });
 
