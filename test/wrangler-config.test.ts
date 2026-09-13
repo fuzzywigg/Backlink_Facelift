@@ -1008,4 +1008,156 @@ VERSION = "0.1.0"
     expect(types).toContain('CATALOG_CACHE: KVNamespace');
   });
 
+
+  // --- HEAVY burn (post-#46): helpers/CI/wrangler/source/mcp-spec deepen ---
+  it('locks exact wrangler.toml content structure for lean Worker config', () => {
+    const lines = toml.split('\n');
+    expect(lines[0]).toBe('name = "backlink"');
+    expect(lines[1]).toBe('main = "src/index.ts"');
+    expect(lines[2]).toBe('compatibility_date = "2025-01-01"');
+    expect(lines[3]).toBe('');
+    expect(lines[4]).toBe('[[kv_namespaces]]');
+  });
+
+  it('locks KV id hex to edb6ca4df12f4f45b40508b3dda3c432 exactly', () => {
+    expect(toml).toContain('id = "edb6ca4df12f4f45b40508b3dda3c432"');
+  });
+
+  it('does not declare account_id or zone_id top-level keys', () => {
+    expect(toml).not.toMatch(/^\s*account_id\s*=/m);
+    expect(toml).not.toMatch(/^\s*zone_id\s*=/m);
+  });
+
+  it('does not declare node_compat or python_modules', () => {
+    expect(toml).not.toMatch(/node_compat|python_modules/);
+  });
+
+  it('does not declare [dev] or local_protocol overrides', () => {
+    expect(toml).not.toMatch(/^\[dev\]/m);
+    expect(toml).not.toMatch(/local_protocol/);
+  });
+
+  it('does not declare [[services]] or service bindings', () => {
+    expect(toml).not.toMatch(/\[\[services\]\]/);
+    expect(toml).not.toMatch(/service\s*=/);
+  });
+
+  it('does not declare pipelines or workflows bindings', () => {
+    expect(toml).not.toMatch(/pipelines|workflows/i);
+  });
+
+  it('Secrets comment block sits after [vars] VERSION', () => {
+    const varsIdx = toml.indexOf('[vars]');
+    const secretsIdx = toml.indexOf('# Secrets');
+    const versionIdx = toml.indexOf('VERSION = "0.1.0"');
+    expect(varsIdx).toBeGreaterThan(-1);
+    expect(versionIdx).toBeGreaterThan(varsIdx);
+    expect(secretsIdx).toBeGreaterThan(versionIdx);
+  });
+
+  it('does not embed iptv-org or gemini URLs in wrangler.toml', () => {
+    expect(toml).not.toMatch(/iptv-org|generativelanguage|googleapis/i);
+  });
+
+  it('custom domain pattern has no scheme or path', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:\/\//);
+    expect(toml).not.toMatch(/pattern\s*=\s*".*\/"/);
+  });
+
+  it('does not set usage_model or limits', () => {
+    expect(toml).not.toMatch(/usage_model|cpu_ms|subrequests/);
+  });
+
+  it('does not declare [[durable_objects.bindings]]', () => {
+    expect(toml).not.toMatch(/durable_objects/);
+  });
+
+  it('does not declare kv_namespaces preview_id', () => {
+    expect(toml).not.toMatch(/preview_id/);
+  });
+
+  it('file uses double quotes exclusively for string values', () => {
+    expect(toml).not.toMatch(/=\s*'/);
+  });
+
+  it('does not contain BOM or non-ASCII in config body', () => {
+    expect(toml.charCodeAt(0)).not.toBe(0xfeff);
+    expect([...toml].every((ch) => ch === '\n' || ch.charCodeAt(0) < 128)).toBe(true);
+  });
+
+  it('VERSION string matches package.json version and types optional VERSION', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+      version: string;
+    };
+    const types = readFileSync(join(root, 'src/types.ts'), 'utf8');
+    expect(toml).toContain(`VERSION = "${pkg.version}"`);
+    expect(types).toMatch(/VERSION\?:\s*string/);
+  });
+
+  it('does not declare define or alias bundler overrides', () => {
+    expect(toml).not.toMatch(/^\s*define\s*=/m);
+    expect(toml).not.toMatch(/^\s*alias\s*=/m);
+  });
+
+  it('routes custom_domain true appears only once', () => {
+    expect((toml.match(/custom_domain\s*=\s*true/g) ?? []).length).toBe(1);
+  });
+
+  it('kv binding CATALOG_CACHE appears only once', () => {
+    expect((toml.match(/CATALOG_CACHE/g) ?? []).length).toBe(1);
+  });
+
+  it('does not declare [triggers] crons', () => {
+    expect(toml).not.toMatch(/\[triggers\]|\bcrons\b/);
+  });
+
+  it('does not declare logpush or tail consumers', () => {
+    expect(toml).not.toMatch(/logpush|tail_consumers/i);
+  });
+
+  it('compatibility_date precedes kv_namespaces table', () => {
+    expect(toml.indexOf('compatibility_date')).toBeLessThan(toml.indexOf('[[kv_namespaces]]'));
+  });
+
+  it('kv_namespaces precedes routes table', () => {
+    expect(toml.indexOf('[[kv_namespaces]]')).toBeLessThan(toml.indexOf('[[routes]]'));
+  });
+
+  it('routes precedes vars table', () => {
+    expect(toml.indexOf('[[routes]]')).toBeLessThan(toml.indexOf('[vars]'));
+  });
+
+  it('does not set workers_dev true or false', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+  });
+
+  it('secret put comment is not an executable assignment', () => {
+    expect(toml).toMatch(/#\s*wrangler secret put GEMINI_API_KEY/);
+    expect(toml).not.toMatch(/^wrangler secret put/m);
+  });
+
+  it('does not declare [[r2_buckets]] or [[d1_databases]]', () => {
+    expect(toml).not.toMatch(/\[\[r2_buckets\]\]|\[\[d1_databases\]\]/);
+  });
+
+  it('does not declare [[vectorize]] or [ai]', () => {
+    expect(toml).not.toMatch(/\[\[vectorize\]\]|^\s*\[ai\]/m);
+  });
+
+  it('name main compatibility_date use spaces around equals', () => {
+    expect(toml).toMatch(/^name = "/m);
+    expect(toml).toMatch(/^main = "/m);
+    expect(toml).toMatch(/^compatibility_date = "/m);
+  });
+
+  it('does not embed GEMINI or API key substrings outside secret put comment', () => {
+    const withoutComments = toml
+      .split('\n')
+      .filter((l) => !l.trimStart().startsWith('#'))
+      .join('\n');
+    expect(withoutComments).not.toMatch(/GEMINI|API_KEY|apiKey/i);
+  });
+
+
 });
