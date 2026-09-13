@@ -91,6 +91,7 @@ jobs:
         run: |
           test -f README.md
           test -f AGENTS.md
+          test -f DEPLOY.md
           test -f package.json
           test -f package-lock.json
           test -f wrangler.toml

@@ -798,5 +798,33 @@ describe('CI / package test wiring', () => {
     expect(vitest).toMatch(/exclude:\s*\[['"]src\/types\.ts['"]\]/);
     expect(vitest).toMatch(/include:\s*\[['"]src\/\*\*\/\*\.ts['"]\]/);
   });
+
+  it('hygiene requires DEPLOY.md alongside README and AGENTS', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f DEPLOY\.md/);
+    expect(ci).toMatch(/test -f README\.md/);
+    expect(ci).toMatch(/test -f AGENTS\.md/);
+  });
+
+  it('pins exact CI and deploy job timeouts', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(ci).toMatch(/name:\s*Typecheck[\s\S]*?timeout-minutes:\s*10/);
+    expect(ci).toMatch(/name:\s*Tests[\s\S]*?timeout-minutes:\s*15/);
+    expect(ci).toMatch(/name:\s*Hygiene[\s\S]*?timeout-minutes:\s*5/);
+    expect(deploy).toMatch(/timeout-minutes:\s*20/);
+  });
+
+  it('pins Dependabot open-pull-requests limits to npm 3 and github-actions 2', () => {
+    const dep = read('.github/dependabot.yml');
+    const npmBlock = dep.match(
+      /package-ecosystem:\s*"npm"[\s\S]*?open-pull-requests-limit:\s*(\d+)/,
+    );
+    const actionsBlock = dep.match(
+      /package-ecosystem:\s*"github-actions"[\s\S]*?open-pull-requests-limit:\s*(\d+)/,
+    );
+    expect(npmBlock?.[1]).toBe('3');
+    expect(actionsBlock?.[1]).toBe('2');
+  });
 });
 

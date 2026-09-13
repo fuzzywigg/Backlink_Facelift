@@ -558,4 +558,33 @@ https://example.com/a.m3u8
     const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{ name: string }>;
     expect(picks[0].name).toBe('Alpha FM');
   });
+
+  it('stubIptvAndGemini serves per-genre bodies via iptvByGenre', async () => {
+    const jazz = buildSimpleM3U([{ name: 'Jazz Only', url: 'https://example.com/jazz-only.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz, music: null },
+      iptvStatus: 502,
+      m3u: SAMPLE_M3U,
+    }) as unknown as (input: string) => Promise<Response>;
+
+    const jazzRes = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(jazzRes.status).toBe(200);
+    expect(await jazzRes.text()).toContain('Jazz Only');
+
+    const musicRes = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(musicRes.status).toBe(502);
+
+    // Unlisted genres still use the default m3u body
+    const rockRes = await fetchMock('https://iptv-org.github.io/iptv/categories/rock.m3u');
+    expect(rockRes.status).toBe(200);
+    expect(await rockRes.text()).toContain('Alpha FM');
+  });
+
+  it('stubIptvAndGemini iptvByGenre null falls back to iptvStatus default 503', async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { ambient: null },
+    }) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/ambient.m3u');
+    expect(res.status).toBe(503);
+  });
 });

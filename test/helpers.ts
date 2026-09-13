@@ -49,6 +49,8 @@ export function geminiTextResponse(text: string): Response {
 
 export function stubIptvAndGemini(opts: {
   m3u?: string | null;
+  /** Per-category M3U bodies keyed by iptv-org slug (e.g. jazz, music). */
+  iptvByGenre?: Record<string, string | null>;
   gemini?: Response | (() => Response);
   iptvStatus?: number;
 }): ReturnType<typeof vi.fn> {
@@ -56,6 +58,13 @@ export function stubIptvAndGemini(opts: {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes('iptv-org')) {
+      const genreMatch = url.match(/\/categories\/([^/.]+)\.m3u/);
+      const genre = genreMatch?.[1];
+      if (genre && opts.iptvByGenre && Object.prototype.hasOwnProperty.call(opts.iptvByGenre, genre)) {
+        const body = opts.iptvByGenre[genre];
+        if (body === null) return new Response('down', { status: opts.iptvStatus ?? 503 });
+        return new Response(body, { status: 200 });
+      }
       if (m3u === null) return new Response('down', { status: opts.iptvStatus ?? 503 });
       return new Response(m3u, { status: 200 });
     }
