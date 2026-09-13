@@ -1434,5 +1434,67 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/test -f test\/wrangler-config\.test\.ts/);
     expect(ci).toMatch(/test -f test\/ci-config\.test\.ts/);
   });
+
+  it('hygiene requires test/parser.test.ts and src/parser.ts', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f test\/parser\.test\.ts/);
+    expect(ci).toMatch(/test -f src\/parser\.ts/);
+  });
+
+  it('hygiene requires source-contracts and helpers suites', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f test\/source-contracts\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/helpers\.test\.ts/);
+  });
+
+  it('vitest coverage include covers src/**/*.ts including parser', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/include:\s*\['src\/\*\*\/\*\.ts'\]/);
+    expect(vitest).toMatch(/exclude:\s*\['src\/types\.ts'\]/);
+  });
+
+  it('package.json test script is vitest run (not watch)', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:watch']).toBe('vitest');
+  });
+
+  it('CI Assert coverage artifacts greps SF:src/ in lcov', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("grep -q 'SF:src/' coverage/lcov.info");
+    expect(ci).toContain('test -s coverage/lcov.info');
+  });
+
+  it('hygiene bans Anthropic strings under src and workflows', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/! grep -RqiE 'anthropic\|claude\|haiku' src/);
+    expect(ci).toMatch(/! grep -RqiE 'anthropic\|claude\|haiku' \.github\/workflows/);
+  });
+
+  it('hygiene requires gemini-2.0-flash pin in src/index.ts', () => {
+    expect(read('.github/workflows/ci.yml')).toContain("grep -q 'gemini-2.0-flash' src/index.ts");
+  });
+
+  it('hygiene forbids GEMINI_API_KEY= assignment in wrangler.toml', () => {
+    expect(read('.github/workflows/ci.yml')).toContain("! grep -q 'GEMINI_API_KEY=' wrangler.toml");
+  });
+
+  it('lists parser.test.ts among expanded contract suites', () => {
+    expect(read('test/parser.test.ts').length).toBeGreaterThan(1000);
+    expect(read('test/parser.test.ts')).toContain("describe('parseM3U'");
+  });
+
+  it('keeps TypeScript module type as module in package.json', () => {
+    const pkg = JSON.parse(read('package.json')) as { type: string };
+    expect(pkg.type).toBe('module');
+  });
+
+  it('locks vitest coverage reporters to include text-summary and html', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/'text'/);
+    expect(vitest).toMatch(/'text-summary'/);
+    expect(vitest).toMatch(/'html'/);
+    expect(vitest).toMatch(/'lcov'/);
+  });
 });
 

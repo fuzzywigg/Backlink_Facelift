@@ -557,5 +557,56 @@ VERSION = "0.1.0"
   it('CATALOG_CACHE binding appears exactly once', () => {
     expect((toml.match(/CATALOG_CACHE/g) ?? []).length).toBe(1);
   });
+
+  it('does not declare node_compat or compatibility_flags', () => {
+    expect(toml).not.toMatch(/node_compat/i);
+    expect(toml).not.toMatch(/compatibility_flags/i);
+  });
+
+  it('does not declare minify, no_bundle, or tsconfig overrides', () => {
+    expect(toml).not.toMatch(/^\s*minify\s*=/m);
+    expect(toml).not.toMatch(/no_bundle/i);
+    expect(toml).not.toMatch(/^\s*tsconfig\s*=/m);
+  });
+
+  it('KV namespace id matches the known production hex lock', () => {
+    expect(toml).toMatch(/id\s*=\s*"edb6ca4df12f4f45b40508b3dda3c432"/);
+  });
+
+  it('section order is kv_namespaces then routes then vars', () => {
+    const kv = toml.indexOf('[[kv_namespaces]]');
+    const routes = toml.indexOf('[[routes]]');
+    const vars = toml.indexOf('[vars]');
+    expect(kv).toBeGreaterThan(-1);
+    expect(routes).toBeGreaterThan(kv);
+    expect(vars).toBeGreaterThan(routes);
+  });
+
+  it('top-level keys appear before first table header', () => {
+    const firstTable = Math.min(
+      toml.indexOf('[[kv_namespaces]]'),
+      toml.indexOf('[[routes]]'),
+      toml.indexOf('[vars]'),
+    );
+    const head = toml.slice(0, firstTable);
+    expect(head).toMatch(/name\s*=/);
+    expect(head).toMatch(/main\s*=/);
+    expect(head).toMatch(/compatibility_date\s*=/);
+  });
+
+  it('does not declare workers_dev true/false explicitly', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+  });
+
+  it('secret put comment names GEMINI_API_KEY exactly once', () => {
+    expect((toml.match(/GEMINI_API_KEY/g) ?? []).length).toBe(1);
+    expect(toml).toContain('wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('does not embed Cloudflare account or zone identifiers', () => {
+    expect(toml).not.toMatch(/zone_id\s*=/i);
+    expect(toml).not.toMatch(/account_id\s*=/i);
+    expect(toml).not.toMatch(/route_id\s*=/i);
+  });
 });
 
