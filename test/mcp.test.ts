@@ -1254,4 +1254,156 @@ describe('MCP_MANIFEST', () => {
     const raw = JSON.stringify(MCP_MANIFEST);
     expect(raw).not.toMatch(/"x-/);
   });
+  it('keeps top-level MCP_MANIFEST key order stable', () => {
+    expect(Object.keys(MCP_MANIFEST)).toEqual([
+      'schema_version',
+      'name_for_model',
+      'name_for_human',
+      'description_for_model',
+      'description_for_human',
+      'auth',
+      'api',
+      'tools',
+    ]);
+  });
+  it('keeps every tool top-level key order name→description→input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.keys(tool)).toEqual(['name', 'description', 'input_schema']);
+    }
+  });
+  it('keeps every input_schema type object with properties key present', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema.type).toBe('object');
+      expect(tool.input_schema).toHaveProperty('properties');
+    }
+  });
+  it('does not declare parameters, arguments, or $schema on tools', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('parameters');
+      expect(tool).not.toHaveProperty('arguments');
+      expect(tool).not.toHaveProperty('$schema');
+      expect(tool.input_schema).not.toHaveProperty('$schema');
+    }
+  });
+  it('does not declare examples, default, or enum on any property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(prop).not.toHaveProperty('examples');
+        expect(prop).not.toHaveProperty('default');
+        expect(prop).not.toHaveProperty('enum');
+        expect(prop).not.toHaveProperty('minLength');
+        expect(prop).not.toHaveProperty('maxLength');
+        expect(prop).not.toHaveProperty('pattern');
+      }
+    }
+  });
+  it('locks station_select description exact string', () => {
+    expect(toolNamed('station_select').description).toBe(
+      'Set the currently playing station by name.',
+    );
+  });
+  it('locks now_playing description exact string', () => {
+    expect(toolNamed('now_playing').description).toBe(
+      'Get the currently playing station including name, genre, stream URL, and country.',
+    );
+  });
+  it('locks genre_filter description exact string', () => {
+    expect(toolNamed('genre_filter').description).toBe(
+      'Return a list of stations filtered by genre keyword (e.g. jazz, news, classical).',
+    );
+  });
+  it('locks curator_prompt description exact string', () => {
+    expect(toolNamed('curator_prompt').description).toBe(
+      'Ask the AI curator to pick and set the best station for a given mood or context.',
+    );
+  });
+  it('locks station_name property description exact string', () => {
+    expect(toolNamed('station_select').input_schema.properties.station_name!.description).toBe(
+      'Partial or full name of the station to select.',
+    );
+  });
+  it('locks genre_filter genre property description exact string', () => {
+    expect(toolNamed('genre_filter').input_schema.properties.genre!.description).toBe(
+      'Genre keyword to filter by.',
+    );
+  });
+  it('locks curator_prompt genre property description exact string', () => {
+    expect(toolNamed('curator_prompt').input_schema.properties.genre!.description).toBe(
+      'Optional genre to constrain the selection.',
+    );
+  });
+  it('locks curator_prompt mood property description exact string', () => {
+    expect(toolNamed('curator_prompt').input_schema.properties.mood!.description).toBe(
+      'Describe the mood, activity, or vibe (e.g. focus work, late night jazz, morning energy).',
+    );
+  });
+  it('keeps description_for_model mentioning Select/filter/now-playing/curator verbs', () => {
+    const d = MCP_MANIFEST.description_for_model;
+    expect(d).toMatch(/Select stations/);
+    expect(d).toMatch(/filter by genre/);
+    expect(d).toMatch(/now-playing/);
+    expect(d).toMatch(/AI curator/);
+  });
+  it('keeps description_for_human exact string', () => {
+    expect(MCP_MANIFEST.description_for_human).toBe(
+      'AI-curated live radio from the iptv-org catalog.',
+    );
+  });
+  it('JSON round-trips MCP_MANIFEST without mutation', () => {
+    expect(JSON.parse(JSON.stringify(MCP_MANIFEST))).toEqual(MCP_MANIFEST);
+  });
+  it('keeps tools array frozen-length and non-sparse', () => {
+    expect(MCP_MANIFEST.tools.length).toBe(4);
+    expect(MCP_MANIFEST.tools.every((t) => t != null)).toBe(true);
+  });
+  it('does not declare additionalProperties on any input_schema', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema).not.toHaveProperty('additionalProperties');
+    }
+  });
+  it('required arrays are exclusive to tools that declare them', () => {
+    expect(toolNamed('station_select').input_schema).toHaveProperty('required');
+    expect(toolNamed('genre_filter').input_schema).toHaveProperty('required');
+    expect(toolNamed('curator_prompt').input_schema).toHaveProperty('required');
+    expect(toolNamed('now_playing').input_schema).not.toHaveProperty('required');
+  });
+  it('keeps curator_prompt properties key order mood then genre', () => {
+    expect(Object.keys(toolNamed('curator_prompt').input_schema.properties)).toEqual([
+      'mood',
+      'genre',
+    ]);
+  });
+  it('keeps genre_filter properties key order exactly genre', () => {
+    expect(Object.keys(toolNamed('genre_filter').input_schema.properties)).toEqual(['genre']);
+  });
+  it('auth.type is none and api.url is root-relative openapi', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+  });
+  it('name_for_model is lowercase backlink without spaces', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_model).toMatch(/^[a-z0-9_]+$/);
+  });
+  it('name_for_human includes Radio title case', () => {
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+  it('tool names use snake_case only', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).toMatch(/^[a-z]+(_[a-z]+)*$/);
+    }
+  });
+  it('does not embed http URLs in tool descriptions', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toMatch(/https?:\/\//i);
+    }
+  });
+  it('structuredClone of MCP_MANIFEST equals original', () => {
+    expect(structuredClone(MCP_MANIFEST)).toEqual(MCP_MANIFEST);
+  });
+  it('keeps schema_version exactly v1 not 1.0', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+    expect(MCP_MANIFEST.schema_version).not.toBe('1.0');
+    expect(MCP_MANIFEST.schema_version).not.toBe('v1.0');
+  });
 });

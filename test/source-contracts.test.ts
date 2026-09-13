@@ -1016,4 +1016,85 @@ describe('source ↔ product contracts', () => {
     expect(mcp).toMatch(/name_for_model:\s*"backlink"/);
     expect(mcp).toMatch(/name_for_human:\s*"Backlink Radio"/);
   });
+  it('locks GENRE_MAP export and VALID_GENRES as const', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/export const GENRE_MAP/);
+    expect(genres).toMatch(/export const VALID_GENRES = \[[\s\S]*\] as const/);
+  });
+  it('locks resolveGenre signature with optional input and default map', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toMatch(/export function resolveGenre\(/);
+    expect(genres).toMatch(/input\?: string/);
+    expect(genres).toMatch(/map: Record<string, string> = GENRE_MAP/);
+  });
+  it('locks ValidGenre type derived from VALID_GENRES', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /export type ValidGenre = \(typeof VALID_GENRES\)\[number\];/,
+    );
+  });
+  it('locks MCP_MANIFEST export as const object in mcp.ts', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/export const MCP_MANIFEST = \{/);
+    expect([...mcp.matchAll(/^export /gm)]).toHaveLength(1);
+  });
+  it('locks callGemini generationConfig maxOutputTokens 512 temperature 0.7', () => {
+    expect(read('src/index.ts')).toMatch(
+      /generationConfig:\s*\{\s*maxOutputTokens:\s*512,\s*temperature:\s*0\.7\s*\}/,
+    );
+  });
+  it('locks Gemini model path gemini-2.0-flash:generateContent', () => {
+    expect(read('src/index.ts')).toMatch(
+      /models\/gemini-2\.0-flash:generateContent\?key=/,
+    );
+  });
+  it('locks stationList slice(0, 50) before prompt join', () => {
+    expect(read('src/index.ts')).toMatch(/stations\s*\n?\s*\.slice\(0,\s*50\)/);
+  });
+  it('locks curated_by Backlink/Geryon literal', () => {
+    expect(read('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+  });
+  it('locks powered_by Backlink/Geryon crab emoji', () => {
+    expect(read('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
+  it('locks root endpoints object keys exactly four paths', () => {
+    const index = read('src/index.ts');
+    const block = index.slice(index.indexOf('endpoints:'), index.indexOf('powered_by'));
+    const keys = [...block.matchAll(/'(\/[^']+)':/g)].map((m) => m[1]);
+    expect(keys).toEqual(['/curate', '/stations', '/genres', '/health']);
+  });
+  it('locks music.m3u fallback URL construction', () => {
+    expect(read('src/index.ts')).toMatch(/\$\{IPTV_BASE\}\/music\.m3u/);
+  });
+  it('imports GENRE_MAP VALID_GENRES resolveGenre from ./genres', () => {
+    expect(read('src/index.ts')).toMatch(
+      /import \{\s*GENRE_MAP,\s*VALID_GENRES,\s*resolveGenre\s*\} from '\.\/genres';/,
+    );
+  });
+  it('imports parseM3U and Station from ./parser', () => {
+    expect(read('src/index.ts')).toMatch(
+      /import \{\s*parseM3U,\s*Station\s*\} from '\.\/parser';/,
+    );
+  });
+  it('locks Hono Bindings Env generic on app', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const app = new Hono<\{\s*Bindings:\s*Env\s*\}>\(\)/,
+    );
+  });
+  it('exports default app from index.ts', () => {
+    expect(read('src/index.ts')).toMatch(/export default app;/);
+  });
+  it('locks /genres response shape genres spread + aliases GENRE_MAP', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/genres:\s*\[\.\.\.VALID_GENRES\]/);
+    expect(index).toMatch(/aliases:\s*GENRE_MAP/);
+  });
+  it('locks health ok:true version fallback 0.1.0', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/ok:\s*true/);
+    expect(index).toMatch(/version:\s*c\.env\.VERSION \?\? '0\.1\.0'/);
+  });
+  it('locks retry_after: 60 on both 503 paths', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/retry_after:\s*60/g) ?? []).length).toBe(3);
+  });
 });

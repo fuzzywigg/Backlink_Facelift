@@ -889,4 +889,112 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('does not document WebSocket or SSE transport', () => {
     expect(spec).not.toMatch(/websocket|server-sent|SSE/i);
   });
+  it('documents exactly three ### tool headings under Tools', () => {
+    const toolsSection = spec.slice(spec.indexOf('## Tools'), spec.indexOf('## Integration Notes'));
+    expect((toolsSection.match(/^### `/gm) ?? []).length).toBe(3);
+  });
+  it('locks tool heading order curate → genres → now_playing', () => {
+    const headings = [...spec.matchAll(/^### `([^`]+)`/gm)].map((m) => m[1]);
+    expect(headings).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+  it('documents now_playing as single best station / stations[0] remap', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toMatch(/stations\[0\]/);
+    expect(section).toMatch(/stream_url/);
+    expect(section).toMatch(/remapped/);
+  });
+  it('curate and now_playing share the same Endpoint path template', () => {
+    const endpoints = [...spec.matchAll(/\*\*Endpoint:\*\*\s*`([^`]+)`/g)].map((m) => m[1]);
+    expect(endpoints.filter((e) => e.startsWith('GET /curate')).length).toBe(2);
+    expect(endpoints).toContain('GET /genres');
+  });
+  it('documents curated_by and timestamp on curate Output', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toMatch(/"curated_by"/);
+    expect(section).toMatch(/"timestamp"/);
+    expect(section).toMatch(/"format": "date-time"/);
+  });
+  it('documents genres Output aliases additionalProperties type string', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(
+      /"additionalProperties":\s*\{\s*"type":\s*"string"\s*\}/,
+    );
+  });
+  it('documents genres description Canonical genre slugs', () => {
+    expect(spec).toMatch(/Canonical genre slugs accepted by \/curate and \/stations/);
+  });
+  it('documents Friendly name → canonical slug mapping', () => {
+    expect(spec).toMatch(/Friendly name → canonical slug mapping/);
+  });
+  it('does not document claw-mcp station_select tool in docs Tools', () => {
+    expect(spec).not.toMatch(/backlink_station_select/);
+    expect(spec).not.toMatch(/station_select/);
+  });
+  it('does not document genre_filter claw tool name in docs', () => {
+    expect(spec).not.toMatch(/genre_filter/);
+    expect(spec).not.toMatch(/curator_prompt/);
+  });
+  it('locks Integration Notes bullet count at 5', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    expect((notes.match(/^- /gm) ?? []).length).toBe(5);
+  });
+  it('mentions no LLM response caching for /curate', () => {
+    expect(spec).toMatch(/no LLM response caching/);
+  });
+  it('mentions No auth required for read endpoints', () => {
+    expect(spec).toMatch(/No auth required for read endpoints/);
+  });
+  it('curate input genre examples are subset of VALID_GENRES', () => {
+    const examples = ['jazz', 'classical', 'ambient', 'rock', 'pop'];
+    for (const ex of examples) {
+      expect(VALID_GENRES as readonly string[]).toContain(ex);
+    }
+  });
+  it('now_playing genre examples include GENRE_MAP late night alias', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    expect(section).toMatch(/late night/);
+    expect(GENRE_MAP['late night']).toBe('ambient');
+  });
+  it('does not use markdown tables in the spec', () => {
+    expect(spec).not.toMatch(/\|[-:]+\|/);
+  });
+  it('keeps H1 title Backlink MCP Tool Specification', () => {
+    expect(spec.split('\n')[0]).toBe('# Backlink MCP Tool Specification');
+  });
+  it('mentions claw-mcp in the intro paragraph', () => {
+    expect(spec).toMatch(/claw-mcp tool set/);
+  });
+  it('documents url format uri on curate station items', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(section).toMatch(/"url":\s*\{\s*"type":\s*"string",\s*"format":\s*"uri"\s*\}/);
+  });
+  it('documents stream_url format uri on now_playing', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    expect(section).toMatch(
+      /"stream_url":\s*\{\s*"type":\s*"string",\s*"format":\s*"uri"\s*\}/,
+    );
+  });
+  it('keeps additionalProperties false on all three Input Schemas', () => {
+    expect((spec.match(/"additionalProperties": false/g) ?? []).length).toBe(3);
+  });
+  it('does not document POST methods', () => {
+    expect(spec).not.toMatch(/\bPOST\b/);
+  });
+  it('cross-locks docs Base URL to DEPLOY custom domain', () => {
+    const deploy = readFileSync(join(root, 'DEPLOY.md'), 'utf8');
+    expect(deploy).toMatch(/backlink\.fuzzywigg\.com/);
+    expect(spec).toMatch(/https:\/\/backlink\.fuzzywigg\.com/);
+  });
 });

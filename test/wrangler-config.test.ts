@@ -557,5 +557,56 @@ VERSION = "0.1.0"
   it('CATALOG_CACHE binding appears exactly once', () => {
     expect((toml.match(/CATALOG_CACHE/g) ?? []).length).toBe(1);
   });
+  it('locks exact KV binding name CATALOG_CACHE', () => {
+    expect(toml).toMatch(/binding\s*=\s*"CATALOG_CACHE"/);
+  });
+  it('locks KV id as 32-char hex', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toBeDefined();
+    expect(id).toHaveLength(32);
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+  });
+  it('locks compatibility_date exactly 2025-01-01', () => {
+    expect(toml).toMatch(/compatibility_date\s*=\s*"2025-01-01"/);
+  });
+  it('locks main entry src/index.ts', () => {
+    expect(toml).toMatch(/main\s*=\s*"src\/index\.ts"/);
+  });
+  it('locks worker name backlink lowercase', () => {
+    expect(toml).toMatch(/^name\s*=\s*"backlink"\s*$/m);
+  });
+  it('locks routes pattern backlink.fuzzywigg.com', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+  });
+  it('does not declare compatibility_flags', () => {
+    expect(toml).not.toMatch(/compatibility_flags/);
+  });
+  it('does not declare nodejs_compat flag', () => {
+    expect(toml).not.toMatch(/nodejs_compat/);
+  });
+  it('does not declare services or dispatch namespaces', () => {
+    expect(toml).not.toMatch(/\[\[services\]\]/);
+    expect(toml).not.toMatch(/dispatch_namespaces/);
+  });
+  it('does not declare r2_buckets or analytics_engine', () => {
+    expect(toml).not.toMatch(/r2_buckets/);
+    expect(toml).not.toMatch(/analytics_engine/);
+  });
+  it('keeps VERSION as the only [vars] assignment', () => {
+    const vars = toml.slice(toml.indexOf('[vars]'));
+    const assigns = [...vars.matchAll(/^\s*([A-Z_]+)\s*=/gm)].map((m) => m[1]);
+    expect(assigns).toEqual(['VERSION']);
+  });
+  it('does not declare account_id or zone_id top-level', () => {
+    expect(toml).not.toMatch(/^account_id\s*=/m);
+    expect(toml).not.toMatch(/^zone_id\s*=/m);
+  });
+  it('JSON-incompatible TOML still parses VERSION via regex', () => {
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+  });
+  it('does not enable logpush or tail consumers', () => {
+    expect(toml).not.toMatch(/logpush/i);
+    expect(toml).not.toMatch(/tail_consumers/i);
+  });
 });
 
