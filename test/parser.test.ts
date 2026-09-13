@@ -150,4 +150,67 @@ https://example.com/canonical.m3u8
     expect(stations).toHaveLength(1);
     expect(stations[0]).toMatchObject({ name: 'Win', url: 'https://example.com/win.m3u8' });
   });
+
+  it('skips EXTINF lines with neither tvg-name nor a comma display name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 no-comma-and-no-tvg-name
+https://example.com/unnamed.m3u8
+#EXTINF:-1 tvg-name="Named",Named
+https://example.com/named.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://example.com/named.m3u8']);
+  });
+
+  it('treats empty tvg-name as missing and falls back to comma display name', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="" group-title="X",Fallback Name
+https://example.com/fallback.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Fallback Name',
+        url: 'https://example.com/fallback.m3u8',
+        logo: undefined,
+        group: 'X',
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('keeps empty-string attribute values when present (logo/group/lang/country)', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyAttrs" tvg-logo="" group-title="" tvg-language="" tvg-country="",EmptyAttrs
+https://example.com/empty-attrs.m3u8
+`);
+    expect(stations[0]).toEqual({
+      name: 'EmptyAttrs',
+      url: 'https://example.com/empty-attrs.m3u8',
+      logo: '',
+      group: '',
+      language: '',
+      country: '',
+    });
+  });
+
+  it('ignores comment lines other than EXTINF between entries', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="One",One
+https://example.com/one.m3u8
+#EXTVLCOPT:network-caching=1000
+#EXTINF:-1 tvg-name="Two",Two
+https://example.com/two.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['One', 'Two']);
+  });
+
+  it('parses playlists with many stations without dropping later entries', () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 75; i++) {
+      lines.push(`#EXTINF:-1 tvg-name="S${i}",S${i}`);
+      lines.push(`https://example.com/s${i}.m3u8`);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(75);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[74].name).toBe('S74');
+  });
 });

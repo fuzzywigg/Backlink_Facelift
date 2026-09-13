@@ -87,4 +87,26 @@ describe('resolveGenre', () => {
     expect(GENRE_MAP.classic).toBe('classical');
     expect(Object.keys(GENRE_MAP).length).toBeGreaterThan(VALID_GENRES.length);
   });
+
+  it('keeps every VALID_GENRES id as an identity key in GENRE_MAP', () => {
+    // Defensive `VALID_GENRES.includes` branch in resolveGenre stays reachable
+    // only if a canonical id is ever removed from GENRE_MAP. Lock the invariant.
+    for (const genre of VALID_GENRES) {
+      expect(GENRE_MAP[genre]).toBe(genre);
+      expect(resolveGenre(genre)).toBe(genre);
+    }
+  });
+
+  it('maps multi-word aliases that require exact lowercased keys', () => {
+    expect(resolveGenre('LATE NIGHT')).toBe('ambient');
+    expect(resolveGenre('  Late Night  ')).toBe('ambient');
+    expect(resolveGenre('late  night')).toBe('music'); // double-space is not an alias
+  });
+
+  it('does not treat substring or partial alias hits as matches', () => {
+    expect(resolveGenre('chilling')).toBe('music');
+    expect(resolveGenre('jazzed')).toBe('music');
+    expect(resolveGenre('rockabilly')).toBe('music');
+    expect(resolveGenre('popcorn')).toBe('music');
+  });
 });

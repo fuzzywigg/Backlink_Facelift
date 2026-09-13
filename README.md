@@ -10,7 +10,7 @@ Backlink wraps [iptv-org](https://github.com/iptv-org/iptv) category playlists w
 
 ## Cloud agents
 
-Bootstrap lives in [`.cursor/environment.json`](.cursor/environment.json) (`npm ci` only; no secrets in the file). PR CI runs `npm run typecheck` and `npm run test:coverage` via [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Deploy remains HITL — see [DEPLOY.md](./DEPLOY.md) and [AGENTS.md](./AGENTS.md).
+Bootstrap lives in [`.cursor/environment.json`](.cursor/environment.json) (`npm ci` only; no secrets in the file). PR CI runs `npm run typecheck` and `npm run test:coverage` (coverage floors + artifact upload) via [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Deploy remains HITL — see [DEPLOY.md](./DEPLOY.md) and [AGENTS.md](./AGENTS.md).
 
 ```bash
 npm ci
@@ -19,6 +19,7 @@ npm test
 npm run test:coverage
 ```
 
+Unit suites live under [`test/`](./test/) (`parser`, `genres`, `routes`, `mcp`, plus `mcp-spec` / CI wiring contracts).
 ## API
 
 ```
