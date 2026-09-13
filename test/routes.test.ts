@@ -5949,5 +5949,484 @@ https://example.com/s.m3u8
     expect(ts.endsWith('Z')).toBe(true);
     expect(ts).not.toMatch(/[+-]\d{2}:\d{2}$/);
   });
-});
 
+  it('returns root endpoints object with exactly four keys', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(Object.keys(body.endpoints as object).sort()).toEqual([
+      '/curate',
+      '/genres',
+      '/health',
+      '/stations',
+    ]);
+  });
+
+  it('returns /health ok true with testEnv VERSION override', async () => {
+    const body = await json(
+      await app.request('/health', undefined, testEnv({ VERSION: '9.9.9-helpers' })),
+    );
+    expect(body).toEqual({ ok: true, version: '9.9.9-helpers' });
+  });
+
+  it('returns application/json content-type on /stations success', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('returns application/json content-type on /curate degrade path', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('skips network fetch on /stations when KV cache is warm', async () => {
+    const seed = seedStationsCache('music', [
+      { name: 'Cached', url: 'https://cached.example/x' },
+    ]);
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request(
+      '/stations?genre=music',
+      undefined,
+      testEnv({ CATALOG_CACHE: mockKV(seed) }),
+    );
+    expect(res.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+    const body = await json(res);
+    expect(body.count).toBe(1);
+    expect((body.stations as Array<{ name: string }>)[0].name).toBe('Cached');
+  });
+
+  it('skips network fetch on /curate when KV cache is warm', async () => {
+    const seed = seedStationsCache('news', [
+      { name: 'NewsCached', url: 'https://news.example/x', group: 'News', language: 'en' },
+    ]);
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"NewsCached","url":"https://news.example/x","editorial":"e","genre":"news"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request(
+      '/curate?genre=news',
+      undefined,
+      testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+    );
+    expect(res.status).toBe(200);
+    const iptvCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('iptv-org'));
+    expect(iptvCalls).toHaveLength(0);
+    expect(captureGeminiRequest(fetchMock)).not.toBeNull();
+  });
+
+  it('builds Gemini prompt with group and language fallbacks when missing', async () => {
+    const seed = seedStationsCache('music', [
+      { name: 'Bare', url: 'https://bare.example/x' },
+    ]);
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"Bare","url":"https://bare.example/x","editorial":"e","genre":"music"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request(
+      '/curate?genre=music',
+      undefined,
+      testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+    );
+    const prompt = (
+      (
+        captureGeminiRequest(fetchMock)!.body as {
+          contents: Array<{ parts: Array<{ text: string }> }>;
+        }
+      ).contents[0].parts[0].text
+    );
+    expect(prompt).toContain('1. Bare (music) [en] — https://bare.example/x');
+  });
+
+  it('joins mood and resolved genre with slash inside Gemini user request', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"ambient"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request(
+      '/curate?genre=ambient&mood=focus',
+      undefined,
+      testEnv({ GEMINI_API_KEY: 'k' }),
+    );
+    const prompt = (
+      (
+        captureGeminiRequest(fetchMock)!.body as {
+          contents: Array<{ parts: Array<{ text: string }> }>;
+        }
+      ).contents[0].parts[0].text
+    );
+    expect(prompt).toContain('User request: focus / ambient');
+  });
+
+  it('sets /curate query to mood+genreParam joined by space when both present', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"jazz"}]',
+        ),
+      }),
+    );
+    const body = await json(
+      await app.request(
+        '/curate?genre=jazz&mood=late%20night',
+        undefined,
+        testEnv({ GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    expect(body.query).toBe('late night jazz');
+  });
+
+  it('sets /curate query to resolved genre when mood and genreParam absent', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+        ),
+      }),
+    );
+    const body = await json(
+      await app.request('/curate', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.query).toBe('music');
+  });
+
+  it('sets /curate query to mood alone when genreParam absent', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"ambient"}]',
+        ),
+      }),
+    );
+    const body = await json(
+      await app.request('/curate?mood=chill', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.query).toBe('chill');
+  });
+
+  it('limits Gemini station context to first 50 of a larger catalog', async () => {
+    const many = Array.from({ length: 60 }, (_, i) => ({
+      name: `S${i}`,
+      url: `https://example.com/${i}.m3u8`,
+      group: 'Music',
+      language: 'en',
+    }));
+    const seed = seedStationsCache('music', many);
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"S0","url":"https://example.com/0.m3u8","editorial":"e","genre":"music"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request(
+      '/curate?genre=music',
+      undefined,
+      testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+    );
+    const prompt = (
+      (
+        captureGeminiRequest(fetchMock)!.body as {
+          contents: Array<{ parts: Array<{ text: string }> }>;
+        }
+      ).contents[0].parts[0].text
+    );
+    expect(prompt).toContain('50. S49');
+    expect(prompt).not.toContain('51. S50');
+    expect(prompt).not.toContain('60. S59');
+  });
+
+  it('degrades to at most 5 stations when Gemini fails on a large catalog', async () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({
+      name: `D${i}`,
+      url: `https://example.com/d${i}.m3u8`,
+    }));
+    const seed = seedStationsCache('music', many);
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request(
+        '/curate?genre=music',
+        undefined,
+        testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    const stations = body.stations as Array<{ name: string; editorial: null }>;
+    expect(stations).toHaveLength(5);
+    expect(stations.map((s) => s.name)).toEqual(['D0', 'D1', 'D2', 'D3', 'D4']);
+    expect(stations.every((s) => s.editorial === null)).toBe(true);
+  });
+
+  it('preserves logo on degrade path when cached stations include logo', async () => {
+    const seed = seedStationsCache('music', [
+      { name: 'L', url: 'https://l.example/x', logo: 'https://cdn.example/l.png' },
+    ]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request(
+        '/curate?genre=music',
+        undefined,
+        testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    expect((body.stations as Array<{ logo?: string }>)[0].logo).toBe(
+      'https://cdn.example/l.png',
+    );
+  });
+
+  it('omits logo key undefined on degrade when cached station has no logo', async () => {
+    const seed = seedStationsCache('music', [{ name: 'N', url: 'https://n.example/x' }]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request(
+        '/curate?genre=music',
+        undefined,
+        testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    expect((body.stations as Array<{ logo?: string }>)[0].logo).toBeUndefined();
+  });
+
+  it('double-fetches music.m3u when primary music category is not ok', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/music.m3u')) return new Response('down', { status: 503 });
+      return new Response('nope', { status: 404 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    const musicCalls = fetchMock.mock.calls.filter((c) => String(c[0]).endsWith('/music.m3u'));
+    expect(musicCalls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not put KV when both primary and music fallback fail', async () => {
+    const kv = mockKV();
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: null }));
+    const res = await app.request(
+      '/stations?genre=jazz',
+      undefined,
+      testEnv({ CATALOG_CACHE: kv }),
+    );
+    expect(res.status).toBe(503);
+    expect(kv.put).not.toHaveBeenCalled();
+  });
+
+  it('returns curated_by Backlink/Geryon on Gemini success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+        ),
+      }),
+    );
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.curated_by).toBe('Backlink/Geryon');
+  });
+
+  it('returns curated_by Backlink/Geryon on degrade path too', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.curated_by).toBe('Backlink/Geryon');
+  });
+
+  it('keeps /curate timestamp as ISO-8601 with milliseconds and Z', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        gemini: geminiTextResponse(
+          '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+        ),
+      }),
+    );
+    const ts = (
+      await json(await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })))
+    ).timestamp as string;
+    expect(ts).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
+  it('posts Gemini generationConfig maxOutputTokens 512 and temperature 0.7', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const body = captureGeminiRequest(fetchMock)!.body as {
+      generationConfig: { maxOutputTokens: number; temperature: number };
+    };
+    expect(body.generationConfig).toEqual({ maxOutputTokens: 512, temperature: 0.7 });
+  });
+
+  it('posts Gemini with content-type application/json header', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"music"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(captureGeminiRequest(fetchMock)!.headers).toEqual({
+      'content-type': 'application/json',
+    });
+  });
+
+  it('does not pass RequestInit to iptv-org catalog fetches', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/stations?genre=music', undefined, testEnv());
+    expect(iptvCallsWithInit(fetchMock)).toEqual([]);
+  });
+
+  it('returns stations count matching stations array length', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(
+      await app.request('/stations?genre=music', undefined, testEnv()),
+    );
+    expect(body.count).toBe((body.stations as unknown[]).length);
+    expect(body.count).toBe(6);
+  });
+
+  it('returns empty stations array when catalog M3U has no http streams', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: '#EXTM3U\n#EXTINF:-1,NoUrl\n' }));
+    const body = await json(
+      await app.request('/stations?genre=music', undefined, testEnv()),
+    );
+    expect(body).toMatchObject({ genre: 'music', count: 0, stations: [] });
+  });
+
+  it('degrades to empty stations when Gemini fails on empty catalog', async () => {
+    const seed = seedStationsCache('music', []);
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request(
+        '/curate?genre=music',
+        undefined,
+        testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    expect(body.stations).toEqual([]);
+  });
+
+  it('resolves /stations genre aliases via resolveGenre before caching', async () => {
+    const kv = mockKV();
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(
+      await app.request('/stations?genre=lofi', undefined, testEnv({ CATALOG_CACHE: kv })),
+    );
+    expect(body.genre).toBe('ambient');
+    expect(kv.put).toHaveBeenCalledWith(
+      'stations:ambient',
+      expect.any(String),
+      expect.objectContaining({ expirationTtl: 3600 }),
+    );
+  });
+
+  it('resolves /curate mood-only alias before Gemini call', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: geminiTextResponse(
+        '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"ambient"}]',
+      ),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const body = await json(
+      await app.request('/curate?mood=lofi', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(body.query).toBe('lofi');
+    const prompt = (
+      (
+        captureGeminiRequest(fetchMock)!.body as {
+          contents: Array<{ parts: Array<{ text: string }> }>;
+        }
+      ).contents[0].parts[0].text
+    );
+    expect(prompt).toContain('User request: lofi / ambient');
+  });
+
+  it('returns 503 curation unavailable without touching fetch when key missing', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/curate?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({
+      error: 'Curation service unavailable',
+      retry_after: 60,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('includes Access-Control-Allow-Origin * on warm-cache /stations', async () => {
+    const seed = seedStationsCache('music', [{ name: 'C', url: 'https://c.example/x' }]);
+    const res = await app.request(
+      '/stations?genre=music',
+      { headers: { Origin: 'https://example.com' } },
+      testEnv({ CATALOG_CACHE: mockKV(seed) }),
+    );
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+  });
+
+  it('keeps /genres aliases object reference-equal keys to GENRE_MAP', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(Object.keys(body.aliases as object).sort()).toEqual(Object.keys(GENRE_MAP).sort());
+  });
+
+  it('keeps /genres genres array equal to VALID_GENRES spread', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(body.genres).toEqual([...VALID_GENRES]);
+  });
+
+  it('accepts Accept: application/json on / and still returns JSON', async () => {
+    const res = await app.request(
+      '/',
+      { headers: { Accept: 'application/json' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect((await json(res)).name).toBe('Backlink');
+  });
+
+  it('serializes /stations KV put payload as JSON array matching response stations', async () => {
+    const kv = mockKV();
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request(
+      '/stations?genre=music',
+      undefined,
+      testEnv({ CATALOG_CACHE: kv }),
+    );
+    const body = await json(res);
+    const putArg = (kv.put as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][1];
+    expect(JSON.parse(String(putArg))).toEqual(body.stations);
+  });
+
+  it('uses genre from resolveGenre in degrade station objects', async () => {
+    const seed = seedStationsCache('ambient', [
+      { name: 'A', url: 'https://a.example/x' },
+    ]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({}));
+    const body = await json(
+      await app.request(
+        '/curate?genre=lofi',
+        undefined,
+        testEnv({ CATALOG_CACHE: mockKV(seed), GEMINI_API_KEY: 'k' }),
+      ),
+    );
+    expect((body.stations as Array<{ genre: string }>)[0].genre).toBe('ambient');
+  });
+
+});

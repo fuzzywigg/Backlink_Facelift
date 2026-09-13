@@ -608,5 +608,165 @@ VERSION = "0.1.0"
     expect(toml).not.toMatch(/account_id\s*=/i);
     expect(toml).not.toMatch(/route_id\s*=/i);
   });
-});
 
+  it('locks exact top-level key order: name, main, compatibility_date', () => {
+    // first three assignment lines before tables
+    const head = toml.split('\n').slice(0, 3);
+    expect(head[0]).toBe('name = "backlink"');
+    expect(head[1]).toBe('main = "src/index.ts"');
+    expect(head[2]).toBe('compatibility_date = "2025-01-01"');
+  });
+
+  it('locks kv_namespaces block to binding then id lines', () => {
+    const block = toml.split('[[kv_namespaces]]')[1].split('[[routes]]')[0];
+    const assignments = block
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.includes('='));
+    expect(assignments).toEqual([
+      'binding = "CATALOG_CACHE"',
+      'id = "edb6ca4df12f4f45b40508b3dda3c432"',
+    ]);
+  });
+
+  it('locks routes block to pattern then custom_domain lines', () => {
+    const block = toml.split('[[routes]]')[1].split('[vars]')[0];
+    const assignments = block
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.includes('='));
+    expect(assignments).toEqual([
+      'pattern = "backlink.fuzzywigg.com"',
+      'custom_domain = true',
+    ]);
+  });
+
+  it('locks [vars] VERSION to package-aligned 0.1.0 string', () => {
+    expect(toml).toMatch(/^VERSION = "0\.1\.0"$/m);
+  });
+
+  it('keeps Secrets documentation comments immediately after [vars]', () => {
+    const afterVars = toml.split('[vars]')[1];
+    expect(afterVars).toMatch(/VERSION = "0\.1\.0"\n\n# Secrets/);
+    expect(afterVars).toContain('# Secrets (set via CLI, never commit):');
+    expect(afterVars).toContain('# wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('does not declare preview_urls, routes zone_name, or script_name', () => {
+    expect(toml).not.toMatch(/preview_urls/i);
+    expect(toml).not.toMatch(/zone_name/i);
+    expect(toml).not.toMatch(/script_name/i);
+  });
+
+  it('does not declare placement, limits, or migrations tables', () => {
+    expect(toml).not.toMatch(/\[placement\]/i);
+    expect(toml).not.toMatch(/\[limits\]/i);
+    expect(toml).not.toMatch(/\[\[migrations\]\]/i);
+  });
+
+  it('does not declare queues, vectorize, or browser bindings', () => {
+    expect(toml).not.toMatch(/queues/i);
+    expect(toml).not.toMatch(/vectorize/i);
+    expect(toml).not.toMatch(/browser/i);
+  });
+
+  it('does not declare unsafe, find_additional_modules, or base_dir', () => {
+    expect(toml).not.toMatch(/\[unsafe\]/i);
+    expect(toml).not.toMatch(/find_additional_modules/i);
+    expect(toml).not.toMatch(/base_dir\s*=/);
+  });
+
+  it('custom_domain is boolean true not a string', () => {
+    expect(toml).toMatch(/custom_domain\s*=\s*true\b/);
+    expect(toml).not.toMatch(/custom_domain\s*=\s*"true"/);
+  });
+
+  it('pattern does not include https:// or trailing slash', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:\/\//);
+    expect(toml).not.toMatch(/pattern\s*=\s*".*\/"/);
+  });
+
+  it('worker name is lowercase backlink without org prefix', () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).not.toMatch(/name = "fuzzywigg/);
+  });
+
+  it('main entry points at TypeScript source not a built dist bundle', () => {
+    expect(toml).toMatch(/main = "src\/index\.ts"/);
+    expect(toml).not.toMatch(/main = "dist\//);
+    expect(toml).not.toMatch(/main = "\.wrangler\//);
+  });
+
+  it('compatibility_date is first day of 2025 not a relative token', () => {
+    expect(toml).toMatch(/compatibility_date = "2025-01-01"/);
+    expect(toml).not.toMatch(/compatibility_date = "today"/);
+  });
+
+  it('does not declare vars assignments for GEMINI_API_KEY or CF tokens', () => {
+    const vars = toml.split('[vars]')[1] ?? '';
+    const assignments = vars
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#') && l.includes('='));
+    expect(assignments).toEqual(['VERSION = "0.1.0"']);
+    expect(assignments.join('\n')).not.toMatch(/GEMINI|CF_API|TOKEN/);
+  });
+
+  it('KV binding name uses SCREAMING_SNAKE CATALOG_CACHE', () => {
+    expect(toml).toMatch(/binding = "CATALOG_CACHE"/);
+    expect(toml).not.toMatch(/binding = "catalog_cache"/);
+    expect(toml).not.toMatch(/binding = "CatalogCache"/);
+  });
+
+  it('file has no trailing whitespace on any line', () => {
+    for (const line of toml.split('\n')) {
+      expect(line).toBe(line.trimEnd());
+    }
+  });
+
+  it('file uses spaces not mixed indentation for assignments', () => {
+    const assignLines = toml.split('\n').filter((l) => /^\s+\S/.test(l));
+    for (const line of assignLines) {
+      expect(line.startsWith(' ')).toBe(true);
+      expect(line.startsWith('\t')).toBe(false);
+    }
+  });
+
+  it('does not declare [[durable_objects.bindings]] or [[r2_buckets]]', () => {
+    expect(toml).not.toMatch(/durable_objects\.bindings/i);
+    expect(toml).not.toMatch(/\[\[r2_buckets\]\]/i);
+  });
+
+  it('does not declare send_email, analytics_engine_datasets, or hyperdrive', () => {
+    expect(toml).not.toMatch(/send_email/i);
+    expect(toml).not.toMatch(/analytics_engine/i);
+    expect(toml).not.toMatch(/hyperdrive/i);
+  });
+
+  it('Secrets comment uses never commit wording', () => {
+    expect(toml).toContain('never commit');
+  });
+
+  it('does not set upload_source_maps or jsx flags', () => {
+    expect(toml).not.toMatch(/upload_source_maps/i);
+    expect(toml).not.toMatch(/jsx_factory|jsx_fragment/i);
+  });
+
+  it('route pattern host ends with fuzzywigg.com', () => {
+    const pattern = toml.match(/pattern\s*=\s*"([^"]+)"/)?.[1];
+    expect(pattern).toBe('backlink.fuzzywigg.com');
+    expect(pattern?.endsWith('fuzzywigg.com')).toBe(true);
+  });
+
+  it('contains exactly three table headers (kv, routes, vars)', () => {
+    const headers = [...toml.matchAll(/^\[+[^\]]+\]+$/gm)].map((m) => m[0]);
+    expect(headers).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
+  });
+
+  it('does not declare [dev] local port overrides', () => {
+    expect(toml).not.toMatch(/^\s*\[dev\]/m);
+    expect(toml).not.toMatch(/ip_address|local_protocol/i);
+  });
+
+});

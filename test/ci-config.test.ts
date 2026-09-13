@@ -1548,5 +1548,81 @@ describe('CI / package test wiring', () => {
   it('locks AGENTS.md Safe Actions to mention genres.ts', () => {
     expect(read('AGENTS.md')).toMatch(/src\/genres\.ts/);
   });
-});
 
+  it('hygiene requires wrangler.toml and helpers harness files', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f wrangler\.toml/);
+    expect(ci).toMatch(/test -f test\/helpers\.ts/);
+    expect(ci).toMatch(/test -f test\/helpers\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/wrangler-config\.test\.ts/);
+  });
+
+  it('hygiene requires routes and source-contracts suites on disk', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/test -f test\/routes\.test\.ts/);
+    expect(ci).toMatch(/test -f test\/source-contracts\.test\.ts/);
+  });
+
+  it('README unit suites list mentions helpers wrangler and routes', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/`helpers`/);
+    expect(readme).toMatch(/wrangler/);
+    expect(readme).toMatch(/`routes`/);
+  });
+
+  it('locks deploy workflow to wrangler-action with CF_API_TOKEN and CF_ACCOUNT_ID', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/cloudflare\/wrangler-action@v4/);
+    expect(deploy).toMatch(/apiToken: \$\{\{ secrets\.CF_API_TOKEN \}\}/);
+    expect(deploy).toMatch(/accountId: \$\{\{ secrets\.CF_ACCOUNT_ID \}\}/);
+  });
+
+  it('locks package.json scripts to include dev via wrangler dev', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+  });
+
+  it('locks vitest include so test/helpers.ts is harness-only not a suite', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/include:\s*\['test\/\*\*\/\*\.test\.ts'\]/);
+    expect(vitest).not.toMatch(/helpers\.ts/);
+  });
+
+  it('locks coverage include to src/**/*.ts excluding only types.ts', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/include:\s*\['src\/\*\*\/\*\.ts'\]/);
+    expect(vitest).toMatch(/exclude:\s*\['src\/types\.ts'\]/);
+  });
+
+  it('locks AGENTS.md Safe Actions to include test/ extensions and endpoints', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/Add \/ extend unit tests under `test\/`/);
+    expect(agents).toMatch(/Add new endpoints/);
+  });
+
+  it('locks DEPLOY.md kv namespace create CATALOG_CACHE command', () => {
+    expect(read('DEPLOY.md')).toContain('wrangler kv namespace create CATALOG_CACHE');
+  });
+
+  it('keeps .gitignore ignoring .wrangler/ .mf/ and coverage/', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+    expect(gi).toMatch(/^\.mf\/$/m);
+    expect(gi).toMatch(/^coverage\/$/m);
+  });
+
+  it('locks CI test job to npm run test:coverage not npm test alone', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/npm run test:coverage/);
+    expect(ci).not.toMatch(/run: npm test$/m);
+  });
+
+  it('locks package.json name backlink aligned with wrangler worker name', () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string };
+    const toml = read('wrangler.toml');
+    expect(pkg.name).toBe('backlink');
+    expect(toml).toMatch(/^name = "backlink"$/m);
+  });
+
+});

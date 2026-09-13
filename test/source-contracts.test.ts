@@ -1417,4 +1417,224 @@ describe('source ↔ product contracts', () => {
     expect(items).toHaveLength(9);
     expect(items).toEqual([...VALID_GENRES]);
   });
+
+  it('locks IPTV_BASE constant to iptv-org categories CDN', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const IPTV_BASE = 'https:\/\/iptv-org\.github\.io\/iptv\/categories'/,
+    );
+  });
+
+  it('locks fetchStations cache key template to stations:${genre}', () => {
+    expect(read('src/index.ts')).toMatch(/const cacheKey = `stations:\$\{genre\}`/);
+  });
+
+  it('locks Stream catalog unavailable error string on fetchStations throw', () => {
+    expect(read('src/index.ts')).toContain("throw new Error('Stream catalog unavailable')");
+  });
+
+  it('locks /stations and /curate 503 bodies to Stream catalog unavailable', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/error:\s*'Stream catalog unavailable'/g)]).toHaveLength(2);
+  });
+
+  it('locks Curation service unavailable 503 when GEMINI_API_KEY missing', () => {
+    expect(read('src/index.ts')).toContain("error: 'Curation service unavailable'");
+  });
+
+  it('locks callGemini prompt join to mood / genre with slash separator', () => {
+    expect(read('src/index.ts')).toMatch(
+      /const query = \[mood, genre\]\.filter\(Boolean\)\.join\(' \/ '\)/,
+    );
+  });
+
+  it('locks stationList map to group ?? genre and language ?? en', () => {
+    expect(read('src/index.ts')).toMatch(
+      /\$\{s\.group \?\? genre\}.*\$\{s\.language \?\? 'en'\}/s,
+    );
+  });
+
+  it('locks Gemini generateContent URL to gemini-2.0-flash model path', () => {
+    expect(read('src/index.ts')).toContain(
+      'generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=',
+    );
+  });
+
+  it('locks Gemini request method POST and content-type application/json', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/method:\s*'POST'/);
+    expect(index).toMatch(/'content-type':\s*'application\/json'/);
+  });
+
+  it('locks Gemini JSON extract regex to array-of-objects span', () => {
+    expect(read('src/index.ts')).toContain('text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+  });
+
+  it('locks Invalid JSON from Gemini and Gemini API error throw messages', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("throw new Error('Invalid JSON from Gemini')");
+    expect(index).toMatch(/Gemini API error: \$\{resp\.status\}/);
+  });
+
+  it('locks curated_by to Backlink/Geryon without crab emoji', () => {
+    expect(read('src/index.ts')).toMatch(/curated_by:\s*'Backlink\/Geryon'/);
+    expect(read('src/index.ts')).not.toMatch(/curated_by:\s*'Backlink\/Geryon 🦀'/);
+  });
+
+  it('locks powered_by root metadata to include crab emoji', () => {
+    expect(read('src/index.ts')).toMatch(/powered_by:\s*'Backlink\/Geryon 🦀'/);
+  });
+
+  it('locks root endpoints descriptions for curate stations genres health', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("'/curate': 'GET ?genre=&mood= — AI-curated station picks'");
+    expect(index).toContain("'/stations': 'GET ?genre= — Raw station list'");
+    expect(index).toContain("'/genres': 'GET — Available genre categories'");
+    expect(index).toContain("'/health': 'GET — Health check'");
+  });
+
+  it('locks VERSION default fallback to 0.1.0 on / and /health', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/c\.env\.VERSION \?\? '0\.1\.0'/g)]).toHaveLength(2);
+  });
+
+  it('locks /curate timestamp to new Date().toISOString()', () => {
+    expect(read('src/index.ts')).toMatch(/timestamp:\s*new Date\(\)\.toISOString\(\)/);
+  });
+
+  it('locks /curate degrade map to name url logo editorial null genre', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/editorial:\s*null/);
+    expect(index).toMatch(/name:\s*s\.name/);
+    expect(index).toMatch(/url:\s*s\.url/);
+    expect(index).toMatch(/logo:\s*s\.logo/);
+    expect(index).toMatch(/genre,\s*\}\)/);
+  });
+
+  it('locks export default app at end of Worker module', () => {
+    expect(read('src/index.ts').trimEnd()).toMatch(/export default app;$/);
+  });
+
+  it('locks Hono Bindings generic to Env from ./types', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/import \{ Env \} from '\.\/types'/);
+    expect(index).toMatch(/new Hono<\{ Bindings: Env \}>/);
+  });
+
+  it('locks Worker to GET-only route registrations (no app.post/put/delete)', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/app\.post\(/);
+    expect(index).not.toMatch(/app\.put\(/);
+    expect(index).not.toMatch(/app\.delete\(/);
+    expect(index).not.toMatch(/app\.patch\(/);
+  });
+
+  it('locks retry_after literal 60 on all three 503 return sites', () => {
+    expect([...read('src/index.ts').matchAll(/retry_after:\s*60/g)]).toHaveLength(3);
+  });
+
+  it('locks types.ts Env to CATALOG_CACHE required and two optional strings', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/export interface Env/);
+    expect(types).toMatch(/CATALOG_CACHE:\s*KVNamespace;/);
+    expect(types).toMatch(/GEMINI_API_KEY\?:\s*string;/);
+    expect(types).toMatch(/VERSION\?:\s*string;/);
+    expect(types).not.toMatch(/ANTHROPIC|OPENAI|CF_API/);
+  });
+
+  it('locks types.ts to a single export and no runtime statements', () => {
+    const types = read('src/types.ts');
+    expect(types).not.toMatch(/\b(function|const|let|var|class)\b/);
+    expect([...types.matchAll(/^export /gm)]).toHaveLength(1);
+  });
+
+  it('locks DEPLOY.md prerequisites to Workers wrangler Gemini Node 18+', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toContain('Cloudflare account with Workers enabled');
+    expect(deploy).toContain('Gemini API key');
+    expect(deploy).toContain('Node.js 18+');
+    expect(deploy).toContain('wrangler');
+  });
+
+  it('locks DEPLOY.md local dev URL to localhost:8787', () => {
+    expect(read('DEPLOY.md')).toContain('http://localhost:8787');
+    expect(read('DEPLOY.md')).toContain('npm run dev');
+  });
+
+  it('locks DEPLOY.md custom domain step to backlink.fuzzywigg.com', () => {
+    expect(read('DEPLOY.md')).toContain('backlink.fuzzywigg.com');
+    expect(read('DEPLOY.md')).toContain('fuzzywigg.com');
+  });
+
+  it('locks DEPLOY.md HITL bullets for first deploy secrets and data sources', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/First production deploy must be reviewed by Andrew/);
+    expect(deploy).toMatch(/GEMINI_API_KEY handling require approval/);
+    expect(deploy).toMatch(/new external data sources requires approval/);
+  });
+
+  it('locks README Stack bullets for Workers Hono iptv-org Gemini KV', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('Cloudflare Workers');
+    expect(readme).toContain('Hono');
+    expect(readme).toContain('iptv-org');
+    expect(readme).toContain('Gemini 2.0 Flash');
+    expect(readme).toContain('CF KV');
+    expect(readme).toMatch(/1h TTL/);
+  });
+
+  it('locks README live worker URL to https://backlink.fuzzywigg.com', () => {
+    expect(read('README.md')).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('locks README example curated_by and editorial-null catalog notes', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('"curated_by": "Backlink/Geryon"');
+    expect(readme).toContain('editorial: null');
+  });
+
+  it('locks index import of parseM3U and Station from ./parser', () => {
+    expect(read('src/index.ts')).toMatch(
+      /import \{ parseM3U, Station \} from '\.\/parser'/,
+    );
+  });
+
+  it('locks index import of cors from hono/cors and Hono from hono', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/import \{ Hono \} from 'hono'/);
+    expect(index).toMatch(/import \{ cors \} from 'hono\/cors'/);
+  });
+
+  it('locks fetchStations to parseM3U then kv.put with JSON.stringify', () => {
+    const index = read('src/index.ts');
+    const parseIdx = index.indexOf('const stations = parseM3U(raw)');
+    const putIdx = index.indexOf('await kv.put(cacheKey, JSON.stringify(stations)');
+    expect(parseIdx).toBeGreaterThan(-1);
+    expect(putIdx).toBeGreaterThan(parseIdx);
+  });
+
+  it('locks /health body shape to ok true plus version', () => {
+    expect(read('src/index.ts')).toMatch(/ok:\s*true,\s*version:/);
+  });
+
+  it('locks /stations success body keys genre count stations', () => {
+    expect(read('src/index.ts')).toMatch(
+      /return c\.json\(\{\s*genre,\s*count:\s*stations\.length,\s*stations\s*\}\)/,
+    );
+  });
+
+  it('locks /curate success body keys query curated_by timestamp stations', () => {
+    expect(read('src/index.ts')).toMatch(/query,\s*curated_by:/s);
+    expect(read('src/index.ts')).toMatch(/timestamp:\s*new Date/);
+  });
+
+  it('locks prompt You are Backlink wording in callGemini', () => {
+    expect(read('src/index.ts')).toContain('You are Backlink, an AI radio curator.');
+  });
+
+  it('locks candidates[0] optional chaining with empty string fallback', () => {
+    expect(read('src/index.ts')).toMatch(
+      /data\.candidates\[0\]\?\.content\?\.parts\[0\]\?\.text \?\? ''/,
+    );
+  });
+
 });
