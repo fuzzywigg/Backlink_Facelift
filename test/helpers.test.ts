@@ -183,4 +183,67 @@ describe('test helpers', () => {
     const res = geminiTextResponse('x');
     expect(res.headers.get('content-type')).toMatch(/application\/json/);
   });
+
+  it('stubIptvAndGemini matches iptv-org anywhere in the URL string', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '#EXTM3U\n' }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://cdn.example/proxy?u=https://iptv-org.github.io/x');
+    expect(res.status).toBe(200);
+  });
+
+  it('stubIptvAndGemini stringifies Request poorly but accepts URL objects', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 418 }) as unknown as (
+      input: RequestInfo | URL,
+    ) => Promise<Response>;
+    // String(Request) === "[object Request]" — does not match iptv-org / gemini hosts
+    const fromRequest = await fetchMock(
+      new Request('https://iptv-org.github.io/iptv/categories/music.m3u'),
+    );
+    expect(fromRequest.status).toBe(404);
+
+    const fromUrl = await fetchMock(
+      new URL('https://iptv-org.github.io/iptv/categories/music.m3u'),
+    );
+    expect(fromUrl.status).toBe(418);
+  });
+
+  it('countHttpStreamLines trims before scheme checks', () => {
+    expect(countHttpStreamLines('  https://a  \n\thttp://b\n')).toBe(2);
+  });
+
+  it('testEnv leaves GEMINI_API_KEY undefined unless overridden', () => {
+    expect(testEnv().GEMINI_API_KEY).toBeUndefined();
+    expect(testEnv({ GEMINI_API_KEY: 'x' }).GEMINI_API_KEY).toBe('x');
+  });
+
+  it('mockKV delete is a no-op for missing keys', async () => {
+    const kv = mockKV();
+    await expect(kv.delete('missing')).resolves.toBeUndefined();
+    await expect(kv.get('missing')).resolves.toBeNull();
+  });
+
+  it('SAMPLE_M3U station display names are unique', () => {
+    const names = [...SAMPLE_M3U.matchAll(/tvg-name="([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names).toHaveLength(6);
+  });
+
+  it('iptvCategoryUrl does not encode slashes or query characters', () => {
+    expect(iptvCategoryUrl('a/b')).toBe(
+      'https://iptv-org.github.io/iptv/categories/a/b.m3u',
+    );
+  });
+
+  it('curatedGeminiJson returns a Response that can be read once', async () => {
+    const res = curatedGeminiJson();
+    await expect(res.json()).resolves.toBeTruthy();
+    await expect(res.json()).rejects.toThrow();
+  });
+
+  it('stubIptvAndGemini default gemini body is the literal boom text', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/v1beta/x');
+    expect(await res.text()).toBe('boom');
+  });
 });

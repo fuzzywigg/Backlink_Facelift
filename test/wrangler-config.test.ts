@@ -83,4 +83,35 @@ describe('wrangler.toml contracts', () => {
     const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
     expect(id).toMatch(/^[a-f0-9]{32}$/);
   });
+
+  it('keeps main entry as a relative src path (not absolute)', () => {
+    expect(toml).toMatch(/main\s*=\s*"src\/index\.ts"/);
+    expect(toml).not.toMatch(/main\s*=\s*"\//);
+  });
+
+  it('does not declare secrets via [vars] or [secrets] tables', () => {
+    expect(toml).not.toMatch(/\[secrets\]/i);
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=\s*"/);
+  });
+
+  it('keeps exactly one [[kv_namespaces]] block', () => {
+    expect(toml.match(/\[\[kv_namespaces\]\]/g)).toHaveLength(1);
+  });
+
+  it('does not enable nodejs_compat or other compatibility flags', () => {
+    expect(toml).not.toMatch(/compatibility_flags/);
+    expect(toml).not.toMatch(/nodejs_compat/);
+  });
+
+  it('documents GEMINI secret put without embedding placeholder key material', () => {
+    expect(toml).toMatch(/#\s*wrangler secret put GEMINI_API_KEY/);
+    expect(toml).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+  });
+
+  it('keeps custom_domain true for the fuzzywigg route only', () => {
+    const routeSection = toml.split('[[routes]]')[1] ?? '';
+    expect(routeSection).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(routeSection).toMatch(/custom_domain\s*=\s*true/);
+    expect(routeSection).not.toMatch(/pattern\s*=\s*"\*"/);
+  });
 });

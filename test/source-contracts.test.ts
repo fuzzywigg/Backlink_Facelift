@@ -153,4 +153,59 @@ describe('source ↔ product contracts', () => {
     expect(index).toMatch(/JSON\.parse\(cached\)/);
     expect(index).toMatch(/JSON\.stringify\(stations\)/);
   });
+
+  it('builds the Gemini user-request line from mood and genre with slash join', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/User request:\s*\$\{query\}/);
+    expect(index).toMatch(/Available stations:/);
+  });
+
+  it('keeps Station typing imported from parser into the Worker entry', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/import\s*\{[^}]*parseM3U[^}]*Station[^}]*\}\s*from\s*['"]\.\/parser['"]/);
+  });
+
+  it('keeps resolveGenre / GENRE_MAP / VALID_GENRES wired from genres module', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/from\s*['"]\.\/genres['"]/);
+    expect(index).toContain('resolveGenre');
+    expect(index).toContain('VALID_GENRES');
+    expect(index).toContain('GENRE_MAP');
+  });
+
+  it('documents Node 18+ and wrangler secret put in DEPLOY.md', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/Node\.js 18\+/);
+    expect(deploy).toMatch(/wrangler secret put GEMINI_API_KEY/);
+    expect(deploy).toMatch(/wrangler deploy/);
+  });
+
+  it('keeps /curate response curated_by literal stable', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/curated_by:\s*['"]Backlink\/Geryon['"]/);
+  });
+
+  it('throws Stream catalog unavailable when music fallback also fails', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/throw new Error\(['"]Stream catalog unavailable['"]\)/);
+  });
+
+  it('keeps Env type imported into the Hono bindings generic', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/import\s*\{[^}]*Env[^}]*\}\s*from\s*['"]\.\/types['"]/);
+    expect(index).toMatch(/Hono<\{\s*Bindings:\s*Env\s*\}>/);
+  });
+
+  it('does not hardcode a Gemini API key in source', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/AIza[0-9A-Za-z_-]{20,}/);
+    expect(index).not.toMatch(/GEMINI_API_KEY\s*=\s*['"][^'"]+['"]/);
+  });
+
+  it('keeps IPTV_BASE as a https iptv-org categories URL', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(
+      /const IPTV_BASE\s*=\s*['"]https:\/\/iptv-org\.github\.io\/iptv\/categories['"]/,
+    );
+  });
 });

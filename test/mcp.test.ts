@@ -245,4 +245,70 @@ describe('MCP_MANIFEST', () => {
     expect(MCP_MANIFEST.tools).toBe(MCP_MANIFEST.tools);
     expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
   });
+
+  it('locks curator_prompt mood description examples', () => {
+    const mood = toolNamed('curator_prompt').input_schema.properties.mood?.description ?? '';
+    expect(mood).toMatch(/focus work/i);
+    expect(mood).toMatch(/late night jazz/i);
+    expect(mood).toMatch(/morning energy/i);
+  });
+
+  it('keeps station_select description about setting the playing station', () => {
+    expect(toolNamed('station_select').description).toMatch(/currently playing station/i);
+  });
+
+  it('keeps genre_filter description about returning a filtered list', () => {
+    expect(toolNamed('genre_filter').description).toMatch(/list of stations filtered by genre/i);
+  });
+
+  it('does not mark any tool property as required when the property is absent', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const key of tool.input_schema.required ?? []) {
+        expect(tool.input_schema.properties).toHaveProperty(key);
+      }
+    }
+  });
+
+  it('keeps human description mentioning iptv-org catalog', () => {
+    expect(MCP_MANIFEST.description_for_human).toMatch(/iptv-org/i);
+  });
+
+  it('locks auth.type exactly to none', () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+  });
+
+  it('locks api.type exactly to openapi', () => {
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+  });
+
+  it('keeps every tool input_schema free of additionalProperties keys', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema).not.toHaveProperty('additionalProperties');
+    }
+  });
+
+  it('orders required arrays to match declaration order for single-required tools', () => {
+    expect(toolNamed('station_select').input_schema.required).toEqual(['station_name']);
+    expect(toolNamed('genre_filter').input_schema.required).toEqual(['genre']);
+    expect(toolNamed('curator_prompt').input_schema.required).toEqual(['mood']);
+  });
+
+  it('keeps schema_version at v1', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it('does not nest tools inside tools (flat tool list only)', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool).not.toHaveProperty('tools');
+      expect(tool).toHaveProperty('name');
+      expect(tool).toHaveProperty('description');
+      expect(tool).toHaveProperty('input_schema');
+    }
+  });
+
+  it('keeps curator_prompt genre description about optional constraint', () => {
+    expect(toolNamed('curator_prompt').input_schema.properties.genre?.description).toMatch(
+      /Optional genre to constrain/i,
+    );
+  });
 });
