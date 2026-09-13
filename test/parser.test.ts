@@ -78,4 +78,76 @@ https://example.com/ok.m3u8
       },
     ]);
   });
+
+  it('matches attribute keys case-insensitively', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 TVG-NAME="Casey" TVG-LOGO="https://cdn.example/c.png" GROUP-TITLE="Rock" TVG-LANGUAGE="DE" TVG-COUNTRY="DE",Casey
+https://example.com/case.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Casey',
+        url: 'https://example.com/case.m3u8',
+        logo: 'https://cdn.example/c.png',
+        group: 'Rock',
+        language: 'DE',
+        country: 'DE',
+      },
+    ]);
+  });
+
+  it('trims surrounding whitespace on lines', () => {
+    const stations = parseM3U(`
+  #EXTM3U
+  #EXTINF:-1 tvg-name="Spaced",Spaced
+  https://example.com/spaced.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Spaced');
+  });
+
+  it('skips http URLs that have no name from EXTINF', () => {
+    const stations = parseM3U(`#EXTM3U
+https://example.com/orphan-url.m3u8
+#EXTINF:-1 tvg-name="", 
+https://example.com/blank-name.m3u8
+#EXTINF:-1 tvg-name="Kept",Kept
+https://example.com/kept.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://example.com/kept.m3u8']);
+  });
+
+  it('resets state after non-http non-comment lines', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Broken",Broken
+ftp://example.com/file
+#EXTINF:-1 tvg-name="Recovered",Recovered
+https://example.com/recovered.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Recovered',
+        url: 'https://example.com/recovered.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('prefers tvg-name over the comma display name', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Canonical",Display Name
+https://example.com/canonical.m3u8
+`);
+    expect(stations[0].name).toBe('Canonical');
+  });
+
+  it('handles CRLF line endings', () => {
+    const stations = parseM3U(
+      '#EXTM3U\r\n#EXTINF:-1 tvg-name="Win",Win\r\nhttps://example.com/win.m3u8\r\n',
+    );
+    expect(stations).toHaveLength(1);
+    expect(stations[0]).toMatchObject({ name: 'Win', url: 'https://example.com/win.m3u8' });
+  });
 });
