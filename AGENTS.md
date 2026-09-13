@@ -23,6 +23,7 @@ Domain target: backlink.fuzzywigg.com
 npm ci
 npm run typecheck
 npm test
+npm run test:coverage
 ```
 
 ## Escalate to Human

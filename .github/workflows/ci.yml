@@ -40,8 +40,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
-        run: npm test
+      - name: Unit / integration tests with coverage
+        run: npm run test:coverage
 
   hygiene:
     name: Hygiene
@@ -59,12 +59,17 @@ jobs:
           test -f .github/workflows/ci.yml
           test -f vitest.config.ts
           test -d test
+          test -f test/parser.test.ts
+          test -f test/genres.test.ts
+          test -f test/routes.test.ts
+          test -f test/mcp.test.ts
 
       - name: Check for committed secret material
         run: |
           ! grep -RInE '(api[_-]?key|secret|token|password)\s*[:=]\s*["'\'']?[A-Za-z0-9_\-]{8,}' \
             --exclude-dir=.git \
             --exclude-dir=node_modules \
+            --exclude-dir=coverage \
             --exclude='*.md' \
             --exclude='package-lock.json' \
             .
