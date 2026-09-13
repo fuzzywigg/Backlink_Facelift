@@ -1,40 +1,10 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { GENRE_MAP, VALID_GENRES, resolveGenre } from './genres';
 import { parseM3U, Station } from './parser';
 import { Env } from './types';
 
-const GENRE_MAP: Record<string, string> = {
-  'late night': 'ambient',
-  chill: 'ambient',
-  ambient: 'ambient',
-  relaxing: 'ambient',
-  focus: 'ambient',
-  classical: 'classical',
-  classic: 'classical',
-  jazz: 'jazz',
-  blues: 'jazz',
-  pop: 'pop',
-  rock: 'rock',
-  metal: 'rock',
-  indie: 'rock',
-  music: 'music',
-  news: 'news',
-  sports: 'sports',
-  entertainment: 'entertainment',
-  dance: 'pop',
-  electronic: 'ambient',
-  lofi: 'ambient',
-  'lo-fi': 'ambient',
-};
-
-const VALID_GENRES = ['music', 'ambient', 'jazz', 'classical', 'pop', 'rock', 'news', 'sports', 'entertainment'];
 const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories';
-
-function resolveGenre(input?: string): string {
-  if (!input) return 'music';
-  const lower = input.toLowerCase().trim();
-  return GENRE_MAP[lower] ?? (VALID_GENRES.includes(lower) ? lower : 'music');
-}
 
 async function fetchStations(genre: string, kv: KVNamespace): Promise<Station[]> {
   const cacheKey = `stations:${genre}`;
@@ -121,7 +91,7 @@ app.get('/health', (c) => {
 
 app.get('/genres', (c) => {
   return c.json({
-    genres: VALID_GENRES,
+    genres: [...VALID_GENRES],
     aliases: GENRE_MAP,
   });
 });
