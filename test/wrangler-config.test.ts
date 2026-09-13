@@ -61,4 +61,26 @@ describe('wrangler.toml contracts', () => {
   it('keeps worker name aligned with package name', () => {
     expect(toml).toMatch(/name\s*=\s*"backlink"/);
   });
+
+  it('declares exactly one [[routes]] custom domain block', () => {
+    const routeBlocks = toml.match(/\[\[routes\]\]/g) ?? [];
+    expect(routeBlocks).toHaveLength(1);
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+  });
+
+  it('keeps vars section limited to VERSION', () => {
+    const varsSection = toml.split('[vars]')[1] ?? '';
+    const assignments = [...varsSection.matchAll(/^\s*([A-Z_]+)\s*=/gm)].map((m) => m[1]);
+    expect(assignments).toEqual(['VERSION']);
+  });
+
+  it('does not embed the live worker hostname in comments with credentials', () => {
+    expect(toml).toContain('backlink.fuzzywigg.com');
+    expect(toml).not.toMatch(/Authorization|Bearer|CF_API_TOKEN/i);
+  });
+
+  it('uses a 32-char hex KV namespace id', () => {
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1];
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+  });
 });

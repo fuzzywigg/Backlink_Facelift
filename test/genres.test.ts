@@ -243,4 +243,74 @@ describe('resolveGenre', () => {
     expect(resolveGenre('K-Pop')).toBe('music');
     expect(resolveGenre('NotAGenre')).toBe('music');
   });
+
+  it('does not match custom-map keys that are not lowercased', () => {
+    // lookup always uses input.toLowerCase().trim()
+    expect(resolveGenre('Chill', { Chill: 'ambient' })).toBe('music');
+    expect(resolveGenre('chill', { chill: 'ambient' })).toBe('ambient');
+  });
+
+  it('treats CR-only and tab-only strings as blank after trim', () => {
+    expect(resolveGenre('\t\t')).toBe('music');
+    expect(resolveGenre('\r\n')).toBe('music');
+    expect(resolveGenre('\n\n')).toBe('music');
+  });
+
+  it('does not strip zero-width characters before lookup', () => {
+    expect(resolveGenre('jazz\u200b')).toBe('music');
+    expect(resolveGenre('\u200bjazz')).toBe('music');
+  });
+
+  it('resolves classic alias independently of classical identity', () => {
+    expect(GENRE_MAP.classic).toBe('classical');
+    expect(resolveGenre('classic')).toBe('classical');
+    expect(resolveGenre('CLASSICAL')).toBe('classical');
+  });
+
+  it('keeps blues and dance as alias-only (not VALID_GENRES members)', () => {
+    expect(VALID_GENRES.includes('blues' as (typeof VALID_GENRES)[number])).toBe(false);
+    expect(VALID_GENRES.includes('dance' as (typeof VALID_GENRES)[number])).toBe(false);
+    expect(resolveGenre('blues')).toBe('jazz');
+    expect(resolveGenre('dance')).toBe('pop');
+  });
+
+  it('short-circuits empty string before map lookup, but whitespace-only can hit empty keys after trim', () => {
+    // !input short-circuit: '' / undefined → music even if map has ''
+    expect(resolveGenre('', { '': 'jazz' })).toBe('music');
+    expect(resolveGenre(undefined, { '': 'jazz' })).toBe('music');
+    // '   '.trim() === '' → map[''] hit (no second !lower guard)
+    expect(resolveGenre('   ', { '': 'jazz' })).toBe('jazz');
+  });
+
+  it('returns music for slash-joined multi-genre labels', () => {
+    expect(resolveGenre('jazz/blues')).toBe('music');
+    expect(resolveGenre('rock+metal')).toBe('music');
+  });
+
+  it('does not mutate a caller-supplied custom map', () => {
+    const custom = { chill: 'ambient' };
+    resolveGenre('chill', custom);
+    resolveGenre('unknown', custom);
+    expect(custom).toEqual({ chill: 'ambient' });
+  });
+
+  it('maps every ambient-bound alias to ambient', () => {
+    for (const alias of [
+      'late night',
+      'chill',
+      'ambient',
+      'relaxing',
+      'focus',
+      'electronic',
+      'lofi',
+      'lo-fi',
+    ] as const) {
+      expect(resolveGenre(alias)).toBe('ambient');
+    }
+  });
+
+  it('accepts ValidGenre values with leading/trailing mixed whitespace and case', () => {
+    expect(resolveGenre('  NEWS  ')).toBe('news');
+    expect(resolveGenre('\tEntertainment\t')).toBe('entertainment');
+  });
 });

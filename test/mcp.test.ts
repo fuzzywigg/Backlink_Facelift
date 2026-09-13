@@ -199,4 +199,50 @@ describe('MCP_MANIFEST', () => {
   it('keeps schema_version as a simple vN token', () => {
     expect(MCP_MANIFEST.schema_version).toMatch(/^v\d+$/);
   });
+
+  it('keeps every tool name in snake_case', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name).toMatch(/^[a-z]+(_[a-z]+)*$/);
+    }
+  });
+
+  it('keeps property descriptions unique within each tool', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const descs = Object.values(tool.input_schema.properties)
+        .map((p) => p?.description)
+        .filter(Boolean);
+      expect(new Set(descs).size).toBe(descs.length);
+    }
+  });
+
+  it('locks station_select / genre_filter / curator_prompt required arrays length', () => {
+    expect(toolNamed('station_select').input_schema.required).toHaveLength(1);
+    expect(toolNamed('genre_filter').input_schema.required).toHaveLength(1);
+    expect(toolNamed('curator_prompt').input_schema.required).toHaveLength(1);
+  });
+
+  it('mentions radio or station in every tool description', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description.toLowerCase()).toMatch(/station|genre|playing|curator|mood/);
+    }
+  });
+
+  it('keeps openapi api.url as a root-relative path (not absolute http)', () => {
+    expect(MCP_MANIFEST.api.url.startsWith('http')).toBe(false);
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+  });
+
+  it('does not declare auth tokens or api keys in the manifest', () => {
+    expect(JSON.stringify(MCP_MANIFEST)).not.toMatch(/api[_-]?key|bearer|oauth/i);
+  });
+
+  it('locks genre_filter property description to genre keyword wording', () => {
+    const tool = toolNamed('genre_filter');
+    expect(tool.input_schema.properties.genre?.description).toMatch(/Genre keyword to filter by/i);
+  });
+
+  it('keeps tools array reference stable across repeated reads', () => {
+    expect(MCP_MANIFEST.tools).toBe(MCP_MANIFEST.tools);
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+  });
 });

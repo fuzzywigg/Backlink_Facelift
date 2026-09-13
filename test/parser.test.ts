@@ -559,4 +559,154 @@ https://example.com/long.m3u8
     expect(a[0].name).toBe('A');
     expect(b[0].name).toBe('B');
   });
+
+  it('treats whitespace-only comma display names as missing names', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,
+https://example.com/space-name.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    // trailing comma with spaces → name = "   ".trim() === "" which is falsy at push time
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('keeps http and https of the same host as distinct stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="HTTP",HTTP
+http://example.com/same.m3u8
+#EXTINF:-1 tvg-name="HTTPS",HTTPS
+https://example.com/same.m3u8
+`);
+    expect(stations).toHaveLength(2);
+    expect(stations.map((s) => s.url)).toEqual([
+      'http://example.com/same.m3u8',
+      'https://example.com/same.m3u8',
+    ]);
+  });
+
+  it('parses without a leading #EXTM3U header', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="NoHeader",NoHeader
+https://example.com/no-header.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('NoHeader');
+  });
+
+  it('stops attribute capture at the first closing double quote', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="Broken"quote" group-title="Jazz",Broken
+https://example.com/broken-quote.m3u8
+`,
+    );
+    expect(stations[0].name).toBe('Broken');
+    expect(stations[0].group).toBe('Jazz');
+  });
+
+  it('accepts IPv6-literal hosts in brackets', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="V6",V6
+http://[2001:db8::1]:8080/live.m3u8
+`);
+    expect(stations[0].url).toBe('http://[2001:db8::1]:8080/live.m3u8');
+  });
+
+  it('ignores bare # comment lines and empty #EXTINF:-1 with only spaces after comma', () => {
+    const stations = parseM3U(`#EXTM3U
+#
+#EXTINF:-1,   
+https://example.com/blankish.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('trims trailing whitespace off stream URLs via line trim', () => {
+    const stations = parseM3U(
+      '#EXTINF:-1 tvg-name="TrimURL",TrimURL\nhttps://example.com/trim.m3u8   \n',
+    );
+    expect(stations[0].url).toBe('https://example.com/trim.m3u8');
+  });
+
+  it('does not treat mailto: or tel: lines as streams', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Mail",Mail
+mailto:dj@example.com
+#EXTINF:-1 tvg-name="Tel",Tel
+tel:+15551212
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('preserves plus signs and encoded spaces in query strings', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Q",Q
+https://example.com/stream.m3u8?q=a+b&x=%20y
+`);
+    expect(stations[0].url).toBe('https://example.com/stream.m3u8?q=a+b&x=%20y');
+  });
+
+  it('resets after a Windows drive-letter path line', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Win",Win
+C:\\Streams\\local.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('allows a second #EXTM3U header mid-playlist without resetting stations', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="One",One
+https://example.com/one.m3u8
+#EXTM3U
+#EXTINF:-1 tvg-name="Two",Two
+https://example.com/two.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['One', 'Two']);
+  });
+
+  it('does not unescape backslash-escaped quotes inside attribute values', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="A\\"B" group-title="G",Display
+https://example.com/esc.m3u8
+`,
+    );
+    // Regex stops at first "; name becomes A\\ (then leftover is outside the match)
+    expect(stations[0].name).toBe('A\\');
+  });
+
+  it('skips whitespace-only lines between entries without clearing EXTINF state', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Spacy",Spacy
+
+
+https://example.com/spacy.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Spacy');
+  });
+
+  it('parses negative and positive EXTINF durations the same way', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Neg",Neg
+https://example.com/neg.m3u8
+#EXTINF:3600 tvg-name="Hour",Hour
+https://example.com/hour.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Neg', 'Hour']);
+  });
+
+  it('does not accept http without the double-slash authority form', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="NoSlash",NoSlash
+http:example.com/bad
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
 });
