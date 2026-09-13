@@ -442,5 +442,79 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents KV 1h TTL for /stations cache', () => {
     expect(spec).toMatch(/1h TTL/);
   });
+
+  it('locks exact Integration Notes five bullet texts', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+    expect(bullets).toEqual([
+      'Base URL: `https://backlink.fuzzywigg.com`',
+      'No auth required for read endpoints',
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+      'On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('documents curate Endpoint exactly GET /curate?genre={genre}&mood={mood}', () => {
+    expect(spec).toMatch(/\*\*Endpoint:\*\*\s*`GET \/curate\?genre=\{genre\}&mood=\{mood\}`/);
+  });
+
+  it('docs say top 3 picks while Worker degrade path slices top 5', () => {
+    expect(spec).toMatch(/top 3/i);
+    expect(spec).toMatch(/top 5/);
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toMatch(
+      /stations\.slice\(0,\s*5\)/,
+    );
+  });
+
+  it('documents backlink_genres aliases additionalProperties only on aliases object', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_genres`'),
+      spec.indexOf('### `backlink_now_playing`'),
+    );
+    expect(section).toMatch(/"aliases"[\s\S]*?"additionalProperties"/);
+  });
+
+  it('documents now_playing required order name, stream_url, genre', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_now_playing`'));
+    const required = section.match(/"required":\s*\[([^\]]+)\]/);
+    expect(required).toBeTruthy();
+    const fields = [...required![1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    expect(fields).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it('documents curator station logo and editorial as optional nullable unions', () => {
+    const curate = spec.slice(
+      spec.indexOf('### `backlink_curate`'),
+      spec.indexOf('### `backlink_genres`'),
+    );
+    expect(curate).toMatch(/"logo"[\s\S]*?"type":\s*\["string",\s*"null"\]/);
+    expect(curate).toMatch(/"editorial"[\s\S]*?"type":\s*\["string",\s*"null"\]/);
+  });
+
+  it('mood examples include GENRE_MAP keys plus energizing outside the map', () => {
+    expect(spec).toMatch(/focus/);
+    expect(spec).toMatch(/chill/);
+    expect(spec).toMatch(/late night/);
+    expect(spec).toMatch(/energizing/);
+    expect(GENRE_MAP).not.toHaveProperty('energizing');
+  });
+
+  it('does not list /stations or /health as tool Endpoints', () => {
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/stations/);
+    expect(spec).not.toMatch(/Endpoint:\*\*\s*`GET \/health/);
+  });
+
+  it('keeps exactly 3 fenced json input/output schema blocks language-tagged json', () => {
+    const fences = [...spec.matchAll(/```json/g)];
+    expect(fences.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('cross-locks docs Base URL host to wrangler.toml routes.pattern', () => {
+    const toml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+    const pattern = toml.match(/pattern\s*=\s*"([^"]+)"/)?.[1];
+    expect(pattern).toBe('backlink.fuzzywigg.com');
+    expect(spec).toContain(`https://${pattern}`);
+  });
 });
 

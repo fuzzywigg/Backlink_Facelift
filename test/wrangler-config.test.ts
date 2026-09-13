@@ -296,5 +296,38 @@ describe('wrangler.toml contracts', () => {
     const afterVars = toml.slice(toml.indexOf('[vars]'));
     expect(afterVars).toMatch(/\[vars\]\s*\nVERSION = "0\.1\.0"\s*\n\n# Secrets/);
   });
+
+  it('does not declare [triggers], workflows, or queue producers', () => {
+    expect(toml).not.toMatch(/\[triggers\]/i);
+    expect(toml).not.toMatch(/workflows/i);
+    expect(toml).not.toMatch(/queue/i);
+  });
+
+  it('documents wrangler secret put GEMINI_API_KEY comment exactly', () => {
+    expect(toml).toMatch(/# wrangler secret put GEMINI_API_KEY/);
+  });
+
+  it('does not declare singular route= key', () => {
+    expect(toml).not.toMatch(/^route\s*=/m);
+  });
+
+  it('keeps kv_namespaces object keys exactly binding + id', () => {
+    const kv = toml.slice(toml.indexOf('[[kv_namespaces]]'), toml.indexOf('[[routes]]'));
+    const keys = [...kv.matchAll(/^\s*([a-z_]+)\s*=/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['binding', 'id']);
+  });
+
+  it('keeps routes object keys exactly pattern + custom_domain', () => {
+    const routes = toml.slice(toml.indexOf('[[routes]]'), toml.indexOf('[vars]'));
+    const keys = [...routes.matchAll(/^\s*([a-z_]+)\s*=/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['pattern', 'custom_domain']);
+  });
+
+  it('keeps VERSION equal to package.json version', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+      version: string;
+    };
+    expect(toml).toMatch(new RegExp(`VERSION\\s*=\\s*"${pkg.version}"`));
+  });
 });
 

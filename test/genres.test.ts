@@ -818,4 +818,73 @@ describe('resolveGenre', () => {
     expect(resolveGenre('jazz', map)).toBe('ambient');
     expect(Object.prototype.hasOwnProperty.call(map, 'jazz')).toBe(false);
   });
+
+  it('returns music for falsy non-string inputs 0 / false / NaN', () => {
+    expect(resolveGenre(0 as unknown as string)).toBe('music');
+    expect(resolveGenre(false as unknown as string)).toBe('music');
+    expect(resolveGenre(NaN as unknown as string)).toBe('music');
+  });
+
+  it('throws when truthy non-string inputs lack toLowerCase', () => {
+    expect(() => resolveGenre(1 as unknown as string)).toThrow();
+    expect(() => resolveGenre(true as unknown as string)).toThrow();
+  });
+
+  it('returns music for BOM-only input after trim', () => {
+    expect(resolveGenre('\uFEFF')).toBe('music');
+  });
+
+  it('strips leading BOM so FEFFjazz resolves to jazz', () => {
+    expect(resolveGenre('\uFEFFjazz')).toBe('jazz');
+  });
+
+  it('propagates custom map getter throws', () => {
+    const map = {
+      get jazz() {
+        throw new Error('map getter boom');
+      },
+    } as unknown as Record<string, string>;
+    expect(() => resolveGenre('jazz', map)).toThrow(/map getter boom/);
+  });
+
+  it('returns custom map values as-is even when non-string objects', () => {
+    const weird = { toString: () => 'nope' };
+    expect(resolveGenre('x', { x: weird as unknown as string })).toBe(weird);
+  });
+
+  it('resolves LATE NIGHT multi-word upper to ambient', () => {
+    expect(resolveGenre('LATE NIGHT')).toBe('ambient');
+  });
+
+  it('uses live GENRE_MAP as default map argument (same results as explicit pass)', () => {
+    for (const key of Object.keys(GENRE_MAP)) {
+      expect(resolveGenre(key)).toBe(resolveGenre(key, GENRE_MAP));
+    }
+    expect(resolveGenre('unknown-xyz')).toBe(resolveGenre('unknown-xyz', GENRE_MAP));
+  });
+
+  it('returns music for null-byte suffix rock\\0', () => {
+    expect(resolveGenre('rock\u0000')).toBe('music');
+  });
+
+  it('maps only hyphenated lo-fi; underscore and en-dash variants fall to music', () => {
+    expect(resolveGenre('lo-fi')).toBe('ambient');
+    expect(resolveGenre('lo_fi')).toBe('music');
+    expect(resolveGenre('lo–fi')).toBe('music');
+  });
+
+  it('never returns uppercase genre strings for default map path', () => {
+    for (const key of Object.keys(GENRE_MAP)) {
+      expect(resolveGenre(key)).toBe(resolveGenre(key).toLowerCase());
+    }
+    for (const g of VALID_GENRES) {
+      expect(resolveGenre(g.toUpperCase())).toBe(g);
+    }
+  });
+
+  it('resolves every GENRE_MAP key to its mapped value', () => {
+    for (const [key, value] of Object.entries(GENRE_MAP)) {
+      expect(resolveGenre(key)).toBe(value);
+    }
+  });
 });
