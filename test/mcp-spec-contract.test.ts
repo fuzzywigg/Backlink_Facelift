@@ -114,4 +114,36 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(spec).toMatch(/1h TTL/i);
     expect(spec).toMatch(/graceful degradation/i);
   });
+
+  it('documents curator output required fields name/url/genre', () => {
+    expect(spec).toMatch(/"required":\s*\[["']name["'],\s*["']url["'],\s*["']genre["']\]/);
+  });
+
+  it('documents now_playing required fields with stream_url', () => {
+    expect(spec).toMatch(/"required":\s*\[["']name["'],\s*["']stream_url["'],\s*["']genre["']\]/);
+  });
+
+  it('documents timestamp as date-time format on curator output', () => {
+    expect(spec).toMatch(/"timestamp":\s*\{\s*"type":\s*"string",\s*"format":\s*"date-time"/);
+  });
+
+  it('lists mood examples that GENRE_MAP can resolve', () => {
+    for (const mood of ['late night', 'focus', 'chill'] as const) {
+      expect(spec.toLowerCase()).toContain(mood);
+      expect(Object.keys(GENRE_MAP)).toContain(mood);
+    }
+  });
+
+  it('keeps docs tool headings in curate → genres → now_playing order', () => {
+    const curate = spec.indexOf('### `backlink_curate`');
+    const genres = spec.indexOf('### `backlink_genres`');
+    const now = spec.indexOf('### `backlink_now_playing`');
+    expect(curate).toBeGreaterThan(-1);
+    expect(genres).toBeGreaterThan(curate);
+    expect(now).toBeGreaterThan(genres);
+  });
+
+  it('documents logo as nullable uri on curator station items', () => {
+    expect(spec).toMatch(/"logo":\s*\{\s*"type":\s*\[["']string["'],\s*["']null["']\].*"format":\s*"uri"/s);
+  });
 });

@@ -117,4 +117,70 @@ describe('test helpers', () => {
       metadata: null,
     });
   });
+
+  it('overwrites an existing mockKV key on put', async () => {
+    const kv = mockKV({ 'stations:music': 'old' });
+    await kv.put('stations:music', 'new');
+    await expect(kv.get('stations:music')).resolves.toBe('new');
+  });
+
+  it('builds independent testEnv objects without shared KV', () => {
+    const a = testEnv();
+    const b = testEnv();
+    expect(a.CATALOG_CACHE).not.toBe(b.CATALOG_CACHE);
+    expect(a.VERSION).toBe('0.1.0-test');
+  });
+
+  it('curatedGeminiJson accepts custom station picks', async () => {
+    const res = curatedGeminiJson([
+      {
+        name: 'Custom FM',
+        url: 'https://example.com/custom.m3u8',
+        editorial: 'Custom.',
+        genre: 'jazz',
+        logo: 'https://cdn.example/c.png',
+      },
+    ]);
+    const body = (await res.json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{
+      name: string;
+      genre: string;
+      logo?: string;
+    }>;
+    expect(picks).toEqual([
+      {
+        name: 'Custom FM',
+        url: 'https://example.com/custom.m3u8',
+        editorial: 'Custom.',
+        genre: 'jazz',
+        logo: 'https://cdn.example/c.png',
+      },
+    ]);
+  });
+
+  it('counts http but not uppercase HTTP schemes', () => {
+    expect(countHttpStreamLines('HTTP://x\nhttps://y\n')).toBe(1);
+  });
+
+  it('builds iptv URLs for every VALID_GENRES-like slug without encoding', () => {
+    expect(iptvCategoryUrl('entertainment')).toBe(
+      'https://iptv-org.github.io/iptv/categories/entertainment.m3u',
+    );
+    expect(iptvCategoryUrl('lo-fi')).toContain('/lo-fi.m3u');
+  });
+
+  it('stubIptvAndGemini defaults iptvStatus to 503 when m3u is null', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(503);
+  });
+
+  it('geminiTextResponse returns application/json', () => {
+    const res = geminiTextResponse('x');
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
 });

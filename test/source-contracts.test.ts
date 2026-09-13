@@ -113,4 +113,44 @@ describe('source ↔ product contracts', () => {
     expect(pkg.description).toMatch(/iptv-org/i);
     expect(pkg.version).toBe('0.1.0');
   });
+
+  it('keeps parseM3U as a pure export (no network calls in parser module)', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).not.toMatch(/\bfetch\s*\(/);
+    expect(parser).toMatch(/export function parseM3U/);
+    expect(parser).toMatch(/export interface Station/);
+  });
+
+  it('does not import MCP_MANIFEST into the Worker entry', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/from\s+['"]\.\/mcp['"]/);
+    expect(index).not.toContain('MCP_MANIFEST');
+  });
+
+  it('builds Gemini URL with generateContent and api key query param', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/generateContent\?key=\$\{apiKey\}/);
+    expect(index).toMatch(/method:\s*'POST'/);
+  });
+
+  it('keeps CORS middleware registered before route handlers', () => {
+    const index = read('src/index.ts');
+    const cors = index.indexOf("app.use('*', cors())");
+    const firstGet = index.indexOf("app.get('/'");
+    expect(cors).toBeGreaterThan(-1);
+    expect(firstGet).toBeGreaterThan(cors);
+  });
+
+  it('documents HITL escalate constraints in AGENTS.md', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/Escalate to Human/i);
+    expect(agents).toMatch(/GEMINI_API_KEY/);
+    expect(agents).toMatch(/Production deploy/i);
+  });
+
+  it('uses JSON.parse on KV cache hits and JSON.stringify on puts', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/JSON\.parse\(cached\)/);
+    expect(index).toMatch(/JSON\.stringify\(stations\)/);
+  });
 });

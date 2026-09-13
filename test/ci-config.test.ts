@@ -219,4 +219,64 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/!\s*test -f \.env/);
     expect(ci).toMatch(/!\s*test -f \.dev\.vars/);
   });
+
+  it('locks hygiene required-file checks for all expanded suites', () => {
+    const ci = read('.github/workflows/ci.yml');
+    for (const f of [
+      'test/helpers.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+      'test/mcp-spec-contract.test.ts',
+    ]) {
+      expect(ci).toContain(f);
+    }
+  });
+
+  it('documents README verify scripts matching package.json', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('npm run typecheck');
+    expect(readme).toContain('npm run test:coverage');
+    expect(readme).toMatch(/100%/);
+    expect(readme).toContain('gemini-2.0-flash'.replace('gemini-2.0-flash', 'Gemini 2.0 Flash'));
+  });
+
+  it('pins checkout actions to v7 in both CI jobs that check out', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const checkouts = ci.match(/actions\/checkout@v\d+/g) ?? [];
+    expect(checkouts.length).toBeGreaterThanOrEqual(3);
+    expect(checkouts.every((c) => c === 'actions/checkout@v7')).toBe(true);
+  });
+
+  it('keeps vitest coverage reporters including html and text-summary', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/text-summary/);
+    expect(cfg).toMatch(/['"]html['"]/);
+    expect(cfg).toMatch(/['"]lcov['"]/);
+  });
+
+  it('ignores wrangler local state and pem/key files in .gitignore', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+    expect(gi).toMatch(/^\*\.pem$/m);
+    expect(gi).toMatch(/^\*\.key$/m);
+  });
+
+  it('keeps Dependabot monthly cadence for npm and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/interval:\s*"monthly"/);
+    expect((dep.match(/package-ecosystem:/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('asserts hygiene blocks Anthropic leftovers in src/', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/anthropic\|claude\|haiku/);
+    expect(ci).toMatch(/gemini-2\.0-flash/);
+  });
+
+  it('keeps package version at 0.1.0 aligned with wrangler VERSION var', () => {
+    const pkg = JSON.parse(read('package.json')) as { version: string };
+    const toml = read('wrangler.toml');
+    expect(pkg.version).toBe('0.1.0');
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+  });
 });
