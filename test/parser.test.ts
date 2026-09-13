@@ -345,4 +345,116 @@ https://example.com/orphan-after.m3u8
 `);
     expect(stations.map((s) => s.url)).toEqual(['https://example.com/one.m3u8']);
   });
+
+  it('does not match single-quoted attribute values (double quotes only)', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name='Single' group-title='Jazz',Display Fallback
+https://example.com/single.m3u8
+`);
+    expect(stations[0]).toMatchObject({
+      name: 'Display Fallback',
+      group: undefined,
+      url: 'https://example.com/single.m3u8',
+    });
+  });
+
+  it('requires lowercase http(s) scheme prefixes', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Upper",Upper
+HTTP://example.com/upper.m3u8
+#EXTINF:-1 tvg-name="Mixed",Mixed
+Https://example.com/mixed.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('dedupes identical consecutive URLs keeping the first name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="First",First
+https://example.com/same.m3u8
+#EXTINF:-1 tvg-name="Second",Second
+https://example.com/same.m3u8
+#EXTINF:-1 tvg-name="Third",Third
+https://example.com/same.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('First');
+  });
+
+  it('strips a UTF-8 BOM before parsing the first header line', () => {
+    const stations = parseM3U(
+      '\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name="Bombed",Bombed\nhttps://example.com/bom.m3u8\n',
+    );
+    // BOM sticks to the first line; header becomes "\uFEFF#EXTM3U" (still a # comment).
+    // The station line itself is unaffected.
+    expect(stations).toEqual([
+      {
+        name: 'Bombed',
+        url: 'https://example.com/bom.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('preserves attribute values that contain commas and spaces', () => {
+    const stations = parseM3U(
+      `#EXTINF:-1 tvg-name="City, State FM" group-title="News, Talk",City, State FM
+https://example.com/city.m3u8
+`,
+    );
+    expect(stations[0]).toMatchObject({
+      name: 'City, State FM',
+      group: 'News, Talk',
+    });
+  });
+
+  it('ignores EXTINF attribute keys that are not in the supported set', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-id="x" tvg-chno="12" radio="true" tvg-name="OnlyName",OnlyName
+https://example.com/only.m3u8
+`);
+    expect(stations[0]).toEqual({
+      name: 'OnlyName',
+      url: 'https://example.com/only.m3u8',
+      logo: undefined,
+      group: undefined,
+      language: undefined,
+      country: undefined,
+    });
+  });
+
+  it('handles multiple orphan EXTINF blocks before a valid entry', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+#EXTINF:-1 tvg-name="B",B
+#EXTINF:-1 tvg-name="C",C
+https://example.com/c.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['C']);
+  });
+
+  it('accepts IPv4-literal and ported stream hosts', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="IP",IP
+http://192.168.1.10:8080/live.m3u8
+`);
+    expect(stations[0].url).toBe('http://192.168.1.10:8080/live.m3u8');
+  });
+
+  it('does not treat javascript: or data: lines as streams', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="JS",JS
+javascript:alert(1)
+#EXTINF:-1 tvg-name="Data",Data
+data:text/plain,hi
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
 });

@@ -36,4 +36,15 @@ describe('wrangler.toml contracts', () => {
     expect(toml).toMatch(/custom_domain\s*=\s*true/);
     expect(toml).not.toMatch(/api[_-]?key\s*=/i);
   });
+
+  it('does not enable workers.dev route overrides or durable objects', () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+    expect(toml).not.toMatch(/\[triggers\]/);
+  });
+
+  it('keeps a single KV namespace binding named CATALOG_CACHE', () => {
+    const bindings = [...toml.matchAll(/binding\s*=\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(bindings).toEqual(['CATALOG_CACHE']);
+  });
 });

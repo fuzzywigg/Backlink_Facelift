@@ -67,3 +67,17 @@ export function stubIptvAndGemini(opts: {
     return new Response('nope', { status: 404 });
   });
 }
+
+/** Minimal curated Gemini JSON text for happy-path /curate stubs. */
+export function curatedGeminiJson(
+  stations: Array<{ name: string; url: string; editorial: string; genre: string; logo?: string }> = [
+    {
+      name: 'Alpha FM',
+      url: 'https://example.com/alpha.m3u8',
+      editorial: 'Default curated pick.',
+      genre: 'music',
+    },
+  ],
+): Response {
+  return geminiTextResponse(JSON.stringify(stations));
+}

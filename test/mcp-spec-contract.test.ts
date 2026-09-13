@@ -77,4 +77,20 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
       expect(spec).toContain(docsId);
     }
   });
+
+  it('documents additionalProperties:false on docs tool input schemas', () => {
+    expect(spec).toMatch(/"additionalProperties":\s*false/);
+    const matches = spec.match(/"additionalProperties":\s*false/g) ?? [];
+    expect(matches.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('documents stream_url remapping for backlink_now_playing', () => {
+    expect(spec).toMatch(/stream_url/);
+    expect(spec).toMatch(/url`?\s+remapped to\s+`?stream_url/i);
+  });
+
+  it('documents that genre and mood are optional when the other is provided for curate', () => {
+    expect(spec).toMatch(/Optional if mood is provided/i);
+    expect(spec).toMatch(/Optional if genre is provided/i);
+  });
 });

@@ -63,4 +63,31 @@ describe('source ↔ product contracts', () => {
     expect(env.name).toBe('Backlink_Facelift');
     expect(env.install).toBe('npm ci');
   });
+
+  it('guards /curate when GEMINI_API_KEY is unset before catalog work', () => {
+    const index = read('src/index.ts');
+    const keyGuard = index.indexOf('if (!c.env.GEMINI_API_KEY)');
+    const fetchStationsCall = index.indexOf('stations = await fetchStations(genre', keyGuard);
+    expect(keyGuard).toBeGreaterThan(-1);
+    expect(fetchStationsCall).toBeGreaterThan(keyGuard);
+    expect(index).toContain("error: 'Curation service unavailable'");
+  });
+
+  it('limits Gemini station context to the first 50 entries', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/stations\s*\n\s*\.slice\(0,\s*50\)/);
+  });
+
+  it('keeps callGemini temperature and maxOutputTokens locked', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/maxOutputTokens:\s*512/);
+    expect(index).toMatch(/temperature:\s*0\.7/);
+  });
+
+  it('documents MCP tools in docs/mcp-spec.md for the three docs tool ids', () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec).toContain('### `backlink_curate`');
+    expect(spec).toContain('### `backlink_genres`');
+    expect(spec).toContain('### `backlink_now_playing`');
+  });
 });
