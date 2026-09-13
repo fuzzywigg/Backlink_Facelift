@@ -830,4 +830,91 @@ http://example.com/b.m3u8
   it('SAMPLE_M3U has exactly 6 http(s) stream lines', () => {
     expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
   });
+
+  it('captureGeminiRequest returns headers from the RequestInit', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: geminiTextResponse('[]') });
+    const headers = { 'content-type': 'application/json', 'x-test': '1' };
+    await (fetchMock as unknown as (input: string, init?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/models/x:generateContent?key=k',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ contents: [] }),
+      },
+    );
+    expect(captureGeminiRequest(fetchMock)!.headers).toEqual(headers);
+  });
+
+  it('captureGeminiRequest throws when body is invalid JSON', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: geminiTextResponse('[]') });
+    await (fetchMock as unknown as (input: string, init?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/models/x:generateContent?key=k',
+      { method: 'POST', body: '{not-json' },
+    );
+    expect(() => captureGeminiRequest(fetchMock)).toThrow();
+  });
+
+  it('stubIptvAndGemini prefers iptvByGenre over default m3u for matching genres', async () => {
+    const jazz = buildSimpleM3U([{ name: 'Jazz Only', url: 'https://example.com/jazz.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({
+      m3u: SAMPLE_M3U,
+      iptvByGenre: { jazz },
+    });
+    const jazzRes = await (fetchMock as unknown as (input: string) => Promise<Response>)(
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+    );
+    const musicRes = await (fetchMock as unknown as (input: string) => Promise<Response>)(
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    );
+    expect(await jazzRes.text()).toContain('Jazz Only');
+    expect(await musicRes.text()).toContain('Alpha FM');
+  });
+
+  it('buildSimpleM3U emits attributes in name/logo/group/language/country order', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Ordered',
+        url: 'https://example.com/o.m3u8',
+        logo: 'https://l',
+        group: 'G',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    const extinf = m3u.split('\n').find((l) => l.startsWith('#EXTINF'))!;
+    const nameIdx = extinf.indexOf('tvg-name=');
+    const logoIdx = extinf.indexOf('tvg-logo=');
+    const groupIdx = extinf.indexOf('group-title=');
+    const langIdx = extinf.indexOf('tvg-language=');
+    const countryIdx = extinf.indexOf('tvg-country=');
+    expect(nameIdx).toBeGreaterThanOrEqual(0);
+    expect(logoIdx).toBeGreaterThan(nameIdx);
+    expect(groupIdx).toBeGreaterThan(logoIdx);
+    expect(langIdx).toBeGreaterThan(groupIdx);
+    expect(countryIdx).toBeGreaterThan(langIdx);
+  });
+
+  it('stubIptvAndGemini Request inputs miss host match and return 404', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    const res = await (
+      fetchMock as unknown as (input: RequestInfo) => Promise<Response>
+    )(new Request('https://iptv-org.github.io/iptv/categories/music.m3u'));
+    // String(Request) === "[object Request]" — documented quirk
+    expect(res.status).toBe(404);
+    expect(String(new Request('https://iptv-org.github.io/iptv/categories/music.m3u'))).toBe(
+      '[object Request]',
+    );
+  });
+
+  it('seedStationsCache merges without overwriting unrelated existing keys', () => {
+    const seeded = seedStationsCache('jazz', [{ name: 'J', url: 'https://j' }], {
+      'stations:music': '[]',
+      other: 'keep',
+    });
+    expect(seeded).toEqual({
+      'stations:music': '[]',
+      other: 'keep',
+      'stations:jazz': JSON.stringify([{ name: 'J', url: 'https://j' }]),
+    });
+  });
 });
