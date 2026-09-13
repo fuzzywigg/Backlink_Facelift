@@ -1494,6 +1494,17 @@ describe('MCP_MANIFEST', () => {
     }
   });
 
+  it('locks description_for_human character length within stable band', () => {
+    const n = MCP_MANIFEST.description_for_human.length;
+    expect(n).toBeGreaterThan(20);
+    expect(n).toBeLessThan(120);
+  });
+
+  it('tools.at(0) is station_select and tools.at(-1) is curator_prompt', () => {
+    expect(MCP_MANIFEST.tools.at(0)?.name).toBe('station_select');
+    expect(MCP_MANIFEST.tools.at(-1)?.name).toBe('curator_prompt');
+  });
+
   it('locks station_name / genre / mood property descriptions exact strings', () => {
     expect(toolNamed('station_select').input_schema.properties.station_name?.description).toBe(
       'Partial or full name of the station to select.',
@@ -1557,4 +1568,153 @@ describe('MCP_MANIFEST', () => {
     expect(a).toBe(b);
     expect(a).toBe('["station_select","now_playing","genre_filter","curator_prompt"]');
   });
+
+  it('structuredClone of MCP_MANIFEST is deep-equal and reference-distinct', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    expect(clone).toEqual(MCP_MANIFEST);
+    expect(clone).not.toBe(MCP_MANIFEST);
+    expect(clone.tools).not.toBe(MCP_MANIFEST.tools);
+    expect(clone.tools[0]).not.toBe(MCP_MANIFEST.tools[0]);
+  });
+
+  it('locks station_select property key order exactly station_name', () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'station_select')!;
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['station_name']);
+  });
+
+  it('locks curator_prompt property key order mood then genre', () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt')!;
+    expect(Object.keys(tool.input_schema.properties)).toEqual(['mood', 'genre']);
+  });
+
+  it('does not declare $schema, id, or $id on the manifest', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    expect(raw).not.toMatch(/"\$schema"/);
+    expect(raw).not.toMatch(/"\$id"/);
+    expect(MCP_MANIFEST).not.toHaveProperty('id');
+  });
+
+  it('auth.type and api.type are distinct string literals', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(MCP_MANIFEST.api.type).toBe('openapi');
+    expect(MCP_MANIFEST.auth.type).not.toBe(MCP_MANIFEST.api.type);
+  });
+
+  it('Object.getOwnPropertyDescriptors tools entries are writable configurable enumerable', () => {
+    for (let i = 0; i < MCP_MANIFEST.tools.length; i++) {
+      const d = Object.getOwnPropertyDescriptor(MCP_MANIFEST.tools, i)!;
+      expect(d.writable).toBe(true);
+      expect(d.enumerable).toBe(true);
+      expect(d.configurable).toBe(true);
+    }
+  });
+
+  it('locks exact tool name character lengths', () => {
+    const lens = Object.fromEntries(MCP_MANIFEST.tools.map((t) => [t.name, t.name.length]));
+    expect(lens).toEqual({
+      station_select: 14,
+      now_playing: 11,
+      genre_filter: 12,
+      curator_prompt: 14,
+    });
+  });
+
+  it('does not declare default values on any input property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(prop).not.toHaveProperty('default');
+        expect(prop).not.toHaveProperty('const');
+        expect(prop).not.toHaveProperty('enum');
+      }
+    }
+  });
+
+  it('now_playing is the only tool without a required array', () => {
+    const withRequired = MCP_MANIFEST.tools.filter((t) => 'required' in t.input_schema);
+    const without = MCP_MANIFEST.tools.filter((t) => !('required' in t.input_schema));
+    expect(without.map((t) => t.name)).toEqual(['now_playing']);
+    expect(withRequired).toHaveLength(3);
+  });
+
+  it('keeps description_for_model free of markdown and backticks', () => {
+    expect(MCP_MANIFEST.description_for_model).not.toMatch(/[`*_#]/);
+  });
+
+  it('keeps name_for_human words exactly two tokens', () => {
+    expect(MCP_MANIFEST.name_for_human.split(/\s+/)).toEqual(['Backlink', 'Radio']);
+  });
+
+  it('api.url is a root-relative path not an absolute URL', () => {
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+    expect(MCP_MANIFEST.api.url).not.toMatch(/^https?:/i);
+  });
+
+  it('tools array length matches Object.keys index count', () => {
+    expect(MCP_MANIFEST.tools.length).toBe(Object.keys(MCP_MANIFEST.tools).length);
+  });
+
+  it('JSON.stringify does not emit undefined holes in tools', () => {
+    expect(JSON.stringify(MCP_MANIFEST.tools)).not.toContain('null');
+    expect(JSON.stringify(MCP_MANIFEST.tools)).not.toContain('undefined');
+  });
+
+  it('locks curator_prompt as the only tool with two properties', () => {
+    const counts = MCP_MANIFEST.tools.map((t) => ({
+      name: t.name,
+      n: Object.keys(t.input_schema.properties).length,
+    }));
+    expect(counts.filter((c) => c.n === 2).map((c) => c.name)).toEqual(['curator_prompt']);
+    expect(counts.filter((c) => c.n === 0).map((c) => c.name)).toEqual(['now_playing']);
+    expect(counts.filter((c) => c.n === 1).map((c) => c.name).sort()).toEqual([
+      'genre_filter',
+      'station_select',
+    ]);
+  });
+
+  it('does not declare examples arrays on tools or properties', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    expect(raw).not.toContain('"examples"');
+    expect(raw).not.toContain('"example"');
+  });
+
+  it('schema_version compares less than v2 lexicographically', () => {
+    expect(MCP_MANIFEST.schema_version < 'v2').toBe(true);
+    expect(MCP_MANIFEST.schema_version > 'v0').toBe(true);
+  });
+
+  it('Object.isExtensible is true for manifest, auth, api, and tools', () => {
+    expect(Object.isExtensible(MCP_MANIFEST)).toBe(true);
+    expect(Object.isExtensible(MCP_MANIFEST.auth)).toBe(true);
+    expect(Object.isExtensible(MCP_MANIFEST.api)).toBe(true);
+    expect(Object.isExtensible(MCP_MANIFEST.tools)).toBe(true);
+  });
+
+  it('findIndex of now_playing is 1 and genre_filter is 2', () => {
+    expect(MCP_MANIFEST.tools.findIndex((t) => t.name === 'now_playing')).toBe(1);
+    expect(MCP_MANIFEST.tools.findIndex((t) => t.name === 'genre_filter')).toBe(2);
+  });
+
+  it('keeps every required entry a subset of properties keys', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const req of tool.input_schema.required ?? []) {
+        expect(Object.keys(tool.input_schema.properties)).toContain(req);
+      }
+    }
+  });
+
+  it('locks description_for_model character length within stable band', () => {
+    const n = MCP_MANIFEST.description_for_model.length;
+    expect(n).toBeGreaterThan(100);
+    expect(n).toBeLessThan(400);
+  });
+
+  it('every tool input_schema owns exactly type and properties keys at minimum', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      const keys = Object.keys(tool.input_schema);
+      expect(keys).toContain('type');
+      expect(keys).toContain('properties');
+      expect(keys.every((k) => ['type', 'properties', 'required'].includes(k))).toBe(true);
+    }
+  });
+
 });

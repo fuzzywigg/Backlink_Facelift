@@ -1417,4 +1417,39 @@ describe('source ↔ product contracts', () => {
     expect(items).toHaveLength(9);
     expect(items).toEqual([...VALID_GENRES]);
   });
+
+  it('locks genres.ts to export GENRE_MAP VALID_GENRES ValidGenre resolveGenre', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).toContain('export const GENRE_MAP');
+    expect(genres).toContain('export const VALID_GENRES');
+    expect(genres).toContain('export type ValidGenre');
+    expect(genres).toContain('export function resolveGenre');
+  });
+
+  it('locks parser.ts to export Station interface and parseM3U function only', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('export interface Station');
+    expect(parser).toContain('export function parseM3U');
+    expect(parser).not.toMatch(/export default/);
+  });
+
+  it('locks index.ts route registrations for / /health /genres /stations /curate', () => {
+    const index = read('src/index.ts');
+    for (const route of ["'/'", "'/health'", "'/genres'", "'/stations'", "'/curate'"]) {
+      expect(index).toContain(`app.get(${route}`);
+    }
+  });
+
+  it('locks index fetchStations cacheKey template stations:${genre}', () => {
+    expect(read('src/index.ts')).toContain('`stations:${genre}`');
+  });
+
+  it('locks index callGemini model path gemini-2.0-flash:generateContent', () => {
+    expect(read('src/index.ts')).toContain('gemini-2.0-flash:generateContent');
+  });
+
+  it('locks parser http bind to require current.name and !seen.has(line)', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('if (current.name && !seen.has(line))');
+  });
 });
