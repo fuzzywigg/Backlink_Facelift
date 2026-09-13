@@ -420,6 +420,13 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/npm run test:coverage.*deploy\.yml|grep -q 'npm run test:coverage' \.github\/workflows\/deploy\.yml/);
   });
 
+  it('hygiene locks coverage retention, deploy persist-credentials, and lockfileVersion', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/grep -q 'retention-days: 14'/);
+    expect(ci).toMatch(/grep -q 'persist-credentials: false' \.github\/workflows\/deploy\.yml/);
+    expect(ci).toMatch(/grep -q '"lockfileVersion": 3' package-lock\.json/);
+  });
+
   it('locks vitest coverage provider to v8', () => {
     const cfg = read('vitest.config.ts');
     expect(cfg).toMatch(/provider:\s*['"]v8['"]/);
@@ -465,5 +472,89 @@ describe('CI / package test wiring', () => {
       expect(body).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
       expect(body).not.toMatch(/ANTHROPIC_API_KEY/);
     }
+  });
+
+  it('defaults CI run shell to bash', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/);
+  });
+
+  it('keeps coverage artifact retention at 14 days', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/retention-days:\s*14/);
+  });
+
+  it('locks package-lock lockfileVersion to 3', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { lockfileVersion: number };
+    expect(lock.lockfileVersion).toBe(3);
+  });
+
+  it('keeps deploy checkout persist-credentials disabled', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/persist-credentials:\s*false/);
+  });
+
+  it('keeps Dependabot ecosystems limited to npm and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    const ecosystems = [...dep.matchAll(/package-ecosystem:\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(ecosystems.sort()).toEqual(['github-actions', 'npm']);
+  });
+
+  it('does not declare package engines that would fight the CI Node 20 pin', () => {
+    const pkg = JSON.parse(read('package.json')) as { engines?: Record<string, string> };
+    expect(pkg.engines).toBeUndefined();
+  });
+
+  it('keeps tsconfig include covering src, test, and vitest.config', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as { include: string[] };
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('ignores .wrangler and coverage in .gitignore', () => {
+    const gi = read('.gitignore');
+    expect(gi).toMatch(/^\.wrangler\/$/m);
+    expect(gi).toMatch(/^coverage\/$/m);
+    expect(gi).toMatch(/^\.dev\.vars$/m);
+  });
+
+  it('keeps CI concurrency group keyed by workflow and ref', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/group:\s*ci-\$\{\{\s*github\.workflow\s*\}\}-\$\{\{\s*github\.ref\s*\}\}/);
+  });
+
+  it('requires coverage lcov SF:src/ assertion step before upload', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const assertStep = ci.indexOf('Assert coverage artifacts exist');
+    const upload = ci.indexOf('Upload coverage report');
+    expect(assertStep).toBeGreaterThan(-1);
+    expect(upload).toBeGreaterThan(assertStep);
+    expect(ci).toMatch(/grep -q 'SF:src\/'/);
+  });
+
+  it('keeps hygiene secret-scan excluding markdown and package-lock', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/--exclude='\*\.md'/);
+    expect(ci).toMatch(/--exclude='package-lock\.json'/);
+  });
+
+  it('pins vitest and coverage-v8 on the 5.x line', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.devDependencies.vitest).toMatch(/^\^5\./);
+    expect(pkg.devDependencies['@vitest/coverage-v8']).toMatch(/^\^5\./);
+  });
+
+  it('keeps deploy workflow free of push/pull_request triggers', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/workflow_dispatch:/);
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).not.toMatch(/^\s*pull_request:/m);
+  });
+
+  it('documents AGENTS.md escalate list including CORS and secrets', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/CORS or authentication/i);
+    expect(agents).toMatch(/secret management/i);
   });
 });

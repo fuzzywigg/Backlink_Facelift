@@ -261,4 +261,62 @@ describe('source ↔ product contracts', () => {
     expect(parser).toMatch(/Non-http URL \(rtmp:\/\/, etc\.\)/);
     expect(parser).toMatch(/current = \{\}/);
   });
+
+  it('keeps Gemini POST body contents as a single text part', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/contents:\s*\[\s*\{\s*parts:\s*\[\s*\{\s*text:\s*prompt\s*\}\s*\]\s*\}\s*\]/);
+  });
+
+  it('returns Curation service unavailable with retry_after 60', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/error:\s*'Curation service unavailable'/);
+    expect(index).toMatch(/retry_after:\s*60/);
+  });
+
+  it('keeps /stations error payload keys stable', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/error:\s*'Stream catalog unavailable'/);
+  });
+
+  it('does not import cors from a relative path', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/from\s+['"]hono\/cors['"]/);
+  });
+
+  it('keeps genres module free of network and env access', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).not.toMatch(/\bfetch\s*\(/);
+    expect(genres).not.toMatch(/process\.env|GEMINI_API_KEY/);
+  });
+
+  it('keeps mcp module free of network calls', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).not.toMatch(/\bfetch\s*\(/);
+    expect(mcp).toMatch(/export const MCP_MANIFEST/);
+  });
+
+  it('documents Safe Agent Actions listing test/ in AGENTS.md', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/Add \/ extend unit tests under `test\//);
+  });
+
+  it('keeps powered_by branding literal on /', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/powered_by:\s*'Backlink\/Geryon 🦀'/);
+  });
+
+  it('uses Date.toISOString for /curate timestamps', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/timestamp:\s*new Date\(\)\.toISOString\(\)/);
+  });
+
+  it('joins /curate response query with a single space', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/\[mood,\s*genreParam\]\.filter\(Boolean\)\.join\(' '\)/);
+  });
+
+  it('does not register POST handlers on the Worker', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/app\.post\(/);
+  });
 });
