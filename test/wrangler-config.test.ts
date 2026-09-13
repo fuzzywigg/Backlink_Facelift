@@ -1411,7 +1411,7 @@ VERSION = "0.1.0"
     expect(toml).not.toMatch(/wasm_modules|text_blobs/i);
   });
 
-  it('does not declare compatibility_flags array', () => {
+  it('does not declare compatibility_flags key anywhere in lean config', () => {
     expect(toml).not.toMatch(/compatibility_flags/);
   });
 
@@ -1420,7 +1420,7 @@ VERSION = "0.1.0"
     expect(toml).not.toMatch(/keep_vars/);
   });
 
-  it('does not declare rules or find_additional_modules', () => {
+  it('does not declare [[rules]] table or find_additional_modules flag', () => {
     expect(toml).not.toMatch(/^\s*\[\[rules\]\]/m);
     expect(toml).not.toMatch(/find_additional_modules/);
   });
