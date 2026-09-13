@@ -213,4 +213,49 @@ https://example.com/two.m3u8
     expect(stations[0].name).toBe('S0');
     expect(stations[74].name).toBe('S74');
   });
+
+  it('skips EXTINF with a trailing comma but empty display name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,
+https://example.com/empty-display.m3u8
+#EXTINF:-1 tvg-name="Kept",Kept
+https://example.com/kept.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://example.com/kept.m3u8']);
+  });
+
+  it('preserves unicode names and query strings on stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="東京FM" group-title="音楽",東京FM
+https://example.com/tokyo.m3u8?token=abc%20123&lang=ja
+`);
+    expect(stations).toEqual([
+      {
+        name: '東京FM',
+        url: 'https://example.com/tokyo.m3u8?token=abc%20123&lang=ja',
+        logo: undefined,
+        group: '音楽',
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('uses the last comma when display name itself contains commas', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-id="x",News, Weather, and Traffic
+https://example.com/news-weather.m3u8
+`);
+    // tvg-name absent → fallback is everything after the last comma
+    expect(stations[0].name).toBe('and Traffic');
+  });
+
+  it('ignores blank lines between EXTINF and URL', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Gap",Gap
+
+https://example.com/gap.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Gap');
+  });
 });

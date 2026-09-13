@@ -10,10 +10,14 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -32,6 +36,7 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -52,13 +57,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage/
+          path: |
+            coverage/
+            coverage/lcov.info
           if-no-files-found: ignore
           retention-days: 14
 
   hygiene:
     name: Hygiene
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -79,9 +87,16 @@ jobs:
           test -f test/helpers.ts
           test -f test/mcp-spec-contract.test.ts
           test -f test/ci-config.test.ts
+          test -f test/wrangler-config.test.ts
+          test -f test/source-contracts.test.ts
           test -f docs/mcp-spec.md
           grep -q 'thresholds' vitest.config.ts
+          grep -q 'branches: 100' vitest.config.ts
           grep -q 'test:coverage' package.json
+          grep -q 'permissions:' .github/workflows/ci.yml
+          grep -q 'timeout-minutes:' .github/workflows/ci.yml
+          grep -q 'gemini-2.0-flash' src/index.ts
+          ! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'
 
       - name: Check for committed secret material
         run: |

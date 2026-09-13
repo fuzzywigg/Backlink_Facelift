@@ -29,21 +29,50 @@ describe('CI / package test wiring', () => {
     expect(ci).toMatch(/name:\s*Tests/);
     expect(ci).toMatch(/name:\s*Typecheck/);
     expect(ci).toMatch(/name:\s*Hygiene/);
+    expect(ci).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(ci).toMatch(/timeout-minutes:\s*\d+/);
+    expect(ci).toMatch(/cancel-in-progress:\s*true/);
   });
 
   it('enforces coverage thresholds in vitest.config.ts', () => {
     const cfg = read('vitest.config.ts');
     expect(cfg).toMatch(/thresholds\s*:/);
-    expect(cfg).toMatch(/lines:\s*\d+/);
-    expect(cfg).toMatch(/branches:\s*\d+/);
-    expect(cfg).toMatch(/statements:\s*\d+/);
-    expect(cfg).toMatch(/functions:\s*\d+/);
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
     expect(cfg).toMatch(/include:\s*\[['"]test\/\*\*\/\*\.test\.ts['"]\]/);
+    expect(cfg).toMatch(/github-actions/);
+    expect(cfg).toMatch(/lcov/);
   });
 
   it('keeps deploy workflow manual (HITL)', () => {
     const deploy = read('.github/workflows/deploy.yml');
     expect(deploy).toMatch(/workflow_dispatch/);
     expect(deploy).not.toMatch(/^\s*push:/m);
+  });
+
+  it('pins Dependabot to non-major grouped updates', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toMatch(/package-ecosystem:\s*"npm"/);
+    expect(dep).toMatch(/package-ecosystem:\s*"github-actions"/);
+    expect(dep).toMatch(/update-types:\s*\["version-update:semver-major"\]/);
+  });
+
+  it('lists the expanded contract suites under test/', () => {
+    const files = [
+      'test/parser.test.ts',
+      'test/genres.test.ts',
+      'test/routes.test.ts',
+      'test/mcp.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+      'test/helpers.ts',
+    ];
+    for (const rel of files) {
+      expect(read(rel).length).toBeGreaterThan(0);
+    }
   });
 });
