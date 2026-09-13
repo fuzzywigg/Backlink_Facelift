@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseM3U } from '../src/parser';
+import { SAMPLE_M3U, buildSimpleM3U, countHttpStreamLines } from './helpers';
 
 const SAMPLE = `#EXTM3U
 #EXTINF:-1 tvg-id="drone.zone" tvg-name="Drone Zone" tvg-logo="https://cdn.example/drone.png" tvg-language="English" tvg-country="US" group-title="Ambient",Drone Zone
@@ -4091,6 +4092,492 @@ https://example.com/b-mut.m3u8
 `);
     expect(b).toHaveLength(1);
     expect(b[0].name).toBe('B');
+  });
+
+  it('resets on ldap:// git:// ssh:// and telnet:// then recovers', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+ldap://dir.example/cn=x
+#EXTINF:-1 tvg-name="B",B
+git://git.example/repo.git
+#EXTINF:-1 tvg-name="C",C
+ssh://git@example/repo.git
+#EXTINF:-1 tvg-name="D",D
+telnet://example:23
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ldap-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('resets on redis:// postgres:// mongodb:// and jar: then recovers', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+redis://localhost:6379/0
+#EXTINF:-1 tvg-name="B",B
+postgres://user:pass@db/radio
+#EXTINF:-1 tvg-name="C",C
+mongodb://mongo.example/catalog
+#EXTINF:-1 tvg-name="D",D
+jar:file:/app.jar!/stream
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/db-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('accepts #EXTINF:NaN duration token and still binds attrs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:NaN tvg-name="Nano",Nano
+https://example.com/nan.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Nano',
+        url: 'https://example.com/nan.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('accepts #EXTINF:Infinity duration token and still binds', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:Infinity tvg-name="Inf",Inf
+https://example.com/inf.m3u8
+`);
+    expect(stations[0].name).toBe('Inf');
+    expect(stations[0].url).toBe('https://example.com/inf.m3u8');
+  });
+
+  it('accepts #EXTINF: with empty duration after colon before attrs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF: tvg-name="EmptyDur",EmptyDur
+https://example.com/emptydur.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('EmptyDur');
+  });
+
+  it('cross-locks parseM3U(SAMPLE_M3U) length to countHttpStreamLines', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations).toHaveLength(countHttpStreamLines(SAMPLE_M3U));
+    expect(stations.map((s) => s.name)).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Zeta FM',
+    ]);
+  });
+
+  it('round-trips buildSimpleM3U helper including optional attrs', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Full',
+        url: 'https://example.com/full.m3u8',
+        logo: 'https://cdn.example/full.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+      { name: 'Bare', url: 'http://example.com/bare.m3u8' },
+    ]);
+    expect(parseM3U(m3u)).toEqual([
+      {
+        name: 'Full',
+        url: 'https://example.com/full.m3u8',
+        logo: 'https://cdn.example/full.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+      {
+        name: 'Bare',
+        url: 'http://example.com/bare.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('scheme matrix property resets non-http then binds following https', () => {
+    const schemes = [
+      'ldap://x',
+      'git://x',
+      'ssh://x',
+      'telnet://x',
+      'redis://x',
+      'vs://x',
+      'cap://x',
+      'ni:///x',
+    ];
+    for (const scheme of schemes) {
+      const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Skip",Skip
+${scheme}
+#EXTINF:-1 tvg-name="Keep",Keep
+https://example.com/keep-${encodeURIComponent(scheme)}.m3u8
+`);
+      expect(stations).toHaveLength(1);
+      expect(stations[0].name).toBe('Keep');
+    }
+  });
+
+  it('null-byte-only playlist returns [] without throwing', () => {
+    expect(parseM3U('\0')).toEqual([]);
+    expect(parseM3U('\0\0\0')).toEqual([]);
+  });
+
+  it('quoted tvg-name containing raw newline breaks across split lines', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Broken
+Name",Broken
+https://example.com/broken-nl.m3u8
+`);
+    // Line split means the closing quote never appears on the EXTINF line;
+    // comma-fallback may still yield a name from the EXTINF fragment.
+    expect(stations.length).toBeLessThanOrEqual(1);
+    if (stations.length === 1) {
+      expect(stations[0].url).toBe('https://example.com/broken-nl.m3u8');
+      expect(stations[0].name).not.toBe('Broken\nName');
+    }
+  });
+
+  it('NFC vs NFD URL path lookalikes remain distinct streams', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="NFC",NFC
+https://example.com/caf\u00E9.m3u8
+#EXTINF:-1 tvg-name="NFD",NFD
+https://example.com/cafe\u0301.m3u8
+`);
+    expect(stations).toHaveLength(2);
+    expect(stations[0].url).not.toBe(stations[1].url);
+  });
+
+  it('buildSimpleM3U scale of 200 unique stations preserves order and length', () => {
+    const input = Array.from({ length: 200 }, (_, i) => ({
+      name: `S${i}`,
+      url: `https://example.com/s${i}.m3u8`,
+    }));
+    const stations = parseM3U(buildSimpleM3U(input));
+    expect(stations).toHaveLength(200);
+    expect(stations.map((s) => s.name)).toEqual(input.map((s) => s.name));
+    expect(stations.map((s) => s.url)).toEqual(input.map((s) => s.url));
+  });
+
+  it('accepts #EXTINF:+1e3 scientific duration and binds', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:+1e3 tvg-name="SciPos",SciPos
+https://example.com/scipos.m3u8
+`);
+    expect(stations[0].name).toBe('SciPos');
+  });
+
+  it('accepts #EXTINF:-Infinity and #EXTINF:-NaN duration tokens', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-Infinity tvg-name="NegInf",NegInf
+https://example.com/neginf.m3u8
+#EXTINF:-NaN tvg-name="NegNan",NegNan
+https://example.com/negnan.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['NegInf', 'NegNan']);
+  });
+
+  it('resets on docker:// and oci:// image-reference schemes', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+docker://library/nginx:latest
+#EXTINF:-1 tvg-name="B",B
+oci://ghcr.io/org/image:tag
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/oci-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('preserves plus and at-sign in stream URL userinfo', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Auth",Auth
+https://user+tag:p@ss@example.com/stream.m3u8
+`);
+    expect(stations[0].url).toBe('https://user+tag:p@ss@example.com/stream.m3u8');
+  });
+
+  it('dedupes identical URLs even when EXTINF names differ', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="First",First
+https://example.com/same-dup.m3u8
+#EXTINF:-1 tvg-name="Second",Second
+https://example.com/same-dup.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('First');
+  });
+
+  it('does not bind URL lines that appear before any EXTINF', () => {
+    const stations = parseM3U(`#EXTM3U
+https://example.com/orphan.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/after.m3u8
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://example.com/after.m3u8']);
+  });
+
+  it('trims spaces around URL lines before scheme detection', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Spaced",Spaced
+   https://example.com/spaced.m3u8   
+`);
+    expect(stations[0].url).toBe('https://example.com/spaced.m3u8');
+  });
+
+  it('resets on non-http after EXTINF then does not leak name to later URL without new EXTINF', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Leak",Leak
+rtmp://example.com/live
+https://example.com/should-not-bind.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/ok-after-reset.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('countHttpStreamLines ignores non-http schemes in SAMPLE-like bodies', () => {
+    const body = `#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+https://example.com/a.m3u8
+#EXTINF:-1 tvg-name="B",B
+rtmp://example.com/b
+#EXTINF:-1 tvg-name="C",C
+http://example.com/c.m3u8
+`;
+    expect(countHttpStreamLines(body)).toBe(2);
+    expect(parseM3U(body)).toHaveLength(2);
+  });
+
+  it('buildSimpleM3U empty stations yields only header and parses to []', () => {
+    expect(parseM3U(buildSimpleM3U([]))).toEqual([]);
+  });
+
+  it('preserves IPv6 literal hosts in stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="V6",V6
+https://[2001:db8::1]:8443/live.m3u8
+`);
+    expect(stations[0].url).toBe('https://[2001:db8::1]:8443/live.m3u8');
+  });
+
+  it('accepts EXTINF duration 0 and binds', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:0 tvg-name="Zero",Zero
+https://example.com/zero.m3u8
+`);
+    expect(stations[0].name).toBe('Zero');
+  });
+
+  it('multiple consecutive blank lines between EXTINF and URL still bind', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Blanky",Blanky
+
+
+https://example.com/blanky.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Blanky');
+  });
+
+  it('does not treat http\\t:// tab-injected scheme as http', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+http\t://example.com/tab-scheme.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/tab-scheme-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('SAMPLE_M3U helper stations all carry Music group-title', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.every((s) => s.group === 'Music')).toBe(true);
+  });
+
+  it('resets on bitcoin: ethereum: and ipfs:// schemes', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+bitcoin:addr
+#EXTINF:-1 tvg-name="B",B
+ethereum:0xabc
+#EXTINF:-1 tvg-name="C",C
+ipfs://QmHash
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/crypto-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('preserves fragment identifiers on stream URLs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Frag",Frag
+https://example.com/live.m3u8#track=1&x=y
+`);
+    expect(stations[0].url).toBe('https://example.com/live.m3u8#track=1&x=y');
+  });
+
+  it('buildSimpleM3U with only logo optional still parses logo', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'LogoOnly', url: 'https://example.com/lo.m3u8', logo: 'https://cdn.example/lo.png' },
+    ]);
+    expect(parseM3U(m3u)[0]).toMatchObject({
+      name: 'LogoOnly',
+      logo: 'https://cdn.example/lo.png',
+      group: undefined,
+    });
+  });
+
+  it('does not bind https URL when EXTINF name is whitespace-only after comma fallback', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,
+https://example.com/blank-name.m3u8
+`);
+    // comma with nothing after → name '' which is falsy → no bind
+    expect(stations).toEqual([]);
+  });
+
+  it('countHttpStreamLines equals parse length for buildSimpleM3U outputs', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'https://a.example/a' },
+      { name: 'B', url: 'http://b.example/b' },
+      { name: 'C', url: 'rtmp://c.example/c' },
+    ]);
+    // buildSimpleM3U will still emit rtmp line; parser skips it
+    expect(countHttpStreamLines(m3u)).toBe(2);
+    expect(parseM3U(m3u)).toHaveLength(2);
+  });
+
+  it('resets on data: and blob: then recovers with http', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+data:text/plain,hi
+#EXTINF:-1 tvg-name="B",B
+blob:https://example.com/uuid
+#EXTINF:-1 tvg-name="Ok",Ok
+http://example.com/data-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('preserves extremely long tvg-name values without truncation', () => {
+    const longName = 'N'.repeat(4000);
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="${longName}",Short
+https://example.com/long-name.m3u8
+`);
+    expect(stations[0].name).toBe(longName);
+    expect(stations[0].name).toHaveLength(4000);
+  });
+
+  it('dedupe Set is per-parseM3U call not global', () => {
+    const body = `#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+https://example.com/dedupe-indep.m3u8
+`;
+    expect(parseM3U(body)).toHaveLength(1);
+    expect(parseM3U(body)).toHaveLength(1);
+    expect(parseM3U(body + body)).toHaveLength(1);
+  });
+
+  it('accepts EXTINF with only comma-fallback name and no attrs', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,OnlyComma
+https://example.com/only-comma.m3u8
+`);
+    expect(stations[0].name).toBe('OnlyComma');
+  });
+
+  it('ignores #EXTVLCOPT and other non-EXTINF hash lines without resetting current', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="VLC",VLC
+#EXTVLCOPT:network-caching=1000
+https://example.com/vlc.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('VLC');
+  });
+
+  it('resets on non-http between two https entries without leaking first name', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="One",One
+https://example.com/one.m3u8
+#EXTINF:-1 tvg-name="Skip",Skip
+udp://1.2.3.4:5000
+https://example.com/should-skip.m3u8
+#EXTINF:-1 tvg-name="Two",Two
+https://example.com/two.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['One', 'Two']);
+  });
+
+  it('parseM3U result is a plain Array with Array.prototype', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(Object.getPrototypeOf(stations)).toBe(Array.prototype);
+    expect(Array.isArray(stations)).toBe(true);
+  });
+
+  it('station objects include undefined optional fields as own keys', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bare",Bare
+https://example.com/bare2.m3u8
+`);
+    expect(Object.prototype.hasOwnProperty.call(stations[0], 'logo')).toBe(true);
+    expect(stations[0].logo).toBeUndefined();
+  });
+
+  it('does not treat htt:// typo scheme as http', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+htt://example.com/typo.m3u8
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/typo-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
+  });
+
+  it('cross-locks SAMPLE_M3U http count against unique URL set size', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(new Set(stations.map((s) => s.url)).size).toBe(stations.length);
+    expect(stations.length).toBe(countHttpStreamLines(SAMPLE_M3U));
+  });
+
+  it('buildSimpleM3U country-only optional parses country', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'Country', url: 'https://example.com/co.m3u8', country: 'JP' },
+    ]);
+    expect(parseM3U(m3u)[0].country).toBe('JP');
+    expect(parseM3U(m3u)[0].language).toBeUndefined();
+  });
+
+  it('handles CRLF line endings equivalently to LF for simple entries', () => {
+    const lf = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="CR",CR\nhttps://example.com/cr.m3u8\n`);
+    const crlf = parseM3U(`#EXTM3U\r\n#EXTINF:-1 tvg-name="CR",CR\r\nhttps://example.com/cr.m3u8\r\n`);
+    expect(crlf).toEqual(lf);
+  });
+
+  it('resets on about:blank and chrome:// schemes', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+about:blank
+#EXTINF:-1 tvg-name="B",B
+chrome://settings
+#EXTINF:-1 tvg-name="Ok",Ok
+https://example.com/about-ok.m3u8
+`);
+    expect(stations.map((s) => s.name)).toEqual(['Ok']);
   });
 
 });
