@@ -334,4 +334,64 @@ describe('test helpers', () => {
     await expect(kv.list()).resolves.toMatchObject({ keys: [], list_complete: true });
     await expect(kv.getWithMetadata('a')).resolves.toMatchObject({ value: null, metadata: null });
   });
+
+  it('SAMPLE_M3U group-title is Music for every seeded station', () => {
+    const groups = [...SAMPLE_M3U.matchAll(/group-title="([^"]+)"/g)].map((m) => m[1]);
+    expect(groups.every((g) => g === 'Music')).toBe(true);
+    expect(groups).toHaveLength(6);
+  });
+
+  it('countHttpStreamLines ignores rtmp and scheme-less paths', () => {
+    expect(countHttpStreamLines('rtmp://x\n/relative\nhttps://ok\n')).toBe(1);
+  });
+
+  it('stubIptvAndGemini matches generativelanguage host substring', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: new Response('ok', { status: 200 }),
+    }) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/custom');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('ok');
+  });
+
+  it('iptvCategoryUrl appends .m3u even when genre already ends with .m3u', () => {
+    expect(iptvCategoryUrl('music.m3u')).toBe(
+      'https://iptv-org.github.io/iptv/categories/music.m3u.m3u',
+    );
+  });
+
+  it('geminiTextResponse can wrap empty string text', async () => {
+    const body = (await geminiTextResponse('').json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe('');
+  });
+
+  it('mockKV seed is copied — mutating the seed object later does not affect store', async () => {
+    const seed: Record<string, string> = { k: 'v' };
+    const kv = mockKV(seed);
+    seed.k = 'mutated';
+    await expect(kv.get('k')).resolves.toBe('v');
+  });
+
+  it('curatedGeminiJson default genre is music', async () => {
+    const body = (await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    const picks = JSON.parse(body.candidates[0].content.parts[0].text) as Array<{ genre: string }>;
+    expect(picks[0].genre).toBe('music');
+  });
+
+  it('testEnv can replace CATALOG_CACHE with a custom mock', async () => {
+    const kv = mockKV({ x: '1' });
+    const env = testEnv({ CATALOG_CACHE: kv });
+    await expect(env.CATALOG_CACHE.get('x')).resolves.toBe('1');
+  });
+
+  it('stubIptvAndGemini returns 404 body nope for unrelated hosts', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
+    const res = await fetchMock('https://example.com/');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+  });
 });

@@ -225,4 +225,49 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('mentions iptv-org in the genres tool description', () => {
     expect(spec).toMatch(/iptv-org genre categories/i);
   });
+
+  it('documents Base URL without a trailing slash', () => {
+    expect(spec).toMatch(/Base URL:\s*`https:\/\/backlink\.fuzzywigg\.com`/);
+    expect(spec).not.toMatch(/Base URL:\s*`https:\/\/backlink\.fuzzywigg\.com\//);
+  });
+
+  it('documents GET method on every docs Endpoint line', () => {
+    const endpoints = [...spec.matchAll(/\*\*Endpoint:\*\*\s*`([^`]+)`/g)].map((m) => m[1]);
+    expect(endpoints.length).toBeGreaterThanOrEqual(2);
+    for (const ep of endpoints) {
+      expect(ep.startsWith('GET ')).toBe(true);
+    }
+  });
+
+  it('documents Integration Notes after the tool sections', () => {
+    const lastTool = spec.lastIndexOf('### `backlink_now_playing`');
+    const notes = spec.indexOf('## Integration Notes');
+    expect(lastTool).toBeGreaterThan(-1);
+    expect(notes).toBeGreaterThan(lastTool);
+  });
+
+  it('documents graceful degradation top 5 matching Worker slice(0, 5)', () => {
+    expect(spec).toMatch(/top 5 raw stations/i);
+  });
+
+  it('does not document Anthropic model names in tool schemas', () => {
+    expect(spec).not.toMatch(/claude-|gpt-|haiku/i);
+  });
+
+  it('documents backlink_curate mood and genre as optional companions', () => {
+    expect(spec).toMatch(/Optional if mood is provided/);
+    expect(spec).toMatch(/Optional if genre is provided/);
+  });
+
+  it('keeps docs free of wrangler secret put instructions', () => {
+    expect(spec).not.toMatch(/wrangler secret put/);
+  });
+
+  it('documents query as a string on curate output', () => {
+    expect(spec).toMatch(/"query":\s*\{\s*"type":\s*"string"/);
+  });
+
+  it('documents stations as an array on curate output', () => {
+    expect(spec).toMatch(/"stations":\s*\{\s*"type":\s*"array"/);
+  });
 });

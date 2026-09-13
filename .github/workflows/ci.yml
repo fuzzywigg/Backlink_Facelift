@@ -141,6 +141,9 @@ jobs:
           grep -q 'cancel-in-progress: true' .github/workflows/ci.yml
           grep -q 'upload-artifact@v4' .github/workflows/ci.yml
           grep -q 'if-no-files-found: error' .github/workflows/ci.yml
+          grep -q 'retention-days: 14' .github/workflows/ci.yml
+          grep -q 'persist-credentials: false' .github/workflows/deploy.yml
+          grep -q '"lockfileVersion": 3' package-lock.json
           grep -q "src/types.ts" vitest.config.ts
           grep -q 'github-actions' vitest.config.ts
           grep -q 'lcov' vitest.config.ts

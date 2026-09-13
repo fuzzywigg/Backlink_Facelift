@@ -468,4 +468,96 @@ describe('resolveGenre', () => {
     expect(resolveGenre('jazz', map)).toBe('music');
     expect(resolveGenre('ambient', map)).toBe('music');
   });
+
+  it('locks ambient-bound alias count in GENRE_MAP', () => {
+    const ambientKeys = Object.entries(GENRE_MAP)
+      .filter(([, v]) => v === 'ambient')
+      .map(([k]) => k)
+      .sort();
+    expect(ambientKeys).toEqual([
+      'ambient',
+      'chill',
+      'electronic',
+      'focus',
+      'late night',
+      'lo-fi',
+      'lofi',
+      'relaxing',
+    ]);
+  });
+
+  it('returns music for leading/trailing soft-hyphen only labels', () => {
+    expect(resolveGenre('\u00ad')).toBe('music');
+    expect(resolveGenre('\u00adjazz\u00ad')).toBe('music');
+  });
+
+  it('lowercases before lookup so loFi matches the lofi alias', () => {
+    expect(resolveGenre('lateNight')).toBe('music');
+    expect(resolveGenre('loFi')).toBe('ambient');
+    expect(resolveGenre('Lo-Fi')).toBe('ambient');
+  });
+
+  it('lets a custom map win for blues even when VALID_GENRES lacks blues', () => {
+    expect(resolveGenre('blues', { blues: 'classical' })).toBe('classical');
+    expect(resolveGenre('blues')).toBe('jazz');
+  });
+
+  it('keeps Object.keys(GENRE_MAP) stable insertion order for contract snapshots', () => {
+    expect(Object.keys(GENRE_MAP)).toEqual([
+      'late night',
+      'chill',
+      'ambient',
+      'relaxing',
+      'focus',
+      'classical',
+      'classic',
+      'jazz',
+      'blues',
+      'pop',
+      'rock',
+      'metal',
+      'indie',
+      'music',
+      'news',
+      'sports',
+      'entertainment',
+      'dance',
+      'electronic',
+      'lofi',
+      'lo-fi',
+    ]);
+  });
+
+  it('returns music for labels that are only punctuation', () => {
+    expect(resolveGenre('...')).toBe('music');
+    expect(resolveGenre('???')).toBe('music');
+    expect(resolveGenre('---')).toBe('music');
+  });
+
+  it('resolves pop identity and dance alias without cross-contamination', () => {
+    expect(resolveGenre('pop')).toBe('pop');
+    expect(resolveGenre('dance')).toBe('pop');
+    expect(GENRE_MAP.pop).toBe('pop');
+    expect(GENRE_MAP.dance).toBe('pop');
+  });
+
+  it('does not treat array-like numeric keys on a custom map as genres', () => {
+    expect(resolveGenre('0', { '0': 'jazz' })).toBe('jazz');
+    expect(resolveGenre(0 as unknown as string)).toBe('music');
+  });
+
+  it('falls back to music when custom map value is looked up via unknown key', () => {
+    expect(resolveGenre('unknown', { chill: 'ambient' })).toBe('music');
+  });
+
+  it('trims before lowercasing so mixed-case padded aliases resolve', () => {
+    expect(resolveGenre('  Lo-Fi  ')).toBe('ambient');
+    expect(resolveGenre('\tCLASSIC\n')).toBe('classical');
+  });
+
+  it('keeps VALID_GENRES free of mood-only aliases', () => {
+    for (const alias of ['chill', 'lofi', 'lo-fi', 'focus', 'relaxing', 'late night'] as const) {
+      expect(VALID_GENRES.includes(alias as (typeof VALID_GENRES)[number])).toBe(false);
+    }
+  });
 });

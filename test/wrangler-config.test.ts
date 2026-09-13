@@ -151,4 +151,46 @@ describe('wrangler.toml contracts', () => {
   it('does not embed npm tokens or private registry URLs', () => {
     expect(toml).not.toMatch(/npm[_-]?token|registry\.npmjs|\/\/npm\./i);
   });
+
+  it('keeps worker name as a single backlink token (no spaces)', () => {
+    expect(toml).toMatch(/^\s*name\s*=\s*"backlink"\s*$/m);
+  });
+
+  it('places [[kv_namespaces]] before [[routes]]', () => {
+    expect(toml.indexOf('[[kv_namespaces]]')).toBeLessThan(toml.indexOf('[[routes]]'));
+  });
+
+  it('places [vars] after routes', () => {
+    expect(toml.indexOf('[[routes]]')).toBeLessThan(toml.indexOf('[vars]'));
+  });
+
+  it('does not declare minify or build upload rules', () => {
+    expect(toml).not.toMatch(/\[build\]/i);
+    expect(toml).not.toMatch(/minify\s*=/);
+    expect(toml).not.toMatch(/\[site\]/);
+  });
+
+  it('keeps VERSION var quoted as 0.1.0', () => {
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+    expect(toml).not.toMatch(/VERSION\s*=\s*0\.1\.0\b/);
+  });
+
+  it('documents secrets via CLI comment only once', () => {
+    const matches = toml.match(/wrangler secret put GEMINI_API_KEY/g) ?? [];
+    expect(matches).toHaveLength(1);
+  });
+
+  it('does not set workers_dev explicitly to false or true', () => {
+    expect(toml).not.toMatch(/workers_dev\s*=/);
+  });
+
+  it('keeps custom domain pattern without scheme or path', () => {
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:\/\//);
+  });
+
+  it('does not declare preview_urls or routes zone_name', () => {
+    expect(toml).not.toMatch(/preview_urls/i);
+    expect(toml).not.toMatch(/zone_name\s*=/);
+  });
 });

@@ -380,4 +380,66 @@ describe('MCP_MANIFEST', () => {
       expect(tool.description).not.toMatch(/https?:\/\//i);
     }
   });
+
+  it('keeps input_schema.type exactly object for every tool', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema.type).toBe('object');
+    }
+  });
+
+  it('does not declare enum constraints on any tool property', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties ?? {})) {
+        expect(prop).not.toHaveProperty('enum');
+        expect(prop).not.toHaveProperty('const');
+      }
+    }
+  });
+
+  it('keeps station_select required array containing only station_name', () => {
+    expect(toolNamed('station_select').input_schema.required).toEqual(['station_name']);
+  });
+
+  it('mentions filter or genre keyword examples in genre_filter description', () => {
+    const d = toolNamed('genre_filter').description.toLowerCase();
+    expect(d).toMatch(/jazz/);
+    expect(d).toMatch(/news/);
+    expect(d).toMatch(/classical/);
+  });
+
+  it('keeps curator_prompt as the only tool with two properties', () => {
+    const counts = MCP_MANIFEST.tools.map((t) => Object.keys(t.input_schema.properties).length);
+    expect(counts.filter((n) => n === 2)).toHaveLength(1);
+    expect(Object.keys(toolNamed('curator_prompt').input_schema.properties)).toHaveLength(2);
+  });
+
+  it('keeps name_for_human exactly Backlink Radio', () => {
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it('does not declare $schema or servers on the manifest', () => {
+    expect(MCP_MANIFEST).not.toHaveProperty('$schema');
+    expect(MCP_MANIFEST).not.toHaveProperty('servers');
+    expect(MCP_MANIFEST).not.toHaveProperty('prompts');
+  });
+
+  it('keeps every tool name free of backlink_ prefix (docs use that prefix)', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.name.startsWith('backlink_')).toBe(false);
+    }
+  });
+
+  it('serializes auth as a single-key object', () => {
+    expect(Object.keys(MCP_MANIFEST.auth)).toEqual(['type']);
+  });
+
+  it('serializes api as type + url only', () => {
+    expect(Object.keys(MCP_MANIFEST.api).sort()).toEqual(['type', 'url']);
+  });
+
+  it('keeps tool descriptions free of markdown code fences', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.description).not.toContain('```');
+    }
+  });
 });
