@@ -2470,7 +2470,9 @@ https://real.example/stream
   });
 
   it('SAMPLE_M3U display names after commas match tvg-name list', () => {
-    const display = [...SAMPLE_M3U.matchAll(/,[^,]+$/gm)].map((m) => m[0].slice(1).trim());
+    const display = [...SAMPLE_M3U.matchAll(/^#EXTINF:[^\n]*,([^\n]+)$/gm)].map((m) =>
+      m[1].trim(),
+    );
     expect(display).toEqual([
       'Alpha FM',
       'Beta FM',

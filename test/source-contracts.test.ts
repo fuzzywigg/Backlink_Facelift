@@ -1825,7 +1825,7 @@ describe('source ↔ product contracts', () => {
 
   it('locks index export default app fence at file end', () => {
     const index = read('src/index.ts').trimEnd();
-    expect(index.endsWith('export default app')).toBe(true);
+    expect(index.endsWith('export default app;')).toBe(true);
   });
 
   it('locks callGemini prompt join with User request and Available stations labels', () => {
