@@ -2736,7 +2736,7 @@ https://c.example/stream
   });
 
   it('iptvCallsWithInit treats URL object iptv targets the same as strings', async () => {
-    const fetchMock = vi.fn(async () => new Response('ok'));
+    const fetchMock = vi.fn(async (_input?: string | URL, _init?: RequestInit) => new Response('ok'));
     await fetchMock(new URL('https://iptv-org.github.io/iptv/categories/a.m3u'), { method: 'GET' });
     await fetchMock(new URL('https://iptv-org.github.io/iptv/categories/b.m3u'));
     expect(iptvCallsWithInit(fetchMock)).toHaveLength(1);
