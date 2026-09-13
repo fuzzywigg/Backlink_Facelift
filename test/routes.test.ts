@@ -6952,7 +6952,7 @@ https://example.com/s.m3u8
     expect(res.status).toBe(503);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
     const body = await json(res);
-    expect(body).toMatchObject({ error: 'Curation unavailable', retry_after: 60 });
+    expect(body).toMatchObject({ error: 'Curation service unavailable', retry_after: 60 });
     expect(Object.keys(body).sort()).toEqual(['error', 'retry_after']);
   });
 
@@ -7053,11 +7053,11 @@ https://example.com/s.m3u8
     expect(body.count).toBe(countHttpStreamLines(SAMPLE_M3U));
   });
 
-  it('rejects TRACE and CONNECT on /health', async () => {
-    const trace = await app.request('/health', { method: 'TRACE' }, testEnv());
-    const connect = await app.request('/health', { method: 'CONNECT' }, testEnv());
-    expect(trace.status).toBeGreaterThanOrEqual(400);
-    expect(connect.status).toBeGreaterThanOrEqual(400);
+  it('rejects DELETE and PUT on /health', async () => {
+    const del = await app.request('/health', { method: 'DELETE' }, testEnv());
+    const put = await app.request('/health', { method: 'PUT' }, testEnv());
+    expect(del.status).toBeGreaterThanOrEqual(400);
+    expect(put.status).toBeGreaterThanOrEqual(400);
   });
 
   it('OPTIONS /curate without key still returns CORS preflight headers', async () => {

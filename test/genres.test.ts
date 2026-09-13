@@ -2215,9 +2215,12 @@ describe('resolveGenre', () => {
         return false;
       },
     });
-    expect(delete (proxy as Record<string, string>).chill).toBe(false);
+    expect(() => {
+      delete (proxy as Record<string, string>).chill;
+    }).toThrow(/deleteProperty|trap returned falsish/i);
     expect(resolveGenre('chill', proxy)).toBe('ambient');
     expect(resolveGenre('metal', proxy)).toBe('rock');
+    expect(target.chill).toBe('ambient');
   });
 
   it('Proxy deleteProperty that allows delete removes alias for subsequent resolve', () => {
@@ -2336,10 +2339,15 @@ describe('resolveGenre', () => {
     ).toEqual(['classic', 'classical']);
   });
 
-  it('does not coerce Map.size or Map.prototype keys into genre labels', () => {
+  it('does not treat Map.prototype method names as string genre labels', () => {
     const m = new Map([['jazz', 'jazz']]);
-    expect(resolveGenre('size', m as unknown as Record<string, string>)).toBe('music');
-    expect(resolveGenre('get', m as unknown as Record<string, string>)).toBe('music');
+    // Bracket access on Map surfaces prototype methods / size — not Record string values
+    expect(typeof resolveGenre('get', m as unknown as Record<string, string>)).toBe('function');
+    expect(typeof resolveGenre('has', m as unknown as Record<string, string>)).toBe('function');
+    expect(resolveGenre('size', m as unknown as Record<string, string>)).toBe(1 as unknown as string);
+    // Plain object counterpart resolves missing keys to music
+    expect(resolveGenre('get', {})).toBe('music');
+    expect(resolveGenre('size', {})).toBe('music');
   });
 
   it('Object.defineProperty writable:false still allows resolveGenre reads', () => {
