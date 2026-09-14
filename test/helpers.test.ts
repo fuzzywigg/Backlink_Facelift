@@ -10506,19 +10506,25 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse empty string text", async () => {
 
-    const json = await geminiTextResponse('').json();
+    const json = (await geminiTextResponse('').json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe('');
 
   });
   it("post111: geminiTextResponse unicode text", async () => {
 
-    const json = await geminiTextResponse('東京').json();
+    const json = (await geminiTextResponse('東京').json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe('東京');
 
   });
   it("post111: curatedGeminiJson default Alpha FM music", async () => {
 
-    const json = await curatedGeminiJson().json();
+    const json = (await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     const text = json.candidates[0].content.parts[0].text;
     expect(JSON.parse(text)).toEqual([
       {
@@ -10535,13 +10541,21 @@ describe('post111 helpers HEAVY deepen', () => {
     const stations = [
       { name: 'A', url: 'https://a', editorial: 'e', genre: 'jazz', logo: 'https://l' },
     ];
-    const text = (await curatedGeminiJson(stations).json()).candidates[0].content.parts[0].text;
+    const text = (
+      (await curatedGeminiJson(stations).json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      }
+    ).candidates[0].content.parts[0].text;
     expect(JSON.parse(text)).toEqual(stations);
 
   });
   it("post111: curatedGeminiJson empty array", async () => {
 
-    const text = (await curatedGeminiJson([]).json()).candidates[0].content.parts[0].text;
+    const text = (
+      (await curatedGeminiJson([]).json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      }
+    ).candidates[0].content.parts[0].text;
     expect(JSON.parse(text)).toEqual([]);
 
   });
@@ -11237,7 +11251,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token music", async () => {
 
-    const json = await geminiTextResponse("music").json();
+    const json = (await geminiTextResponse("music").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("music");
 
   });
@@ -11248,7 +11264,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token ambient", async () => {
 
-    const json = await geminiTextResponse("ambient").json();
+    const json = (await geminiTextResponse("ambient").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("ambient");
 
   });
@@ -11259,7 +11277,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token jazz", async () => {
 
-    const json = await geminiTextResponse("jazz").json();
+    const json = (await geminiTextResponse("jazz").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("jazz");
 
   });
@@ -11270,7 +11290,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token classical", async () => {
 
-    const json = await geminiTextResponse("classical").json();
+    const json = (await geminiTextResponse("classical").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("classical");
 
   });
@@ -11281,7 +11303,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token pop", async () => {
 
-    const json = await geminiTextResponse("pop").json();
+    const json = (await geminiTextResponse("pop").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("pop");
 
   });
@@ -11292,7 +11316,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token rock", async () => {
 
-    const json = await geminiTextResponse("rock").json();
+    const json = (await geminiTextResponse("rock").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("rock");
 
   });
@@ -11303,7 +11329,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token news", async () => {
 
-    const json = await geminiTextResponse("news").json();
+    const json = (await geminiTextResponse("news").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("news");
 
   });
@@ -11314,7 +11342,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token sports", async () => {
 
-    const json = await geminiTextResponse("sports").json();
+    const json = (await geminiTextResponse("sports").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("sports");
 
   });
@@ -11325,7 +11355,9 @@ describe('post111 helpers HEAVY deepen', () => {
   });
   it("post111: geminiTextResponse genre token entertainment", async () => {
 
-    const json = await geminiTextResponse("entertainment").json();
+    const json = (await geminiTextResponse("entertainment").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
     expect(json.candidates[0].content.parts[0].text).toBe("entertainment");
 
   });
