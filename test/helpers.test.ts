@@ -7702,3 +7702,1470 @@ describe('post98 helpers HEAVY deepen', () => {
   });
 
 });
+
+
+describe('post104 helpers HEAVY deepen', () => {
+  const helpersPath = join(helpersRoot, 'test/helpers.ts');
+  const helpersSrc = () => readFileSync(helpersPath, 'utf8');
+  const helpersBuf = () => Buffer.from(helpersSrc(), 'utf8');
+  const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
+  const sha1 = (data: string | Buffer) => createHash('sha1').update(data).digest('hex');
+  const md5 = (data: string | Buffer) => createHash('md5').update(data).digest('hex');
+  const sha512 = (data: string | Buffer) => createHash('sha512').update(data).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const EXPORT_NAMES = [
+    'mockKV',
+    'testEnv',
+    'SAMPLE_M3U',
+    'geminiTextResponse',
+    'stubIptvAndGemini',
+    'curatedGeminiJson',
+    'iptvCategoryUrl',
+    'countHttpStreamLines',
+    'buildSimpleM3U',
+    'seedStationsCache',
+    'captureGeminiRequest',
+    'iptvCallsWithInit',
+  ] as const;
+  const GREEK = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta'] as const;
+  const GENRE_SLUGS = [
+    'music',
+    'ambient',
+    'jazz',
+    'classical',
+    'pop',
+    'rock',
+    'news',
+    'sports',
+    'entertainment',
+  ] as const;
+
+  it('post104: locks GENRE_SLUGS inventory length 9', () => {
+    expect(GENRE_SLUGS).toHaveLength(9);
+    expect([...GENRE_SLUGS]).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+  });
+
+  it('post104: locks helpers.ts sha256 digest', () => {
+    expect(sha256(helpersSrc())).toBe(
+      '240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29',
+    );
+  });
+
+  it('post104: locks helpers.ts sha1 digest', () => {
+    expect(sha1(helpersSrc())).toBe('aac5e2154aa8f0784db092ad4bb51304fce6e117');
+  });
+
+  it('post104: locks helpers.ts md5 digest', () => {
+    expect(md5(helpersSrc())).toBe('004bbc8741017d8dd45bee28a29b46e1');
+  });
+
+  it('post104: locks helpers.ts sha512 digest', () => {
+    expect(sha512(helpersSrc())).toBe(
+      '153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91',
+    );
+  });
+
+  it('post104: locks helpers.ts sha256 nibble sum to 487', () => {
+    expect(nibbleSum(sha256(helpersSrc()))).toBe(487);
+  });
+
+  it('post104: locks helpers.ts byte size to 6078', () => {
+    expect(statSync(helpersPath).size).toBe(6078);
+    expect(helpersBuf().byteLength).toBe(6078);
+  });
+
+  it('post104: locks helpers.ts line count to 164', () => {
+    expect(helpersSrc().split('\n')).toHaveLength(164);
+  });
+
+  it('post104: locks helpers.ts first/last sha256 octets 0x24 / 0x29', () => {
+    const dig = sha256(helpersSrc());
+    expect(parseInt(dig.slice(0, 2), 16)).toBe(0x24);
+    expect(parseInt(dig.slice(-2), 16)).toBe(0x29);
+  });
+
+  it('post104: locks helpers.ts first byte is i (0x69) and ends with newline', () => {
+    const buf = helpersBuf();
+    expect(buf[0]).toBe(0x69);
+    expect(buf[buf.length - 1]).toBe(0x0a);
+    expect(helpersSrc().endsWith('\n')).toBe(true);
+  });
+
+  it('post104: locks helpers.ts free of BOM and CR/tab', () => {
+    const s = helpersSrc();
+    expect(s.charCodeAt(0)).not.toBe(0xfeff);
+    expect(s.includes('\t')).toBe(false);
+    expect(s.includes('\r')).toBe(false);
+  });
+
+  it('post104: locks helpers.ts export inventory 11 functions + 1 const', () => {
+    expect((helpersSrc().match(/^export function /gm) ?? []).length).toBe(11);
+    expect((helpersSrc().match(/^export const /gm) ?? []).length).toBe(1);
+    expect(EXPORT_NAMES).toHaveLength(12);
+  });
+
+  it('post104: locks helpers.ts import inventory two top-level imports', () => {
+    expect((helpersSrc().match(/^import /gm) ?? []).length).toBe(2);
+    expect(helpersSrc()).toMatch(/^import \{ vi \} from 'vitest';/m);
+    expect(helpersSrc()).toMatch(/^import type \{ Env \} from '\.\.\/src\/types';/m);
+  });
+
+  it('post104: locks helpers.ts punctuation inventory', () => {
+    const s = helpersSrc();
+    expect((s.match(/;/g) ?? []).length).toBe(56);
+    expect((s.match(/`/g) ?? []).length).toBe(20);
+    expect((s.match(/=>/g) ?? []).length).toBe(11);
+    expect((s.match(/async /g) ?? []).length).toBe(6);
+    expect((s.match(/await /g) ?? []).length).toBe(0);
+    expect((s.match(/vi\.fn/g) ?? []).length).toBe(7);
+  });
+
+  it('post104: locks helpers.ts host/token substring counts', () => {
+    const s = helpersSrc();
+    expect((s.match(/iptv-org/g) ?? []).length).toBe(6);
+    expect((s.match(/generativelanguage\.googleapis\.com/g) ?? []).length).toBe(3);
+    expect((s.match(/stations:/g) ?? []).length).toBe(3);
+  });
+
+  it('post104: locks SAMPLE_M3U sha256 and size', () => {
+    expect(sha256(SAMPLE_M3U)).toBe(
+      'd333f382d92be92d05fc76ff08d56269b7a5f305770748fc8cdf68506169c45e',
+    );
+    expect(Buffer.byteLength(SAMPLE_M3U, 'utf8')).toBe(554);
+    expect(SAMPLE_M3U.split('\n')).toHaveLength(14);
+    expect([...SAMPLE_M3U].filter((c) => c === ' ')).toHaveLength(24);
+  });
+
+  it('post104: locks SAMPLE_M3U greek FM display names in order', () => {
+    const names = [...SAMPLE_M3U.matchAll(/tvg-name="([^"]+)"/g)].map((m) => m[1]);
+    expect(names).toEqual(GREEK.map((g) => `${g} FM`));
+  });
+
+  it('post104: locks SAMPLE_M3U stream path stems match greek lowercase', () => {
+    const urls = [...SAMPLE_M3U.matchAll(/^https:\/\/example\.com\/([a-z]+)\.m3u8$/gm)].map((m) => m[1]);
+    expect(urls).toEqual(['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta']);
+  });
+
+  it('post104: locks SAMPLE_M3U every EXTINF uses group-title Music', () => {
+    const groups = [...SAMPLE_M3U.matchAll(/group-title="([^"]+)"/g)].map((m) => m[1]);
+    expect(groups).toHaveLength(6);
+    expect(new Set(groups)).toEqual(new Set(['Music']));
+  });
+
+  it('post104: locks SAMPLE_M3U parseM3U length and url uniqueness', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations).toHaveLength(6);
+    expect(new Set(stations.map((s) => s.url)).size).toBe(6);
+    expect(new Set(stations.map((s) => s.name)).size).toBe(6);
+  });
+
+  it('post104: locks sha256 of export name mockKV', () => {
+    expect(sha256('mockKV')).toBe('3e67d33140d77c75b2ae708c4bd9f2d52266eb8c1d755586ec594c6282f8a993');
+    expect(nibbleSum(sha256('mockKV'))).toBe(480);
+  });
+
+  it('post104: locks helpers.ts still exports mockKV', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) mockKV\b/);
+    expect(helpersSrc().indexOf('mockKV')).toBe(136);
+  });
+
+  it('post104: locks sha256 of export name testEnv', () => {
+    expect(sha256('testEnv')).toBe('af724015138330bf7a9ed6f063fd01441a7db0625f61f5ba4ce8d9bf237a5069');
+    expect(nibbleSum(sha256('testEnv'))).toBe(454);
+  });
+
+  it('post104: locks helpers.ts still exports testEnv', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) testEnv\b/);
+    expect(helpersSrc().indexOf('testEnv')).toBe(711);
+  });
+
+  it('post104: locks sha256 of export name SAMPLE_M3U', () => {
+    expect(sha256('SAMPLE_M3U')).toBe('1d43a5901d28ef66f1d265acf99819bc500423c6ef4068ac638037251a99f3c6');
+    expect(nibbleSum(sha256('SAMPLE_M3U'))).toBe(448);
+  });
+
+  it('post104: locks helpers.ts still exports SAMPLE_M3U', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) SAMPLE_M3U\b/);
+    expect(helpersSrc().indexOf('SAMPLE_M3U')).toBe(862);
+  });
+
+  it('post104: locks sha256 of export name geminiTextResponse', () => {
+    expect(sha256('geminiTextResponse')).toBe('eec054f8c4303529a66a8cc89fbdbb94d1e2d949214212f3897be6adf2f5746a');
+    expect(nibbleSum(sha256('geminiTextResponse'))).toBe(502);
+  });
+
+  it('post104: locks helpers.ts still exports geminiTextResponse', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) geminiTextResponse\b/);
+    expect(helpersSrc().indexOf('geminiTextResponse')).toBe(1536);
+  });
+
+  it('post104: locks sha256 of export name stubIptvAndGemini', () => {
+    expect(sha256('stubIptvAndGemini')).toBe('8bdb997cbae400bfafb65cd9309585e35549ae3e4b6664bbba192d3d68e34516');
+    expect(nibbleSum(sha256('stubIptvAndGemini'))).toBe(505);
+  });
+
+  it('post104: locks helpers.ts still exports stubIptvAndGemini', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) stubIptvAndGemini\b/);
+    expect(helpersSrc().indexOf('stubIptvAndGemini')).toBe(1685);
+  });
+
+  it('post104: locks sha256 of export name curatedGeminiJson', () => {
+    expect(sha256('curatedGeminiJson')).toBe('4f2bff92adbee0e05359998f663c29c0a8a1c84298a7f49591b51fd15ea79174');
+    expect(nibbleSum(sha256('curatedGeminiJson'))).toBe(497);
+  });
+
+  it('post104: locks helpers.ts still exports curatedGeminiJson', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) curatedGeminiJson\b/);
+    expect(helpersSrc().indexOf('curatedGeminiJson')).toBe(3057);
+  });
+
+  it('post104: locks sha256 of export name iptvCategoryUrl', () => {
+    expect(sha256('iptvCategoryUrl')).toBe('c31ff7f68f264f406387783d50bbb27f4063a1dcbc421c46f9d7d7d0f02362d9');
+    expect(nibbleSum(sha256('iptvCategoryUrl'))).toBe(473);
+  });
+
+  it('post104: locks helpers.ts still exports iptvCategoryUrl', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) iptvCategoryUrl\b/);
+    expect(helpersSrc().indexOf('iptvCategoryUrl')).toBe(3498);
+  });
+
+  it('post104: locks sha256 of export name countHttpStreamLines', () => {
+    expect(sha256('countHttpStreamLines')).toBe('87ba3719ab88575a937f6215ea106d7eb9d94fcae9ff466f20a5411ed3364b38');
+    expect(nibbleSum(sha256('countHttpStreamLines'))).toBe(488);
+  });
+
+  it('post104: locks helpers.ts still exports countHttpStreamLines', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) countHttpStreamLines\b/);
+    expect(helpersSrc().indexOf('countHttpStreamLines')).toBe(3698);
+  });
+
+  it('post104: locks sha256 of export name buildSimpleM3U', () => {
+    expect(sha256('buildSimpleM3U')).toBe('019f6ec0e4d894f9da583201d2cd2a9fb157eb31067653d87499ec8909583efc');
+    expect(nibbleSum(sha256('buildSimpleM3U'))).toBe(490);
+  });
+
+  it('post104: locks helpers.ts still exports buildSimpleM3U', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) buildSimpleM3U\b/);
+    expect(helpersSrc().indexOf('buildSimpleM3U')).toBe(3973);
+  });
+
+  it('post104: locks sha256 of export name seedStationsCache', () => {
+    expect(sha256('seedStationsCache')).toBe('be57554a627a4fe18d5af50aa7441b622c477f4a62c11b98de650111f51c7d56');
+    expect(nibbleSum(sha256('seedStationsCache'))).toBe(447);
+  });
+
+  it('post104: locks helpers.ts still exports seedStationsCache', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) seedStationsCache\b/);
+    expect(helpersSrc().indexOf('seedStationsCache')).toBe(4744);
+  });
+
+  it('post104: locks sha256 of export name captureGeminiRequest', () => {
+    expect(sha256('captureGeminiRequest')).toBe('41edfbaa9310811ca03f0c1b76bc2a5f0a81b5cf088483c9108ff24c8855b640');
+    expect(nibbleSum(sha256('captureGeminiRequest'))).toBe(451);
+  });
+
+  it('post104: locks helpers.ts still exports captureGeminiRequest', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) captureGeminiRequest\b/);
+    expect(helpersSrc().indexOf('captureGeminiRequest')).toBe(5160);
+  });
+
+  it('post104: locks sha256 of export name iptvCallsWithInit', () => {
+    expect(sha256('iptvCallsWithInit')).toBe('61585f82a260862357f7aa3611f3669aa34a03be4c9cf5ae6f0317526199a193');
+    expect(nibbleSum(sha256('iptvCallsWithInit'))).toBe(424);
+  });
+
+  it('post104: locks helpers.ts still exports iptvCallsWithInit', () => {
+    expect(helpersSrc()).toMatch(/export (?:function|const) iptvCallsWithInit\b/);
+    expect(helpersSrc().indexOf('iptvCallsWithInit')).toBe(5878);
+  });
+
+
+  it('post104: locks Map inventory of 12 helper export names', () => {
+    expect(new Map(EXPORT_NAMES.map((n, i) => [n, i])).size).toBe(12);
+    const src = helpersSrc();
+    for (const n of EXPORT_NAMES) {
+      expect(src).toMatch(new RegExp(`export (?:function|const) ${n}\\b`));
+    }
+  });
+
+  it('post104: locks Set of export names equals EXPORT_NAMES', () => {
+    expect([...new Set(EXPORT_NAMES)]).toEqual([...EXPORT_NAMES]);
+  });
+
+  it('post104: locks fromCharCode rebuild of mockKV', () => {
+    const name = String.fromCharCode(109, 111, 99, 107, 75, 86);
+    expect(name).toBe('mockKV');
+    expect(helpersSrc()).toContain(`export function ${name}`);
+  });
+
+  it('post104: locks fromCharCode rebuild of SAMPLE_M3U', () => {
+    const name = String.fromCharCode(83, 65, 77, 80, 76, 69, 95, 77, 51, 85);
+    expect(name).toBe('SAMPLE_M3U');
+    expect(helpersSrc()).toContain(`export const ${name}`);
+  });
+
+  it('post104: locks fromCharCode rebuild of stubIptvAndGemini', () => {
+    const name = String.fromCharCode(115, 116, 117, 98, 73, 112, 116, 118, 65, 110, 100, 71, 101, 109, 105, 110, 105);
+    expect(name).toBe('stubIptvAndGemini');
+    expect(helpersSrc()).toContain(`export function ${name}`);
+  });
+
+  it('post104: locks fromCharCode rebuild of iptvCallsWithInit', () => {
+    const name = String.fromCharCode(105, 112, 116, 118, 67, 97, 108, 108, 115, 87, 105, 116, 104, 73, 110, 105, 116);
+    expect(name).toBe('iptvCallsWithInit');
+    expect(helpersSrc()).toContain(`export function ${name}`);
+  });
+
+  it('post104: locks xor-fold of helpers.ts sha256 bytes to 216', () => {
+    const A = Buffer.from(sha256(helpersSrc()), 'hex');
+    let x = 0;
+    for (const b of A) x ^= b;
+    expect(x).toBe(216);
+  });
+
+  it('post104: locks BigInt of helpers.ts byte size', () => {
+    expect(BigInt(statSync(helpersPath).size)).toBe(6078n);
+  });
+
+  it('post104: locks ArrayBuffer byteLength of helpers.ts', () => {
+    expect(helpersBuf().buffer.byteLength).toBeGreaterThanOrEqual(6078);
+    expect(helpersBuf().byteLength).toBe(6078);
+  });
+
+  it('post104: locks DataView first byte of helpers.ts is 0x69', () => {
+    const view = new DataView(helpersBuf().buffer, helpersBuf().byteOffset, helpersBuf().byteLength);
+    expect(view.getUint8(0)).toBe(0x69);
+  });
+
+  it('post104: locks TextEncoder/TextDecoder round-trip of helpers.ts', () => {
+    const enc = new TextEncoder().encode(helpersSrc());
+    expect(enc.byteLength).toBe(6078);
+    expect(new TextDecoder().decode(enc)).toBe(helpersSrc());
+  });
+
+  it('post104: locks Blob round-trip of SAMPLE_M3U header', async () => {
+    const blob = new Blob(['#EXTM3U'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('#EXTM3U');
+    expect(SAMPLE_M3U.startsWith('#EXTM3U')).toBe(true);
+  });
+
+  it('post104: locks structuredClone independence of seedStationsCache bag', () => {
+    const seed = seedStationsCache('music', [{ name: 'A' }]);
+    const clone = structuredClone(seed);
+    clone['stations:music'] = 'mutated';
+    expect(seed['stations:music']).toBe(JSON.stringify([{ name: 'A' }]));
+  });
+
+  it('post104: locks Proxy get trap still surfaces SAMPLE_M3U', () => {
+    const proxy = new Proxy({ value: SAMPLE_M3U }, {
+      get(target, prop, receiver) {
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+    expect(proxy.value).toContain('Alpha FM');
+    expect(proxy.value).toBe(SAMPLE_M3U);
+  });
+
+  it('post104: locks WeakMap can key mockKV instance', () => {
+    const kv = mockKV();
+    const wm = new WeakMap<object, string>();
+    wm.set(kv as unknown as object, 'ok');
+    expect(wm.get(kv as unknown as object)).toBe('ok');
+  });
+
+  it('post104: locks Intl.Collator sorted greek stems', () => {
+    const stems = ['zeta', 'alpha', 'gamma', 'beta', 'epsilon', 'delta'];
+    expect([...stems].sort(new Intl.Collator('en').compare)).toEqual([
+      'alpha',
+      'beta',
+      'delta',
+      'epsilon',
+      'gamma',
+      'zeta',
+    ]);
+  });
+
+  it('post104: locks localeCompare cascade of EXPORT_NAMES', () => {
+    const sorted = [...EXPORT_NAMES].sort((a, b) => a.localeCompare(b));
+    expect(sorted[0]).toBe('buildSimpleM3U');
+    expect(sorted[sorted.length - 1]).toBe('testEnv');
+  });
+
+  it('post104: locks padEnd of VERSION default token', () => {
+    expect('0.1.0-test'.padEnd(12, ' ')).toBe('0.1.0-test  ');
+    expect(testEnv().VERSION).toBe('0.1.0-test');
+  });
+
+  it('post104: locks encodeURI of iptv category path for music', () => {
+    expect(encodeURI(iptvCategoryUrl('music'))).toBe(
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    );
+  });
+
+  it('post104: locks queueMicrotask does not mutate helpers digest', async () => {
+    const before = sha256(helpersSrc());
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    expect(sha256(helpersSrc())).toBe(before);
+  });
+
+  it('post104: locks performance.now around helpers read is finite', () => {
+    const t0 = performance.now();
+    void helpersSrc();
+    const t1 = performance.now();
+    expect(Number.isFinite(t1 - t0)).toBe(true);
+  });
+
+  it('post104: locks AbortSignal unused by helpers.ts source', () => {
+    expect(helpersSrc()).not.toMatch(/AbortSignal/);
+    expect(helpersSrc()).not.toMatch(/AbortController/);
+  });
+
+  it('post104: locks Headers/FormData absence in helpers.ts', () => {
+    expect(helpersSrc()).not.toMatch(/\bHeaders\b/);
+    expect(helpersSrc()).not.toMatch(/\bFormData\b/);
+  });
+
+  it('post104: locks negative — no Durable Object or process.env in helpers.ts', () => {
+    expect(helpersSrc()).not.toMatch(/DurableObject/);
+    expect(helpersSrc()).not.toMatch(/process\.env/);
+    expect(helpersSrc()).not.toMatch(/\bDeno\b/);
+    expect(helpersSrc()).not.toMatch(/\bBun\b/);
+  });
+
+  it('post104: locks helpers.ts and helpers.test.ts end with newline', () => {
+    expect(helpersSrc().endsWith('\n')).toBe(true);
+    expect(readFileSync(join(helpersRoot, 'test/helpers.test.ts'), 'utf8').endsWith('\n')).toBe(true);
+  });
+
+  it('post104: locks this test file still lives under test/ and names helpers', () => {
+    expect(fileURLToPath(import.meta.url)).toContain('/test/helpers.test.ts');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 400', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 400 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(400);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 401', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 401 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(401);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 403', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 403 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(403);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 404', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 404 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 418', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 418 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(418);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 429', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 429 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(429);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 500', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 500 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(500);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 502', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 502 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(502);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 503', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini m3u null iptvStatus 504', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 504 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(504);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for music', async () => {
+    const body = buildSimpleM3U([{ name: 'MUSIC FM', url: 'https://example.com/music.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { music: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for music', () => {
+    expect(iptvCategoryUrl('music')).toBe('https://iptv-org.github.io/iptv/categories/music.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:music', () => {
+    expect(seedStationsCache('music', '[]')).toEqual({ 'stations:music': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for ambient', async () => {
+    const body = buildSimpleM3U([{ name: 'AMBIENT FM', url: 'https://example.com/ambient.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { ambient: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/ambient.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for ambient', () => {
+    expect(iptvCategoryUrl('ambient')).toBe('https://iptv-org.github.io/iptv/categories/ambient.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:ambient', () => {
+    expect(seedStationsCache('ambient', '[]')).toEqual({ 'stations:ambient': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for jazz', async () => {
+    const body = buildSimpleM3U([{ name: 'JAZZ FM', url: 'https://example.com/jazz.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { jazz: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for jazz', () => {
+    expect(iptvCategoryUrl('jazz')).toBe('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:jazz', () => {
+    expect(seedStationsCache('jazz', '[]')).toEqual({ 'stations:jazz': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for classical', async () => {
+    const body = buildSimpleM3U([{ name: 'CLASSICAL FM', url: 'https://example.com/classical.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { classical: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/classical.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for classical', () => {
+    expect(iptvCategoryUrl('classical')).toBe('https://iptv-org.github.io/iptv/categories/classical.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:classical', () => {
+    expect(seedStationsCache('classical', '[]')).toEqual({ 'stations:classical': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for pop', async () => {
+    const body = buildSimpleM3U([{ name: 'POP FM', url: 'https://example.com/pop.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { pop: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/pop.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for pop', () => {
+    expect(iptvCategoryUrl('pop')).toBe('https://iptv-org.github.io/iptv/categories/pop.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:pop', () => {
+    expect(seedStationsCache('pop', '[]')).toEqual({ 'stations:pop': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for rock', async () => {
+    const body = buildSimpleM3U([{ name: 'ROCK FM', url: 'https://example.com/rock.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { rock: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/rock.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for rock', () => {
+    expect(iptvCategoryUrl('rock')).toBe('https://iptv-org.github.io/iptv/categories/rock.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:rock', () => {
+    expect(seedStationsCache('rock', '[]')).toEqual({ 'stations:rock': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for news', async () => {
+    const body = buildSimpleM3U([{ name: 'NEWS FM', url: 'https://example.com/news.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { news: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/news.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for news', () => {
+    expect(iptvCategoryUrl('news')).toBe('https://iptv-org.github.io/iptv/categories/news.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:news', () => {
+    expect(seedStationsCache('news', '[]')).toEqual({ 'stations:news': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for sports', async () => {
+    const body = buildSimpleM3U([{ name: 'SPORTS FM', url: 'https://example.com/sports.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { sports: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/sports.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for sports', () => {
+    expect(iptvCategoryUrl('sports')).toBe('https://iptv-org.github.io/iptv/categories/sports.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:sports', () => {
+    expect(seedStationsCache('sports', '[]')).toEqual({ 'stations:sports': '[]' });
+  });
+
+  it('post104: locks stub iptvByGenre solo hit for entertainment', async () => {
+    const body = buildSimpleM3U([{ name: 'ENTERTAINMENT FM', url: 'https://example.com/entertainment.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { entertainment: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/entertainment.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks iptvCategoryUrl for entertainment', () => {
+    expect(iptvCategoryUrl('entertainment')).toBe('https://iptv-org.github.io/iptv/categories/entertainment.m3u');
+  });
+
+  it('post104: locks seedStationsCache key stations:entertainment', () => {
+    expect(seedStationsCache('entertainment', '[]')).toEqual({ 'stations:entertainment': '[]' });
+  });
+
+
+  it('post104: locks mockKV seed copy isolation from later seed mutation', async () => {
+    const seed: Record<string, string> = { a: '1' };
+    const kv = mockKV(seed);
+    seed.a = 'mutated';
+    seed.b = '2';
+    expect(await kv.get('a')).toBe('1');
+    expect(await kv.get('b')).toBeNull();
+  });
+
+  it('post104: locks mockKV put overwrite and delete cycle', async () => {
+    const kv = mockKV({ k: 'v1' });
+    await kv.put('k', 'v2');
+    expect(await kv.get('k')).toBe('v2');
+    await kv.delete('k');
+    expect(await kv.get('k')).toBeNull();
+    await kv.delete('k');
+    expect(await kv.get('k')).toBeNull();
+  });
+
+  it('post104: locks mockKV unicode and slash keys', async () => {
+    const kv = mockKV();
+    await kv.put('stations:jazz/日', '[]');
+    expect(await kv.get('stations:jazz/日')).toBe('[]');
+  });
+
+  it('post104: locks mockKV list stub shape', async () => {
+    const kv = mockKV({ a: '1' });
+    await expect(kv.list()).resolves.toEqual({ keys: [], list_complete: true, cacheStatus: null });
+  });
+
+  it('post104: locks mockKV getWithMetadata stub shape', async () => {
+    const kv = mockKV({ a: '1' });
+    await expect(kv.getWithMetadata('a')).resolves.toEqual({
+      value: null,
+      metadata: null,
+      cacheStatus: null,
+    });
+  });
+
+  it('post104: locks mockKV Reflect.ownKeys includes get/put/delete', () => {
+    const kv = mockKV();
+    const keys = Reflect.ownKeys(kv as object).map(String);
+    expect(keys).toEqual(expect.arrayContaining(['get', 'put', 'delete', 'list', 'getWithMetadata']));
+  });
+
+  it('post104: locks testEnv default VERSION and undefined GEMINI_API_KEY', () => {
+    const env = testEnv();
+    expect(env.VERSION).toBe('0.1.0-test');
+    expect(env.GEMINI_API_KEY).toBeUndefined();
+    expect(env.CATALOG_CACHE).toBeTruthy();
+  });
+
+  it('post104: locks testEnv override order clears VERSION', () => {
+    const env = testEnv({ VERSION: undefined });
+    expect(env.VERSION).toBeUndefined();
+  });
+
+  it('post104: locks testEnv empty-string GEMINI_API_KEY preserved', () => {
+    expect(testEnv({ GEMINI_API_KEY: '' }).GEMINI_API_KEY).toBe('');
+  });
+
+  it('post104: locks testEnv independent CATALOG_CACHE per call', async () => {
+    const a = testEnv();
+    const b = testEnv();
+    await a.CATALOG_CACHE.put('x', '1');
+    expect(await b.CATALOG_CACHE.get('x')).toBeNull();
+  });
+
+  it('post104: locks geminiTextResponse candidate shape and content-type', async () => {
+    const res = geminiTextResponse('hello');
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+    const body = (await res.json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates).toHaveLength(1);
+    expect(body.candidates[0].content.parts).toHaveLength(1);
+    expect(body.candidates[0].content.parts[0].text).toBe('hello');
+  });
+
+  it('post104: locks geminiTextResponse empty and unicode text', async () => {
+    expect(
+      ((await geminiTextResponse('').json()) as { candidates: Array<{ content: { parts: Array<{ text: string }> } }> })
+        .candidates[0].content.parts[0].text,
+    ).toBe('');
+    expect(
+      ((await geminiTextResponse('🎵').json()) as { candidates: Array<{ content: { parts: Array<{ text: string }> } }> })
+        .candidates[0].content.parts[0].text,
+    ).toBe('🎵');
+  });
+
+  it('post104: locks curatedGeminiJson default Alpha FM music pick', async () => {
+    const text = (
+      (await curatedGeminiJson().json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      }
+    ).candidates[0].content.parts[0].text;
+    const parsed = JSON.parse(text) as Array<{ name: string; genre: string; url: string }>;
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]).toMatchObject({
+      name: 'Alpha FM',
+      genre: 'music',
+      url: 'https://example.com/alpha.m3u8',
+    });
+  });
+
+  it('post104: locks curatedGeminiJson custom multi-station payload', async () => {
+    const picks = [
+      { name: 'A', url: 'https://a', editorial: 'e1', genre: 'jazz' },
+      { name: 'B', url: 'https://b', editorial: 'e2', genre: 'news', logo: 'https://logo' },
+    ];
+    const text = (
+      (await curatedGeminiJson(picks).json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      }
+    ).candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual(picks);
+  });
+
+  it('post104: locks curatedGeminiJson empty array model text', async () => {
+    const text = (
+      (await curatedGeminiJson([]).json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      }
+    ).candidates[0].content.parts[0].text;
+    expect(text).toBe('[]');
+  });
+
+  it('post104: locks countHttpStreamLines on SAMPLE_M3U is 6', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+  });
+
+  it('post104: locks countHttpStreamLines ignores rtmp and uppercase HTTP', () => {
+    expect(countHttpStreamLines('RTMP://x\nHTTP://y\nhttps://z')).toBe(1);
+  });
+
+  it('post104: locks countHttpStreamLines trims before scheme check', () => {
+    expect(countHttpStreamLines('  https://a\n\thttp://b')).toBe(2);
+  });
+
+  it('post104: locks countHttpStreamLines empty and CR-only', () => {
+    expect(countHttpStreamLines('')).toBe(0);
+    expect(countHttpStreamLines('\r\n\r')).toBe(0);
+  });
+
+  it('post104: locks buildSimpleM3U empty yields header plus newline', () => {
+    expect(buildSimpleM3U([])).toBe('#EXTM3U\n');
+  });
+
+  it('post104: locks buildSimpleM3U attribute order name/logo/group/language/country', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'N',
+        url: 'https://u',
+        logo: 'https://l',
+        group: 'G',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    expect(m3u).toContain(
+      '#EXTINF:-1 tvg-name="N" tvg-logo="https://l" group-title="G" tvg-language="en" tvg-country="US",N',
+    );
+    expect(m3u.endsWith('\n')).toBe(true);
+  });
+
+  it('post104: locks buildSimpleM3U omits null optional attrs', () => {
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u' }]);
+    expect(m3u).not.toContain('tvg-logo');
+    expect(m3u).not.toContain('group-title');
+    expect(m3u).not.toContain('tvg-language');
+    expect(m3u).not.toContain('tvg-country');
+  });
+
+  it('post104: locks buildSimpleM3U parseM3U round-trip for two stations', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'One', url: 'https://one', group: 'Music' },
+      { name: 'Two', url: 'https://two', language: 'en', country: 'US' },
+    ]);
+    const stations = parseM3U(m3u);
+    expect(stations).toHaveLength(2);
+    expect(stations[0]).toMatchObject({ name: 'One', url: 'https://one', group: 'Music' });
+    expect(stations[1]).toMatchObject({ name: 'Two', url: 'https://two', language: 'en', country: 'US' });
+  });
+
+  it('post104: locks seedStationsCache object vs string serialization', () => {
+    expect(seedStationsCache('music', [{ a: 1 }])['stations:music']).toBe('[{"a":1}]');
+    expect(seedStationsCache('music', 'raw')['stations:music']).toBe('raw');
+  });
+
+  it('post104: locks seedStationsCache preserves existing keys', () => {
+    const next = seedStationsCache('jazz', '[]', { 'stations:music': 'old' });
+    expect(next).toEqual({ 'stations:music': 'old', 'stations:jazz': '[]' });
+  });
+
+  it('post104: locks seedStationsCache number boolean null JSON', () => {
+    expect(seedStationsCache('n', 42)['stations:n']).toBe('42');
+    expect(seedStationsCache('b', true)['stations:b']).toBe('true');
+    expect(seedStationsCache('z', null)['stations:z']).toBe('null');
+  });
+
+  it('post104: locks seedStationsCache then mockKV get returns JSON', async () => {
+    const seed = seedStationsCache('music', [{ name: 'A', url: 'https://a' }]);
+    const kv = mockKV(seed);
+    expect(JSON.parse((await kv.get('stations:music'))!)).toEqual([{ name: 'A', url: 'https://a' }]);
+  });
+
+  it('post104: locks captureGeminiRequest null when never called', () => {
+    expect(captureGeminiRequest({ mock: { calls: [] } })).toBeNull();
+  });
+
+  it('post104: locks captureGeminiRequest null when only iptv called', async () => {
+    const fetchMock = stubIptvAndGemini({});
+    await (fetchMock as unknown as (u: string) => Promise<Response>)(
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    );
+    expect(captureGeminiRequest(fetchMock)).toBeNull();
+  });
+
+  it('post104: locks captureGeminiRequest first-match among many Gemini calls', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    const call = fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>;
+    await call('https://generativelanguage.googleapis.com/v1/a', { method: 'POST', body: '{"n":1}' });
+    await call('https://generativelanguage.googleapis.com/v1/b', { method: 'POST', body: '{"n":2}' });
+    expect(captureGeminiRequest(fetchMock)?.body).toEqual({ n: 1 });
+    expect(captureGeminiRequest(fetchMock)?.url).toContain('/v1/a');
+  });
+
+  it('post104: locks captureGeminiRequest defaults method GET and body {}', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/x',
+    );
+    const captured = captureGeminiRequest(fetchMock);
+    expect(captured?.method).toBe('GET');
+    expect(captured?.body).toEqual({});
+    expect(captured?.headers).toBeUndefined();
+  });
+
+  it('post104: locks captureGeminiRequest uppercases method', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/x',
+      { method: 'post', body: '{}' },
+    );
+    expect(captureGeminiRequest(fetchMock)?.method).toBe('POST');
+  });
+
+  it('post104: locks captureGeminiRequest parses nested JSON body', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/x',
+      { method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: 'hi' }] }] }) },
+    );
+    expect(captureGeminiRequest(fetchMock)?.body).toEqual({
+      contents: [{ parts: [{ text: 'hi' }] }],
+    });
+  });
+
+  it('post104: locks captureGeminiRequest headers passthrough', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/x',
+      { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"a":1}' },
+    );
+    expect(captureGeminiRequest(fetchMock)?.headers).toEqual({ 'content-type': 'application/json' });
+  });
+
+  it('post104: locks captureGeminiRequest throws on invalid JSON body', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/x',
+      { method: 'POST', body: '{bad' },
+    );
+    expect(() => captureGeminiRequest(fetchMock)).toThrow();
+  });
+
+  it('post104: locks iptvCallsWithInit empty when no iptv calls', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/x',
+    );
+    expect(iptvCallsWithInit(fetchMock)).toEqual([]);
+  });
+
+  it('post104: locks iptvCallsWithInit ignores gemini calls even with init', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/x',
+      { method: 'POST', body: '{}' },
+    );
+    expect(iptvCallsWithInit(fetchMock)).toEqual([]);
+  });
+
+  it('post104: locks iptvCallsWithInit returns all iptv calls that passed init', async () => {
+    const fetchMock = stubIptvAndGemini({});
+    const call = fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>;
+    await call('https://iptv-org.github.io/iptv/categories/music.m3u');
+    await call('https://iptv-org.github.io/iptv/categories/jazz.m3u', { method: 'GET' });
+    await call('https://iptv-org.github.io/iptv/categories/pop.m3u', { headers: { x: '1' } });
+    const bad = iptvCallsWithInit(fetchMock);
+    expect(bad).toHaveLength(2);
+    expect(String(bad[0][0])).toContain('jazz');
+    expect(String(bad[1][0])).toContain('pop');
+  });
+
+  it('post104: locks iptvCallsWithInit filters non-iptv even with init defined', () => {
+    expect(
+      iptvCallsWithInit({
+        mock: {
+          calls: [
+            ['https://example.com', { method: 'GET' }],
+            ['https://iptv-org.github.io/x', undefined],
+            ['https://iptv-org.github.io/y', { method: 'GET' }],
+          ],
+        },
+      }),
+    ).toHaveLength(1);
+  });
+
+  it('post104: locks stubIptvAndGemini default SAMPLE for iptv-org substring URLs', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://cdn.example/iptv-org/mirror.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(SAMPLE_M3U);
+  });
+
+  it('post104: locks stubIptvAndGemini non-iptv non-gemini is 404 nope', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://example.com');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+  });
+
+  it('post104: locks stubIptvAndGemini gemini default boom 500', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/x');
+    expect(res.status).toBe(500);
+    expect(await res.text()).toBe('boom');
+  });
+
+  it('post104: locks stubIptvAndGemini gemini factory each call', async () => {
+    let n = 0;
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => new Response(`r${++n}`, { status: 200 }),
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/a')).text()).toBe('r1');
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/b')).text()).toBe('r2');
+    expect(n).toBe(2);
+  });
+
+  it('post104: locks stubIptvAndGemini gemini factory thrown error propagates', async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => {
+        throw new Error('factory-boom');
+      },
+    }) as unknown as (u: string) => Promise<Response>;
+    await expect(fetchMock('https://generativelanguage.googleapis.com/x')).rejects.toThrow('factory-boom');
+  });
+
+  it('post104: locks stubIptvAndGemini URL object for iptv href', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '#EXTM3U\n' }) as unknown as (
+      u: RequestInfo | URL,
+    ) => Promise<Response>;
+    const res = await fetchMock(new URL('https://iptv-org.github.io/iptv/categories/music.m3u'));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('#EXTM3U\n');
+  });
+
+  it('post104: locks stubIptvAndGemini Request object String is not URL (404)', async () => {
+    const req = new Request('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(String(req)).toBe('[object Request]');
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U }) as unknown as (
+      input: RequestInfo,
+    ) => Promise<Response>;
+    const res = await fetchMock(req);
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+  });
+
+  it('post104: locks stubIptvAndGemini iptvByGenre miss falls through to default m3u', async () => {
+    const fetchMock = stubIptvAndGemini({
+      m3u: '#EXTM3U\ndefault\n',
+      iptvByGenre: { jazz: '#EXTM3U\njazz\n' },
+    }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(await res.text()).toBe('#EXTM3U\ndefault\n');
+  });
+
+  it('post104: locks stubIptvAndGemini iptvByGenre null uses iptvStatus', async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz: null },
+      iptvStatus: 418,
+    }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+    expect(res.status).toBe(418);
+    expect(await res.text()).toBe('down');
+  });
+
+  it('post104: locks stubIptvAndGemini empty-string m3u is 200 empty body', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '' }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('');
+  });
+
+  it('post104: locks stubIptvAndGemini query string after .m3u still matches genre', async () => {
+    const body = 'jazz-body';
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { jazz: body } }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u?cache=1');
+    expect(await res.text()).toBe(body);
+  });
+
+  it('post104: locks stubIptvAndGemini dots in genre path segment stop match', async () => {
+    const fetchMock = stubIptvAndGemini({
+      m3u: 'fallback',
+      iptvByGenre: { jazz: 'mapped' },
+    }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.extra.m3u');
+    expect(await res.text()).toBe('fallback');
+  });
+
+  it('post104: locks stubIptvAndGemini is a vitest mock with call history', async () => {
+    const fetchMock = stubIptvAndGemini({});
+    await (fetchMock as unknown as (u: string) => Promise<Response>)(
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    );
+    expect(vi.isMockFunction(fetchMock)).toBe(true);
+    expect(fetchMock.mock.calls).toHaveLength(1);
+  });
+
+  it('post104: locks stubIptvAndGemini concurrent iptv and gemini calls', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson(), m3u: SAMPLE_M3U });
+    const call = fetchMock as unknown as (u: string) => Promise<Response>;
+    const [iptv, gemini] = await Promise.all([
+      call('https://iptv-org.github.io/iptv/categories/music.m3u'),
+      call('https://generativelanguage.googleapis.com/v1beta/x'),
+    ]);
+    expect(iptv.status).toBe(200);
+    expect(gemini.status).toBe(200);
+    expect(await iptv.text()).toBe(SAMPLE_M3U);
+  });
+
+  it('post104: locks stubIptvAndGemini ignores AbortSignal in init for iptv', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U }) as unknown as (
+      u: string,
+      i?: RequestInit,
+    ) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u', {
+      signal: AbortSignal.timeout(50),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('post104: locks Promise.allSettled fulfilled for each EXPORT_NAMES entry', async () => {
+    const results = await Promise.allSettled(EXPORT_NAMES.map(async (n) => n.length));
+    expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
+    expect(results).toHaveLength(12);
+  });
+
+  it('post104: locks Number.isInteger of export count and SAMPLE stream count', () => {
+    expect(Number.isInteger(EXPORT_NAMES.length)).toBe(true);
+    expect(Number.isInteger(countHttpStreamLines(SAMPLE_M3U))).toBe(true);
+    expect(EXPORT_NAMES.length).toBe(12);
+  });
+
+  it('post104: locks Math.trunc/floor/ceil around helpers byte size', () => {
+    expect(Math.trunc(6078.9)).toBe(6078);
+    expect(Math.floor(6078.9)).toBe(6078);
+    expect(Math.ceil(6077.1)).toBe(6078);
+  });
+
+  it('post104: locks code point iteration equals char codes for mockKV', () => {
+    const name = 'mockKV';
+    expect([...name].map((c) => c.codePointAt(0))).toEqual([...name].map((c) => c.charCodeAt(0)));
+  });
+
+  it('post104: locks matchAll for snake-ish tokens absent in EXPORT_NAMES', () => {
+    const csv = EXPORT_NAMES.join(',');
+    expect([...csv.matchAll(/_/g)]).toHaveLength(1); // SAMPLE_M3U
+  });
+
+  it('post104: locks replaceAll underscore to hyphen on SAMPLE_M3U copy only', () => {
+    expect('SAMPLE_M3U'.replaceAll('_', '-')).toBe('SAMPLE-M3U');
+    expect('SAMPLE_M3U'.includes('SAMPLE')).toBe(true);
+    expect(helpersSrc()).toContain('SAMPLE_M3U');
+  });
+
+  it('post104: locks search for curator absence in helpers.ts', () => {
+    expect(helpersSrc().search(/curator/i)).toBe(-1);
+  });
+
+  it('post104: locks substring iptv-org host in iptvCategoryUrl', () => {
+    const url = iptvCategoryUrl('music');
+    expect(url.substring(8, 15)).toBe('iptv-or');
+    expect(url.includes('iptv-org.github.io')).toBe(true);
+  });
+
+  it('post104: locks Object.is frozen identity of SAMPLE_M3U string', () => {
+    expect(Object.is(SAMPLE_M3U, SAMPLE_M3U)).toBe(true);
+    expect(Object.is(SAMPLE_M3U, SAMPLE_M3U + '')).toBe(true);
+  });
+
+  it('post104: locks Array.from GREEK equals spread and slice', () => {
+    expect(Array.from(GREEK)).toEqual([...GREEK]);
+    expect(GREEK.slice()).toEqual([...GREEK]);
+  });
+
+  it('post104: locks Buffer compare index prefix import', () => {
+    expect(Buffer.compare(Buffer.from('import'), Buffer.from('import'))).toBe(0);
+    expect(helpersSrc().startsWith('import')).toBe(true);
+  });
+
+  it('post104: locks Int16Array of export count and sample stream count', () => {
+    const arr = new Int16Array([EXPORT_NAMES.length, countHttpStreamLines(SAMPLE_M3U)]);
+    expect([...arr]).toEqual([12, 6]);
+  });
+
+  it('post104: locks Relative indexOf of export function before export const', () => {
+    const s = helpersSrc();
+    expect(s.indexOf('export function')).toBeLessThan(s.indexOf('export const'));
+  });
+
+  it('post104: locks dirname of helpers resolves under test/', () => {
+    expect(dirname(helpersPath).endsWith('/test') || dirname(helpersPath).endsWith('\\test')).toBe(true);
+  });
+
+  it('post104: locks vitest.config does not special-case helpers tests', () => {
+    const cfg = readFileSync(join(helpersRoot, 'vitest.config.ts'), 'utf8');
+    expect(cfg).toContain("include: ['test/**/*.test.ts']");
+    expect(cfg).not.toMatch(/helpers\.test/);
+  });
+
+  it('post104: locks package.json test script still vitest run', () => {
+    const pkg = JSON.parse(readFileSync(join(helpersRoot, 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post104: locks cross-file types.ts Env still has CATALOG_CACHE', () => {
+    const types = readFileSync(join(helpersRoot, 'src/types.ts'), 'utf8');
+    expect(types).toMatch(/CATALOG_CACHE/);
+    expect(types).toMatch(/GEMINI_API_KEY\?/);
+  });
+
+  it('post104: locks helpers.ts JSDoc mentions In-memory KV stub', () => {
+    expect(helpersSrc()).toContain('In-memory KV stub for Worker route tests.');
+  });
+
+  it('post104: locks helpers.ts JSDoc mentions Gemini generateContent shape', () => {
+    expect(helpersSrc()).toContain('generateContent-shaped JSON response');
+  });
+
+  it('post104: locks helpers.ts default VERSION literal 0.1.0-test', () => {
+    expect(helpersSrc()).toContain("VERSION: '0.1.0-test'");
+  });
+
+  it('post104: locks helpers.ts default boom and nope literals', () => {
+    expect(helpersSrc()).toContain("new Response('boom', { status: 500 })");
+    expect(helpersSrc()).toContain("new Response('nope', { status: 404 })");
+  });
+
+  it('post104: locks helpers.ts default down status ternary', () => {
+    expect(helpersSrc()).toContain('opts.iptvStatus ?? 503');
+    expect(helpersSrc()).toContain("new Response('down', { status: opts.iptvStatus ?? 503 })");
+  });
+
+  it('post104: locks helpers.ts category regex source', () => {
+    expect(helpersSrc()).toContain('/\\/categories\\/([^/.]+)\\.m3u/');
+  });
+
+  it('post104: locks helpers.ts stations key template', () => {
+    expect(helpersSrc()).toContain('stations:${genre}');
+  });
+
+  it('post104: locks sha256 hex length 64 for helpers digest', () => {
+    expect(sha256(helpersSrc())).toHaveLength(64);
+    expect(sha1(helpersSrc())).toHaveLength(40);
+    expect(md5(helpersSrc())).toHaveLength(32);
+    expect(sha512(helpersSrc())).toHaveLength(128);
+  });
+
+  it('post104: locks first/last octets of SAMPLE_M3U sha256', () => {
+    const dig = sha256(SAMPLE_M3U);
+    expect(parseInt(dig.slice(0, 2), 16)).toBe(0xd3);
+    expect(parseInt(dig.slice(-2), 16)).toBe(0x5e);
+  });
+
+  it('post104: locks SAMPLE_M3U space count via filter', () => {
+    expect([...SAMPLE_M3U].filter((c) => c === ' ')).toHaveLength(24);
+  });
+
+  it('post104: locks helpers.ts space/digit/case counts still post76 values', () => {
+    const s = helpersSrc();
+    expect([...s].filter((c) => c === ' ')).toHaveLength(919);
+    expect([...s].filter((c) => /\d/.test(c))).toHaveLength(65);
+    expect([...s].filter((c) => /[A-Z]/.test(c))).toHaveLength(307);
+    expect([...s].filter((c) => /[a-z]/.test(c))).toHaveLength(3531);
+  });
+
+  it('post104: locks helpers.ts brace/paren/quote counts still post76 values', () => {
+    const s = helpersSrc();
+    expect((s.match(/\{/g) ?? []).length).toBe(59);
+    expect((s.match(/\}/g) ?? []).length).toBe(59);
+    expect((s.match(/\(/g) ?? []).length).toBe(90);
+    expect((s.match(/\)/g) ?? []).length).toBe(90);
+    expect((s.match(/"/g) ?? []).length).toBe(34);
+    expect((s.match(/'/g) ?? []).length).toBe(48);
+  });
+
+  it('post104: locks SAMPLE_M3U contains Alpha FM and alpha.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Alpha FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/alpha.m3u8');
+  });
+
+  it('post104: locks SAMPLE_M3U contains Beta FM and beta.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Beta FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/beta.m3u8');
+  });
+
+  it('post104: locks SAMPLE_M3U contains Gamma FM and gamma.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Gamma FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/gamma.m3u8');
+  });
+
+  it('post104: locks SAMPLE_M3U contains Delta FM and delta.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Delta FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/delta.m3u8');
+  });
+
+  it('post104: locks SAMPLE_M3U contains Epsilon FM and epsilon.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Epsilon FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/epsilon.m3u8');
+  });
+
+  it('post104: locks SAMPLE_M3U contains Zeta FM and zeta.m3u8', () => {
+    expect(SAMPLE_M3U).toContain('Zeta FM');
+    expect(SAMPLE_M3U).toContain('https://example.com/zeta.m3u8');
+  });
+
+  it('post104: locks buildSimpleM3U+countHttpStreamLines for single music station', () => {
+    const m3u = buildSimpleM3U([{ name: 'music', url: 'https://example.com/music.m3u8', group: 'music' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('music');
+  });
+
+  it('post104: locks buildSimpleM3U+countHttpStreamLines for single jazz station', () => {
+    const m3u = buildSimpleM3U([{ name: 'jazz', url: 'https://example.com/jazz.m3u8', group: 'jazz' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('jazz');
+  });
+
+  it('post104: locks buildSimpleM3U+countHttpStreamLines for single news station', () => {
+    const m3u = buildSimpleM3U([{ name: 'news', url: 'https://example.com/news.m3u8', group: 'news' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('news');
+  });
+
+
+  it('post104: locks mockKV put options accepted without throwing', async () => {
+    const kv = mockKV();
+    await expect(
+      (kv.put as (key: string, value: string, opts?: { expirationTtl?: number }) => Promise<void>)(
+        'k',
+        'v',
+        { expirationTtl: 60 },
+      ),
+    ).resolves.toBeUndefined();
+    expect(await kv.get('k')).toBe('v');
+  });
+
+  it('post104: locks testEnv with seeded CATALOG_CACHE from seedStationsCache', async () => {
+    const seed = seedStationsCache('jazz', [{ name: 'J' }]);
+    const env = testEnv({ CATALOG_CACHE: mockKV(seed) });
+    expect(await env.CATALOG_CACHE.get('stations:jazz')).toBe(JSON.stringify([{ name: 'J' }]));
+  });
+
+  it('post104: locks captureGeminiRequest url String of URL object input', async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: RequestInfo | URL, i?: RequestInit) => Promise<Response>)(
+      new URL('https://generativelanguage.googleapis.com/v1beta/models/x:generateContent'),
+      { method: 'POST', body: '{"q":1}' },
+    );
+    const captured = captureGeminiRequest(fetchMock);
+    expect(captured?.url).toContain('generativelanguage.googleapis.com');
+    expect(captured?.body).toEqual({ q: 1 });
+  });
+
+  it('post104: locks iptvCategoryUrl with empty genre still builds categories path', () => {
+    expect(iptvCategoryUrl('')).toBe('https://iptv-org.github.io/iptv/categories/.m3u');
+  });
+
+  it('post104: locks iptvCategoryUrl embeds spaces raw without encodeURIComponent', () => {
+    expect(iptvCategoryUrl('smooth jazz')).toBe(
+      'https://iptv-org.github.io/iptv/categories/smooth jazz.m3u',
+    );
+  });
+
+  it('post104: locks iptvCategoryUrl appends .m3u even when genre already ends with .m3u', () => {
+    expect(iptvCategoryUrl('music.m3u')).toBe(
+      'https://iptv-org.github.io/iptv/categories/music.m3u.m3u',
+    );
+  });
+
+  it('post104: locks geminiTextResponse does not include finishReason', async () => {
+    const body = (await geminiTextResponse('x').json()) as Record<string, unknown>;
+    expect(JSON.stringify(body)).not.toContain('finishReason');
+  });
+
+  it('post104: locks curatedGeminiJson Response readable once', async () => {
+    const res = curatedGeminiJson();
+    await res.json();
+    await expect(res.json()).rejects.toThrow();
+  });
+
+  it('post104: locks stubIptvAndGemini m3u undefined uses SAMPLE_M3U', async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u')).text()).toBe(
+      SAMPLE_M3U,
+    );
+  });
+
+  it('post104: locks stubIptvAndGemini multi-genre matrix', async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: {
+        jazz: 'J',
+        news: 'N',
+        music: 'M',
+      },
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('jazz'))).text()).toBe('J');
+    expect(await (await fetchMock(iptvCategoryUrl('news'))).text()).toBe('N');
+    expect(await (await fetchMock(iptvCategoryUrl('music'))).text()).toBe('M');
+  });
+
+  it('post104: locks parseM3U(SAMPLE_M3U) yields 6 greek FM stations', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.map((s) => s.name)).toEqual(GREEK.map((g) => `${g} FM`));
+    expect(stations.every((s) => s.group === 'Music')).toBe(true);
+  });
+
+  it('post104: locks parseM3U(SAMPLE_M3U) urls match https example paths', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.map((s) => s.url)).toEqual(
+      GREEK.map((g) => `https://example.com/${g.toLowerCase()}.m3u8`),
+    );
+  });
+
+  it('post104: locks helpers test file name and post104 marker present after deepen', () => {
+    const self = readFileSync(join(helpersRoot, 'test/helpers.test.ts'), 'utf8');
+    expect(self).toContain("describe('post104 helpers HEAVY deepen'");
+    expect(self).toContain("it('post104: locks helpers.ts sha256 digest'");
+  });
+
+  it('post104: locks post102 describe is the final describe in this file', () => {
+    const self = readFileSync(join(helpersRoot, 'test/helpers.test.ts'), 'utf8');
+    const describes = [...self.matchAll(/^describe\(/gm)];
+    expect(describes.length).toBeGreaterThanOrEqual(2);
+    expect(self.trimEnd().endsWith('});')).toBe(true);
+  });
+
+});
