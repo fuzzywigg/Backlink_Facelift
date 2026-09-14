@@ -19415,7 +19415,7 @@ describe('overnight link-audit-pipeline HEAVY deepen (parser)', () => {
     return a;
   };
 
-  it('overnight-link-audit: inventory — no dedicated audit-pipeline module; parser is URL gate', () => {
+  it('overnight-link-audit: inventory — no dedicated audit-pipeline module; parser is URL gate (CI-kick)', () => {
     expect(parserSource).toContain("line.startsWith('http://') || line.startsWith('https://')");
     expect(parserSource).toContain('if (current.name && !seen.has(line))');
     expect(parserSource).toContain('// Non-http URL (rtmp://, etc.) — skip but reset current');
