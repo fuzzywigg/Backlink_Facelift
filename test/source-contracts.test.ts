@@ -2849,10 +2849,13 @@ describe('source ↔ product contracts', () => {
     expect(read("wrangler.toml")).toContain('id = "edb6ca4df12f4f45b40508b3dda3c432"');
   });
 
-  it("post66 locks wrangler vars free of GEMINI", () => {
+  it("post66 locks wrangler [vars] assignments free of GEMINI (comment OK after)", () => {
     const toml = read("wrangler.toml");
-    const vars = toml.slice(toml.indexOf("[vars]"));
-    expect(vars).not.toMatch(/GEMINI/i);
+    const fromVars = toml.slice(toml.indexOf("[vars]"));
+    const assignmentBlock = fromVars.split("\n\n# Secrets")[0] ?? fromVars;
+    expect(assignmentBlock).toContain('VERSION = "0.1.0"');
+    expect(assignmentBlock).not.toMatch(/GEMINI/i);
+    expect(fromVars).toContain("wrangler secret put GEMINI_API_KEY");
   });
 
   it("post66 locks environment.json shape name+install only", () => {
