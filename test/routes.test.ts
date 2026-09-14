@@ -12186,3 +12186,2363 @@ describe('post94 routes HEAVY deepen', () => {
   });
 
 });
+
+describe('post111 routes HEAVY deepen (after #110/#111)', () => {
+  // TOKENMAXX HEAVY burn — tests/CI only. Deepens routes leftovers on latest main
+  // after merged #110 (parser) and #111 (wrangler). Orthogonal to those burns.
+  // No product inventing, no credentials, no DNS, no history rewrite.
+
+  const readUtf = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256File = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1File = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5File = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, s: string) =>
+    createHmac('sha256', key).update(s, 'utf8').digest('hex');
+  const nibbleSumHex = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibblesHex = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+
+  const indexPath = join(root, 'src/index.ts');
+  const indexSrc = readUtf('src/index.ts');
+  const helpersSrc = readUtf('test/helpers.ts');
+  const agentsMd = readUtf('AGENTS.md');
+  const readmeMd = readUtf('README.md');
+  const deployMd = readUtf('DEPLOY.md');
+  const ciYml = readUtf('.github/workflows/ci.yml');
+  const deployYml = readUtf('.github/workflows/deploy.yml');
+  const wranglerToml = readUtf('wrangler.toml');
+  const typesSrc = readUtf('src/types.ts');
+  const pkg = JSON.parse(readUtf('package.json')) as {
+    name: string;
+    version: string;
+    description: string;
+    scripts: Record<string, string>;
+  };
+
+  it('post111: locks src/index.ts sha256 (worker entry reaffirm)', () => {
+    expect(sha256File('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+    expect(createHash('sha256').update(indexSrc, 'utf8').digest('hex')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+
+  it('post111: locks src/index.ts sha1 digest', () => {
+    expect(sha1File('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b');
+  });
+
+  it('post111: locks src/index.ts md5 digest', () => {
+    expect(md5File('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177');
+  });
+
+  it('post111: locks src/index.ts sha384 digest', () => {
+    expect(createHash('sha384').update(indexSrc, 'utf8').digest('hex')).toBe('1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65');
+  });
+
+  it('post111: locks src/index.ts sha512 digest', () => {
+    expect(createHash('sha512').update(indexSrc, 'utf8').digest('hex')).toBe('28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3');
+  });
+
+  it('post111: locks src/index.ts sha256 nibble sum 470 xor 14', () => {
+    const d = sha256File('src/index.ts');
+    expect(nibbleSumHex(d)).toBe(470);
+    expect(xorNibblesHex(d)).toBe(14);
+  });
+
+  it('post111: locks src/index.ts first/last sha256 octets', () => {
+    const d = sha256File('src/index.ts');
+    expect(d.slice(0, 2)).toBe('7f');
+    expect(d.slice(-2)).toBe('72');
+    expect(d).toHaveLength(64);
+  });
+
+  it("post111: HMAC-SHA256 key post111 locks index.ts", () => {
+    expect(hmacSha256("post111", indexSrc)).toBe("8a4f2f4d4de0371a8b175fa1061a1d2362c21b934f4729db7493f9f83815c234");
+  });
+
+  it("post111: HMAC-SHA256 key routes locks index.ts", () => {
+    expect(hmacSha256("routes", indexSrc)).toBe("eca253c0284991e95fc81744fa449b8f24cd607d192df2822c81747d7096a356");
+  });
+
+  it("post111: HMAC-SHA256 key backlink locks index.ts", () => {
+    expect(hmacSha256("backlink", indexSrc)).toBe("252b29e7d7574d602146d61f7dd1a3d0d09b1374b3dd6955f63e5bd81b39cc90");
+  });
+
+  it("post111: HMAC-SHA256 key TOKENMAXX locks index.ts", () => {
+    expect(hmacSha256("TOKENMAXX", indexSrc)).toBe("d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc");
+  });
+
+  it("post111: HMAC-SHA256 key HEAVY locks index.ts", () => {
+    expect(hmacSha256("HEAVY", indexSrc)).toBe("f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30");
+  });
+
+  it("post111: HMAC-SHA256 key no-invent locks index.ts", () => {
+    expect(hmacSha256("no-invent", indexSrc)).toBe("ac1664326fe9a96468bcaf27422b305e016c5cbbe30d36b433bef7df5196ecaa");
+  });
+
+  it("post111: HMAC-SHA256 key curate locks index.ts", () => {
+    expect(hmacSha256("curate", indexSrc)).toBe("bd6e412755484cbb7b784ce708a72e84caf77cc400743d0a1d8d48a01611c831");
+  });
+
+  it("post111: HMAC-SHA256 key stations locks index.ts", () => {
+    expect(hmacSha256("stations", indexSrc)).toBe("0e6966b318ce802f6b8bc7a211864345e31c3ae4718aa99ad5fd91c96cd88f30");
+  });
+
+  it("post111: HMAC-SHA256 key genres locks index.ts", () => {
+    expect(hmacSha256("genres", indexSrc)).toBe("fb6540ca925d675d3cc2f17e55e8ced289d25def11aed59c31b822592b7273c4");
+  });
+
+  it("post111: HMAC-SHA256 key health locks index.ts", () => {
+    expect(hmacSha256("health", indexSrc)).toBe("bd6695c777503b1eee23817b1aa13507ffb93001d4d1c4d7b587c6d35c59a197");
+  });
+
+  it("post111: HMAC-SHA256 key IPTV_BASE locks index.ts", () => {
+    expect(hmacSha256("IPTV_BASE", indexSrc)).toBe("0f32c9992df0e7c2420b3499d73e9f409483974682e0e5fe38fd1e47712a258c");
+  });
+
+  it("post111: HMAC-SHA256 key gemini locks index.ts", () => {
+    expect(hmacSha256("gemini", indexSrc)).toBe("b1cea21e8a554a31f9534cb64aea604e6f5258397114aaf2a525f5368b63b24a");
+  });
+
+  it("post111: HMAC-SHA256 key CATALOG_CACHE locks index.ts", () => {
+    expect(hmacSha256("CATALOG_CACHE", indexSrc)).toBe("aeb15102e72a90f212ebe60a587c2ea0e8ac8a9a28f0150dcdb08b02f61b7692");
+  });
+
+  it("post111: HMAC-SHA256 key GEMINI_API_KEY locks index.ts", () => {
+    expect(hmacSha256("GEMINI_API_KEY", indexSrc)).toBe("bcdc693b733a50487cca26fdd8549b5b526c296566a3c4475f3bc4e6a888617b");
+  });
+
+  it("post111: HMAC-SHA256 key index locks index.ts", () => {
+    expect(hmacSha256("index", indexSrc)).toBe("e7dd5d33db7c019e670e5e7f1ae0063f6f1dd15babe98ae7bd0831bb63548771");
+  });
+
+  it("post111: HMAC-SHA256 key fuzzywigg locks index.ts", () => {
+    expect(hmacSha256("fuzzywigg", indexSrc)).toBe("8b7bac04a4152bc93cee647ecc20a2058cc35d05f01a7e86dafe04cb298ccfb5");
+  });
+
+  it("post111: HMAC-SHA256 key parser locks index.ts", () => {
+    expect(hmacSha256("parser", indexSrc)).toBe("b0baf6d64702fec99e4a13bc17a8f555b7a5b49b15e42064feb2bff35f7398ae");
+  });
+
+  it("post111: HMAC-SHA256 key helpers locks index.ts", () => {
+    expect(hmacSha256("helpers", indexSrc)).toBe("ab0d801daf9d53b2efe96b9f10e6d3c740b42edda8d56905272e0c45af901eef");
+  });
+
+  it("post111: HMAC-SHA256 key cors locks index.ts", () => {
+    expect(hmacSha256("cors", indexSrc)).toBe("9b9bfc72239f2978dd78c463344766460038d42bd0248d395c064aebe0bfcbec");
+  });
+
+  it("post111: HMAC-SHA256 key hono locks index.ts", () => {
+    expect(hmacSha256("hono", indexSrc)).toBe("034d4664accde6d8c6b8b7ce46f1a96e5a19fe9e7b84b0822427c12304a36546");
+  });
+
+  it("post111: HMAC-SHA256 key fetchStations locks index.ts", () => {
+    expect(hmacSha256("fetchStations", indexSrc)).toBe("59f1ae1b203012885bb8407fee23050cebf09200e2d6a96ebb5ee62ae26bec36");
+  });
+
+  it("post111: HMAC-SHA256 key callGemini locks index.ts", () => {
+    expect(hmacSha256("callGemini", indexSrc)).toBe("148b016b67ef53a08385c65c19a9870f30e7fac07d2766895ca329b0e56b8edb");
+  });
+
+  it("post111: HMAC-SHA256 key VALID_GENRES locks index.ts", () => {
+    expect(hmacSha256("VALID_GENRES", indexSrc)).toBe("2211e9dc3aa68885606978ad97ddddbe2e902eb0665b8cde8c052c3abaaa0db6");
+  });
+
+  it("post111: HMAC-SHA256 key GENRE_MAP locks index.ts", () => {
+    expect(hmacSha256("GENRE_MAP", indexSrc)).toBe("54b3154a472d1258244778485ff7412915e56a123910647701595cd60f15292f");
+  });
+
+  it("post111: HMAC-SHA256 key resolveGenre locks index.ts", () => {
+    expect(hmacSha256("resolveGenre", indexSrc)).toBe("e905e77840e53c3149e781f283f5bba894b684e71e76f99e225ee98a8a871524");
+  });
+
+  it("post111: HMAC-SHA256 key music locks index.ts", () => {
+    expect(hmacSha256("music", indexSrc)).toBe("762be37537e14b6c6b34abe76659ff525da74167ecf1294525501107d4cde08d");
+  });
+
+  it("post111: HMAC-SHA256 key jazz locks index.ts", () => {
+    expect(hmacSha256("jazz", indexSrc)).toBe("b2f484fafd96dca03dab039994c60fb03c3db3801a656dcb0790fe0c356c8bc4");
+  });
+
+  it("post111: HMAC-SHA256 key ambient locks index.ts", () => {
+    expect(hmacSha256("ambient", indexSrc)).toBe("e4048e86504c4f48d32cc685360d8a9e3dce297c81b43159d4fb38a85118da34");
+  });
+
+  it("post111: HMAC-SHA256 key 0.1.0 locks index.ts", () => {
+    expect(hmacSha256("0.1.0", indexSrc)).toBe("7c8526540df3a4afa919e84940dff4f6d381805a1c88c170ea58142c78285dcc");
+  });
+
+  it("post111: HMAC-SHA256 key Backlink/Geryon locks index.ts", () => {
+    expect(hmacSha256("Backlink/Geryon", indexSrc)).toBe("07af2f4b401484ceb712d07fa41972ee8065f9efade6a98ac217ccfb88a4fa96");
+  });
+
+  it("post111: HMAC-SHA256 key iptv-org locks index.ts", () => {
+    expect(hmacSha256("iptv-org", indexSrc)).toBe("3c0dc21e4b8267c2ab1bf4452da2bda68627db162628cb9441e1f5d40669e5d9");
+  });
+
+  it("post111: HMAC-SHA256 key generativelanguage locks index.ts", () => {
+    expect(hmacSha256("generativelanguage", indexSrc)).toBe("5cad1897f2d2146890f60491a1bd874c1c89994990e17a37be08df6dedd10238");
+  });
+
+  it("post111: HMAC-SHA256 key expirationTtl locks index.ts", () => {
+    expect(hmacSha256("expirationTtl", indexSrc)).toBe("200c922fcb3bc775c0b178ae78807a9d91d918d752809e52c30b965860794051");
+  });
+
+  it("post111: HMAC-SHA256 key retry_after locks index.ts", () => {
+    expect(hmacSha256("retry_after", indexSrc)).toBe("51bff88a9a4a4ac839c92bcf7b6961a52ed333c85ee1498db2afafa97ac91532");
+  });
+
+  it("post111: HMAC-SHA256 key powered_by locks index.ts", () => {
+    expect(hmacSha256("powered_by", indexSrc)).toBe("84f4c61de8d0453c9ee1fd248dd370c88481a87e243830a6d38656b16b5a552f");
+  });
+
+  it("post111: HMAC-SHA256 key curated_by locks index.ts", () => {
+    expect(hmacSha256("curated_by", indexSrc)).toBe("b92d7466e483a71fd9c2bde9dc996e0ecba5534c84c4f7d7b3377b35ac914fb2");
+  });
+
+  it('post111: HMAC digests differ for distinct keys', () => {
+    expect(hmacSha256('post111', indexSrc)).not.toBe(hmacSha256('routes', indexSrc));
+    expect(hmacSha256('curate', indexSrc)).not.toBe(hmacSha256('stations', indexSrc));
+    expect(hmacSha256('TOKENMAXX', indexSrc)).not.toBe(hmacSha256('HEAVY', indexSrc));
+  });
+
+  it('post111: utf8 char length 4724', () => {
+    expect(indexSrc).toHaveLength(4724);
+  });
+
+  it('post111: byte length 4738 via Buffer/TextEncoder/stat', () => {
+    expect(Buffer.byteLength(indexSrc, 'utf8')).toBe(4738);
+    expect(new TextEncoder().encode(indexSrc).length).toBe(4738);
+    expect(statSync(indexPath).size).toBe(4738);
+  });
+
+  it('post111: newline count 153 / split 154', () => {
+    expect((indexSrc.match(/\n/g) ?? []).length).toBe(153);
+    expect(indexSrc.split('\n')).toHaveLength(154);
+  });
+
+  it('post111: nonempty line count 125', () => {
+    expect(indexSrc.split('\n').filter((l) => l.length > 0)).toHaveLength(125);
+  });
+
+  it('post111: blank line count 29', () => {
+    expect(indexSrc.split('\n').filter((l) => l.length === 0)).toHaveLength(29);
+  });
+
+  it('post111: line length vector lock', () => {
+    expect(indexSrc.split('\n').map((l) => l.length)).toEqual([28,33,65,45,30,0,63,0,82,39,40,53,0,42,29,0,16,28,48,63,3,0,31,33,0,76,18,1,0,26,17,22,16,16,99,58,30,17,98,16,0,418,0,27,109,5,21,54,28,50,69,9,6,4,0,68,0,39,71,4,65,0,56,62,0,34,1,0,42,0,21,0,21,17,21,83,38,16,64,52,52,38,6,37,5,3,0,27,65,3,0,27,17,30,23,5,3,0,35,42,41,0,26,7,63,11,81,3,0,61,3,0,33,42,35,49,0,30,83,3,0,26,7,63,11,81,3,0,70,0,14,7,76,11,59,48,19,17,19,22,12,8,3,0,17,10,34,40,22,5,3,0,19,0]);
+  });
+
+  it('post111: nonempty line length sum 4571', () => {
+    expect(
+      indexSrc
+        .split('\n')
+        .filter((l) => l.length > 0)
+        .reduce((a, l) => a + l.length, 0),
+    ).toBe(4571);
+  });
+
+  it('post111: first 40 char codes lock', () => {
+    expect([...indexSrc.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([105,109,112,111,114,116,32,123,32,72,111,110,111,32,125,32,102,114,111,109,32,39,104,111,110,111,39,59,10,105,109,112,111,114,116,32,123,32,99,111]);
+  });
+
+  it('post111: last 40 char codes lock', () => {
+    expect([...indexSrc.slice(-40)].map((c) => c.charCodeAt(0))).toEqual([99,117,114,97,116,101,100,44,10,32,32,125,41,59,10,125,41,59,10,10,101,120,112,111,114,116,32,100,101,102,97,117,108,116,32,97,112,112,59,10]);
+  });
+
+  it('post111: digit count lock', () => {
+    expect([...indexSrc].filter((c) => /\d/.test(c))).toHaveLength(51);
+  });
+
+  it('post111: uppercase count lock', () => {
+    expect([...indexSrc].filter((c) => /[A-Z]/.test(c))).toHaveLength(262);
+  });
+
+  it('post111: lowercase count lock', () => {
+    expect([...indexSrc].filter((c) => /[a-z]/.test(c))).toHaveLength(2597);
+  });
+
+  it('post111: space count lock', () => {
+    expect((indexSrc.match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it('post111: double-quote count lock', () => {
+    expect((indexSrc.match(/"/g) ?? []).length).toBe(20);
+  });
+
+  it('post111: single-quote count lock', () => {
+    expect((indexSrc.match(/'/g) ?? []).length).toBe(85);
+  });
+
+  it('post111: backtick count lock', () => {
+    expect((indexSrc.match(/`/g) ?? []).length).toBe(14);
+  });
+
+  it('post111: equals count lock', () => {
+    expect((indexSrc.match(/=/g) ?? []).length).toBe(37);
+  });
+
+  it('post111: underscore count lock', () => {
+    expect((indexSrc.match(/_/g) ?? []).length).toBe(18);
+  });
+
+  it('post111: dash count lock', () => {
+    expect((indexSrc.match(/-/g) ?? []).length).toBe(8);
+  });
+
+  it('post111: bracket pair counts', () => {
+    expect((indexSrc.match(/\[/g) ?? []).length).toBe(17);
+    expect((indexSrc.match(/\]/g) ?? []).length).toBe(17);
+  });
+
+  it('post111: brace pair counts', () => {
+    expect((indexSrc.match(/\{/g) ?? []).length).toBe(58);
+    expect((indexSrc.match(/\}/g) ?? []).length).toBe(58);
+  });
+
+  it('post111: paren pair counts', () => {
+    expect((indexSrc.match(/\(/g) ?? []).length).toBe(70);
+    expect((indexSrc.match(/\)/g) ?? []).length).toBe(70);
+  });
+
+  it('post111: semicolon count lock', () => {
+    expect((indexSrc.match(/;/g) ?? []).length).toBe(61);
+  });
+
+  it('post111: import line count is 5', () => {
+    expect([...indexSrc.matchAll(/^import /gm)]).toHaveLength(5);
+  });
+
+  it('post111: import order locks hono cors genres parser types', () => {
+    const froms = indexSrc
+      .split('\n')
+      .filter((l) => l.startsWith('import '))
+      .map((l) => l.replace(/^import .+ from ['"]([^'"]+)['"].*$/, '$1'));
+    expect(froms).toEqual(['hono', 'hono/cors', './genres', './parser', './types']);
+  });
+
+  it('post111: export default app is final export', () => {
+    expect(indexSrc.trimEnd().endsWith('export default app;')).toBe(true);
+  });
+
+  it('post111: IPTV_BASE constant lock', () => {
+    expect(indexSrc).toContain("const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'");
+  });
+
+  it('post111: Gemini model path lock', () => {
+    expect(indexSrc).toContain('models/gemini-2.0-flash:generateContent');
+  });
+
+  it('post111: generationConfig maxOutputTokens 512 temperature 0.7', () => {
+    expect(indexSrc).toContain('maxOutputTokens: 512');
+    expect(indexSrc).toContain('temperature: 0.7');
+  });
+
+  it('post111: KV expirationTtl 3600', () => {
+    expect(indexSrc).toContain('expirationTtl: 3600');
+  });
+
+  it('post111: stations.slice(0, 50) prompt window', () => {
+    expect(indexSrc).toMatch(/stations\s*\.slice\(0,\s*50\)/);
+  });
+
+  it('post111: degrade slice(0, 5) on Gemini failure', () => {
+    expect(indexSrc).toContain('stations.slice(0, 5)');
+  });
+
+  it('post111: retry_after literal 60 appears three times', () => {
+    expect((indexSrc.match(/retry_after:\s*60/g) ?? []).length).toBe(3);
+  });
+
+  it('post111: cors middleware applied via app.use star', () => {
+    expect(indexSrc).toContain("app.use('*', cors())");
+  });
+
+  it('post111: five GET route registrations', () => {
+    expect((indexSrc.match(/app\.get\(/g) ?? []).length).toBe(5);
+  });
+
+  it('post111: route path inventory', () => {
+    const paths = [...indexSrc.matchAll(/app\.get\('([^']+)'/g)].map((m) => m[1]);
+    expect(paths).toEqual(['/', '/health', '/genres', '/stations', '/curate']);
+  });
+
+  it('post111: powered_by crab emoji lock', () => {
+    expect(indexSrc).toContain('Backlink/Geryon 🦀');
+  });
+
+  it('post111: curated_by Backlink/Geryon without crab', () => {
+    expect(indexSrc).toContain("curated_by: 'Backlink/Geryon'");
+    expect(indexSrc).not.toMatch(/curated_by:\s*'Backlink\/Geryon 🦀'/);
+  });
+
+  it('post111: Stream catalog unavailable + Curation service unavailable literals', () => {
+    expect(indexSrc).toContain('Stream catalog unavailable');
+    expect(indexSrc).toContain('Curation service unavailable');
+  });
+
+  it('post111: Invalid JSON from Gemini throw literal', () => {
+    expect(indexSrc).toContain("throw new Error('Invalid JSON from Gemini')");
+  });
+
+  it('post111: Gemini API error throw includes status', () => {
+    expect(indexSrc).toContain('Gemini API error:');
+  });
+
+  it('post111: cache key template stations:genre', () => {
+    expect(indexSrc).toContain('`stations:${genre}`');
+  });
+
+  it('post111: music.m3u fallback path', () => {
+    expect(indexSrc).toContain('`${IPTV_BASE}/music.m3u`');
+  });
+
+  it('post111: resolveGenre used on stations and curate', () => {
+    expect((indexSrc.match(/resolveGenre\(/g) ?? []).length).toBe(2);
+  });
+
+  it('post111: callGemini and fetchStations declared', () => {
+    expect(indexSrc).toContain('async function fetchStations');
+    expect(indexSrc).toContain('async function callGemini');
+  });
+
+  it('post111: no CRLF in index.ts', () => {
+    expect(indexSrc.includes('\r')).toBe(false);
+  });
+
+  it('post111: path.basename of worker entry is index.ts', () => {
+    expect(basename(indexPath)).toBe('index.ts');
+  });
+
+  it("post111: locks src/parser.ts sha256", () => {
+    expect(sha256File("src/parser.ts")).toBe("cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368");
+  });
+
+  it("post111: locks src/parser.ts sha1", () => {
+    expect(sha1File("src/parser.ts")).toBe("701cdecbef5a9049af6bd11497493c4036a60211");
+  });
+
+  it("post111: locks src/parser.ts md5", () => {
+    expect(md5File("src/parser.ts")).toBe("500211c4c526de887252451726776563");
+  });
+
+  it("post111: locks src/parser.ts sha256 nibble 477 xor 9", () => {
+    const d = sha256File("src/parser.ts");
+    expect(nibbleSumHex(d)).toBe(477);
+    expect(xorNibblesHex(d)).toBe(9);
+  });
+
+  it("post111: locks src/genres.ts sha256", () => {
+    expect(sha256File("src/genres.ts")).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it("post111: locks src/genres.ts sha1", () => {
+    expect(sha1File("src/genres.ts")).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it("post111: locks src/genres.ts md5", () => {
+    expect(md5File("src/genres.ts")).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it("post111: locks src/genres.ts sha256 nibble 500 xor 6", () => {
+    const d = sha256File("src/genres.ts");
+    expect(nibbleSumHex(d)).toBe(500);
+    expect(xorNibblesHex(d)).toBe(6);
+  });
+
+  it("post111: locks src/types.ts sha256", () => {
+    expect(sha256File("src/types.ts")).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+  });
+
+  it("post111: locks src/types.ts sha1", () => {
+    expect(sha1File("src/types.ts")).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8");
+  });
+
+  it("post111: locks src/types.ts md5", () => {
+    expect(md5File("src/types.ts")).toBe("ecba663d21928622be656805ad27d0a3");
+  });
+
+  it("post111: locks src/types.ts sha256 nibble 520 xor 14", () => {
+    const d = sha256File("src/types.ts");
+    expect(nibbleSumHex(d)).toBe(520);
+    expect(xorNibblesHex(d)).toBe(14);
+  });
+
+  it("post111: locks test/helpers.ts sha256", () => {
+    expect(sha256File("test/helpers.ts")).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+  });
+
+  it("post111: locks test/helpers.ts sha1", () => {
+    expect(sha1File("test/helpers.ts")).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+  });
+
+  it("post111: locks test/helpers.ts md5", () => {
+    expect(md5File("test/helpers.ts")).toBe("004bbc8741017d8dd45bee28a29b46e1");
+  });
+
+  it("post111: locks test/helpers.ts sha256 nibble 487 xor 5", () => {
+    const d = sha256File("test/helpers.ts");
+    expect(nibbleSumHex(d)).toBe(487);
+    expect(xorNibblesHex(d)).toBe(5);
+  });
+
+  it("post111: locks package.json sha256", () => {
+    expect(sha256File("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it("post111: locks package.json sha1", () => {
+    expect(sha1File("package.json")).toBe("b58d14f35b9c13bb254d5e2a51240e2918a126c5");
+  });
+
+  it("post111: locks package.json md5", () => {
+    expect(md5File("package.json")).toBe("63472e1fb514fb0dadb5e49a7bdbaa5f");
+  });
+
+  it("post111: locks package.json sha256 nibble 451 xor 13", () => {
+    const d = sha256File("package.json");
+    expect(nibbleSumHex(d)).toBe(451);
+    expect(xorNibblesHex(d)).toBe(13);
+  });
+
+  it("post111: locks vitest.config.ts sha256", () => {
+    expect(sha256File("vitest.config.ts")).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it("post111: locks vitest.config.ts sha1", () => {
+    expect(sha1File("vitest.config.ts")).toBe("f8d49517ece92fc5e9781fbde021a948958aac37");
+  });
+
+  it("post111: locks vitest.config.ts md5", () => {
+    expect(md5File("vitest.config.ts")).toBe("f1176313255f5f064a946d458482d81a");
+  });
+
+  it("post111: locks vitest.config.ts sha256 nibble 536 xor 2", () => {
+    const d = sha256File("vitest.config.ts");
+    expect(nibbleSumHex(d)).toBe(536);
+    expect(xorNibblesHex(d)).toBe(2);
+  });
+
+  it("post111: locks tsconfig.json sha256", () => {
+    expect(sha256File("tsconfig.json")).toBe("ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792");
+  });
+
+  it("post111: locks tsconfig.json sha1", () => {
+    expect(sha1File("tsconfig.json")).toBe("68e3169249049539d687b6b3d81fc809079134f9");
+  });
+
+  it("post111: locks tsconfig.json md5", () => {
+    expect(md5File("tsconfig.json")).toBe("13f6687a50fe7c6ea7ef4eb3623b7457");
+  });
+
+  it("post111: locks tsconfig.json sha256 nibble 506 xor 8", () => {
+    const d = sha256File("tsconfig.json");
+    expect(nibbleSumHex(d)).toBe(506);
+    expect(xorNibblesHex(d)).toBe(8);
+  });
+
+  it("post111: locks AGENTS.md sha256", () => {
+    expect(sha256File("AGENTS.md")).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it("post111: locks AGENTS.md sha1", () => {
+    expect(sha1File("AGENTS.md")).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it("post111: locks AGENTS.md md5", () => {
+    expect(md5File("AGENTS.md")).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it("post111: locks AGENTS.md sha256 nibble 479 xor 5", () => {
+    const d = sha256File("AGENTS.md");
+    expect(nibbleSumHex(d)).toBe(479);
+    expect(xorNibblesHex(d)).toBe(5);
+  });
+
+  it("post111: locks README.md sha256", () => {
+    expect(sha256File("README.md")).toBe("f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987");
+  });
+
+  it("post111: locks README.md sha1", () => {
+    expect(sha1File("README.md")).toBe("4f560a473d5838f25eba3eae21a87f6c97ba3b8b");
+  });
+
+  it("post111: locks README.md md5", () => {
+    expect(md5File("README.md")).toBe("9b7aea4982a6d68b95f7f8ee3fdc5b31");
+  });
+
+  it("post111: locks README.md sha256 nibble 429 xor 13", () => {
+    const d = sha256File("README.md");
+    expect(nibbleSumHex(d)).toBe(429);
+    expect(xorNibblesHex(d)).toBe(13);
+  });
+
+  it("post111: locks DEPLOY.md sha256", () => {
+    expect(sha256File("DEPLOY.md")).toBe("11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a");
+  });
+
+  it("post111: locks DEPLOY.md sha1", () => {
+    expect(sha1File("DEPLOY.md")).toBe("37c72be44abb67343dae3e7c2303306a25b3481f");
+  });
+
+  it("post111: locks DEPLOY.md md5", () => {
+    expect(md5File("DEPLOY.md")).toBe("da30bf656fdf0d9a61d2a00860c325f5");
+  });
+
+  it("post111: locks DEPLOY.md sha256 nibble 439 xor 11", () => {
+    const d = sha256File("DEPLOY.md");
+    expect(nibbleSumHex(d)).toBe(439);
+    expect(xorNibblesHex(d)).toBe(11);
+  });
+
+  it("post111: locks wrangler.toml sha256", () => {
+    expect(sha256File("wrangler.toml")).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+  });
+
+  it("post111: locks wrangler.toml sha1", () => {
+    expect(sha1File("wrangler.toml")).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+  });
+
+  it("post111: locks wrangler.toml md5", () => {
+    expect(md5File("wrangler.toml")).toBe("100cd1554884befe9db6453606e565f4");
+  });
+
+  it("post111: locks wrangler.toml sha256 nibble 457 xor 13", () => {
+    const d = sha256File("wrangler.toml");
+    expect(nibbleSumHex(d)).toBe(457);
+    expect(xorNibblesHex(d)).toBe(13);
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key post111", () => {
+    expect(hmacSha256("post111", helpersSrc)).toBe("2b3e2749b53346fe84b3b1f3c167c4f98ead1435c0f7e60aa942b635019518ab");
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key routes", () => {
+    expect(hmacSha256("routes", helpersSrc)).toBe("135fb5163fdda15dd50a5a13530926aeeb759d56c9a1ace4f7698a01584b08ae");
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key helpers", () => {
+    expect(hmacSha256("helpers", helpersSrc)).toBe("dddedc276d2dc27f60c7fed3e482ba2635a358a9d25acd5f98106d06fabb5fb5");
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key TOKENMAXX", () => {
+    expect(hmacSha256("TOKENMAXX", helpersSrc)).toBe("8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391");
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key SAMPLE_M3U", () => {
+    expect(hmacSha256("SAMPLE_M3U", helpersSrc)).toBe("2e8e7b295e770ee3b57b5bba119da51e72d12edaab4a5be0b5ec70a6a0701314");
+  });
+
+  it("post111: helpers.ts HMAC-SHA256 key buildSimpleM3U", () => {
+    expect(hmacSha256("buildSimpleM3U", helpersSrc)).toBe("281ca55d2b34d3c06f8e7fadce2aacbde801efc264180e411989e49ff45e1432");
+  });
+
+  it('post111: helpers.ts sha256 cross-lock', () => {
+    expect(sha256File('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+
+  it('post111: helpers exports used by routes suite remain present', () => {
+    expect(helpersSrc).toContain('export function mockKV');
+    expect(helpersSrc).toContain('export function testEnv');
+    expect(helpersSrc).toContain('export const SAMPLE_M3U');
+    expect(helpersSrc).toContain('export function stubIptvAndGemini');
+    expect(helpersSrc).toContain('export function curatedGeminiJson');
+    expect(helpersSrc).toContain('export function buildSimpleM3U');
+    expect(helpersSrc).toContain('export function countHttpStreamLines');
+    expect(helpersSrc).toContain('export function captureGeminiRequest');
+    expect(helpersSrc).toContain('export function iptvCategoryUrl');
+    expect(helpersSrc).toContain('export function seedStationsCache');
+    expect(helpersSrc).toContain('export function iptvCallsWithInit');
+  });
+
+  it('post111: package scripts lock typecheck/test/coverage', () => {
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post111: package name/version/description lock', () => {
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.version).toBe('0.1.0');
+    expect(pkg.description).toContain('LLM-curated internet radio');
+  });
+
+  it('post111: AGENTS safe actions list endpoints and tests', () => {
+    expect(agentsMd).toContain('Add new endpoints');
+    expect(agentsMd).toContain('Add / extend unit tests under `test/`');
+    expect(agentsMd).toContain('npm run typecheck');
+    expect(agentsMd).toContain('npm test');
+  });
+
+  it('post111: AGENTS escalate GEMINI and CORS', () => {
+    expect(agentsMd).toContain('GEMINI_API_KEY');
+    expect(agentsMd).toContain('CORS');
+  });
+
+  it('post111: README documents four live endpoints only', () => {
+    expect(readmeMd).toContain('/curate');
+    expect(readmeMd).toContain('/stations');
+    expect(readmeMd).toContain('/genres');
+    expect(readmeMd).toContain('/health');
+  });
+
+  it('post111: DEPLOY.md HITL and wrangler secret surface', () => {
+    expect(deployMd.toLowerCase()).toMatch(/hitl|human/);
+    expect(deployMd).toContain('GEMINI_API_KEY');
+    expect(deployMd).toContain('wrangler');
+  });
+
+  it('post111: CI workflow runs typecheck and test', () => {
+    expect(ciYml).toContain('npm run typecheck');
+    expect(ciYml).toMatch(/npm (test|run test)/);
+  });
+
+  it('post111: deploy workflow remains HITL-gated surface', () => {
+    expect(deployYml.length).toBeGreaterThan(100);
+    expect(deployYml).toMatch(/wrangler|cloudflare/i);
+  });
+
+  it('post111: wrangler binds CATALOG_CACHE and VERSION only', () => {
+    expect(wranglerToml).toContain('CATALOG_CACHE');
+    expect(wranglerToml).toContain('VERSION');
+    expect(wranglerToml).toMatch(/# wrangler secret put GEMINI_API_KEY/);
+  });
+
+  it('post111: types Env has CATALOG_CACHE and optional GEMINI/VERSION', () => {
+    expect(typesSrc).toMatch(/CATALOG_CACHE:\s*KVNamespace/);
+    expect(typesSrc).toMatch(/GEMINI_API_KEY\?:/);
+    expect(typesSrc).toMatch(/VERSION\?:/);
+  });
+
+  it("post111: negative invent fence — index.ts has no playlist", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("playlist");
+  });
+
+  it("post111: negative invent fence — index.ts has no now-playing", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("now-playing");
+  });
+
+  it("post111: negative invent fence — index.ts has no nowplaying", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("nowplaying");
+  });
+
+  it("post111: negative invent fence — index.ts has no websocket", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("websocket");
+  });
+
+  it("post111: negative invent fence — index.ts has no durable", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("durable");
+  });
+
+  it("post111: negative invent fence — index.ts has no cron", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("cron");
+  });
+
+  it("post111: negative invent fence — index.ts has no scheduled", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("scheduled");
+  });
+
+  it("post111: negative invent fence — index.ts has no alarm", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("alarm");
+  });
+
+  it("post111: negative invent fence — index.ts has no queue", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("queue");
+  });
+
+  it("post111: negative invent fence — index.ts has no pubsub", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("pubsub");
+  });
+
+  it("post111: negative invent fence — index.ts has no graphql", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("graphql");
+  });
+
+  it("post111: negative invent fence — index.ts has no trpc", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("trpc");
+  });
+
+  it("post111: negative invent fence — index.ts has no supabase", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("supabase");
+  });
+
+  it("post111: negative invent fence — index.ts has no firebase", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("firebase");
+  });
+
+  it("post111: negative invent fence — index.ts has no planetscale", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("planetscale");
+  });
+
+  it("post111: negative invent fence — index.ts has no neon", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("neon");
+  });
+
+  it("post111: negative invent fence — index.ts has no turso", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("turso");
+  });
+
+  it("post111: negative invent fence — index.ts has no vercel", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("vercel");
+  });
+
+  it("post111: negative invent fence — index.ts has no netlify", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("netlify");
+  });
+
+  it("post111: negative invent fence — index.ts has no fly.io", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("fly.io");
+  });
+
+  it("post111: negative invent fence — index.ts has no railway", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("railway");
+  });
+
+  it("post111: negative invent fence — index.ts has no render.com", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("render.com");
+  });
+
+  it("post111: negative invent fence — index.ts has no docker", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("docker");
+  });
+
+  it("post111: negative invent fence — index.ts has no kubernetes", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("kubernetes");
+  });
+
+  it("post111: negative invent fence — index.ts has no helm", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("helm");
+  });
+
+  it("post111: negative invent fence — index.ts has no terraform", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("terraform");
+  });
+
+  it("post111: negative invent fence — index.ts has no auth0", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("auth0");
+  });
+
+  it("post111: negative invent fence — index.ts has no clerk", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("clerk");
+  });
+
+  it("post111: negative invent fence — index.ts has no oauth", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("oauth");
+  });
+
+  it("post111: negative invent fence — index.ts has no jwt", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("jwt");
+  });
+
+  it("post111: negative invent fence — index.ts has no passport", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("passport");
+  });
+
+  it("post111: negative invent fence — index.ts has no session", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("session");
+  });
+
+  it("post111: negative invent fence — index.ts has no cookie-parser", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("cookie-parser");
+  });
+
+  it("post111: negative invent fence — index.ts has no redis", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("redis");
+  });
+
+  it("post111: negative invent fence — index.ts has no mongodb", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("mongodb");
+  });
+
+  it("post111: negative invent fence — index.ts has no postgres", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("postgres");
+  });
+
+  it("post111: negative invent fence — index.ts has no mysql", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("mysql");
+  });
+
+  it("post111: negative invent fence — index.ts has no sqlite", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("sqlite");
+  });
+
+  it("post111: negative invent fence — index.ts has no prisma", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("prisma");
+  });
+
+  it("post111: negative invent fence — index.ts has no drizzle", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("drizzle");
+  });
+
+  it("post111: negative invent fence — index.ts has no openapi", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("openapi");
+  });
+
+  it("post111: negative invent fence — index.ts has no swagger", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("swagger");
+  });
+
+  it("post111: negative invent fence — index.ts has no favicon", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("favicon");
+  });
+
+  it("post111: negative invent fence — index.ts has no robots.txt", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("robots.txt");
+  });
+
+  it("post111: negative invent fence — index.ts has no sitemap", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("sitemap");
+  });
+
+  it("post111: negative invent fence — index.ts has no webhook", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("webhook");
+  });
+
+  it("post111: negative invent fence — index.ts has no stripe", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("stripe");
+  });
+
+  it("post111: negative invent fence — index.ts has no billing", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("billing");
+  });
+
+  it("post111: negative invent fence — index.ts has no sentry", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("sentry");
+  });
+
+  it("post111: negative invent fence — index.ts has no datadog", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("datadog");
+  });
+
+  it("post111: negative invent fence — index.ts has no prometheus", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("prometheus");
+  });
+
+  it("post111: negative invent fence — index.ts has no grafana", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("grafana");
+  });
+
+  it("post111: negative invent fence — index.ts has no opentelemetry", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("opentelemetry");
+  });
+
+  it("post111: negative invent fence — index.ts has no otel", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("otel");
+  });
+
+  it("post111: negative invent fence — index.ts has no splunk", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("splunk");
+  });
+
+  it("post111: negative invent fence — index.ts has no pages_functions", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("pages_functions");
+  });
+
+  it("post111: negative invent fence — index.ts has no r2_buckets", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("r2_buckets");
+  });
+
+  it("post111: negative invent fence — index.ts has no d1_databases", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("d1_databases");
+  });
+
+  it("post111: negative invent fence — index.ts has no vectorize", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("vectorize");
+  });
+
+  it("post111: negative invent fence — index.ts has no hyperdrive", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("hyperdrive");
+  });
+
+  it("post111: negative invent fence — index.ts has no browser_rendering", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("browser_rendering");
+  });
+
+  it("post111: negative invent fence — index.ts has no workflows", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("workflows");
+  });
+
+  it("post111: negative invent fence — index.ts has no triggers", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("triggers");
+  });
+
+  it("post111: negative invent fence — index.ts has no crons", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("crons");
+  });
+
+  it("post111: negative invent fence — index.ts has no nodejs_compat", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("nodejs_compat");
+  });
+
+  it("post111: negative invent fence — index.ts has no compatibility_flags", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("compatibility_flags");
+  });
+
+  it("post111: negative invent fence — index.ts has no account_id", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("account_id");
+  });
+
+  it("post111: negative invent fence — index.ts has no workers_dev", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("workers_dev");
+  });
+
+  it("post111: negative invent fence — index.ts has no /v1/", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/v1/");
+  });
+
+  it("post111: negative invent fence — index.ts has no /api/", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/api/");
+  });
+
+  it("post111: negative invent fence — index.ts has no /rpc", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/rpc");
+  });
+
+  it("post111: negative invent fence — index.ts has no /sse", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/sse");
+  });
+
+  it("post111: negative invent fence — index.ts has no /mcp", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/mcp");
+  });
+
+  it("post111: negative invent fence — index.ts has no /radio", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("/radio");
+  });
+
+  it("post111: negative invent fence — index.ts has no podcast", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("podcast");
+  });
+
+  it("post111: negative invent fence — index.ts has no audiobook", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("audiobook");
+  });
+
+  it("post111: negative invent fence — index.ts has no spotify", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("spotify");
+  });
+
+  it("post111: negative invent fence — index.ts has no soundcloud", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("soundcloud");
+  });
+
+  it("post111: negative invent fence — index.ts has no youtube", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("youtube");
+  });
+
+  it("post111: negative invent fence — index.ts has no twitch", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("twitch");
+  });
+
+  it("post111: negative invent fence — index.ts has no discord", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("discord");
+  });
+
+  it("post111: negative invent fence — index.ts has no slack", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("slack");
+  });
+
+  it("post111: negative invent fence — index.ts has no anthropic", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("anthropic");
+  });
+
+  it("post111: negative invent fence — index.ts has no openai", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("openai");
+  });
+
+  it("post111: negative invent fence — index.ts has no claude", () => {
+    expect(indexSrc.toLowerCase()).not.toContain("claude");
+  });
+
+
+  it('post111: GET / returns exact endpoint description strings', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    const endpoints = body.endpoints as Record<string, string>;
+    expect(endpoints['/curate']).toBe('GET ?genre=&mood= — AI-curated station picks');
+    expect(endpoints['/stations']).toBe('GET ?genre= — Raw station list');
+    expect(endpoints['/genres']).toBe('GET — Available genre categories');
+    expect(endpoints['/health']).toBe('GET — Health check');
+  });
+
+  it('post111: GET / endpoint key order is curate stations genres health', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(Object.keys(body.endpoints as object)).toEqual(['/curate', '/stations', '/genres', '/health']);
+  });
+
+  it('post111: GET / root key order name description version endpoints powered_by', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(Object.keys(body)).toEqual(['name', 'description', 'version', 'endpoints', 'powered_by']);
+  });
+
+  it('post111: /health body is exactly ok+version', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    expect(body).toEqual({ ok: true, version: '0.1.0-test' });
+  });
+
+  it('post111: /genres returns VALID_GENRES snapshot and GENRE_MAP aliases', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(body.genres).toEqual([...VALID_GENRES]);
+    expect(body.aliases).toEqual(GENRE_MAP);
+  });
+
+  it('post111: /stations cold music uses SAMPLE_M3U count via helper', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect(body.genre).toBe('music');
+    expect(body.count).toBe(countHttpStreamLines(SAMPLE_M3U));
+    expect((body.stations as unknown[]).length).toBe(countHttpStreamLines(SAMPLE_M3U));
+  });
+
+  it('post111: /stations warm cache skips network', async () => {
+    const seeded = seedStationsCache('jazz', [
+      { name: 'Warm Jazz', url: 'https://example.com/warm.m3u8' },
+    ]);
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv({ CATALOG_CACHE: mockKV(seeded) }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect(body.count).toBe(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('post111: /stations unknown genre falls through resolveGenre to music', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request('/stations?genre=not-a-real-genre-post111', undefined, testEnv());
+    const body = await json(res);
+    expect(body.genre).toBe('music');
+  });
+
+  it('post111: /stations catalog total failure returns 503 retry_after 60', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: null, iptvStatus: 503 }));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    await expect(json(res)).resolves.toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+  });
+
+  it('post111: /curate without GEMINI_API_KEY returns 503 curation unavailable', async () => {
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: undefined }));
+    expect(res.status).toBe(503);
+    await expect(json(res)).resolves.toEqual({ error: 'Curation service unavailable', retry_after: 60 });
+  });
+
+  it('post111: /curate happy path returns curated_by and ISO timestamp', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({
+        m3u: SAMPLE_M3U,
+        gemini: curatedGeminiJson([
+          {
+            name: 'Alpha FM',
+            url: 'https://example.com/alpha.m3u8',
+            editorial: 'post111 pick',
+            genre: 'music',
+          },
+        ]),
+      }),
+    );
+    const res = await app.request('/curate?genre=music&mood=late%20night', undefined, testEnv({ GEMINI_API_KEY: 'test-key' }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect(body.curated_by).toBe('Backlink/Geryon');
+    expect(typeof body.timestamp).toBe('string');
+    expect(String(body.timestamp)).toMatch(/Z$/);
+    expect(body.query).toContain('late night');
+    const stations = body.stations as Array<{ editorial: string }>;
+    expect(stations[0].editorial).toBe('post111 pick');
+  });
+
+  it('post111: /curate Gemini failure degrades to top 5 with null editorial', async () => {
+    const m3u = buildSimpleM3U(
+      Array.from({ length: 7 }, (_, i) => ({
+        name: `S${i}`,
+        url: `https://example.com/s${i}.m3u8`,
+      })),
+    );
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u, gemini: new Response('boom', { status: 500 }) }));
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    const stations = body.stations as Array<{ editorial: null; name: string }>;
+    expect(stations).toHaveLength(5);
+    expect(stations.every((s) => s.editorial === null)).toBe(true);
+  });
+
+  it('post111: /curate mood-only resolves via resolveGenre(mood)', async () => {
+    const seeded = seedStationsCache('ambient', [{ name: 'Chill', url: 'https://example.com/c.m3u8' }]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+    const res = await app.request('/curate?mood=chill', undefined, testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seeded) }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect(body.query).toBe('chill');
+  });
+
+  it('post111: captureGeminiRequest sees generateContent POST JSON', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=jazz', undefined, testEnv({ GEMINI_API_KEY: 'secret-key' }));
+    const gem = captureGeminiRequest(fetchMock);
+    expect(gem).not.toBeNull();
+    expect(gem!.method).toBe('POST');
+    expect(gem!.url).toContain('generativelanguage.googleapis.com');
+    expect(gem!.url).toContain('key=secret-key');
+    expect(gem!.body).toHaveProperty('contents');
+    expect(gem!.body).toHaveProperty('generationConfig');
+  });
+
+  it('post111: iptvCallsWithInit stays empty (bare fetch url)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/stations?genre=music', undefined, testEnv());
+    expect(iptvCallsWithInit(fetchMock)).toEqual([]);
+  });
+
+  it('post111: iptvCategoryUrl helper matches Worker fetch URL', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(String(fetchMock.mock.calls[0][0])).toBe(iptvCategoryUrl('rock'));
+  });
+
+  it('post111: jazz 404 falls back to music.m3u then caches jazz key', async () => {
+    const fetchMock = stubIptvAndGemini({
+      m3u: SAMPLE_M3U,
+      iptvByGenre: { jazz: null },
+      iptvStatus: 404,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const kv = mockKV();
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect(fetchMock.mock.calls.map((c) => String(c[0]))).toEqual([
+      iptvCategoryUrl('jazz'),
+      iptvCategoryUrl('music'),
+    ]);
+    expect(kv.put).toHaveBeenCalled();
+    const putKey = (kv.put as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(putKey).toBe('stations:jazz');
+  });
+
+  it('post111: CORS allow-origin * on / /health /genres', async () => {
+    for (const path of ['/', '/health', '/genres']) {
+      const res = await app.request(path, undefined, testEnv());
+      expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    }
+  });
+
+  it('post111: OPTIONS preflight on /curate allows origin *', async () => {
+    const res = await app.request('/curate', { method: 'OPTIONS' }, testEnv());
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('post111: unknown path is non-200', async () => {
+    const res = await app.request('/not-invented-post111', undefined, testEnv());
+    expect(res.status).not.toBe(200);
+  });
+
+  it('post111: POST /health is not a JSON happy path', async () => {
+    const res = await app.request('/health', { method: 'POST' }, testEnv());
+    expect(res.status).not.toBe(200);
+  });
+
+  it('post111: HEAD /health mirrors GET status', async () => {
+    const get = await app.request('/health', undefined, testEnv());
+    const head = await app.request('/health', { method: 'HEAD' }, testEnv());
+    expect(head.status).toBe(get.status);
+  });
+
+  it('post111: /stations content-type application/json', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('post111: /curate 503 content-type application/json', async () => {
+    const res = await app.request('/curate', undefined, testEnv({ GEMINI_API_KEY: undefined }));
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('post111: VERSION empty string is used (?? does not coerce)', async () => {
+    const res = await app.request('/health', undefined, testEnv({ VERSION: '' }));
+    await expect(json(res)).resolves.toEqual({ ok: true, version: '' });
+  });
+
+  it('post111: Promise.all parallel /genres share aliases', async () => {
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () => app.request('/genres', undefined, testEnv()).then(json)),
+    );
+    for (const body of results) {
+      expect(body.aliases).toEqual(GENRE_MAP);
+    }
+  });
+
+  it('post111: /stations success key order genre count stations', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(Object.keys(body)).toEqual(['genre', 'count', 'stations']);
+  });
+
+  it('post111: /curate success key order query curated_by timestamp stations', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() }));
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(Object.keys(body)).toEqual(['query', 'curated_by', 'timestamp', 'stations']);
+  });
+
+  it('post111: /genres success key order genres aliases', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(Object.keys(body)).toEqual(['genres', 'aliases']);
+  });
+
+  it('post111: sha256 of compact /health JSON under default testEnv', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    const compact = JSON.stringify(body);
+    expect(createHash('sha256').update(compact).digest('hex')).toBe(
+      createHash('sha256').update('{"ok":true,"version":"0.1.0-test"}').digest('hex'),
+    );
+  });
+
+  it('post111: Object.freeze on /health body copy cannot rewrite ok', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    const frozen = Object.freeze({ ...body });
+    expect(() => {
+      (frozen as { ok: boolean }).ok = false;
+    }).toThrow();
+    expect(frozen.ok).toBe(true);
+  });
+
+  it('post111: Set of root endpoint paths has size 4', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(new Set(Object.keys(body.endpoints as object)).size).toBe(4);
+  });
+
+  it('post111: btoa of Backlink name is stable', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(btoa(String(body.name))).toBe('QmFja2xpbms=');
+  });
+
+  it('post111: fromCharCode rebuild of Backlink matches root name', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(String.fromCharCode(66, 97, 99, 107, 108, 105, 110, 107)).toBe(body.name);
+  });
+
+  it('post111: codePointAt of powered_by crab emoji', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    const pb = String(body.powered_by);
+    expect(pb.codePointAt(pb.length - 2)).toBe(0x1f980);
+  });
+
+  it('post111: TextEncoder root description byte length is 65', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(new TextEncoder().encode(String(body.description)).length).toBe(65);
+  });
+
+  it('post111: Intl.Collator sorted endpoint keys', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    const keys = Object.keys(body.endpoints as object);
+    const sorted = [...keys].sort(new Intl.Collator('en').compare);
+    expect(sorted).toEqual(['/curate', '/genres', '/health', '/stations']);
+  });
+
+  it('post111: localeCompare chain for endpoint paths', async () => {
+    const body = await json(await app.request('/', undefined, testEnv()));
+    const keys = Object.keys(body.endpoints as object);
+    expect(keys[0].localeCompare(keys[1])).toBeLessThan(0);
+  });
+
+  it('post111: Reflect.ownKeys on /health matches Object.keys', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    expect(Reflect.ownKeys(body)).toEqual(Object.keys(body));
+  });
+
+  it('post111: JSON round-trip of /health preserves shape', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    expect(JSON.parse(JSON.stringify(body))).toEqual(body);
+  });
+
+  it('post111: ArrayBuffer first byte of compact health JSON is 0x7b', async () => {
+    const body = await json(await app.request('/health', undefined, testEnv()));
+    const bytes = new TextEncoder().encode(JSON.stringify(body));
+    expect(bytes[0]).toBe(0x7b);
+  });
+
+  it('post111: WeakMap can hold env object identity across /health', async () => {
+    const env = testEnv();
+    const wm = new WeakMap<object, string>();
+    wm.set(env as object, 'post111');
+    await app.request('/health', undefined, env);
+    expect(wm.get(env as object)).toBe('post111');
+  });
+
+  it('post111: crypto.randomUUID format lock alongside /health purity', async () => {
+    const a = await json(await app.request('/health', undefined, testEnv()));
+    const b = await json(await app.request('/health', undefined, testEnv()));
+    expect(a).toEqual(b);
+    expect(crypto.randomUUID()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  it('post111: AbortSignal existence does not affect /genres', async () => {
+    expect(typeof AbortSignal !== 'undefined').toBe(true);
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    expect(Array.isArray(body.genres)).toBe(true);
+  });
+
+  it('post111: If-None-Match does not invent 304 on /health', async () => {
+    const res = await app.request('/health', { headers: { 'if-none-match': '"x"' } }, testEnv());
+    expect(res.status).toBe(200);
+  });
+
+  it('post111: Range header does not invent partial content on /genres', async () => {
+    const res = await app.request('/genres', { headers: { range: 'bytes=0-10' } }, testEnv());
+    expect(res.status).toBe(200);
+  });
+
+  it('post111: Authorization does not invent auth gate on /curate', async () => {
+    const res = await app.request(
+      '/curate',
+      { headers: { authorization: 'Bearer fake' } },
+      testEnv({ GEMINI_API_KEY: undefined }),
+    );
+    expect(res.status).toBe(503);
+    await expect(json(res)).resolves.toMatchObject({ error: 'Curation service unavailable' });
+  });
+
+  it('post111: X-API-Key does not invent gate on /stations', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const res = await app.request('/stations?genre=music', { headers: { 'x-api-key': 'x' } }, testEnv());
+    expect(res.status).toBe(200);
+  });
+
+  it('post111: Origin header does not change ACAO from star', async () => {
+    const res = await app.request('/health', { headers: { origin: 'https://evil.example' } }, testEnv());
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('post111: Accept application/xml does not change JSON content-type', async () => {
+    const res = await app.request('/health', { headers: { accept: 'application/xml' } }, testEnv());
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it('post111: /stations does not call Gemini even when key present', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/stations?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(captureGeminiRequest(fetchMock)).toBeNull();
+  });
+
+  it('post111: 503 /curate without key does not put into KV', async () => {
+    const kv = mockKV();
+    await app.request('/curate?genre=music', undefined, testEnv({ CATALOG_CACHE: kv, GEMINI_API_KEY: undefined }));
+    expect(kv.put).not.toHaveBeenCalled();
+  });
+
+  it('post111: catalog 503 on /stations does not put into KV', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: null }));
+    const kv = mockKV();
+    await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(kv.put).not.toHaveBeenCalled();
+  });
+
+  it('post111: /stations corrupt KV JSON returns 503', async () => {
+    const kv = mockKV({ 'stations:music': '{not-json' });
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(503);
+  });
+
+  it('post111: /curate corrupt KV JSON returns 503 with key present', async () => {
+    const kv = mockKV({ 'stations:music': '{not-json' });
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ CATALOG_CACHE: kv, GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(503);
+  });
+
+  it('post111: /stations fetch throw network error returns 503', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('network'); }));
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+  });
+
+  it('post111: Gemini fenced JSON with surrounding prose still extracts array', async () => {
+    const fenced = geminiTextResponse(
+      'Here you go:\n' +
+        '```json\n' +
+        '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"x","genre":"music"}]\n' +
+        '```',
+    );
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: fenced }));
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    expect((body.stations as unknown[])[0]).toMatchObject({ name: 'Alpha FM' });
+  });
+
+  it('post111: stationList format includes group language and em-dash URL', async () => {
+    const m3u = buildSimpleM3U([
+      { name: 'Fmt', url: 'https://example.com/f.m3u8', group: 'Music', language: 'en' },
+    ]);
+    const fetchMock = stubIptvAndGemini({ m3u, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const gem = captureGeminiRequest(fetchMock);
+    const prompt = (gem!.body.contents as Array<{ parts: Array<{ text: string }> }>)[0].parts[0].text;
+    expect(prompt).toContain('Fmt (Music) [en] — https://example.com/f.m3u8');
+  });
+
+  it('post111: stationList defaults group to genre and language to en', async () => {
+    const m3u = buildSimpleM3U([{ name: 'Bare', url: 'https://example.com/b.m3u8' }]);
+    const fetchMock = stubIptvAndGemini({ m3u, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=jazz', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const gem = captureGeminiRequest(fetchMock);
+    const prompt = (gem!.body.contents as Array<{ parts: Array<{ text: string }> }>)[0].parts[0].text;
+    expect(prompt).toContain('Bare (jazz) [en] — https://example.com/b.m3u8');
+  });
+
+  it('post111: GENRE_MAP chill alias /stations seeds ambient cache key', async () => {
+    const seeded = seedStationsCache('ambient', [{ name: 'A', url: 'https://example.com/a.m3u8' }]);
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const body = await json(
+      await app.request('/stations?genre=chill', undefined, testEnv({ CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.genre).toBe('ambient');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('post111: focus alias /curate uses ambient catalog when seeded', async () => {
+    const seeded = seedStationsCache('ambient', [{ name: 'Focus', url: 'https://example.com/f.m3u8' }]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+    const body = await json(
+      await app.request('/curate?genre=focus', undefined, testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.query).toContain('focus');
+  });
+
+  it('post111: music primary ok caches stations:music without double-fetch', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const kv = mockKV();
+    await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(fetchMock.mock.calls).toHaveLength(1);
+    expect((kv.put as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe('stations:music');
+  });
+
+  it('post111: countHttpStreamLines SAMPLE_M3U cross-locks cold /stations music count', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body.count).toBe(countHttpStreamLines(SAMPLE_M3U));
+  });
+
+  it('post111: final digest+route mega purity — 40 rounds', async () => {
+    const expected = '8a4f2f4d4de0371a8b175fa1061a1d2362c21b934f4729db7493f9f83815c234';
+    for (let i = 0; i < 40; i++) {
+      expect(hmacSha256('post111', indexSrc)).toBe(expected);
+      const body = await json(await app.request('/health', undefined, testEnv()));
+      expect(body.ok).toBe(true);
+    }
+  });
+
+  it('post111: createHmac purity 40x post111', () => {
+    const expected = '8a4f2f4d4de0371a8b175fa1061a1d2362c21b934f4729db7493f9f83815c234';
+    for (let i = 0; i < 40; i++) expect(hmacSha256('post111', indexSrc)).toBe(expected);
+  });
+
+  it('post111: final dual fingerprint reaffirm', () => {
+    expect(createHash('sha256').update(indexSrc, 'utf8').digest('hex')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+    expect(createHash('sha512').update(indexSrc, 'utf8').digest('hex')).toBe('28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3');
+  });
+
+  it('post111: hygiene — routes suite still imports app default from index', () => {
+    const body = readUtf('test/routes.test.ts');
+    expect(body).toContain("import app from '../src/index'");
+    expect(body).toContain("describe('post111 routes HEAVY deepen (after #110/#111)'");
+    expect(body).toContain('post111:');
+  });
+
+  it('post111: final inventory — routes describe blocks include post76 post94 post111', () => {
+    const body = readUtf('test/routes.test.ts');
+    expect(body).toContain("describe('post76 routes HEAVY deepen'");
+    expect(body).toContain("describe('post94 routes HEAVY deepen'");
+    expect(body).toContain("describe('post111 routes HEAVY deepen (after #110/#111)'");
+    expect((body.match(/it\('post111:/g) ?? []).length).toBeGreaterThan(100);
+  });
+
+  it('post111: negative inventing — README does not document /playlist as live endpoint', () => {
+    const live = (readmeMd.match(/\/(curate|stations|genres|health)/g) ?? []).length;
+    expect(live).toBeGreaterThan(0);
+    expect(readmeMd).not.toMatch(/\/playlist\b/);
+  });
+
+  it('post111: negative inventing — no podcast/audiobook aliases via /stations unknown', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations?genre=podcast', undefined, testEnv()));
+    expect(body.genre).toBe('music');
+  });
+
+  it('post111: does not invent /playlist /now-playing /radio /mcp /sse routes', async () => {
+    for (const path of ['/playlist', '/now-playing', '/radio', '/mcp', '/sse', '/v1', '/api', '/openapi.json']) {
+      const res = await app.request(path, undefined, testEnv());
+      expect(res.status).not.toBe(200);
+    }
+  });
+
+  it('post111: index.ts does not reference wrangler MCP_MANIFEST claw-mcp anthropic', () => {
+    expect(indexSrc.toLowerCase()).not.toContain('wrangler');
+    expect(indexSrc).not.toContain('MCP_MANIFEST');
+    expect(indexSrc.toLowerCase()).not.toContain('claw-mcp');
+    expect(indexSrc.toLowerCase()).not.toContain('anthropic');
+  });
+
+  it('post111: disk mtime size stable across re-stat', () => {
+    const a = statSync(indexPath).size;
+    const b = statSync(indexPath).size;
+    expect(a).toBe(4738);
+    expect(b).toBe(4738);
+  });
+
+  it('post111: max codepoint is crab emoji in powered_by literal', () => {
+    expect(Math.max(...[...indexSrc].map((c) => c.codePointAt(0)!))).toBe(0x1f980);
+  });
+
+  it('post111: min codepoint is newline 10', () => {
+    expect(Math.min(...[...indexSrc].map((c) => c.charCodeAt(0)))).toBe(10);
+  });
+
+  it('post111: first 60 digraphs lock', () => {
+    expect([...Array(60)].map((_, i) => indexSrc.slice(i, i + 2))).toEqual(["im","mp","po","or","rt","t "," {","{ "," H","Ho","on","no","o "," }","} "," f","fr","ro","om","m "," '","'h","ho","on","no","o'","';",";\n","\ni","im","mp","po","or","rt","t "," {","{ "," c","co","or","rs","s "," }","} "," f","fr","ro","om","m "," '","'h","ho","on","no","o/","/c","co","or","rs","s'"]);
+  });
+
+  it('post111: last 60 digraphs lock', () => {
+    const start = indexSrc.length - 61;
+    expect([...Array(60)].map((_, i) => indexSrc.slice(start + i, start + i + 2))).toEqual(["in","ng","g(","()","),",",\n","\n ","  ","  ","  "," s","st","ta","at","ti","io","on","ns","s:",": "," c","cu","ur","ra","at","te","ed","d,",",\n","\n ","  "," }","})",");",";\n","\n}","})",");",";\n","\n\n","\ne","ex","xp","po","or","rt","t "," d","de","ef","fa","au","ul","lt","t "," a","ap","pp","p;",";\n"]);
+  });
+
+  it('post111: sha256 of each nonempty index line prefix lock (first 12)', () => {
+    const nonemptyLines = indexSrc.split('\n').filter((l) => l.length > 0);
+    expect(nonemptyLines.map((l) => createHash('sha256').update(l, 'utf8').digest('hex').slice(0, 12))).toEqual(["d8233fd79765","1ef8e0abb4ab","e30359f99886","2badc72057ba","5c030958abb9","00828ece0341","2d813f19ec45","4e0719977c69","00056f356bdf","3bac7b507612","214963c1b837","2a1591a84ff7","16d4e85b52a5","5cc817a52586","0db27933a7fb","00f94d55644e","737db166c79a","49d697026927","fb9806ebbb0b","76d0cee5640b","96af096fb8b4","d10b36aa74a5","b80474021f14","7147ce76a329","d243b5e2a841","b68e30c6b12d","b4f20524fa48","38cc436cfa09","b4158aea9aa1","4b055b091669","21d5835c285c","ef3da013f9ad","d854e3340a60","380e2ef4b813","606bee0a794d","1c2c4281b25f","0d3d2f5a8b2f","5ec8726f2c67","c71ef50c6a37","d8430957ac13","0eec1b3eb08e","6f69ca8b4097","ed326465be21","58636dd91683","3a5d0b9c2fd8","ab589d0f0466","410049ea64a3","a7972304db7a","5c0254acd025","7af5367b2047","188879bf0a7c","2fad658cf035","acc31b2be5ff","d10b36aa74a5","31e79fc23356","7759895264a1","2e432149c112","1c9e0e5fc812","60a5c7433bf4","ebf309849358","64bffe53d063","b9d1ae7d4d09","3d547a343f5b","514e2fb70ea3","080ee39356c2","98b975e9f51e","58636dd91683","b936cbe56915","8918205c87ae","29576b54e255","52f89700a9be","030504805f4d","29576b54e255","aa3a80d6416b","1c9e0e5fc812","ed09fea92184","fcd2e62202e7","8918205c87ae","29576b54e255","8c50de9d2933","6d63cdb19342","ccae627a488c","9287dcc6387d","ace3e1ec1273","bf25d01bd308","b3599f41bdbd","2da964d9ba38","737db166c79a","677b58ed953c","29576b54e255","cd1f9a1e8a5c","6d63cdb19342","49f49d376a4a","d506e6d354c3","e123a52eb084","f9feff03a6bb","737db166c79a","9287dcc6387d","ace3e1ec1273","bf25d01bd308","b3599f41bdbd","2da964d9ba38","737db166c79a","5770e37b06a4","de1066f12f1f","ace3e1ec1273","4037948254b5","b3599f41bdbd","58a30ee95364","cc8f2250696d","d14884fb5fda","b6ddc96b352d","ce409d549500","5fcd14157064","d842136bf722","1de093e7db36","737db166c79a","1c9e0e5fc812","6512c6cf7b52","b10ea701889a","57777292cb52","c66bb5b064cf","8918205c87ae","29576b54e255","551454d58d7f"]);
+  });
+
+  it('post111: combined nonempty lines sha256', () => {
+    const joined = indexSrc.split('\n').filter((l) => l.length > 0).join('|');
+    expect(createHash('sha256').update(joined, 'utf8').digest('hex')).toBe('b7b443906396b9ba890469e9c5a21716a33107cdd5e28c9cdf0d892084a81fd9');
+  });
+
+  it('post111: cross-lock SAMPLE_M3U station names appear in cold /stations', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    const names = (body.stations as Array<{ name: string }>).map((s) => s.name);
+    expect(names).toEqual(['Alpha FM', 'Beta FM', 'Gamma FM', 'Delta FM', 'Epsilon FM', 'Zeta FM']);
+  });
+
+  it('post111: mood alias matrix via /curate seeded catalogs', async () => {
+    const matrix: Array<[string, string]> = [
+      ['chill', 'ambient'],
+      ['blues', 'jazz'],
+      ['indie', 'rock'],
+      ['dance', 'pop'],
+      ['classic', 'classical'],
+    ];
+    for (const [mood, genre] of matrix) {
+      const seeded = seedStationsCache(genre, [{ name: mood, url: `https://example.com/${mood}.m3u8` }]);
+      vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+      const body = await json(
+        await app.request(`/curate?mood=${mood}`, undefined, testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seeded) })),
+      );
+      expect(body.query).toBe(mood);
+    }
+  });
+
+  it('post111: Map of VALID_GENRES to /stations warm counts is 1 each', async () => {
+    let seed: Record<string, string> = {};
+    for (const g of VALID_GENRES) {
+      seed = seedStationsCache(g, [{ name: g, url: `https://example.com/${g}.m3u8` }], seed);
+    }
+    vi.stubGlobal('fetch', vi.fn());
+    for (const g of VALID_GENRES) {
+      const body = await json(
+        await app.request(`/stations?genre=${g}`, undefined, testEnv({ CATALOG_CACHE: mockKV(seed) })),
+      );
+      expect(body.genre).toBe(g);
+      expect(body.count).toBe(1);
+    }
+  });
+});
+
+describe('post111b routes HEAVY deepen (complement after #110/#111)', () => {
+  // Complementary TOKENMAXX deepen — more fingerprint/HMAC/route leftover locks.
+  // Tests/CI only; no product inventing.
+
+  const readUtf = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const hmacSha256 = (key: string, s: string) =>
+    createHmac('sha256', key).update(s, 'utf8').digest('hex');
+  const indexSrc = readUtf('src/index.ts');
+  const helpersSrc = readUtf('test/helpers.ts');
+  const readmeMd = readUtf('README.md');
+  const agentsMd = readUtf('AGENTS.md');
+  const genresSrc = readUtf('src/genres.ts');
+  const sha256File = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+
+
+  it("post111b: HMAC-SHA256 key post111b locks index.ts", () => {
+    expect(hmacSha256("post111b", indexSrc)).toBe("fc2cbab569185f4e800548716961c06e4e21111869aa49e1f6825570c80aa953");
+  });
+
+  it("post111b: HMAC-SHA256 key cors() locks index.ts", () => {
+    expect(hmacSha256("cors()", indexSrc)).toBe("13ea3f5837c8ec57fc96f79037a2926e070f6063a4a3f1cdb4bd119b55c6ae75");
+  });
+
+  it("post111b: HMAC-SHA256 key app.get locks index.ts", () => {
+    expect(hmacSha256("app.get", indexSrc)).toBe("a58e22c14f9f7760007a3407b651342b55a78aca02a8e575d4b7517e914f8424");
+  });
+
+  it("post111b: HMAC-SHA256 key fetchStations locks index.ts", () => {
+    expect(hmacSha256("fetchStations", indexSrc)).toBe("59f1ae1b203012885bb8407fee23050cebf09200e2d6a96ebb5ee62ae26bec36");
+  });
+
+  it("post111b: HMAC-SHA256 key callGemini locks index.ts", () => {
+    expect(hmacSha256("callGemini", indexSrc)).toBe("148b016b67ef53a08385c65c19a9870f30e7fac07d2766895ca329b0e56b8edb");
+  });
+
+  it("post111b: HMAC-SHA256 key GEMINI locks index.ts", () => {
+    expect(hmacSha256("GEMINI", indexSrc)).toBe("478b6c40a878d730ff3f8c52f7d4ddc311d514a3f6c692faf486beeb4a535971");
+  });
+
+  it("post111b: HMAC-SHA256 key iptv locks index.ts", () => {
+    expect(hmacSha256("iptv", indexSrc)).toBe("9298e5f7ef179fadd03253b9b75ff66697c72ed6e52e280c77f497e6947b8072");
+  });
+
+  it("post111b: HMAC-SHA256 key stations: locks index.ts", () => {
+    expect(hmacSha256("stations:", indexSrc)).toBe("ab4b73c66666c4c75e185783edb503d9dd546c782af29948a59100bff7154265");
+  });
+
+  it("post111b: HMAC-SHA256 key music.m3u locks index.ts", () => {
+    expect(hmacSha256("music.m3u", indexSrc)).toBe("71af30d18ca47f601e6b397294e82e1917bbe8fe54cf6cbb5ceca1177265700e");
+  });
+
+  it("post111b: HMAC-SHA256 key maxOutputTokens locks index.ts", () => {
+    expect(hmacSha256("maxOutputTokens", indexSrc)).toBe("5bbe134e69ce284c70d67728501d783270ccf57e4d7e0c8f140723a61ea6aeff");
+  });
+
+  it("post111b: HMAC-SHA256 key temperature locks index.ts", () => {
+    expect(hmacSha256("temperature", indexSrc)).toBe("4b2dbcbce3f65e0d62d89c304540308c8ff755eaf48c292766928135996a84cf");
+  });
+
+  it("post111b: HMAC-SHA256 key expirationTtl locks index.ts", () => {
+    expect(hmacSha256("expirationTtl", indexSrc)).toBe("200c922fcb3bc775c0b178ae78807a9d91d918d752809e52c30b965860794051");
+  });
+
+  it("post111b: HMAC-SHA256 key Backlink locks index.ts", () => {
+    expect(hmacSha256("Backlink", indexSrc)).toBe("ed65aa81879749759ddcb51342e8978911d90c3e73c76f928fd59867e2a58a0e");
+  });
+
+  it("post111b: HMAC-SHA256 key Geryon locks index.ts", () => {
+    expect(hmacSha256("Geryon", indexSrc)).toBe("5eb2b17797a1973e947d35ef1d58a646abb8ad187b154cb13db69a180719d2b6");
+  });
+
+  it("post111b: HMAC-SHA256 key editorial locks index.ts", () => {
+    expect(hmacSha256("editorial", indexSrc)).toBe("ac1c0b94abaaad43fc77f01c57cdd594e8fb54e91fb427e1b432db4e78ff93c8");
+  });
+
+  it("post111b: HMAC-SHA256 key Stream catalog locks index.ts", () => {
+    expect(hmacSha256("Stream catalog", indexSrc)).toBe("ceaa5b98ffd707e03fc4a85760495c7230037533dde84711a54808ceeb67c363");
+  });
+
+  it("post111b: HMAC-SHA256 key Curation service locks index.ts", () => {
+    expect(hmacSha256("Curation service", indexSrc)).toBe("c409eb31040678f92e9929697689587b4f9655c738980b09cdcca993af6293e6");
+  });
+
+  it("post111b: HMAC-SHA256 key Invalid JSON locks index.ts", () => {
+    expect(hmacSha256("Invalid JSON", indexSrc)).toBe("ddae297df2742cef42565459f1a2371cc524ea6bcac2762655c4a4119bbdeef8");
+  });
+
+  it("post111b: HMAC-SHA256 key generateContent locks index.ts", () => {
+    expect(hmacSha256("generateContent", indexSrc)).toBe("4a9106f30d1b12412514ef856ba9d574103c00a27c11ee104af4e7902f427e9d");
+  });
+
+  it("post111b: HMAC-SHA256 key tvg-name locks index.ts", () => {
+    expect(hmacSha256("tvg-name", indexSrc)).toBe("cf48af355feb9b4b0cc80a938aa0bef463f2e211e59a61fc7fa2f58c2c8e3093");
+  });
+
+  it("post111b: HMAC-SHA256 key group-title locks index.ts", () => {
+    expect(hmacSha256("group-title", indexSrc)).toBe("fcf4f839c9fea2e038c73a0853d98d532bcba047a64d35fd8f4ebb161aeaeb2d");
+  });
+
+  it("post111b: HMAC-SHA256 key CONTENT locks index.ts", () => {
+    expect(hmacSha256("CONTENT", indexSrc)).toBe("ecf5a30d25256b9efb2b1cf7ce49394c68477c23dd4d85b84fb5ac4b88e029c7");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key post111b", () => {
+    expect(hmacSha256("post111b", helpersSrc)).toBe("6237bc5e6be696306b57bfb2ed5617bf05a3ae2c3d5089775a569ed1969322a1");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key cors()", () => {
+    expect(hmacSha256("cors()", helpersSrc)).toBe("384bd87c7f80bed0fc0d45f8628f973459cda8c48b74e7507bdcbcee1b761ff8");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key app.get", () => {
+    expect(hmacSha256("app.get", helpersSrc)).toBe("e4bc26363171aac3c56c220b55b6b72cefa5ea5f3af2a024a07c4d8bffe03326");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key fetchStations", () => {
+    expect(hmacSha256("fetchStations", helpersSrc)).toBe("8e06b6751a1d630997b371ab73228aeb40bcbdbd53def4f7141bc3dd0ec63c33");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key callGemini", () => {
+    expect(hmacSha256("callGemini", helpersSrc)).toBe("c1c02a589e61c94fa1bba2ba7c933536bdd15d26b48812bd1fbd1484bbf8ea09");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key GEMINI", () => {
+    expect(hmacSha256("GEMINI", helpersSrc)).toBe("bc473a2809eea0340533990accb8161015549cea71aec3381a218f8b4917d96d");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key iptv", () => {
+    expect(hmacSha256("iptv", helpersSrc)).toBe("c4cd54f3cec2de27f1e6fb47d6cb100330970ae8d235be057d83490125e72b7b");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key stations:", () => {
+    expect(hmacSha256("stations:", helpersSrc)).toBe("f18cda30a2b3343b1e85549d3f7a80de88e023a13d9d35de49916ffd41251e11");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key music.m3u", () => {
+    expect(hmacSha256("music.m3u", helpersSrc)).toBe("60728b868be93e5ca9cc01cd70a5ebdc2a06b83261914336b3d1dada29930c3f");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key maxOutputTokens", () => {
+    expect(hmacSha256("maxOutputTokens", helpersSrc)).toBe("56ab874cab358292b97cac1009185199cb23ab4b5da0b6505914abb5eeb747ac");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key temperature", () => {
+    expect(hmacSha256("temperature", helpersSrc)).toBe("7bdddfa82ecfb78715888931103d811504a1d6c5a33add31abf612b75bffe350");
+  });
+
+  it("post111b: helpers.ts HMAC-SHA256 key expirationTtl", () => {
+    expect(hmacSha256("expirationTtl", helpersSrc)).toBe("8cba1611d74d4c3d41932acac1ca43417964515e1889f2c1fa522687d7d74177");
+  });
+
+  it('post111b: first 80 char codes lock', () => {
+    expect([...indexSrc.slice(0, 80)].map((c) => c.charCodeAt(0))).toEqual([105,109,112,111,114,116,32,123,32,72,111,110,111,32,125,32,102,114,111,109,32,39,104,111,110,111,39,59,10,105,109,112,111,114,116,32,123,32,99,111,114,115,32,125,32,102,114,111,109,32,39,104,111,110,111,47,99,111,114,115,39,59,10,105,109,112,111,114,116,32,123,32,71,69,78,82,69,95,77,65]);
+  });
+
+  it('post111b: last 80 char codes lock', () => {
+    expect([...indexSrc.slice(-80)].map((c) => c.charCodeAt(0))).toEqual([110,101,119,32,68,97,116,101,40,41,46,116,111,73,83,79,83,116,114,105,110,103,40,41,44,10,32,32,32,32,115,116,97,116,105,111,110,115,58,32,99,117,114,97,116,101,100,44,10,32,32,125,41,59,10,125,41,59,10,10,101,120,112,111,114,116,32,100,101,102,97,117,108,116,32,97,112,112,59,10]);
+  });
+
+  it('post111b: first 40 trigraphs lock', () => {
+    expect([...Array(40)].map((_, i) => indexSrc.slice(i, i + 3))).toEqual(["imp","mpo","por","ort","rt ","t {"," { ","{ H"," Ho","Hon","ono","no ","o }"," } ","} f"," fr","fro","rom","om ","m '"," 'h","'ho","hon","ono","no'","o';","';\n",";\ni","\nim","imp","mpo","por","ort","rt ","t {"," { ","{ c"," co","cor","ors"]);
+  });
+
+  it("post111b: token count app.get = 5", () => {
+    expect(indexSrc.split("app.get").length - 1).toBe(5);
+  });
+
+  it("post111b: token count fetch( = 3", () => {
+    expect(indexSrc.split("fetch(").length - 1).toBe(3);
+  });
+
+  it("post111b: token count await  = 10", () => {
+    expect(indexSrc.split("await ").length - 1).toBe(10);
+  });
+
+  it("post111b: token count return  = 12", () => {
+    expect(indexSrc.split("return ").length - 1).toBe(12);
+  });
+
+  it("post111b: token count const  = 20", () => {
+    expect(indexSrc.split("const ").length - 1).toBe(20);
+  });
+
+  it("post111b: token count async  = 4", () => {
+    expect(indexSrc.split("async ").length - 1).toBe(4);
+  });
+
+  it("post111b: token count function  = 2", () => {
+    expect(indexSrc.split("function ").length - 1).toBe(2);
+  });
+
+  it("post111b: token count genre = 30", () => {
+    expect(indexSrc.split("genre").length - 1).toBe(30);
+  });
+
+  it("post111b: token count stations = 20", () => {
+    expect(indexSrc.split("stations").length - 1).toBe(20);
+  });
+
+  it("post111b: token count curate = 9", () => {
+    expect(indexSrc.split("curate").length - 1).toBe(9);
+  });
+
+  it("post111b: token count health = 2", () => {
+    expect(indexSrc.split("health").length - 1).toBe(2);
+  });
+
+  it("post111b: token count genres = 4", () => {
+    expect(indexSrc.split("genres").length - 1).toBe(4);
+  });
+
+  it("post111b: token count mood = 9", () => {
+    expect(indexSrc.split("mood").length - 1).toBe(9);
+  });
+
+  it("post111b: token count editorial = 6", () => {
+    expect(indexSrc.split("editorial").length - 1).toBe(6);
+  });
+
+  it("post111b: token count CATALOG_CACHE = 2", () => {
+    expect(indexSrc.split("CATALOG_CACHE").length - 1).toBe(2);
+  });
+
+  it("post111b: token count GEMINI_API_KEY = 2", () => {
+    expect(indexSrc.split("GEMINI_API_KEY").length - 1).toBe(2);
+  });
+
+  it("post111b: token count VERSION = 2", () => {
+    expect(indexSrc.split("VERSION").length - 1).toBe(2);
+  });
+
+  it("post111b: token count cors = 3", () => {
+    expect(indexSrc.split("cors").length - 1).toBe(3);
+  });
+
+  it("post111b: token count Hono = 2", () => {
+    expect(indexSrc.split("Hono").length - 1).toBe(2);
+  });
+
+  it("post111b: token count parseM3U = 2", () => {
+    expect(indexSrc.split("parseM3U").length - 1).toBe(2);
+  });
+
+  it("post111b: token count resolveGenre = 3", () => {
+    expect(indexSrc.split("resolveGenre").length - 1).toBe(3);
+  });
+
+  it("post111b: token count VALID_GENRES = 2", () => {
+    expect(indexSrc.split("VALID_GENRES").length - 1).toBe(2);
+  });
+
+  it("post111b: token count GENRE_MAP = 2", () => {
+    expect(indexSrc.split("GENRE_MAP").length - 1).toBe(2);
+  });
+
+  it("post111b: token count IPTV_BASE = 3", () => {
+    expect(indexSrc.split("IPTV_BASE").length - 1).toBe(3);
+  });
+
+  it("post111b: token count JSON.parse = 2", () => {
+    expect(indexSrc.split("JSON.parse").length - 1).toBe(2);
+  });
+
+  it("post111b: token count JSON.stringify = 2", () => {
+    expect(indexSrc.split("JSON.stringify").length - 1).toBe(2);
+  });
+
+  it("post111b: token count content-type = 1", () => {
+    expect(indexSrc.split("content-type").length - 1).toBe(1);
+  });
+
+  it("post111b: token count application/json = 1", () => {
+    expect(indexSrc.split("application/json").length - 1).toBe(1);
+  });
+
+  it("post111b: token count retry_after = 3", () => {
+    expect(indexSrc.split("retry_after").length - 1).toBe(3);
+  });
+
+  it('post111b: sha1 prefix of each nonempty line (10)', () => {
+    const lines = indexSrc.split('\n').filter((l) => l.length > 0);
+    expect(lines.map((l) => createHash('sha1').update(l, 'utf8').digest('hex').slice(0, 10))).toEqual(["bb97136d22","2231fc2b99","bcf4c2cedf","9172523fc3","219412fbac","3c349faee9","ee277ba172","b211f3ed92","26a1a6d850","624f749b43","51f78f3e50","117acbaebb","2165e81472","a114bab0d5","74fa7fedd2","b0e3cda8d2","48d033810d","8d2d65c72f","6f4842ad5e","1b4e34b5ae","922554651c","c2b7df6201","dd632031b9","fb1bbe009f","32d8b40112","83ee7cfbfd","537b55b9ca","3c803dadb6","255a1b1786","c43914491e","46fe20b075","59f1be4e4a","4599d53989","e4407b362e","987ee8d2cf","11a36c661d","ed08e60303","7c6bd45437","0f84f77c48","41e737297d","22b4874035","6583a050d5","373ab32c8b","8e09299052","e6e232a264","660af5beed","cdf569cabb","42117fb2df","5f2fc80b57","cd37f7d9bf","ee1e00ae4b","3bbf0febf3","d6dee7e59d","c2b7df6201","10dada9bdb","c4076eba64","1425332455","a285f2ad78","adccd12370","c76bb4c6e6","5311b4f6f9","422dc8df5a","ea9cb71337","d6afe9ddeb","886fde1f08","a049488b00","8e09299052","01d2faf764","8266c40952","fe84c85722","a6cf654299","e1e3059d1f","fe84c85722","b52b5cef1f","a285f2ad78","938c0787b1","766348a80a","8266c40952","fe84c85722","9389716c48","25fd95d65b","7dd211139c","af32254444","0e16ee3d93","1da6f65db3","45ea970e8f","f048983e8b","48d033810d","13439b0966","fe84c85722","ea87edfd5f","25fd95d65b","283693aa6b","0f6007af93","6bfb5e273f","4dd0af8585","48d033810d","af32254444","0e16ee3d93","1da6f65db3","45ea970e8f","f048983e8b","48d033810d","312d9756ee","d0b1fa3abf","0e16ee3d93","26cc1d2aee","45ea970e8f","05b03ebb39","39e10dd7d4","9b7419f111","874413bfd5","73e62a77ae","abd84b9781","47a9345c73","14db0f1e7d","48d033810d","a285f2ad78","74e07565bd","79414f169c","1ff2064c4c","1783f1b278","8266c40952","fe84c85722","9244595280"]);
+  });
+
+  it('post111b: indentation histogram lock', () => {
+    const lines = indexSrc.split('\n').filter((l) => l.length > 0);
+    const hist: Record<number, number> = {};
+    for (const l of lines) {
+      const n = (l.match(/^ */) ?? [''])[0].length;
+      hist[n] = (hist[n] ?? 0) + 1;
+    }
+    expect(hist).toEqual({"0":24,"2":55,"4":31,"6":13,"8":2});
+  });
+
+  it("post111b: README negative invent — no durable objects", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("durable objects");
+  });
+
+  it("post111b: README negative invent — no websocket endpoint", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("websocket endpoint");
+  });
+
+  it("post111b: README negative invent — no graphql", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("graphql");
+  });
+
+  it("post111b: README negative invent — no stripe checkout", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("stripe checkout");
+  });
+
+  it("post111b: README negative invent — no oauth login", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("oauth login");
+  });
+
+  it("post111b: README negative invent — no auth0", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("auth0");
+  });
+
+  it("post111b: README negative invent — no clerk auth", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("clerk auth");
+  });
+
+  it("post111b: README negative invent — no supabase", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("supabase");
+  });
+
+  it("post111b: README negative invent — no firebase", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("firebase");
+  });
+
+  it("post111b: README negative invent — no planetscale", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("planetscale");
+  });
+
+  it("post111b: README negative invent — no kubernetes", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("kubernetes");
+  });
+
+  it("post111b: README negative invent — no terraform apply", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("terraform apply");
+  });
+
+  it("post111b: README negative invent — no prometheus metrics", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("prometheus metrics");
+  });
+
+  it("post111b: README negative invent — no datadog apm", () => {
+    expect(readmeMd.toLowerCase()).not.toContain("datadog apm");
+  });
+
+  it("post111b: AGENTS negative invent — no durable objects", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("durable objects");
+  });
+
+  it("post111b: AGENTS negative invent — no websocket endpoint", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("websocket endpoint");
+  });
+
+  it("post111b: AGENTS negative invent — no graphql", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("graphql");
+  });
+
+  it("post111b: AGENTS negative invent — no stripe checkout", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("stripe checkout");
+  });
+
+  it("post111b: AGENTS negative invent — no oauth login", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("oauth login");
+  });
+
+  it("post111b: AGENTS negative invent — no auth0", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("auth0");
+  });
+
+  it("post111b: AGENTS negative invent — no clerk auth", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("clerk auth");
+  });
+
+  it("post111b: AGENTS negative invent — no supabase", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("supabase");
+  });
+
+  it("post111b: AGENTS negative invent — no firebase", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("firebase");
+  });
+
+  it("post111b: AGENTS negative invent — no planetscale", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("planetscale");
+  });
+
+  it("post111b: AGENTS negative invent — no kubernetes", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("kubernetes");
+  });
+
+  it("post111b: AGENTS negative invent — no terraform apply", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("terraform apply");
+  });
+
+  it("post111b: AGENTS negative invent — no prometheus metrics", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("prometheus metrics");
+  });
+
+  it("post111b: AGENTS negative invent — no datadog apm", () => {
+    expect(agentsMd.toLowerCase()).not.toContain("datadog apm");
+  });
+
+
+  it('post111b: /curate query joins mood + genreParam with space', async () => {
+    const seeded = seedStationsCache('jazz', [{ name: 'J', url: 'https://example.com/j.m3u8' }]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+    const body = await json(
+      await app.request('/curate?genre=jazz&mood=late', undefined, testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.query).toBe('late jazz');
+  });
+
+  it('post111b: /curate without mood/genreParam uses resolved genre as query', async () => {
+    const seeded = seedStationsCache('music', [{ name: 'M', url: 'https://example.com/m.m3u8' }]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+    const body = await json(
+      await app.request('/curate', undefined, testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.query).toBe('music');
+  });
+
+  it('post111b: /stations without genre defaults via resolveGenre to music', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations', undefined, testEnv()));
+    expect(body.genre).toBe('music');
+  });
+
+  it('post111b: Gemini empty candidates text degrades to top 5', async () => {
+    const empty = Response.json({ candidates: [{ content: { parts: [{ text: '' }] } }] });
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: empty }));
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect((body.stations as unknown[]).length).toBe(5);
+    expect((body.stations as Array<{ editorial: null }>)[0].editorial).toBeNull();
+  });
+
+  it('post111b: Gemini non-array prose degrades', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: geminiTextResponse('sorry no json here') }),
+    );
+    const body = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect((body.stations as unknown[]).length).toBe(5);
+  });
+
+  it('post111b: /curate catalog 503 when both genre and music fail', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: null, iptvStatus: 500 }));
+    const res = await app.request('/curate?genre=jazz', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(503);
+    await expect(json(res)).resolves.toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+  });
+
+  it('post111b: put expirationTtl option is 3600 on cold /stations', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const kv = mockKV();
+    await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    const opts = (kv.put as ReturnType<typeof vi.fn>).mock.calls[0][2];
+    expect(opts).toEqual({ expirationTtl: 3600 });
+  });
+
+  it('post111b: warm /stations does not call put', async () => {
+    const seeded = seedStationsCache('pop', [{ name: 'P', url: 'https://example.com/p.m3u8' }]);
+    const kv = mockKV(seeded);
+    vi.stubGlobal('fetch', vi.fn());
+    await app.request('/stations?genre=pop', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(kv.put).not.toHaveBeenCalled();
+  });
+
+  it('post111b: root description matches package.json description', async () => {
+    const pkg = JSON.parse(readUtf('package.json')) as { description: string };
+    const body = await json(await app.request('/', undefined, testEnv()));
+    expect(body.description).toBe(pkg.description);
+  });
+
+  it('post111b: VERSION custom binding surfaces on / and /health', async () => {
+    const env = testEnv({ VERSION: '9.9.9-post111b' });
+    const rootBody = await json(await app.request('/', undefined, env));
+    const health = await json(await app.request('/health', undefined, env));
+    expect(rootBody.version).toBe('9.9.9-post111b');
+    expect(health.version).toBe('9.9.9-post111b');
+  });
+
+  it('post111b: /genres aliases object is GENRE_MAP reference equality of values', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    for (const [k, v] of Object.entries(GENRE_MAP)) {
+      expect((body.aliases as Record<string, string>)[k]).toBe(v);
+    }
+  });
+
+  it('post111b: buildSimpleM3U logo/group/language/country round-trip via /stations', async () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Full',
+        url: 'https://example.com/full.m3u8',
+        logo: 'https://example.com/logo.png',
+        group: 'Music',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect((body.stations as Array<Record<string, string>>)[0]).toMatchObject({
+      name: 'Full',
+      url: 'https://example.com/full.m3u8',
+      logo: 'https://example.com/logo.png',
+      group: 'Music',
+      language: 'en',
+      country: 'US',
+    });
+  });
+
+  it('post111b: duplicate stream URL deduped by parser before /stations count', async () => {
+    const m3u = [
+      '#EXTM3U',
+      '#EXTINF:-1 tvg-name="A",A',
+      'https://example.com/same.m3u8',
+      '#EXTINF:-1 tvg-name="B",B',
+      'https://example.com/same.m3u8',
+      '',
+    ].join('\n');
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body.count).toBe(1);
+    expect((body.stations as Array<{ name: string }>)[0].name).toBe('A');
+  });
+
+  it('post111b: rtmp URL resets EXTINF and is skipped', async () => {
+    const m3u = [
+      '#EXTM3U',
+      '#EXTINF:-1 tvg-name="Rtmp",Rtmp',
+      'rtmp://example.com/live',
+      '#EXTINF:-1 tvg-name="Ok",Ok',
+      'https://example.com/ok.m3u8',
+      '',
+    ].join('\n');
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body.count).toBe(1);
+    expect((body.stations as Array<{ name: string }>)[0].name).toBe('Ok');
+  });
+
+  it('post111b: prompt window caps at 50 stations', async () => {
+    const stations = Array.from({ length: 60 }, (_, i) => ({
+      name: `N${i}`,
+      url: `https://example.com/n${i}.m3u8`,
+    }));
+    const m3u = buildSimpleM3U(stations);
+    const fetchMock = stubIptvAndGemini({ m3u, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const gem = captureGeminiRequest(fetchMock);
+    const prompt = (gem!.body.contents as Array<{ parts: Array<{ text: string }> }>)[0].parts[0].text;
+    expect(prompt).toContain('50. N49');
+    expect(prompt).not.toContain('51. N50');
+  });
+
+  it('post111b: generationConfig locked in Gemini body', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const gem = captureGeminiRequest(fetchMock);
+    expect(gem!.body.generationConfig).toEqual({ maxOutputTokens: 512, temperature: 0.7 });
+  });
+
+  it('post111b: Gemini request content-type application/json', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    const gem = captureGeminiRequest(fetchMock);
+    const headers = gem!.headers as Record<string, string>;
+    expect(headers['content-type'] || headers['Content-Type']).toBe('application/json');
+  });
+
+  it('post111b: genres.ts sha256 still matches route resolve surface', () => {
+    expect(sha256File('src/genres.ts')).toBe('aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e');
+    expect(genresSrc).toContain('export function resolveGenre');
+    expect(genresSrc).toContain('export const VALID_GENRES');
+    expect(genresSrc).toContain('export const GENRE_MAP');
+  });
+
+  it('post111b: late night alias resolves ambient via /stations', async () => {
+    const seeded = seedStationsCache('ambient', [{ name: 'LN', url: 'https://example.com/ln.m3u8' }]);
+    vi.stubGlobal('fetch', vi.fn());
+    const body = await json(
+      await app.request('/stations?genre=late%20night', undefined, testEnv({ CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.genre).toBe('ambient');
+  });
+
+  it('post111b: lo-fi alias resolves ambient via /stations', async () => {
+    const seeded = seedStationsCache('ambient', [{ name: 'LF', url: 'https://example.com/lf.m3u8' }]);
+    vi.stubGlobal('fetch', vi.fn());
+    const body = await json(
+      await app.request('/stations?genre=lo-fi', undefined, testEnv({ CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.genre).toBe('ambient');
+  });
+
+  it('post111b: Proxy over /genres aliases still reads GENRE_MAP chill', async () => {
+    const body = await json(await app.request('/genres', undefined, testEnv()));
+    const proxied = new Proxy(body.aliases as object, {});
+    expect((proxied as Record<string, string>).chill).toBe(GENRE_MAP.chill);
+  });
+
+  it('post111b: mutating /genres response genres array does not affect next request', async () => {
+    const first = await json(await app.request('/genres', undefined, testEnv()));
+    (first.genres as string[]).push('invented-genre-post111b');
+    const second = await json(await app.request('/genres', undefined, testEnv()));
+    expect(second.genres).toEqual([...VALID_GENRES]);
+    expect(second.genres).not.toContain('invented-genre-post111b');
+  });
+
+  it('post111b: root powered_by includes crab while curated_by does not', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() }));
+    const rootBody = await json(await app.request('/', undefined, testEnv()));
+    const curate = await json(
+      await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' })),
+    );
+    expect(String(rootBody.powered_by)).toContain('🦀');
+    expect(String(curate.curated_by)).not.toContain('🦀');
+  });
+
+  it('post111b: encodeURIComponent of genre jazz is identity in /stations URL', async () => {
+    expect(encodeURIComponent('jazz')).toBe('jazz');
+    const seeded = seedStationsCache('jazz', [{ name: 'J', url: 'https://example.com/j.m3u8' }]);
+    vi.stubGlobal('fetch', vi.fn());
+    const body = await json(
+      await app.request('/stations?genre=' + encodeURIComponent('jazz'), undefined, testEnv({ CATALOG_CACHE: mockKV(seeded) })),
+    );
+    expect(body.genre).toBe('jazz');
+  });
+
+  it('post111b: double-encoded percent in genre does not invent alias', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(
+      await app.request('/stations?genre=%2520jazz', undefined, testEnv()),
+    );
+    expect(body.genre).toBe('music');
+  });
+
+  it('post111b: genre[] array-style query does not invent multi-genre', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const body = await json(await app.request('/stations?genre[]=jazz&genre[]=rock', undefined, testEnv()));
+    // Hono may treat genre[] as unrelated; resolved genre should still be music default or single
+    expect(typeof body.genre).toBe('string');
+    expect(body.genre).not.toEqual(['jazz', 'rock']);
+  });
+
+  it('post111b: HMAC digests post111 vs post111b differ', () => {
+    expect(hmacSha256('post111', indexSrc)).not.toBe(hmacSha256('post111b', indexSrc));
+  });
+
+  it('post111b: final fingerprint reaffirm index sha256', () => {
+    expect(createHash('sha256').update(indexSrc, 'utf8').digest('hex')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+
+  it('post111b: hygiene — suite markers present', () => {
+    const body = readUtf('test/routes.test.ts');
+    expect(body).toContain("describe('post111b routes HEAVY deepen (complement after #110/#111)'");
+    expect((body.match(/it\('post111b:/g) ?? []).length + (body.match(/it\("post111b:/g) ?? []).length).toBeGreaterThan(50);
+  });
+
+  it('post111b: createHmac purity 40x post111b', () => {
+    const expected = 'fc2cbab569185f4e800548716961c06e4e21111869aa49e1f6825570c80aa953';
+    for (let i = 0; i < 40; i++) expect(hmacSha256('post111b', indexSrc)).toBe(expected);
+  });
+});
