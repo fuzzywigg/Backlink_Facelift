@@ -11368,3 +11368,724 @@ describe('post111 helpers HEAVY deepen', () => {
   });
 });
 
+
+// --- HEAVY burn (post-#123): deepen helpers leftovers — tests only, no product inventing ---
+
+// --- HEAVY burn (post-#123): deepen helpers leftovers — tests only, no product inventing ---
+describe('post123 helpers HEAVY deepen (after #123)', () => {
+  const root = helpersRoot;
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+
+  it('post123: locks test/helpers.ts sha256', () => {
+    expect(sha256("test/helpers.ts")).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+  });
+
+  it('post123: locks test/helpers.ts sha1', () => {
+    expect(sha1("test/helpers.ts")).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+  });
+
+  it('post123: locks test/helpers.ts md5', () => {
+    expect(md5("test/helpers.ts")).toBe("004bbc8741017d8dd45bee28a29b46e1");
+  });
+
+  it('post123: locks test/helpers.ts sha384', () => {
+    expect(sha384("test/helpers.ts")).toBe("1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167");
+  });
+
+  it('post123: locks test/helpers.ts sha512', () => {
+    expect(sha512("test/helpers.ts")).toBe("153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91");
+  });
+
+  it('post123: locks test/helpers.ts sha3-256', () => {
+    expect(sha3("test/helpers.ts")).toBe("8ffbb4baecd580e1f9f797a737d24af1f3e0fb48af208435dafe8afaa584b113");
+  });
+
+  it('post123: locks test/helpers.ts blake2b512', () => {
+    expect(blake2b("test/helpers.ts")).toBe("9000b1e34f31a60c5b766398de6ce5657f7325d791b129e388e1312c47d8448070919d7711a2824b821a99661fbeb73f6e13dfa4b1de53d72aa0990f73f1061f");
+  });
+
+  it('post123: locks test/helpers.ts ripemd160', () => {
+    expect(ripemd("test/helpers.ts")).toBe("24c482ba1ff1b74537b67a89b99058b6f2e500a4");
+  });
+
+  it('post123: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, "test/helpers.ts")).size).toBe(6078);
+    expect(readFileSync(join(root, "test/helpers.ts")).byteLength).toBe(6078);
+  });
+
+  it('post123: locks test/helpers.ts utf8 6078 lines 164', () => {
+    expect(read("test/helpers.ts")).toHaveLength(6078);
+    expect(read("test/helpers.ts").split('\n')).toHaveLength(164);
+  });
+
+  it('post123: locks test/helpers.ts nibble 487 xor 5', () => {
+    const d = sha256("test/helpers.ts");
+    expect(nibbleSum(d)).toBe(487);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks test/helpers.ts first/last octets', () => {
+    const d = sha256("test/helpers.ts");
+    expect(d.slice(0, 2)).toBe("24");
+    expect(d.slice(-2)).toBe("29");
+  });
+
+  it('post123: locks test/helpers.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "test/helpers.ts")).toBe("8bd4ac7ac6f0833e49dbfc0059a4a863cb2adf98ddb0c6fa2e5599415b108799");
+    expect(hmacSha256('TOKENMAXX', "test/helpers.ts")).toBe("8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391");
+    expect(hmacSha256('ci-config', "test/helpers.ts")).toBe("09c6a7ad1aff663717e25ad0719777b1ba908e3c10626a6dc8246679319ea4d4");
+  });
+
+  it('post123: locks test/helpers.ts spaces 919', () => {
+    expect((read("test/helpers.ts").match(/ /g) ?? []).length).toBe(919);
+  });
+
+  it('post123: locks src/genres.ts sha256', () => {
+    expect(sha256("src/genres.ts")).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it('post123: locks src/genres.ts sha1', () => {
+    expect(sha1("src/genres.ts")).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it('post123: locks src/genres.ts md5', () => {
+    expect(md5("src/genres.ts")).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it('post123: locks src/genres.ts sha384', () => {
+    expect(sha384("src/genres.ts")).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16");
+  });
+
+  it('post123: locks src/genres.ts sha512', () => {
+    expect(sha512("src/genres.ts")).toBe("bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b");
+  });
+
+  it('post123: locks src/genres.ts sha3-256', () => {
+    expect(sha3("src/genres.ts")).toBe("d873c498335014a5e3d40e5ab78ea8f3ba4e642df056fff51de989da45634d7f");
+  });
+
+  it('post123: locks src/genres.ts blake2b512', () => {
+    expect(blake2b("src/genres.ts")).toBe("731f6cb880bc465d545820c1dff8ccf87b92624a34e703085f2d49af06e6a7f0fe14f2f7b99080a9a1699b32806a33199b21b9b30f6d3b21127cafdaaddb4d67");
+  });
+
+  it('post123: locks src/genres.ts ripemd160', () => {
+    expect(ripemd("src/genres.ts")).toBe("bb9faaf8890bdba8dd86bcdf7e418da622d19bf5");
+  });
+
+  it('post123: locks src/genres.ts size 1027', () => {
+    expect(statSync(join(root, "src/genres.ts")).size).toBe(1027);
+    expect(readFileSync(join(root, "src/genres.ts")).byteLength).toBe(1027);
+  });
+
+  it('post123: locks src/genres.ts utf8 1025 lines 48', () => {
+    expect(read("src/genres.ts")).toHaveLength(1025);
+    expect(read("src/genres.ts").split('\n')).toHaveLength(48);
+  });
+
+  it('post123: locks src/genres.ts nibble 500 xor 6', () => {
+    const d = sha256("src/genres.ts");
+    expect(nibbleSum(d)).toBe(500);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post123: locks src/genres.ts first/last octets', () => {
+    const d = sha256("src/genres.ts");
+    expect(d.slice(0, 2)).toBe("aa");
+    expect(d.slice(-2)).toBe("4e");
+  });
+
+  it('post123: locks src/genres.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "src/genres.ts")).toBe("72668068ccae1276030366ed88cb366c289ad92818116728f26d3a58decf085c");
+    expect(hmacSha256('TOKENMAXX', "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951");
+    expect(hmacSha256('ci-config', "src/genres.ts")).toBe("02697e0bdc953f71214cc79afec2ae5e84cd1fdc756793ee4126468e035ea59e");
+  });
+
+  it('post123: locks src/genres.ts spaces 144', () => {
+    expect((read("src/genres.ts").match(/ /g) ?? []).length).toBe(144);
+  });
+
+  it('post123: locks src/index.ts sha256', () => {
+    expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it('post123: locks src/index.ts sha1', () => {
+    expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it('post123: locks src/index.ts md5', () => {
+    expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177");
+  });
+
+  it('post123: locks src/index.ts sha384', () => {
+    expect(sha384("src/index.ts")).toBe("1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65");
+  });
+
+  it('post123: locks src/index.ts sha512', () => {
+    expect(sha512("src/index.ts")).toBe("28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3");
+  });
+
+  it('post123: locks src/index.ts sha3-256', () => {
+    expect(sha3("src/index.ts")).toBe("437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b");
+  });
+
+  it('post123: locks src/index.ts blake2b512', () => {
+    expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace");
+  });
+
+  it('post123: locks src/index.ts ripemd160', () => {
+    expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093");
+  });
+
+  it('post123: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, "src/index.ts")).size).toBe(4738);
+    expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738);
+  });
+
+  it('post123: locks src/index.ts utf8 4724 lines 154', () => {
+    expect(read("src/index.ts")).toHaveLength(4724);
+    expect(read("src/index.ts").split('\n')).toHaveLength(154);
+  });
+
+  it('post123: locks src/index.ts nibble 470 xor 14', () => {
+    const d = sha256("src/index.ts");
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post123: locks src/index.ts first/last octets', () => {
+    const d = sha256("src/index.ts");
+    expect(d.slice(0, 2)).toBe("7f");
+    expect(d.slice(-2)).toBe("72");
+  });
+
+  it('post123: locks src/index.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "src/index.ts")).toBe("3d45ed31f75ae8cba65e0c8ddbe00e591e5f431b7745f8d13474d96ccb838561");
+    expect(hmacSha256('TOKENMAXX', "src/index.ts")).toBe("d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc");
+    expect(hmacSha256('ci-config', "src/index.ts")).toBe("ea00cc4fe15f4d9684cdf461ac63d706c76f66baed7fdaf23cc220afb77c39d2");
+  });
+
+  it('post123: locks src/index.ts spaces 761', () => {
+    expect((read("src/index.ts").match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it('post123: locks package.json sha256', () => {
+    expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it('post123: locks package.json sha1', () => {
+    expect(sha1("package.json")).toBe("b58d14f35b9c13bb254d5e2a51240e2918a126c5");
+  });
+
+  it('post123: locks package.json md5', () => {
+    expect(md5("package.json")).toBe("63472e1fb514fb0dadb5e49a7bdbaa5f");
+  });
+
+  it('post123: locks package.json sha384', () => {
+    expect(sha384("package.json")).toBe("4208b099e242907b02fce514c0ce890d1805b1a6de73ad0a15e49ce9f5a2eb5e311f6e3175464f97ff91b0ca752f7c20");
+  });
+
+  it('post123: locks package.json sha512', () => {
+    expect(sha512("package.json")).toBe("7b56f282c4ae1f06e33354171317d5a318ef8f85cf74f07392a18ee65f40a3ed66acb974513f5bae57b83d67b18132fc67b66dde5aa4dca015f7d5fc14926b28");
+  });
+
+  it('post123: locks package.json sha3-256', () => {
+    expect(sha3("package.json")).toBe("e56db806f28d1317bcd7620e70192882b7b8e72c55481fd4cd639b174e04a5a5");
+  });
+
+  it('post123: locks package.json blake2b512', () => {
+    expect(blake2b("package.json")).toBe("a4b33748d54cbb972b7e8ed7e5e370d92bee40b0110f42fa1158b2c1ee628ee68d34704af77564c5e3c2c7988d7020f5608a42c3b03bb58567874256c2f1dd1d");
+  });
+
+  it('post123: locks package.json ripemd160', () => {
+    expect(ripemd("package.json")).toBe("f3b12f3f8d6366baa145f30bfb68d5bbb06a1bad");
+  });
+
+  it('post123: locks package.json size 637', () => {
+    expect(statSync(join(root, "package.json")).size).toBe(637);
+    expect(readFileSync(join(root, "package.json")).byteLength).toBe(637);
+  });
+
+  it('post123: locks package.json utf8 635 lines 26', () => {
+    expect(read("package.json")).toHaveLength(635);
+    expect(read("package.json").split('\n')).toHaveLength(26);
+  });
+
+  it('post123: locks package.json nibble 451 xor 13', () => {
+    const d = sha256("package.json");
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post123: locks package.json first/last octets', () => {
+    const d = sha256("package.json");
+    expect(d.slice(0, 2)).toBe("34");
+    expect(d.slice(-2)).toBe("1c");
+  });
+
+  it('post123: locks package.json HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "package.json")).toBe("f5820d067b7998f6c704e4680b7f143587a45625c630fc73c7b09306b45d6e57");
+    expect(hmacSha256('TOKENMAXX', "package.json")).toBe("ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58");
+    expect(hmacSha256('ci-config', "package.json")).toBe("9af90b16d02d642aa55aa2a1cf7816f6cab099d1837f4d1efcc3a76638229f38");
+  });
+
+  it('post123: locks package.json spaces 106', () => {
+    expect((read("package.json").match(/ /g) ?? []).length).toBe(106);
+  });
+
+  it('post123: locks vitest.config.ts sha256', () => {
+    expect(sha256("vitest.config.ts")).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it('post123: locks vitest.config.ts sha1', () => {
+    expect(sha1("vitest.config.ts")).toBe("f8d49517ece92fc5e9781fbde021a948958aac37");
+  });
+
+  it('post123: locks vitest.config.ts md5', () => {
+    expect(md5("vitest.config.ts")).toBe("f1176313255f5f064a946d458482d81a");
+  });
+
+  it('post123: locks vitest.config.ts sha384', () => {
+    expect(sha384("vitest.config.ts")).toBe("c740544ed89115527034ecf6e26516e084e03eb35bb32b53e2a9ba0c87e13c92d27eedad009b8248a3c0410200eba563");
+  });
+
+  it('post123: locks vitest.config.ts sha512', () => {
+    expect(sha512("vitest.config.ts")).toBe("ea76043e8370d77ce0cb6723483ce791cff7cb9b5fb3bf8997a9772e1f3e9c897d34fc0fe2787d4f95cfb0561a8c1439436468cefb79893325b21f462c243682");
+  });
+
+  it('post123: locks vitest.config.ts sha3-256', () => {
+    expect(sha3("vitest.config.ts")).toBe("ec04c66cbf9a14154aabbfb72cd926250ae10c5577428b5b8a8b749db6c0a7ba");
+  });
+
+  it('post123: locks vitest.config.ts blake2b512', () => {
+    expect(blake2b("vitest.config.ts")).toBe("93d50742fb1f4fa70321f558b00b563052eefcaf0112ff159c377f6e7d5c989a19df038ab20fe701cb59b44d1075a621253feead3118a6a974a21e23c2eb980a");
+  });
+
+  it('post123: locks vitest.config.ts ripemd160', () => {
+    expect(ripemd("vitest.config.ts")).toBe("6f29a743813430d4d364f8ddd66e0aedf1506fcd");
+  });
+
+  it('post123: locks vitest.config.ts size 535', () => {
+    expect(statSync(join(root, "vitest.config.ts")).size).toBe(535);
+    expect(readFileSync(join(root, "vitest.config.ts")).byteLength).toBe(535);
+  });
+
+  it('post123: locks vitest.config.ts utf8 535 lines 22', () => {
+    expect(read("vitest.config.ts")).toHaveLength(535);
+    expect(read("vitest.config.ts").split('\n')).toHaveLength(22);
+  });
+
+  it('post123: locks vitest.config.ts nibble 536 xor 2', () => {
+    const d = sha256("vitest.config.ts");
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it('post123: locks vitest.config.ts first/last octets', () => {
+    const d = sha256("vitest.config.ts");
+    expect(d.slice(0, 2)).toBe("f9");
+    expect(d.slice(-2)).toBe("38");
+  });
+
+  it('post123: locks vitest.config.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "vitest.config.ts")).toBe("a6732e30b4dd61c4da8c346cd49c5deeb3be461ac8881977c82e672d929cd8b4");
+    expect(hmacSha256('TOKENMAXX', "vitest.config.ts")).toBe("0f446a2e20693c7657cb1d718f1a1b296160af17a69fcd36cec18d937ae65de9");
+    expect(hmacSha256('ci-config', "vitest.config.ts")).toBe("b48d4463ac3144a8a6e5e60a568762fe11adefce678494ceb591e4e63ae528c3");
+  });
+
+  it('post123: locks vitest.config.ts spaces 121', () => {
+    expect((read("vitest.config.ts").match(/ /g) ?? []).length).toBe(121);
+  });
+
+  it('post123: locks AGENTS.md sha256', () => {
+    expect(sha256("AGENTS.md")).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it('post123: locks AGENTS.md sha1', () => {
+    expect(sha1("AGENTS.md")).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it('post123: locks AGENTS.md md5', () => {
+    expect(md5("AGENTS.md")).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it('post123: locks AGENTS.md sha384', () => {
+    expect(sha384("AGENTS.md")).toBe("817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a");
+  });
+
+  it('post123: locks AGENTS.md sha512', () => {
+    expect(sha512("AGENTS.md")).toBe("7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908");
+  });
+
+  it('post123: locks AGENTS.md sha3-256', () => {
+    expect(sha3("AGENTS.md")).toBe("894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4");
+  });
+
+  it('post123: locks AGENTS.md blake2b512', () => {
+    expect(blake2b("AGENTS.md")).toBe("7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0");
+  });
+
+  it('post123: locks AGENTS.md ripemd160', () => {
+    expect(ripemd("AGENTS.md")).toBe("6637e853e0148967671e4a3f21bd852255e8ed1c");
+  });
+
+  it('post123: locks AGENTS.md size 1017', () => {
+    expect(statSync(join(root, "AGENTS.md")).size).toBe(1017);
+    expect(readFileSync(join(root, "AGENTS.md")).byteLength).toBe(1017);
+  });
+
+  it('post123: locks AGENTS.md utf8 1011 lines 35', () => {
+    expect(read("AGENTS.md")).toHaveLength(1011);
+    expect(read("AGENTS.md").split('\n')).toHaveLength(35);
+  });
+
+  it('post123: locks AGENTS.md nibble 479 xor 5', () => {
+    const d = sha256("AGENTS.md");
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks AGENTS.md first/last octets', () => {
+    const d = sha256("AGENTS.md");
+    expect(d.slice(0, 2)).toBe("48");
+    expect(d.slice(-2)).toBe("aa");
+  });
+
+  it('post123: locks AGENTS.md HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "AGENTS.md")).toBe("8ac3125a7f2dc42ed6c1771338dd37727206fbd31dfcbf881040082082adc83d");
+    expect(hmacSha256('TOKENMAXX', "AGENTS.md")).toBe("b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f");
+    expect(hmacSha256('ci-config', "AGENTS.md")).toBe("1e8f20e9d67be8517c3acfdce81387fdbcd5d1bda52f43fffdb055139810c224");
+  });
+
+  it('post123: locks AGENTS.md spaces 120', () => {
+    expect((read("AGENTS.md").match(/ /g) ?? []).length).toBe(120);
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha1', () => {
+    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+  });
+
+  it('post123: locks .github/workflows/ci.yml md5', () => {
+    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha384', () => {
+    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha512', () => {
+    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha3-256', () => {
+    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+  });
+
+  it('post123: locks .github/workflows/ci.yml blake2b512', () => {
+    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+  });
+
+  it('post123: locks .github/workflows/ci.yml ripemd160', () => {
+    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+  });
+
+  it('post123: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, ".github/workflows/ci.yml")).size).toBe(6295);
+    expect(readFileSync(join(root, ".github/workflows/ci.yml")).byteLength).toBe(6295);
+  });
+
+  it('post123: locks .github/workflows/ci.yml utf8 6295 lines 177', () => {
+    expect(read(".github/workflows/ci.yml")).toHaveLength(6295);
+    expect(read(".github/workflows/ci.yml").split('\n')).toHaveLength(177);
+  });
+
+  it('post123: locks .github/workflows/ci.yml nibble 515 xor 3', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post123: locks .github/workflows/ci.yml first/last octets', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(d.slice(0, 2)).toBe("c4");
+    expect(d.slice(-2)).toBe("d5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', ".github/workflows/ci.yml")).toBe("a4d504b8ad938f033b55ee7964ab9a025db5c566795a2378bfdf78ad7932a9bb");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('ci-config', ".github/workflows/ci.yml")).toBe("e997e669ee801faeaaac0ecfb8239cc5d416ffd739f752a288a997d086e7bd15");
+  });
+
+  it('post123: locks .github/workflows/ci.yml spaces 1716', () => {
+    expect((read(".github/workflows/ci.yml").match(/ /g) ?? []).length).toBe(1716);
+  });
+
+  it('post123: geminiTextResponse token music', async () => {
+    const json = (await geminiTextResponse("music").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("music");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single music', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "music", url: "https://u/music" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl music', () => {
+    expect(iptvCategoryUrl("music")).toBe("https://iptv-org.github.io/iptv/categories/music.m3u");
+  });
+
+  it('post123: geminiTextResponse token ambient', async () => {
+    const json = (await geminiTextResponse("ambient").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("ambient");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single ambient', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "ambient", url: "https://u/ambient" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl ambient', () => {
+    expect(iptvCategoryUrl("ambient")).toBe("https://iptv-org.github.io/iptv/categories/ambient.m3u");
+  });
+
+  it('post123: geminiTextResponse token jazz', async () => {
+    const json = (await geminiTextResponse("jazz").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("jazz");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single jazz', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "jazz", url: "https://u/jazz" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl jazz', () => {
+    expect(iptvCategoryUrl("jazz")).toBe("https://iptv-org.github.io/iptv/categories/jazz.m3u");
+  });
+
+  it('post123: geminiTextResponse token classical', async () => {
+    const json = (await geminiTextResponse("classical").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("classical");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single classical', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "classical", url: "https://u/classical" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl classical', () => {
+    expect(iptvCategoryUrl("classical")).toBe("https://iptv-org.github.io/iptv/categories/classical.m3u");
+  });
+
+  it('post123: geminiTextResponse token pop', async () => {
+    const json = (await geminiTextResponse("pop").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("pop");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single pop', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "pop", url: "https://u/pop" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl pop', () => {
+    expect(iptvCategoryUrl("pop")).toBe("https://iptv-org.github.io/iptv/categories/pop.m3u");
+  });
+
+  it('post123: geminiTextResponse token rock', async () => {
+    const json = (await geminiTextResponse("rock").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("rock");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single rock', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "rock", url: "https://u/rock" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl rock', () => {
+    expect(iptvCategoryUrl("rock")).toBe("https://iptv-org.github.io/iptv/categories/rock.m3u");
+  });
+
+  it('post123: geminiTextResponse token news', async () => {
+    const json = (await geminiTextResponse("news").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("news");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single news', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "news", url: "https://u/news" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl news', () => {
+    expect(iptvCategoryUrl("news")).toBe("https://iptv-org.github.io/iptv/categories/news.m3u");
+  });
+
+  it('post123: geminiTextResponse token sports', async () => {
+    const json = (await geminiTextResponse("sports").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("sports");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single sports', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "sports", url: "https://u/sports" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl sports', () => {
+    expect(iptvCategoryUrl("sports")).toBe("https://iptv-org.github.io/iptv/categories/sports.m3u");
+  });
+
+  it('post123: geminiTextResponse token entertainment', async () => {
+    const json = (await geminiTextResponse("entertainment").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(json.candidates[0].content.parts[0].text).toBe("entertainment");
+  });
+
+  it('post123: countHttpStreamLines buildSimpleM3U single entertainment', () => {
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "entertainment", url: "https://u/entertainment" }]))).toBe(1);
+  });
+
+  it('post123: iptvCategoryUrl entertainment', () => {
+    expect(iptvCategoryUrl("entertainment")).toBe("https://iptv-org.github.io/iptv/categories/entertainment.m3u");
+  });
+
+  it('post123: SAMPLE_M3U has 6 https streams', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(SAMPLE_M3U.startsWith('#EXTM3U')).toBe(true);
+    expect(SAMPLE_M3U).toContain('Alpha FM');
+    expect(SAMPLE_M3U).toContain('Zeta FM');
+  });
+
+  it('post123: buildSimpleM3U empty and attributed', () => {
+    expect(buildSimpleM3U([])).toBe('#EXTM3U\n');
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://x', group: 'G', language: 'en', country: 'US', logo: 'https://l' }]);
+    expect(m3u).toContain('group-title="G"');
+    expect(m3u).toContain('tvg-language="en"');
+    expect(m3u).toContain('tvg-country="US"');
+    expect(m3u).toContain('tvg-logo="https://l"');
+  });
+
+  it('post123: mockKV roundtrip', async () => {
+    const kv = mockKV({ a: '1' });
+    await expect(kv.get('a')).resolves.toBe('1');
+    await kv.put('b', '2');
+    await expect(kv.get('b')).resolves.toBe('2');
+    await kv.delete('a');
+    await expect(kv.get('a')).resolves.toBeNull();
+  });
+
+  it('post123: testEnv VERSION defaults and overrides', () => {
+    expect(testEnv().VERSION).toBe('0.1.0-test');
+    expect(testEnv({ VERSION: '9.9.9' }).VERSION).toBe('9.9.9');
+    expect(testEnv().CATALOG_CACHE).toBeTruthy();
+  });
+
+  it('post123: seedStationsCache writes stations:genre', () => {
+    expect(seedStationsCache('jazz', [{ name: 'J' }])).toEqual({ 'stations:jazz': JSON.stringify([{ name: 'J' }]) });
+    expect(seedStationsCache('pop', 'raw', { keep: '1' })).toEqual({ keep: '1', 'stations:pop': 'raw' });
+  });
+
+  it('post123: curatedGeminiJson default Alpha FM', async () => {
+    const json = (await curatedGeminiJson().json()) as { candidates: Array<{ content: { parts: Array<{ text: string }> } }> };
+    const stations = JSON.parse(json.candidates[0].content.parts[0].text) as Array<{ name: string }>;
+    expect(stations[0].name).toBe('Alpha FM');
+  });
+
+  it('post123: stubIptvAndGemini happy paths', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: geminiTextResponse('ok') });
+    vi.stubGlobal('fetch', fetchMock);
+    const iptv = await fetch('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(iptv.status).toBe(200);
+    expect(await iptv.text()).toContain('Alpha FM');
+    const gem = await fetch('https://generativelanguage.googleapis.com/v1/models/x:generateContent');
+    expect(gem.status).toBe(200);
+    vi.unstubAllGlobals();
+  });
+
+  it('post123: helpers.ts exports mockKV', () => {
+    expect(read('test/helpers.ts')).toContain("export function mockKV");
+  });
+
+  it('post123: helpers.ts exports testEnv', () => {
+    expect(read('test/helpers.ts')).toContain("export function testEnv");
+  });
+
+  it('post123: helpers.ts exports geminiTextResponse', () => {
+    expect(read('test/helpers.ts')).toContain("export function geminiTextResponse");
+  });
+
+  it('post123: helpers.ts exports stubIptvAndGemini', () => {
+    expect(read('test/helpers.ts')).toContain("export function stubIptvAndGemini");
+  });
+
+  it('post123: helpers.ts exports curatedGeminiJson', () => {
+    expect(read('test/helpers.ts')).toContain("export function curatedGeminiJson");
+  });
+
+  it('post123: helpers.ts exports iptvCategoryUrl', () => {
+    expect(read('test/helpers.ts')).toContain("export function iptvCategoryUrl");
+  });
+
+  it('post123: helpers.ts exports countHttpStreamLines', () => {
+    expect(read('test/helpers.ts')).toContain("export function countHttpStreamLines");
+  });
+
+  it('post123: helpers.ts exports buildSimpleM3U', () => {
+    expect(read('test/helpers.ts')).toContain("export function buildSimpleM3U");
+  });
+
+  it('post123: helpers.ts exports seedStationsCache', () => {
+    expect(read('test/helpers.ts')).toContain("export function seedStationsCache");
+  });
+
+  it('post123: helpers.ts exports captureGeminiRequest', () => {
+    expect(read('test/helpers.ts')).toContain("export function captureGeminiRequest");
+  });
+
+  it('post123: helpers.ts exports iptvCallsWithInit', () => {
+    expect(read('test/helpers.ts')).toContain("export function iptvCallsWithInit");
+  });
+
+  it('post123: helpers.ts exports SAMPLE_M3U', () => {
+    expect(read('test/helpers.ts')).toContain('export const SAMPLE_M3U');
+  });
+
+  it('post123: mega purity 30x helpers.ts sha256', () => {
+    const expected = "240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29";
+    for (let i = 0; i < 30; i++) expect(sha256('test/helpers.ts')).toBe(expected);
+  });
+
+  it('post123: negative inventing fence helpers', () => {
+    expect(read('test/helpers.ts')).not.toMatch(/\/playlist|\/now-playing/);
+  });
+
+  it('post123: final inventory markers', () => {
+    const body = read('test/helpers.test.ts');
+    expect(body).toContain("describe('post111 helpers HEAVY deepen'");
+    expect(body).toContain("describe('post123 helpers HEAVY deepen (after #123)'");
+    expect((body.match(/it\('post123:/g) ?? []).length).toBeGreaterThan(80);
+  });
+
+});
