@@ -24318,7 +24318,7 @@ describe('post211 helpers HEAVY deepen (after #211 tip leftover / helpers-source
   });
 
   it('post211: helper leftover — seedStationsCache merges without clobbering unrelated cache keys', () => {
-    const prior = { 'stations:music': '[]', other: 'keep' };
+    const prior: Record<string, string> = { 'stations:music': '[]', other: 'keep' };
     const next = seedStationsCache('jazz', [{ name: 'J' }], prior);
     expect(next.other).toBe('keep');
     expect(next['stations:music']).toBe('[]');
