@@ -4676,11 +4676,20 @@ describe('MCP_MANIFEST', () => {
 
   it('post66: locks Iterator from tools.values exhausts four names', () => {
     const it = MCP_MANIFEST.tools.values();
-    expect(it.next().value.name).toBe('station_select');
-    expect(it.next().value.name).toBe('now_playing');
-    expect(it.next().value.name).toBe('genre_filter');
-    expect(it.next().value.name).toBe('curator_prompt');
-    expect(it.next().done).toBe(true);
+    const a = it.next();
+    const b = it.next();
+    const c = it.next();
+    const d = it.next();
+    const done = it.next();
+    expect(a.done).toBe(false);
+    expect(b.done).toBe(false);
+    expect(c.done).toBe(false);
+    expect(d.done).toBe(false);
+    expect(a.value?.name).toBe('station_select');
+    expect(b.value?.name).toBe('now_playing');
+    expect(c.value?.name).toBe('genre_filter');
+    expect(d.value?.name).toBe('curator_prompt');
+    expect(done.done).toBe(true);
   });
 
   it('post66: locks for-await-of over sync iterable tools via Array', async () => {
