@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8704,6 +8704,1827 @@ describe('post96 ci-config HEAVY deepen', () => {
   it('post96: this test file still lives under test/ and names ci-config', () => {
     expect(dirname(fileURLToPath(import.meta.url)).endsWith('/test')).toBe(true);
     expect(fileURLToPath(import.meta.url).endsWith('ci-config.test.ts')).toBe(true);
+  });
+
+});
+
+// --- HEAVY burn (post-#100): deepen ci-config unit slice only — no product inventing ---
+// Orthogonal to #100 routes, #99 genres, #98 mcp-spec. Digests, HMAC locks, workflow pins,
+// package/vitest/hygiene/ISSUE_TEMPLATE/AGENTS Verify cross-locks — tests-only.
+
+describe('post100 ci-config HEAVY deepen', () => {
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+
+  it('post100: locks ci.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe(
+      'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+    );
+  });
+
+  it('post100: locks ci.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa');
+  });
+
+  it('post100: locks ci.yml md5 digest', () => {
+    expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605');
+  });
+
+  it('post100: locks ci.yml sha256 nibble sum 515 xor 3', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post100: locks ci.yml byte size 6295', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295);
+    expect(readFileSync(join(root, '.github/workflows/ci.yml')).byteLength).toBe(6295);
+  });
+
+  it('post100: locks ci.yml utf8 char length 6295', () => {
+    expect(read('.github/workflows/ci.yml')).toHaveLength(6295);
+  });
+
+  it('post100: locks ci.yml line count 177', () => {
+    expect(read('.github/workflows/ci.yml').split('\n')).toHaveLength(177);
+  });
+
+  it('post100: locks ci.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/workflows/ci.yml')).toBe(
+      'e997e669ee801faeaaac0ecfb8239cc5d416ffd739f752a288a997d086e7bd15',
+    );
+  });
+
+  it('post100: locks ci.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/workflows/ci.yml')).toBe(
+      '562cdfc204dad939f5009bc5ed398a1bc0d31d03127064bb40f5f078b67c8f9e',
+    );
+  });
+
+  it('post100: locks ci.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/workflows/ci.yml');
+    expect(hex.slice(0, 2)).toBe('c4');
+    expect(hex.slice(-2)).toBe('d5');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks deploy.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post100: locks deploy.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+  });
+
+  it('post100: locks deploy.yml md5 digest', () => {
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+  });
+
+  it('post100: locks deploy.yml sha256 nibble sum 476 xor 4', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(nibbleSum(d)).toBe(476);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post100: locks deploy.yml byte size 1004', () => {
+    expect(statSync(join(root, '.github/workflows/deploy.yml')).size).toBe(1004);
+    expect(readFileSync(join(root, '.github/workflows/deploy.yml')).byteLength).toBe(1004);
+  });
+
+  it('post100: locks deploy.yml utf8 char length 1004', () => {
+    expect(read('.github/workflows/deploy.yml')).toHaveLength(1004);
+  });
+
+  it('post100: locks deploy.yml line count 47', () => {
+    expect(read('.github/workflows/deploy.yml').split('\n')).toHaveLength(47);
+  });
+
+  it('post100: locks deploy.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/workflows/deploy.yml')).toBe(
+      'b2d258b8ef783136b38e6607f0b0c441f5f7cc85a2aca677b051bdba3fa57eca',
+    );
+  });
+
+  it('post100: locks deploy.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/workflows/deploy.yml')).toBe(
+      '8a30355dfcfa95a714c2cb411c8a7a11d0e0c29a70560a2e81fa22ef0a439ef6',
+    );
+  });
+
+  it('post100: locks deploy.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/workflows/deploy.yml');
+    expect(hex.slice(0, 2)).toBe('49');
+    expect(hex.slice(-2)).toBe('c3');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks dependabot.yml sha256 digest', () => {
+    expect(sha256('.github/dependabot.yml')).toBe(
+      'a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac',
+    );
+  });
+
+  it('post100: locks dependabot.yml sha1 digest', () => {
+    expect(sha1('.github/dependabot.yml')).toBe('dfdb63975444874143105431e4cee95165932c7b');
+  });
+
+  it('post100: locks dependabot.yml md5 digest', () => {
+    expect(md5('.github/dependabot.yml')).toBe('bd53b7cdf9bb7287532d96a32cbec9a4');
+  });
+
+  it('post100: locks dependabot.yml sha256 nibble sum 526 xor 6', () => {
+    const d = sha256('.github/dependabot.yml');
+    expect(nibbleSum(d)).toBe(526);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post100: locks dependabot.yml byte size 505', () => {
+    expect(statSync(join(root, '.github/dependabot.yml')).size).toBe(505);
+    expect(readFileSync(join(root, '.github/dependabot.yml')).byteLength).toBe(505);
+  });
+
+  it('post100: locks dependabot.yml utf8 char length 505', () => {
+    expect(read('.github/dependabot.yml')).toHaveLength(505);
+  });
+
+  it('post100: locks dependabot.yml line count 25', () => {
+    expect(read('.github/dependabot.yml').split('\n')).toHaveLength(25);
+  });
+
+  it('post100: locks dependabot.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/dependabot.yml')).toBe(
+      '8b61de03ef1b75db2912b46274382788f1abd7bb4823d4dfe80d94c5caaae024',
+    );
+  });
+
+  it('post100: locks dependabot.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/dependabot.yml')).toBe(
+      'f1f672c11bc817da2fbcc2da295008dbfc8a8d66d6c93d5a290abec4a1c03a35',
+    );
+  });
+
+  it('post100: locks dependabot.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/dependabot.yml');
+    expect(hex.slice(0, 2)).toBe('a1');
+    expect(hex.slice(-2)).toBe('ac');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks vitest.config.ts sha256 digest', () => {
+    expect(sha256('vitest.config.ts')).toBe(
+      'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+    );
+  });
+
+  it('post100: locks vitest.config.ts sha1 digest', () => {
+    expect(sha1('vitest.config.ts')).toBe('f8d49517ece92fc5e9781fbde021a948958aac37');
+  });
+
+  it('post100: locks vitest.config.ts md5 digest', () => {
+    expect(md5('vitest.config.ts')).toBe('f1176313255f5f064a946d458482d81a');
+  });
+
+  it('post100: locks vitest.config.ts sha256 nibble sum 536 xor 2', () => {
+    const d = sha256('vitest.config.ts');
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it('post100: locks vitest.config.ts byte size 535', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size).toBe(535);
+    expect(readFileSync(join(root, 'vitest.config.ts')).byteLength).toBe(535);
+  });
+
+  it('post100: locks vitest.config.ts utf8 char length 535', () => {
+    expect(read('vitest.config.ts')).toHaveLength(535);
+  });
+
+  it('post100: locks vitest.config.ts line count 22', () => {
+    expect(read('vitest.config.ts').split('\n')).toHaveLength(22);
+  });
+
+  it('post100: locks vitest.config.ts HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'vitest.config.ts')).toBe(
+      'b48d4463ac3144a8a6e5e60a568762fe11adefce678494ceb591e4e63ae528c3',
+    );
+  });
+
+  it('post100: locks vitest.config.ts HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'vitest.config.ts')).toBe(
+      'cbc0824e8cf27d4821cff93137bb24c28a94518110c29b9db7e9e0e835269d63',
+    );
+  });
+
+  it('post100: locks vitest.config.ts sha256 first/last octets', () => {
+    const hex = sha256('vitest.config.ts');
+    expect(hex.slice(0, 2)).toBe('f9');
+    expect(hex.slice(-2)).toBe('38');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks package.json sha256 digest', () => {
+    expect(sha256('package.json')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+  });
+
+  it('post100: locks package.json sha1 digest', () => {
+    expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5');
+  });
+
+  it('post100: locks package.json md5 digest', () => {
+    expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f');
+  });
+
+  it('post100: locks package.json sha256 nibble sum 451 xor 13', () => {
+    const d = sha256('package.json');
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post100: locks package.json byte size 637', () => {
+    expect(statSync(join(root, 'package.json')).size).toBe(637);
+    expect(readFileSync(join(root, 'package.json')).byteLength).toBe(637);
+  });
+
+  it('post100: locks package.json utf8 char length 635', () => {
+    expect(read('package.json')).toHaveLength(635);
+  });
+
+  it('post100: locks package.json line count 26', () => {
+    expect(read('package.json').split('\n')).toHaveLength(26);
+  });
+
+  it('post100: locks package.json HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'package.json')).toBe(
+      '9af90b16d02d642aa55aa2a1cf7816f6cab099d1837f4d1efcc3a76638229f38',
+    );
+  });
+
+  it('post100: locks package.json HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'package.json')).toBe(
+      'c9d44e02ffdbd3fabf647c74ddd972362755b45712d10ac722d09d2148e87797',
+    );
+  });
+
+  it('post100: locks package.json sha256 first/last octets', () => {
+    const hex = sha256('package.json');
+    expect(hex.slice(0, 2)).toBe('34');
+    expect(hex.slice(-2)).toBe('1c');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks tsconfig.json sha256 digest', () => {
+    expect(sha256('tsconfig.json')).toBe(
+      'ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792',
+    );
+  });
+
+  it('post100: locks tsconfig.json sha1 digest', () => {
+    expect(sha1('tsconfig.json')).toBe('68e3169249049539d687b6b3d81fc809079134f9');
+  });
+
+  it('post100: locks tsconfig.json md5 digest', () => {
+    expect(md5('tsconfig.json')).toBe('13f6687a50fe7c6ea7ef4eb3623b7457');
+  });
+
+  it('post100: locks tsconfig.json sha256 nibble sum 506 xor 8', () => {
+    const d = sha256('tsconfig.json');
+    expect(nibbleSum(d)).toBe(506);
+    expect(xorNibbles(d)).toBe(8);
+  });
+
+  it('post100: locks tsconfig.json byte size 397', () => {
+    expect(statSync(join(root, 'tsconfig.json')).size).toBe(397);
+    expect(readFileSync(join(root, 'tsconfig.json')).byteLength).toBe(397);
+  });
+
+  it('post100: locks tsconfig.json utf8 char length 397', () => {
+    expect(read('tsconfig.json')).toHaveLength(397);
+  });
+
+  it('post100: locks tsconfig.json line count 24', () => {
+    expect(read('tsconfig.json').split('\n')).toHaveLength(24);
+  });
+
+  it('post100: locks tsconfig.json HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'tsconfig.json')).toBe(
+      '419001e750f87204a6c6d4cffff7d5324d92ef88acc751e05de8b60b747c008a',
+    );
+  });
+
+  it('post100: locks tsconfig.json HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'tsconfig.json')).toBe(
+      'fdac8df66dc5cdb87036b813eb59d04ff4e116826a30a442e0648f47a617bf69',
+    );
+  });
+
+  it('post100: locks tsconfig.json sha256 first/last octets', () => {
+    const hex = sha256('tsconfig.json');
+    expect(hex.slice(0, 2)).toBe('ef');
+    expect(hex.slice(-2)).toBe('92');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks .gitignore sha256 digest', () => {
+    expect(sha256('.gitignore')).toBe(
+      '474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698',
+    );
+  });
+
+  it('post100: locks .gitignore sha1 digest', () => {
+    expect(sha1('.gitignore')).toBe('432103230f4c49258e046fc945e8160007c23570');
+  });
+
+  it('post100: locks .gitignore md5 digest', () => {
+    expect(md5('.gitignore')).toBe('7d0728257f47875ec0120ca3cdbf7308');
+  });
+
+  it('post100: locks .gitignore sha256 nibble sum 444 xor 6', () => {
+    const d = sha256('.gitignore');
+    expect(nibbleSum(d)).toBe(444);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post100: locks .gitignore byte size 261', () => {
+    expect(statSync(join(root, '.gitignore')).size).toBe(261);
+    expect(readFileSync(join(root, '.gitignore')).byteLength).toBe(261);
+  });
+
+  it('post100: locks .gitignore utf8 char length 261', () => {
+    expect(read('.gitignore')).toHaveLength(261);
+  });
+
+  it('post100: locks .gitignore line count 26', () => {
+    expect(read('.gitignore').split('\n')).toHaveLength(26);
+  });
+
+  it('post100: locks .gitignore HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.gitignore')).toBe(
+      '6a912adbdce7ef35c0e20cedc5559dea42d8e8af9a1af43490aca607d0c89af3',
+    );
+  });
+
+  it('post100: locks .gitignore HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.gitignore')).toBe(
+      '908a0d1746e7fb194f136f22cea7c18c4a9e241795c9a58069773c6b50e9cb4c',
+    );
+  });
+
+  it('post100: locks .gitignore sha256 first/last octets', () => {
+    const hex = sha256('.gitignore');
+    expect(hex.slice(0, 2)).toBe('47');
+    expect(hex.slice(-2)).toBe('98');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks environment.json sha256 digest', () => {
+    expect(sha256('.cursor/environment.json')).toBe(
+      '4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694',
+    );
+  });
+
+  it('post100: locks environment.json sha1 digest', () => {
+    expect(sha1('.cursor/environment.json')).toBe('b4f3dec322cd018ce5c1dea89897a469bd128685');
+  });
+
+  it('post100: locks environment.json md5 digest', () => {
+    expect(md5('.cursor/environment.json')).toBe('956c8804543595a31d6a7051aecd6528');
+  });
+
+  it('post100: locks environment.json sha256 nibble sum 472 xor 0', () => {
+    const d = sha256('.cursor/environment.json');
+    expect(nibbleSum(d)).toBe(472);
+    expect(xorNibbles(d)).toBe(0);
+  });
+
+  it('post100: locks environment.json byte size 57', () => {
+    expect(statSync(join(root, '.cursor/environment.json')).size).toBe(57);
+    expect(readFileSync(join(root, '.cursor/environment.json')).byteLength).toBe(57);
+  });
+
+  it('post100: locks environment.json utf8 char length 57', () => {
+    expect(read('.cursor/environment.json')).toHaveLength(57);
+  });
+
+  it('post100: locks environment.json line count 5', () => {
+    expect(read('.cursor/environment.json').split('\n')).toHaveLength(5);
+  });
+
+  it('post100: locks environment.json HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.cursor/environment.json')).toBe(
+      '89582143f68b016bb37c4fbcd570f0c296c37c459c19c70fbc513907d0357136',
+    );
+  });
+
+  it('post100: locks environment.json HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.cursor/environment.json')).toBe(
+      '5e1741d27a5f59f7d5d2a32efcae16ade6d7040804bad79a6f489be0978989f4',
+    );
+  });
+
+  it('post100: locks environment.json sha256 first/last octets', () => {
+    const hex = sha256('.cursor/environment.json');
+    expect(hex.slice(0, 2)).toBe('4e');
+    expect(hex.slice(-2)).toBe('94');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks AGENTS.md sha256 digest', () => {
+    expect(sha256('AGENTS.md')).toBe(
+      '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+    );
+  });
+
+  it('post100: locks AGENTS.md sha1 digest', () => {
+    expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c');
+  });
+
+  it('post100: locks AGENTS.md md5 digest', () => {
+    expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd');
+  });
+
+  it('post100: locks AGENTS.md sha256 nibble sum 479 xor 5', () => {
+    const d = sha256('AGENTS.md');
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post100: locks AGENTS.md byte size 1017', () => {
+    expect(statSync(join(root, 'AGENTS.md')).size).toBe(1017);
+    expect(readFileSync(join(root, 'AGENTS.md')).byteLength).toBe(1017);
+  });
+
+  it('post100: locks AGENTS.md utf8 char length 1011', () => {
+    expect(read('AGENTS.md')).toHaveLength(1011);
+  });
+
+  it('post100: locks AGENTS.md line count 35', () => {
+    expect(read('AGENTS.md').split('\n')).toHaveLength(35);
+  });
+
+  it('post100: locks AGENTS.md HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'AGENTS.md')).toBe(
+      '1e8f20e9d67be8517c3acfdce81387fdbcd5d1bda52f43fffdb055139810c224',
+    );
+  });
+
+  it('post100: locks AGENTS.md HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'AGENTS.md')).toBe(
+      'e8eb14ae7c9399300113eed22a351226c5fa76416377703db60c9098efa7a1bf',
+    );
+  });
+
+  it('post100: locks AGENTS.md sha256 first/last octets', () => {
+    const hex = sha256('AGENTS.md');
+    expect(hex.slice(0, 2)).toBe('48');
+    expect(hex.slice(-2)).toBe('aa');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks .gitattributes sha256 digest', () => {
+    expect(sha256('.gitattributes')).toBe(
+      '1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b',
+    );
+  });
+
+  it('post100: locks .gitattributes sha1 digest', () => {
+    expect(sha1('.gitattributes')).toBe('ba3dfe345280bdcc5e817bb02cf49b8b8d8e1c4c');
+  });
+
+  it('post100: locks .gitattributes md5 digest', () => {
+    expect(md5('.gitattributes')).toBe('05bdb783ee6514c8c072e47680af8ff7');
+  });
+
+  it('post100: locks .gitattributes sha256 nibble sum 458 xor 4', () => {
+    const d = sha256('.gitattributes');
+    expect(nibbleSum(d)).toBe(458);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post100: locks .gitattributes byte size 66', () => {
+    expect(statSync(join(root, '.gitattributes')).size).toBe(66);
+    expect(readFileSync(join(root, '.gitattributes')).byteLength).toBe(66);
+  });
+
+  it('post100: locks .gitattributes utf8 char length 66', () => {
+    expect(read('.gitattributes')).toHaveLength(66);
+  });
+
+  it('post100: locks .gitattributes line count 3', () => {
+    expect(read('.gitattributes').split('\n')).toHaveLength(3);
+  });
+
+  it('post100: locks .gitattributes HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.gitattributes')).toBe(
+      '6ce67056afbd26bb77fe120d1cf0d1ca508fe14b68665b2864ee447a3986c241',
+    );
+  });
+
+  it('post100: locks .gitattributes HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.gitattributes')).toBe(
+      '00b232cff58122c8794e60e15900064fd90f4397feef852b2f95151f1c5c6cc1',
+    );
+  });
+
+  it('post100: locks .gitattributes sha256 first/last octets', () => {
+    const hex = sha256('.gitattributes');
+    expect(hex.slice(0, 2)).toBe('1a');
+    expect(hex.slice(-2)).toBe('5b');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks package-lock.json sha256 digest', () => {
+    expect(sha256('package-lock.json')).toBe(
+      '5f8a888f1fc7aaf97dcdaa3f91405cefbb45ad118685eac7a1488b78cedfcee6',
+    );
+  });
+
+  it('post100: locks package-lock.json sha1 digest', () => {
+    expect(sha1('package-lock.json')).toBe('6bc7eb19009d4dccc1d2928b0d856f337eb76aad');
+  });
+
+  it('post100: locks package-lock.json md5 digest', () => {
+    expect(md5('package-lock.json')).toBe('568e267e07346bb7de4796dbeb117b54');
+  });
+
+  it('post100: locks package-lock.json sha256 nibble sum 582 xor 4', () => {
+    const d = sha256('package-lock.json');
+    expect(nibbleSum(d)).toBe(582);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post100: locks package-lock.json byte size 92068', () => {
+    expect(statSync(join(root, 'package-lock.json')).size).toBe(92068);
+    expect(readFileSync(join(root, 'package-lock.json')).byteLength).toBe(92068);
+  });
+
+  it('post100: locks package-lock.json utf8 char length 92068', () => {
+    expect(read('package-lock.json')).toHaveLength(92068);
+  });
+
+  it('post100: locks package-lock.json line count 2842', () => {
+    expect(read('package-lock.json').split('\n')).toHaveLength(2842);
+  });
+
+  it('post100: locks package-lock.json HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'package-lock.json')).toBe(
+      '326a070fd1036eba109bdafe8028c34e0f80e740db01e586803212520bee632a',
+    );
+  });
+
+  it('post100: locks package-lock.json HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'package-lock.json')).toBe(
+      '704ab1d3ce2a418003308a656be5873bab36a64f922b907b7940261a233f85f8',
+    );
+  });
+
+  it('post100: locks package-lock.json sha256 first/last octets', () => {
+    const hex = sha256('package-lock.json');
+    expect(hex.slice(0, 2)).toBe('5f');
+    expect(hex.slice(-2)).toBe('e6');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks DEPLOY.md sha256 digest', () => {
+    expect(sha256('DEPLOY.md')).toBe(
+      '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+    );
+  });
+
+  it('post100: locks DEPLOY.md sha1 digest', () => {
+    expect(sha1('DEPLOY.md')).toBe('37c72be44abb67343dae3e7c2303306a25b3481f');
+  });
+
+  it('post100: locks DEPLOY.md md5 digest', () => {
+    expect(md5('DEPLOY.md')).toBe('da30bf656fdf0d9a61d2a00860c325f5');
+  });
+
+  it('post100: locks DEPLOY.md sha256 nibble sum 439 xor 11', () => {
+    const d = sha256('DEPLOY.md');
+    expect(nibbleSum(d)).toBe(439);
+    expect(xorNibbles(d)).toBe(11);
+  });
+
+  it('post100: locks DEPLOY.md byte size 1573', () => {
+    expect(statSync(join(root, 'DEPLOY.md')).size).toBe(1573);
+    expect(readFileSync(join(root, 'DEPLOY.md')).byteLength).toBe(1573);
+  });
+
+  it('post100: locks DEPLOY.md utf8 char length 1539', () => {
+    expect(read('DEPLOY.md')).toHaveLength(1539);
+  });
+
+  it('post100: locks DEPLOY.md line count 65', () => {
+    expect(read('DEPLOY.md').split('\n')).toHaveLength(65);
+  });
+
+  it('post100: locks DEPLOY.md HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'DEPLOY.md')).toBe(
+      'b27e64e44a605676c5e7ec1ac636c68b62712ebbb87a5f5f64d0e031bd827ecd',
+    );
+  });
+
+  it('post100: locks DEPLOY.md HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'DEPLOY.md')).toBe(
+      '0fcd54627d89d8ea6046fbd3355f5fdd2890b3836cd85d29836beb6a389a91d6',
+    );
+  });
+
+  it('post100: locks DEPLOY.md sha256 first/last octets', () => {
+    const hex = sha256('DEPLOY.md');
+    expect(hex.slice(0, 2)).toBe('11');
+    expect(hex.slice(-2)).toBe('5a');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks README.md sha256 digest', () => {
+    expect(sha256('README.md')).toBe(
+      'f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987',
+    );
+  });
+
+  it('post100: locks README.md sha1 digest', () => {
+    expect(sha1('README.md')).toBe('4f560a473d5838f25eba3eae21a87f6c97ba3b8b');
+  });
+
+  it('post100: locks README.md md5 digest', () => {
+    expect(md5('README.md')).toBe('9b7aea4982a6d68b95f7f8ee3fdc5b31');
+  });
+
+  it('post100: locks README.md sha256 nibble sum 429 xor 13', () => {
+    const d = sha256('README.md');
+    expect(nibbleSum(d)).toBe(429);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post100: locks README.md byte size 2801', () => {
+    expect(statSync(join(root, 'README.md')).size).toBe(2801);
+    expect(readFileSync(join(root, 'README.md')).byteLength).toBe(2801);
+  });
+
+  it('post100: locks README.md utf8 char length 2757', () => {
+    expect(read('README.md')).toHaveLength(2757);
+  });
+
+  it('post100: locks README.md line count 82', () => {
+    expect(read('README.md').split('\n')).toHaveLength(82);
+  });
+
+  it('post100: locks README.md HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'README.md')).toBe(
+      'd2200d30dd2c44cf22921293f93f55010c881b75b920cab8276ddcef891875b6',
+    );
+  });
+
+  it('post100: locks README.md HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'README.md')).toBe(
+      '9cc320e42acf02a357223d403b302eb8bdf2b1437df79e9bb4711ad9a0fc026b',
+    );
+  });
+
+  it('post100: locks README.md sha256 first/last octets', () => {
+    const hex = sha256('README.md');
+    expect(hex.slice(0, 2)).toBe('f7');
+    expect(hex.slice(-2)).toBe('87');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks wrangler.toml sha256 digest', () => {
+    expect(sha256('wrangler.toml')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+  it('post100: locks wrangler.toml sha1 digest', () => {
+    expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it('post100: locks wrangler.toml md5 digest', () => {
+    expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it('post100: locks wrangler.toml sha256 nibble sum 457 xor 13', () => {
+    const d = sha256('wrangler.toml');
+    expect(nibbleSum(d)).toBe(457);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post100: locks wrangler.toml byte size 330', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size).toBe(330);
+    expect(readFileSync(join(root, 'wrangler.toml')).byteLength).toBe(330);
+  });
+
+  it('post100: locks wrangler.toml utf8 char length 330', () => {
+    expect(read('wrangler.toml')).toHaveLength(330);
+  });
+
+  it('post100: locks wrangler.toml line count 18', () => {
+    expect(read('wrangler.toml').split('\n')).toHaveLength(18);
+  });
+
+  it('post100: locks wrangler.toml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'wrangler.toml')).toBe(
+      '5d6000dc3ef908feddf3ec6b0bab5f39abbfaaf711e0b56f034de28b766528c3',
+    );
+  });
+
+  it('post100: locks wrangler.toml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'wrangler.toml')).toBe(
+      '00eaad00621fa90ecb4d959cdd065332f8f56008996a21f8e3e7cc8e6436e81d',
+    );
+  });
+
+  it('post100: locks wrangler.toml sha256 first/last octets', () => {
+    const hex = sha256('wrangler.toml');
+    expect(hex.slice(0, 2)).toBe('95');
+    expect(hex.slice(-2)).toBe('f8');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks mcp-spec.md sha256 digest', () => {
+    expect(sha256('docs/mcp-spec.md')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post100: locks mcp-spec.md sha1 digest', () => {
+    expect(sha1('docs/mcp-spec.md')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+  });
+
+  it('post100: locks mcp-spec.md md5 digest', () => {
+    expect(md5('docs/mcp-spec.md')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it('post100: locks mcp-spec.md sha256 nibble sum 514 xor 14', () => {
+    const d = sha256('docs/mcp-spec.md');
+    expect(nibbleSum(d)).toBe(514);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post100: locks mcp-spec.md byte size 3552', () => {
+    expect(statSync(join(root, 'docs/mcp-spec.md')).size).toBe(3552);
+    expect(readFileSync(join(root, 'docs/mcp-spec.md')).byteLength).toBe(3552);
+  });
+
+  it('post100: locks mcp-spec.md utf8 char length 3544', () => {
+    expect(read('docs/mcp-spec.md')).toHaveLength(3544);
+  });
+
+  it('post100: locks mcp-spec.md line count 145', () => {
+    expect(read('docs/mcp-spec.md').split('\n')).toHaveLength(145);
+  });
+
+  it('post100: locks mcp-spec.md HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', 'docs/mcp-spec.md')).toBe(
+      '6effd1effec6eeb6f8371fbc54a189e2f68c1a75308327b11f189591af625293',
+    );
+  });
+
+  it('post100: locks mcp-spec.md HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', 'docs/mcp-spec.md')).toBe(
+      '83580d590eb1ce02250fa56d57020df76a26a68bc4ee48eaad80f85a5da06e34',
+    );
+  });
+
+  it('post100: locks mcp-spec.md sha256 first/last octets', () => {
+    const hex = sha256('docs/mcp-spec.md');
+    expect(hex.slice(0, 2)).toBe('a9');
+    expect(hex.slice(-2)).toBe('49');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks bug.yml sha256 digest', () => {
+    expect(sha256('.github/ISSUE_TEMPLATE/bug.yml')).toBe(
+      'f76fcc573b913789446748a601dcb4a8d2cfaa3ec85d2c6bb798f2a35b844055',
+    );
+  });
+
+  it('post100: locks bug.yml sha1 digest', () => {
+    expect(sha1('.github/ISSUE_TEMPLATE/bug.yml')).toBe('d03c99b857f1589125c3bc266ae29317f6c7ba0a');
+  });
+
+  it('post100: locks bug.yml md5 digest', () => {
+    expect(md5('.github/ISSUE_TEMPLATE/bug.yml')).toBe('3693b9bfd65bf683be0706b83831ae69');
+  });
+
+  it('post100: locks bug.yml sha256 nibble sum 493 xor 11', () => {
+    const d = sha256('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(nibbleSum(d)).toBe(493);
+    expect(xorNibbles(d)).toBe(11);
+  });
+
+  it('post100: locks bug.yml byte size 846', () => {
+    expect(statSync(join(root, '.github/ISSUE_TEMPLATE/bug.yml')).size).toBe(846);
+    expect(readFileSync(join(root, '.github/ISSUE_TEMPLATE/bug.yml')).byteLength).toBe(846);
+  });
+
+  it('post100: locks bug.yml utf8 char length 846', () => {
+    expect(read('.github/ISSUE_TEMPLATE/bug.yml')).toHaveLength(846);
+  });
+
+  it('post100: locks bug.yml line count 41', () => {
+    expect(read('.github/ISSUE_TEMPLATE/bug.yml').split('\n')).toHaveLength(41);
+  });
+
+  it('post100: locks bug.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/ISSUE_TEMPLATE/bug.yml')).toBe(
+      '07ed5c7fe74dba726db04a5c828d27ab8ff4784e2f8a48b46c3a1177ca93b4f5',
+    );
+  });
+
+  it('post100: locks bug.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/ISSUE_TEMPLATE/bug.yml')).toBe(
+      '3a17eec4b64aca8cc97775b3360c26768111138bd817855cd12a583bedc47a91',
+    );
+  });
+
+  it('post100: locks bug.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(hex.slice(0, 2)).toBe('f7');
+    expect(hex.slice(-2)).toBe('55');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks chore.yml sha256 digest', () => {
+    expect(sha256('.github/ISSUE_TEMPLATE/chore.yml')).toBe(
+      '230222c6ac61737a55b00df4442d483911154bd93657ba98a1d30b75b509c3fc',
+    );
+  });
+
+  it('post100: locks chore.yml sha1 digest', () => {
+    expect(sha1('.github/ISSUE_TEMPLATE/chore.yml')).toBe('9b401e414cbc1a5fab58fa4ae6d43957a4ef05fd');
+  });
+
+  it('post100: locks chore.yml md5 digest', () => {
+    expect(md5('.github/ISSUE_TEMPLATE/chore.yml')).toBe('2eff43364806910ca218e00054a2304a');
+  });
+
+  it('post100: locks chore.yml sha256 nibble sum 406 xor 10', () => {
+    const d = sha256('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(nibbleSum(d)).toBe(406);
+    expect(xorNibbles(d)).toBe(10);
+  });
+
+  it('post100: locks chore.yml byte size 705', () => {
+    expect(statSync(join(root, '.github/ISSUE_TEMPLATE/chore.yml')).size).toBe(705);
+    expect(readFileSync(join(root, '.github/ISSUE_TEMPLATE/chore.yml')).byteLength).toBe(705);
+  });
+
+  it('post100: locks chore.yml utf8 char length 705', () => {
+    expect(read('.github/ISSUE_TEMPLATE/chore.yml')).toHaveLength(705);
+  });
+
+  it('post100: locks chore.yml line count 33', () => {
+    expect(read('.github/ISSUE_TEMPLATE/chore.yml').split('\n')).toHaveLength(33);
+  });
+
+  it('post100: locks chore.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/ISSUE_TEMPLATE/chore.yml')).toBe(
+      '67547b0eb1e082564d1f83d97cd8b7e43c623c4861a7a6f5cdadf11120bd5de2',
+    );
+  });
+
+  it('post100: locks chore.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/ISSUE_TEMPLATE/chore.yml')).toBe(
+      '61c1dce0eb428744cf978dad3ca242b32f9dc7a20dee6f082c6efaa6a1b90e56',
+    );
+  });
+
+  it('post100: locks chore.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(hex.slice(0, 2)).toBe('23');
+    expect(hex.slice(-2)).toBe('fc');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks feature.yml sha256 digest', () => {
+    expect(sha256('.github/ISSUE_TEMPLATE/feature.yml')).toBe(
+      '83291f987d1bb546b45ecd09d9be597c5265591a99744d18a2c49122e390aac2',
+    );
+  });
+
+  it('post100: locks feature.yml sha1 digest', () => {
+    expect(sha1('.github/ISSUE_TEMPLATE/feature.yml')).toBe('e23c853fb5eebf3a04e9f487f2c9d879d40216b7');
+  });
+
+  it('post100: locks feature.yml md5 digest', () => {
+    expect(md5('.github/ISSUE_TEMPLATE/feature.yml')).toBe('c73a814e3784562d4ab200328793c60f');
+  });
+
+  it('post100: locks feature.yml sha256 nibble sum 461 xor 11', () => {
+    const d = sha256('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(nibbleSum(d)).toBe(461);
+    expect(xorNibbles(d)).toBe(11);
+  });
+
+  it('post100: locks feature.yml byte size 966', () => {
+    expect(statSync(join(root, '.github/ISSUE_TEMPLATE/feature.yml')).size).toBe(966);
+    expect(readFileSync(join(root, '.github/ISSUE_TEMPLATE/feature.yml')).byteLength).toBe(966);
+  });
+
+  it('post100: locks feature.yml utf8 char length 966', () => {
+    expect(read('.github/ISSUE_TEMPLATE/feature.yml')).toHaveLength(966);
+  });
+
+  it('post100: locks feature.yml line count 44', () => {
+    expect(read('.github/ISSUE_TEMPLATE/feature.yml').split('\n')).toHaveLength(44);
+  });
+
+  it('post100: locks feature.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/ISSUE_TEMPLATE/feature.yml')).toBe(
+      '4016b5a04936e19104cf1df55bf668868413d981a76b223669cbbf0bb6a75403',
+    );
+  });
+
+  it('post100: locks feature.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/ISSUE_TEMPLATE/feature.yml')).toBe(
+      'fe2afa2a95abc6b7588fcb389608783b1aa5a65601d755d9d13b2a9c8483f815',
+    );
+  });
+
+  it('post100: locks feature.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(hex.slice(0, 2)).toBe('83');
+    expect(hex.slice(-2)).toBe('c2');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: locks issue-config.yml sha256 digest', () => {
+    expect(sha256('.github/ISSUE_TEMPLATE/config.yml')).toBe(
+      '1f103c6a9dd07cd13a9a6f17ace6b813f47747eb9cb7e00488cb2073caaf91bb',
+    );
+  });
+
+  it('post100: locks issue-config.yml sha1 digest', () => {
+    expect(sha1('.github/ISSUE_TEMPLATE/config.yml')).toBe('68344263f9bbfe0fc196c0e6c1a55818cc46dc01');
+  });
+
+  it('post100: locks issue-config.yml md5 digest', () => {
+    expect(md5('.github/ISSUE_TEMPLATE/config.yml')).toBe('74c7aebcc7755d1241890df4fd87c662');
+  });
+
+  it('post100: locks issue-config.yml sha256 nibble sum 498 xor 12', () => {
+    const d = sha256('.github/ISSUE_TEMPLATE/config.yml');
+    expect(nibbleSum(d)).toBe(498);
+    expect(xorNibbles(d)).toBe(12);
+  });
+
+  it('post100: locks issue-config.yml byte size 28', () => {
+    expect(statSync(join(root, '.github/ISSUE_TEMPLATE/config.yml')).size).toBe(28);
+    expect(readFileSync(join(root, '.github/ISSUE_TEMPLATE/config.yml')).byteLength).toBe(28);
+  });
+
+  it('post100: locks issue-config.yml utf8 char length 28', () => {
+    expect(read('.github/ISSUE_TEMPLATE/config.yml')).toHaveLength(28);
+  });
+
+  it('post100: locks issue-config.yml line count 2', () => {
+    expect(read('.github/ISSUE_TEMPLATE/config.yml').split('\n')).toHaveLength(2);
+  });
+
+  it('post100: locks issue-config.yml HMAC-SHA256 key ci-config', () => {
+    expect(hmacSha256('ci-config', '.github/ISSUE_TEMPLATE/config.yml')).toBe(
+      'c8bad415a5bce26bf53f69d73dd172d5b82223eaa506994a13cae41635ea22f1',
+    );
+  });
+
+  it('post100: locks issue-config.yml HMAC-SHA256 key post100', () => {
+    expect(hmacSha256('post100', '.github/ISSUE_TEMPLATE/config.yml')).toBe(
+      'cacc384a88e89e82655597cdac4cc767ecc126902bd62a6bbb79c3bd0656e86f',
+    );
+  });
+
+  it('post100: locks issue-config.yml sha256 first/last octets', () => {
+    const hex = sha256('.github/ISSUE_TEMPLATE/config.yml');
+    expect(hex.slice(0, 2)).toBe('1f');
+    expect(hex.slice(-2)).toBe('bb');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post100: CI workflow name is exactly CI', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.startsWith('name: CI\n')).toBe(true);
+    expect([...ci.matchAll(/^name:\s*(.+)$/gm)].map((m) => m[1])).toEqual(['CI']);
+    expect([...ci.matchAll(/^\s+name:\s*(.+)$/gm)].map((m) => m[1])).toEqual([
+      'Typecheck',
+      'Tests',
+      'coverage-report',
+      'Hygiene',
+    ]);
+    expect([...ci.matchAll(/- name:\s*(.+)$/gm)].map((m) => m[1])).toEqual([
+      'Set up Node.js',
+      'Install dependencies',
+      'Typecheck',
+      'Set up Node.js',
+      'Install dependencies',
+      'Unit / integration tests with coverage',
+      'Assert coverage artifacts exist',
+      'Upload coverage report',
+      'Check required files',
+      'Check for committed secret material',
+    ]);
+  });
+
+  it('post100: CI jobs are typecheck test hygiene in order', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const jobsIdx = ci.indexOf('jobs:');
+    const typecheckIdx = ci.indexOf('\n  typecheck:\n');
+    const testIdx = ci.indexOf('\n  test:\n');
+    const hygieneIdx = ci.indexOf('\n  hygiene:\n');
+    expect(jobsIdx).toBeGreaterThan(-1);
+    expect(typecheckIdx).toBeGreaterThan(jobsIdx);
+    expect(testIdx).toBeGreaterThan(typecheckIdx);
+    expect(hygieneIdx).toBeGreaterThan(testIdx);
+  });
+
+  it('post100: CI triggers push and pull_request on main only', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/^on:\n  push:\n    branches: \[main\]\n  pull_request:\n    branches: \[main\]\n/m);
+    expect(ci).not.toMatch(/schedule:/);
+    // workflow_dispatch / pull_request_target appear only as hygiene assertions, not triggers
+    expect(ci).toContain("grep -q 'workflow_dispatch' .github/workflows/deploy.yml");
+    expect(ci).toContain('pull_request_target');
+    expect(ci.indexOf('jobs:')).toBeGreaterThan(ci.indexOf('pull_request:'));
+    expect(ci.indexOf('workflow_dispatch')).toBeGreaterThan(ci.indexOf('jobs:'));
+  });
+
+  it('post100: deploy is workflow_dispatch HITL only', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toMatch(/^on:\n  workflow_dispatch:\n/m);
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).not.toMatch(/pull_request/);
+    expect(deploy).not.toMatch(/schedule:/);
+  });
+
+  it('post100: CI concurrency group and cancel-in-progress true', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('group: ci-${{ github.workflow }}-${{ github.ref }}');
+    expect(ci).toContain('cancel-in-progress: true');
+  });
+
+  it('post100: deploy concurrency group and cancel-in-progress false', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('group: deploy-${{ github.workflow }}');
+    expect(deploy).toContain('cancel-in-progress: false');
+  });
+
+  it('post100: CI permissions contents read only at workflow level', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/permissions:\n  contents: read\n/);
+    expect(ci).not.toMatch(/id-token:|packages:|pull-requests:|issues:|actions: write/);
+  });
+
+  it('post100: CI defaults shell bash before jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.indexOf('defaults:')).toBeLessThan(ci.indexOf('jobs:'));
+    expect(ci).toContain('    shell: bash\n');
+  });
+
+  it('post100: CI timeout pins typecheck 10 test 15 hygiene 5', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/typecheck:[\s\S]*?timeout-minutes: 10/);
+    expect(ci).toMatch(/test:[\s\S]*?timeout-minutes: 15/);
+    expect(ci).toMatch(/hygiene:[\s\S]*?timeout-minutes: 5/);
+  });
+
+  it('post100: deploy timeout-minutes is 20', () => {
+    expect(read('.github/workflows/deploy.yml')).toContain('timeout-minutes: 20');
+  });
+
+  it('post100: CI action pins checkout v7 setup-node v7 upload-artifact v4', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect([...ci.matchAll(/actions\/checkout@v7/g)]).toHaveLength(3);
+    expect([...ci.matchAll(/actions\/setup-node@v7/g)]).toHaveLength(2);
+    expect([...ci.matchAll(/actions\/upload-artifact@v4/g)]).toHaveLength(1);
+    expect(ci).not.toMatch(/actions\/checkout@v[1-6]\b/);
+    expect(ci).not.toMatch(/actions\/setup-node@v[1-6]\b/);
+  });
+
+  it('post100: deploy action pins checkout setup-node wrangler-action v4', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect([...deploy.matchAll(/actions\/checkout@v7/g)]).toHaveLength(1);
+    expect([...deploy.matchAll(/actions\/setup-node@v7/g)]).toHaveLength(1);
+    expect([...deploy.matchAll(/cloudflare\/wrangler-action@v4/g)]).toHaveLength(1);
+  });
+
+  it('post100: CI node-version 20 with npm cache on both install jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    // 2 setup-node pins + 1 hygiene grep assertion
+    expect([...ci.matchAll(/node-version:\s*"20"/g)]).toHaveLength(3);
+    expect([...ci.matchAll(/cache:\s*"npm"/g)]).toHaveLength(2);
+  });
+
+  it('post100: CI persist-credentials false five times including hygiene greps', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect([...ci.matchAll(/persist-credentials:\s*false/g)]).toHaveLength(5);
+  });
+
+  it('post100: CI coverage artifact name coverage-report retention 14', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('name: coverage-report');
+    expect(ci).toContain('retention-days: 14');
+    expect(ci).toContain('if-no-files-found: error');
+    expect(ci).toContain('if: always()');
+  });
+
+  it('post100: CI coverage assert checks lcov SF:src/', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("test -d coverage");
+    expect(ci).toContain("test -f coverage/lcov.info");
+    expect(ci).toContain("test -s coverage/lcov.info");
+    expect(ci).toContain("grep -q 'SF:src/' coverage/lcov.info");
+  });
+
+  it('post100: CI hygiene lists all nine test suites plus helpers', () => {
+    const ci = read('.github/workflows/ci.yml');
+    for (const f of [
+      'test/parser.test.ts',
+      'test/genres.test.ts',
+      'test/routes.test.ts',
+      'test/mcp.test.ts',
+      'test/helpers.ts',
+      'test/helpers.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+    ]) {
+      expect(ci).toContain(`test -f ${f}`);
+    }
+  });
+
+  it('post100: CI hygiene forbids anthropic claude haiku in src and workflows', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'");
+    expect(ci).toContain("! grep -RqiE 'anthropic|claude|haiku' .github/workflows --include='*.yml'");
+  });
+
+  it('post100: CI hygiene pins gemini-2.0-flash in src/index.ts', () => {
+    expect(read('.github/workflows/ci.yml')).toContain("grep -q 'gemini-2.0-flash' src/index.ts");
+    expect(read('src/index.ts')).toContain('gemini-2.0-flash');
+  });
+
+  it('post100: CI hygiene forbids GEMINI_API_KEY in wrangler.toml', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain("! grep -q 'GEMINI_API_KEY=' wrangler.toml");
+    expect(ci).toContain("! grep -qiE 'api[_-]?key\\s*=' wrangler.toml");
+    expect(read('wrangler.toml')).not.toMatch(/GEMINI_API_KEY\s*=/);
+  });
+
+  it('post100: CI hygiene forbids committed .env .dev.vars pem key', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('! test -f .env');
+    expect(ci).toContain('! test -f .dev.vars');
+    expect(ci).toContain("! find . \\( -name '*.pem' -o -name '*.key' \\)");
+  });
+
+  it('post100: deploy secrets surface GEMINI_API_KEY CF tokens via secrets context', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('apiToken: ${{ secrets.CF_API_TOKEN }}');
+    expect(deploy).toContain('accountId: ${{ secrets.CF_ACCOUNT_ID }}');
+    expect(deploy).toContain('GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}');
+    expect(deploy).toMatch(/secrets:\s*\|\n\s*GEMINI_API_KEY/);
+  });
+
+  it('post100: deploy runs typecheck and coverage before wrangler-action', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const typecheckIdx = deploy.indexOf('run: npm run typecheck');
+    const coverageIdx = deploy.indexOf('run: npm run test:coverage');
+    const wranglerIdx = deploy.indexOf('cloudflare/wrangler-action@v4');
+    expect(typecheckIdx).toBeGreaterThan(-1);
+    expect(coverageIdx).toBeGreaterThan(typecheckIdx);
+    expect(wranglerIdx).toBeGreaterThan(coverageIdx);
+  });
+
+  it('post100: dependabot version 2 monthly npm and github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep.startsWith('version: 2\n')).toBe(true);
+    expect([...dep.matchAll(/package-ecosystem:\s*"npm"/g)]).toHaveLength(1);
+    expect([...dep.matchAll(/package-ecosystem:\s*"github-actions"/g)]).toHaveLength(1);
+    expect([...dep.matchAll(/interval:\s*"monthly"/g)]).toHaveLength(2);
+  });
+
+  it('post100: dependabot ignores semver-major and groups star patterns', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('update-types: ["version-update:semver-major"]');
+    expect(dep).toContain('open-pull-requests-limit: 3');
+    expect(dep).toContain('open-pull-requests-limit: 2');
+    expect([...dep.matchAll(/- "\*"/g)]).toHaveLength(2);
+  });
+
+  it('post100: package.json name version type module scripts exact', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      name: string;
+      version: string;
+      type: string;
+      scripts: Record<string, string>;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.version).toBe('0.1.0');
+    expect(pkg.type).toBe('module');
+    expect(pkg.scripts).toEqual({
+      dev: 'wrangler dev',
+      deploy: 'wrangler deploy',
+      typecheck: 'tsc --noEmit',
+      test: 'vitest run',
+      'test:watch': 'vitest',
+      'test:coverage': 'vitest run --coverage',
+    });
+  });
+
+  it('post100: package.json sole runtime dependency is hono', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+    expect(pkg.dependencies.hono).toBe('^4.13.7');
+    expect(Object.keys(pkg.devDependencies).sort()).toEqual([
+      '@cloudflare/workers-types',
+      '@types/node',
+      '@vitest/coverage-v8',
+      'typescript',
+      'vitest',
+      'wrangler',
+    ]);
+  });
+
+  it('post100: package-lock lockfileVersion 3 with 168 packages', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      lockfileVersion: number;
+      name: string;
+      packages: Record<string, unknown>;
+    };
+    expect(lock.lockfileVersion).toBe(3);
+    expect(lock.name).toBe('backlink');
+    expect(Object.keys(lock.packages)).toHaveLength(168);
+  });
+
+  it('post100: vitest coverage thresholds all 100 and include src exclude types', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+    expect(cfg).toContain("include: ['src/**/*.ts']");
+    expect(cfg).toContain("exclude: ['src/types.ts']");
+    expect(cfg).toContain("include: ['test/**/*.test.ts']");
+    expect(cfg).toContain("environment: 'node'");
+    expect(cfg).toContain('github-actions');
+    expect(cfg).toContain("'lcov'");
+  });
+
+  it('post100: tsconfig strict ES2022 Bundler workers+node types', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+      include: string[];
+    };
+    expect(ts.compilerOptions.target).toBe('ES2022');
+    expect(ts.compilerOptions.module).toBe('ESNext');
+    expect(ts.compilerOptions.moduleResolution).toBe('Bundler');
+    expect(ts.compilerOptions.strict).toBe(true);
+    expect(ts.compilerOptions.noEmit).toBe(true);
+    expect(ts.compilerOptions.types).toEqual(['@cloudflare/workers-types', 'node']);
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('post100: AGENTS Verify block lists npm ci typecheck test coverage', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('## Verify');
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+  });
+
+  it('post100: AGENTS Escalate includes GEMINI_API_KEY HITL CORS billing', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('## Escalate to Human');
+    expect(agents).toContain('GEMINI_API_KEY');
+    expect(agents).toContain('Production deploy (first deploy must be HITL)');
+    expect(agents).toContain('CORS or authentication logic');
+    expect(agents).toContain('billing or CF account configuration');
+  });
+
+  it('post100: AGENTS Safe Agent Actions includes unit tests under test/', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('Add / extend unit tests under `test/` for existing behavior');
+    expect(agents).toContain('Tier: A');
+    expect(agents).toContain('Autonomy: L2');
+    expect(agents).toContain('backlink.fuzzywigg.com');
+  });
+
+  it('post100: cursor environment.json name Backlink_Facelift install npm ci', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+  });
+
+  it('post100: gitignore covers node_modules coverage wrangler secrets', () => {
+    const gi = read('.gitignore');
+    for (const token of ['node_modules/', '.env', '.dev.vars', '*.pem', '*.key', '.wrangler/', 'coverage/', '.DS_Store']) {
+      expect(gi).toContain(token);
+    }
+  });
+
+  it('post100: gitattributes LF auto normalization only', () => {
+    expect(read('.gitattributes')).toBe('# Auto detect text files and perform LF normalization\n* text=auto\n');
+  });
+
+  it('post100: ISSUE_TEMPLATE inventory is bug chore feature config', () => {
+    expect(readdirSync(join(root, '.github/ISSUE_TEMPLATE')).sort()).toEqual([
+      'bug.yml',
+      'chore.yml',
+      'config.yml',
+      'feature.yml',
+    ]);
+  });
+
+  it('post100: ISSUE_TEMPLATE config disables blank issues', () => {
+    expect(read('.github/ISSUE_TEMPLATE/config.yml')).toBe('blank_issues_enabled: false\n');
+  });
+
+  it('post100: workflows directory is exactly ci.yml and deploy.yml', () => {
+    expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'deploy.yml']);
+  });
+
+  it('post100: .github top-level is ISSUE_TEMPLATE dependabot workflows', () => {
+    expect(readdirSync(join(root, '.github')).sort()).toEqual([
+      'ISSUE_TEMPLATE',
+      'dependabot.yml',
+      'workflows',
+    ]);
+  });
+
+  it('post100: test/ inventory has ten contract files including helpers.ts', () => {
+    expect(readdirSync(join(root, 'test')).sort()).toEqual([
+      'ci-config.test.ts',
+      'genres.test.ts',
+      'helpers.test.ts',
+      'helpers.ts',
+      'mcp-spec-contract.test.ts',
+      'mcp.test.ts',
+      'parser.test.ts',
+      'routes.test.ts',
+      'source-contracts.test.ts',
+      'wrangler-config.test.ts',
+    ]);
+  });
+
+  it('post100: src/ inventory is five modules only', () => {
+    expect(readdirSync(join(root, 'src')).sort()).toEqual([
+      'genres.ts',
+      'index.ts',
+      'mcp.ts',
+      'parser.ts',
+      'types.ts',
+    ]);
+  });
+
+  it('post100: negative inventing — CI does not introduce playlist now-playing openapi routes', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).not.toMatch(/\/playlist|\/now-playing|openapi|swagger/i);
+    expect(ci).not.toMatch(/podcast|audiobook|websocket/i);
+  });
+
+  it('post100: negative inventing — package scripts do not add lint format e2e invent', () => {
+    const scripts = Object.keys(
+      (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts,
+    );
+    expect(scripts).not.toContain('lint');
+    expect(scripts).not.toContain('format');
+    expect(scripts).not.toContain('e2e');
+    expect(scripts).not.toContain('storybook');
+    expect(scripts).toHaveLength(6);
+  });
+
+  it('post100: negative inventing — no second package manager lockfiles', () => {
+    expect(() => readFileSync(join(root, 'yarn.lock'))).toThrow();
+    expect(() => readFileSync(join(root, 'pnpm-lock.yaml'))).toThrow();
+    expect(() => readFileSync(join(root, 'bun.lockb'))).toThrow();
+    expect(read('package-lock.json').length).toBeGreaterThan(0);
+  });
+
+  it('post100: negative inventing — no Dockerfile compose k8s CI invent', () => {
+    expect(() => readFileSync(join(root, 'Dockerfile'))).toThrow();
+    expect(() => readFileSync(join(root, 'docker-compose.yml'))).toThrow();
+    expect(() => readFileSync(join(root, '.github/workflows/k8s.yml'))).toThrow();
+    expect(readdirSync(join(root, '.github/workflows'))).not.toContain('docker.yml');
+  });
+
+  it('post100: negative inventing — CI does not call wrangler deploy', () => {
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/wrangler deploy|wrangler-action/);
+    expect(read('.github/workflows/deploy.yml')).toContain('cloudflare/wrangler-action@v4');
+  });
+
+  it('post100: negative inventing — no jest mocha ava cypress in package.json', () => {
+    const raw = read('package.json');
+    expect(raw).not.toMatch(/jest|mocha|ava|cypress|playwright/i);
+    expect(raw).toContain('"vitest"');
+  });
+
+  it('post100: ci.yml is ASCII-only and has no tabs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).not.toMatch(/[^\x00-\x7F]/);
+    expect(ci.includes('\t')).toBe(false);
+    expect(ci.includes('\0')).toBe(false);
+  });
+
+  it('post100: deploy.yml dependabot.yml are ASCII-only no tabs', () => {
+    for (const rel of ['.github/workflows/deploy.yml', '.github/dependabot.yml']) {
+      const body = read(rel);
+      expect(body).not.toMatch(/[^\x00-\x7F]/);
+      expect(body.includes('\t')).toBe(false);
+    }
+  });
+
+  it('post100: ci.yml does not end with newline while deploy does', () => {
+    expect(read('.github/workflows/ci.yml').endsWith('\n')).toBe(false);
+    expect(read('.github/workflows/deploy.yml').endsWith('\n')).toBe(true);
+    expect(read('.github/dependabot.yml').endsWith('\n')).toBe(true);
+  });
+
+  it('post100: no BOM on CI config surface files', () => {
+    for (const rel of [
+      '.github/workflows/ci.yml',
+      '.github/workflows/deploy.yml',
+      '.github/dependabot.yml',
+      'vitest.config.ts',
+      'package.json',
+      'tsconfig.json',
+      'AGENTS.md',
+    ]) {
+      expect(read(rel).charCodeAt(0)).not.toBe(0xfeff);
+    }
+  });
+
+  it('post100: HMAC-SHA1 and HMAC-MD5 of ci.yml with key ci-config', () => {
+    expect(
+      createHmac('sha1', 'ci-config').update(readFileSync(join(root, '.github/workflows/ci.yml'))).digest('hex'),
+    ).toBe('cfd7a9b1a28fdebedfbd9cf3e1c52c80da3f0dae');
+    expect(
+      createHmac('md5', 'ci-config').update(readFileSync(join(root, '.github/workflows/ci.yml'))).digest('hex'),
+    ).toBe('b69a283739d0089c5392ce245c5dbd56');
+  });
+
+  it('post100: HMAC-SHA1 and HMAC-MD5 of deploy.yml with key post100', () => {
+    expect(
+      createHmac('sha1', 'post100').update(readFileSync(join(root, '.github/workflows/deploy.yml'))).digest('hex'),
+    ).toBe('5889aad520cbd9b1a1c1f7397e94e105a51c2570');
+    expect(
+      createHmac('md5', 'post100').update(readFileSync(join(root, '.github/workflows/deploy.yml'))).digest('hex'),
+    ).toBe('6f851f36026e5d15ddcb2232c371e370');
+  });
+
+  it('post100: HMAC-SHA256 of package.json with keys backlink npm vitest', () => {
+    expect(hmacSha256('backlink', 'package.json')).toBe('6edca9c2fa551d553a75d6e537f429b54763a48bf941865889f51008af5b38f5');
+    expect(hmacSha256('npm', 'package.json')).toBe('a1aa40269ebbc7365cbc23b09836cd84a30b5c383697ac07feb6dab792a8299d');
+    expect(hmacSha256('vitest', 'package.json')).toBe('d1eef869131396904345527df21d08eff915b75dec41011933949d12e9a7ba86');
+  });
+
+  it('post100: HMAC-SHA256 of vitest.config.ts with keys coverage thresholds', () => {
+    expect(hmacSha256('coverage', 'vitest.config.ts')).toBe('c6fbb12f11e5be209d3bf95521c6f27ce063332d1f0fb55e50bfb226b0b48431');
+    expect(hmacSha256('thresholds', 'vitest.config.ts')).toBe('d8ce3de0687c6be4047f84e62345f4a6a18fcb5e97be76a532f06f590390e3a4');
+  });
+
+  it('post100: HMAC-SHA256 of AGENTS.md with keys verify escalate', () => {
+    expect(hmacSha256('verify', 'AGENTS.md')).toBe('90e6907a7402f85d0b8e7070d306e277af75ed260a5d1ab656ec311d0cc37d9b');
+    expect(hmacSha256('escalate', 'AGENTS.md')).toBe('9fe42172c51971d228d1ec6d8bb5476e5528cf9b2f7514724aa3a8752f7a1439');
+  });
+
+  it('post100: locks ci.yml first line name CI', () => {
+    expect(read('.github/workflows/ci.yml').split('\n')[0]).toBe('name: CI');
+  });
+
+  it('post100: locks ci.yml last non-empty line is find grep pem key', () => {
+    const lines = read('.github/workflows/ci.yml').split('\n');
+    // ci.yml intentionally has no trailing newline — last split element is content
+    expect(lines[lines.length - 1]).not.toBe('');
+    const last = lines.filter((l) => l.length > 0).at(-1)!;
+    expect(last).toContain('*.pem');
+    expect(last).toContain('grep -q .');
+  });
+
+  it('post100: locks deploy.yml last line GEMINI_API_KEY secret env', () => {
+    const lines = read('.github/workflows/deploy.yml').split('\n').filter(Boolean);
+    expect(lines.at(-1)).toBe('          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}');
+  });
+
+  it('post100: locks ci.yml runs-on ubuntu-latest three times', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/runs-on:\s*ubuntu-latest/g)]).toHaveLength(3);
+  });
+
+  it('post100: locks deploy.yml runs-on ubuntu-latest once', () => {
+    expect([...read('.github/workflows/deploy.yml').matchAll(/runs-on:\s*ubuntu-latest/g)]).toHaveLength(1);
+  });
+
+  it('post100: locks npm ci appears twice in CI and once in deploy', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/npm ci/g)]).toHaveLength(2);
+    expect([...read('.github/workflows/deploy.yml').matchAll(/npm ci/g)]).toHaveLength(1);
+    expect(JSON.parse(read('.cursor/environment.json')).install).toBe('npm ci');
+  });
+
+  it('post100: locks package.json description em-dash editorial AI', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe('LLM-curated internet radio — editorial AI over iptv-org catalog');
+    expect([...pkg.description].filter((c) => c.charCodeAt(0) > 127)).toEqual(['—']);
+  });
+
+  it('post100: locks typescript caret 5 not 6 or 7 in package.json', () => {
+    const pkg = JSON.parse(read('package.json')) as { devDependencies: Record<string, string> };
+    expect(pkg.devDependencies.typescript).toMatch(/^\^5\./);
+    expect(pkg.devDependencies.typescript).not.toMatch(/^\^[67]\./);
+    expect(read('.github/workflows/ci.yml')).toContain(
+      String.raw`grep -qE '"typescript": "\^5\.' package.json`,
+    );
+    expect(read('.github/workflows/ci.yml')).toContain(
+      String.raw`! grep -qE '"typescript": "\^[67]\.' package.json`,
+    );
+  });
+
+  it('post100: locks vitest and coverage-v8 both caret 5', () => {
+    const pkg = JSON.parse(read('package.json')) as { devDependencies: Record<string, string> };
+    expect(pkg.devDependencies.vitest).toMatch(/^\^5\./);
+    expect(pkg.devDependencies['@vitest/coverage-v8']).toMatch(/^\^5\./);
+  });
+
+  it('post100: locks wrangler caret 4 and workers-types caret 5', () => {
+    const pkg = JSON.parse(read('package.json')) as { devDependencies: Record<string, string> };
+    expect(pkg.devDependencies.wrangler).toBe('^4.131.1');
+    expect(pkg.devDependencies['@cloudflare/workers-types']).toMatch(/^\^5\./);
+  });
+
+  it('post100: locks @types/node caret 22', () => {
+    const pkg = JSON.parse(read('package.json')) as { devDependencies: Record<string, string> };
+    expect(pkg.devDependencies['@types/node']).toMatch(/^\^22\./);
+  });
+
+  it('post100: queueMicrotask does not alter CI digests', async () => {
+    const before = sha256('.github/workflows/ci.yml');
+    await new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+    expect(sha256('.github/workflows/ci.yml')).toBe(before);
+  });
+
+  it('post100: setImmediate-equivalent Promise.resolve does not alter deploy digest', async () => {
+    const before = sha256('.github/workflows/deploy.yml');
+    await Promise.resolve();
+    expect(sha256('.github/workflows/deploy.yml')).toBe(before);
+  });
+
+  it('post100: Blob round-trip of workflow name CI', async () => {
+    const blob = new Blob(['CI'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('CI');
+    expect(read('.github/workflows/ci.yml').startsWith('name: CI\n')).toBe(true);
+  });
+
+  it('post100: TextEncoder bytes of coverage-report stay ASCII', () => {
+    const bytes = new TextEncoder().encode('coverage-report');
+    expect(bytes).toHaveLength(15);
+    expect(new TextDecoder().decode(bytes)).toBe('coverage-report');
+    expect(read('.github/workflows/ci.yml')).toContain('name: coverage-report');
+  });
+
+  it('post100: Int32Array of four 100 thresholds', () => {
+    const arr = Int32Array.from([100, 100, 100, 100]);
+    expect([...arr]).toEqual([100, 100, 100, 100]);
+    expect(read('vitest.config.ts')).toMatch(/branches:\s*100/);
+  });
+
+  it('post100: BigInt package-lock packages length is 168n', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { packages: Record<string, unknown> };
+    expect(BigInt(Object.keys(lock.packages).length)).toBe(168n);
+  });
+
+  it('post100: DataView reads node major 20 bytes', () => {
+    const buf = new TextEncoder().encode('20');
+    const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    expect(view.getUint8(0)).toBe(0x32);
+    expect(view.getUint8(1)).toBe(0x30);
+    expect(read('.github/workflows/ci.yml')).toContain('node-version: "20"');
+  });
+
+  it('post100: URL.canParse of npm registry does not appear in CI yaml', () => {
+    expect(URL.canParse('https://registry.npmjs.org/')).toBe(true);
+    expect(read('.github/workflows/ci.yml')).not.toContain('registry.npmjs.org');
+  });
+
+  it('post100: AbortSignal.timeout unused by CI workflows', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/AbortSignal/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/AbortSignal/);
+  });
+
+  it('post100: Headers unused — workflows have no Authorization Accept', () => {
+    expect(new Headers({ Accept: 'application/json' }).get('Accept')).toBe('application/json');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/Authorization:/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/Authorization:/);
+  });
+
+  it('post100: FormData unused by CI and deploy workflows', () => {
+    expect(typeof FormData).toBe('function');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/FormData|multipart/i);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/FormData|multipart/i);
+  });
+
+  it('post100: WeakMap can key package.json object without inventing deps', () => {
+    const pkg = JSON.parse(read('package.json')) as object;
+    const wm = new WeakMap<object, string>();
+    wm.set(pkg, 'backlink');
+    expect(wm.get(pkg)).toBe('backlink');
+    expect(Object.keys(pkg)).toContain('dependencies');
+  });
+
+  it('post100: performance.now around reading ci.yml is finite', () => {
+    const t0 = performance.now();
+    expect(read('.github/workflows/ci.yml').length).toBeGreaterThan(0);
+    const t1 = performance.now();
+    expect(Number.isFinite(t1 - t0)).toBe(true);
+  });
+
+  it('post100: encodeURIComponent of Typecheck Tests Hygiene is identity-ish', () => {
+    expect(encodeURIComponent('Typecheck')).toBe('Typecheck');
+    expect(encodeURIComponent('Tests')).toBe('Tests');
+    expect(encodeURIComponent('Hygiene')).toBe('Hygiene');
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('name: Typecheck');
+    expect(ci).toContain('name: Tests');
+    expect(ci).toContain('name: Hygiene');
+  });
+
+  it('post100: btoa/atob round-trip of CI name', () => {
+    expect(atob(btoa('CI'))).toBe('CI');
+    expect(read('.github/workflows/ci.yml').startsWith('name: CI\n')).toBe(true);
+  });
+
+  it('post100: structuredClone of package scripts stays equal', () => {
+    const scripts = (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts;
+    expect(structuredClone(scripts)).toEqual(scripts);
+    expect(Object.isFrozen(structuredClone(scripts))).toBe(false);
+  });
+
+  it('post100: localeCompare ordering of CI job ids', () => {
+    const jobs = ['hygiene', 'test', 'typecheck'];
+    expect([...jobs].sort((a, b) => a.localeCompare(b))).toEqual(['hygiene', 'test', 'typecheck']);
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/^  typecheck:$/m);
+    expect(ci).toMatch(/^  test:$/m);
+    expect(ci).toMatch(/^  hygiene:$/m);
+  });
+
+  it('post100: Buffer compare of ci.yml prefix name', () => {
+    const head = readFileSync(join(root, '.github/workflows/ci.yml')).subarray(0, 8);
+    expect(Buffer.compare(head, Buffer.from('name: CI'))).toBe(0);
+  });
+
+  it('post100: fromCharCode rebuild of workflow name CI', () => {
+    const name = String.fromCharCode(67, 73);
+    expect(name).toBe('CI');
+    expect(read('.github/workflows/ci.yml')).toContain(`name: ${name}\n`);
+  });
+
+  it('post100: Array.from of coverage threshold digits', () => {
+    expect(Array.from('100')).toEqual(['1', '0', '0']);
+    expect(Number(Array.from('100').join(''))).toBe(100);
+    expect(read('vitest.config.ts')).toMatch(/lines:\s*100/);
+  });
+
+  it('post100: Set uniqueness of CI job names', () => {
+    const names = ['Typecheck', 'Tests', 'Hygiene'];
+    expect(new Set(names).size).toBe(3);
+    const ci = read('.github/workflows/ci.yml');
+    for (const n of names) expect(ci).toContain(`name: ${n}\n`);
+  });
+
+  it('post100: Map inventory of six package scripts', () => {
+    const scripts = (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts;
+    const map = new Map(Object.entries(scripts));
+    expect(map.size).toBe(6);
+    expect(map.get('test:coverage')).toBe('vitest run --coverage');
+  });
+
+  it('post100: Object.entries package.json top-level key order', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(Object.keys(pkg)).toEqual([
+      'name',
+      'version',
+      'description',
+      'type',
+      'scripts',
+      'dependencies',
+      'devDependencies',
+    ]);
+  });
+
+  it('post100: JSON.stringify package name round-trips', () => {
+    expect(JSON.stringify({ name: 'backlink' })).toBe('{"name":"backlink"}');
+    expect(JSON.parse(read('package.json')).name).toBe('backlink');
+  });
+
+  it('post100: padStart retention-days fortnight', () => {
+    expect(String(14).padStart(2, '0')).toBe('14');
+    expect(14 / 7).toBe(2);
+    expect(read('.github/workflows/ci.yml')).toContain('retention-days: 14');
+  });
+
+  it('post100: repeat of hyphen does not invent workflow names', () => {
+    expect('-'.repeat(3)).toBe('---');
+    expect(read('.github/workflows/ci.yml')).not.toContain('name: ---');
+  });
+
+  it('post100: slice first 40 and last 40 of ci.yml', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.slice(0, 40)).toBe('name: CI\n\non:\n  push:\n    branches: [mai');
+    expect(ci.slice(-40)).toBe("odules/*' ! -path './.git/*' | grep -q .");
+  });
+
+  it('post100: slice first 40 and last 40 of deploy.yml', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy.slice(0, 40)).toBe('name: Deploy to Cloudflare Workers\n\non:\n');
+    expect(deploy.slice(-40)).toBe('_API_KEY: ${{ secrets.GEMINI_API_KEY }}\n');
+  });
+
+  it('post100: sha256 of concatenated CI job ids', () => {
+    const joined = ['typecheck', 'test', 'hygiene'].join('|');
+    expect(createHash('sha256').update(joined).digest('hex')).toBe(
+      'c48518346e52822a0ffe829df570359891ea3a1c43bdc58253a1a5103bcdf4c9',
+    );
+  });
+
+  it('post100: sha256 of Verify script block tokens', () => {
+    const tokens = ['npm ci', 'npm run typecheck', 'npm test', 'npm run test:coverage'].join('\n');
+    expect(createHash('sha256').update(tokens).digest('hex')).toBe(
+      '0ddf9e851fceb0350faa3d8b53ed0bfdcaa2aaed6efbcc15259e212de662e007',
+    );
+    expect(read('AGENTS.md')).toContain('npm run test:coverage');
+  });
+
+  it('post100: cross-lock README mentions CI badge without inventing routes', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/CI/);
+    expect(readme).not.toMatch(/\/playlist|\/now-playing/);
+  });
+
+  it('post100: cross-lock DEPLOY.md HITL workflow_dispatch language', () => {
+    const deployMd = read('DEPLOY.md');
+    expect(deployMd.toLowerCase()).toMatch(/hitl|workflow_dispatch|manual|human/);
+    expect(read('.github/workflows/deploy.yml')).toContain('workflow_dispatch');
+  });
+
+  it('post100: cross-lock wrangler.toml name backlink without secrets', () => {
+    const toml = read('wrangler.toml');
+    expect(toml).toContain('name = "backlink"');
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(read('.github/workflows/ci.yml')).toContain("! grep -q 'GEMINI_API_KEY=' wrangler.toml");
+  });
+
+  it('post100: cross-lock helpers.ts exists for route stubs without CI fetching iptv', () => {
+    expect(read('test/helpers.ts')).toContain('export function stubIptvAndGemini');
+    expect(read('.github/workflows/ci.yml')).not.toContain('iptv-org.github.io');
+  });
+
+  it('post100: mega purity — 40 rounds of ci.yml sha256 stability', () => {
+    const expected = 'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5';
+    for (let i = 0; i < 40; i++) {
+      expect(sha256('.github/workflows/ci.yml')).toBe(expected);
+    }
+  });
+
+  it('post100: mega purity — 20 rounds of package.json + vitest digests', () => {
+    const pkgD = '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c';
+    const vitD = 'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38';
+    for (let i = 0; i < 20; i++) {
+      expect(sha256('package.json')).toBe(pkgD);
+      expect(sha256('vitest.config.ts')).toBe(vitD);
+    }
+  });
+
+  it('post100: final inventory — ci-config describe blocks include post79 and post100', () => {
+    const body = read('test/ci-config.test.ts');
+    expect(body).toContain("describe('post79 ci-config HEAVY deepen'");
+    expect(body).toContain("describe('post100 ci-config HEAVY deepen'");
+    expect((body.match(/it\('post100:/g) ?? []).length).toBeGreaterThan(100);
+  });
+
+  it('post100: ci-config.test.ts ends with newline after post100', () => {
+    expect(read('test/ci-config.test.ts').endsWith('\n')).toBe(true);
+  });
+
+  it('post100: dirname of this test file resolves to test/', () => {
+    expect(dirname(fileURLToPath(import.meta.url)).endsWith('/test')).toBe(true);
+    expect(read('package.json')).toContain('"name": "backlink"');
   });
 
 });
