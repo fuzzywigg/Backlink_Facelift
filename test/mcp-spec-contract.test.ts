@@ -28388,7 +28388,7 @@ describe('post253 mcp-spec-contract HEAVY deepen (after #253 tip leftover / genr
     expect(read("test/wrangler-config.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/ci-config.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/parser.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
-    expect(read("test/routes.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
+    expect(read(['test', 'routes.test.ts'].join('/')).includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/genres.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/mcp.test.ts").includes(['describe(', "'post253 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
   });
