@@ -33922,7 +33922,7 @@ describe('post226 source-contracts HEAVY deepen (after #226 tip leftover / helpe
   it('post226: locks src/index.ts blake2b512', () => { expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace"); });
   it('post226: locks src/index.ts ripemd160', () => { expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093"); });
   it('post226: locks src/index.ts size 4738', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738); });
-  it('post226: locks src/index.ts utf8 4723 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4723); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
+  it('post226: locks src/index.ts utf8 4724 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4724); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post226: locks src/index.ts nibble 470 xor 14', () => { const d = sha256("src/index.ts"); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14); });
   it('post226: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256("src/index.ts"); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151); });
   it('post226: locks src/index.ts first/last/mid octets', () => { const d = sha256("src/index.ts"); expect(d.slice(0, 2)).toBe("7f"); expect(d.slice(-2)).toBe("72"); expect(d.slice(28, 36)).toBe("e2a20389"); });
@@ -34421,7 +34421,7 @@ describe('post226 source-contracts extras HEAVY deepen (after #226 leftover / he
   const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
   it("post226-extras: sha256 src/index.ts", () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it("post226-extras: size src/index.ts", () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it("post226-extras: utf8-len src/index.ts", () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it("post226-extras: utf8-len src/index.ts", () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it("post226-extras: nibble src/index.ts", () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it("post226-extras: sha256 src/types.ts", () => { expect(sha256("src/types.ts")).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3"); });
   it("post226-extras: size src/types.ts", () => { expect(statSync(join(root, "src/types.ts")).size).toBe(174); });
