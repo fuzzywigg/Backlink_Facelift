@@ -16786,32 +16786,38 @@ describe('post149 helpers HEAVY deepen (after #149)', () => {
   });
 
   it('post149: stubIptvAndGemini catalog down returns configured status', async () => {
-    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 });
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
     const res = await fetchMock(iptvCategoryUrl('music'));
     expect(res.status).toBe(503);
     expect(await res.text()).toBe('down');
   });
 
   it('post149: stubIptvAndGemini per-genre null falls back status', async () => {
-    const fetchMock = stubIptvAndGemini({ iptvByGenre: { jazz: null }, iptvStatus: 502 });
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { jazz: null }, iptvStatus: 502 }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
     const res = await fetchMock(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(502);
   });
 
   it('post149: stubIptvAndGemini unknown host 404', async () => {
-    const fetchMock = stubIptvAndGemini({});
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
     const res = await fetchMock('https://example.invalid/nope');
     expect(res.status).toBe(404);
   });
 
   it('post149: stubIptvAndGemini default gemini 500 when unset', async () => {
-    const fetchMock = stubIptvAndGemini({});
+    const fetchMock = stubIptvAndGemini({}) as unknown as (input: string) => Promise<Response>;
     const res = await fetchMock('https://generativelanguage.googleapis.com/v1beta/models/x');
     expect(res.status).toBe(500);
   });
 
   it('post149: stubIptvAndGemini gemini function form', async () => {
-    const fetchMock = stubIptvAndGemini({ gemini: () => geminiTextResponse('[]') });
+    const fetchMock = stubIptvAndGemini({ gemini: () => geminiTextResponse('[]') }) as unknown as (
+      input: string,
+    ) => Promise<Response>;
     const res = await fetchMock('https://generativelanguage.googleapis.com/v1beta/models/x');
     expect(res.status).toBe(200);
     const body = await res.json() as { candidates: Array<{ content: { parts: Array<{ text: string }> } }> };
@@ -16819,28 +16825,37 @@ describe('post149 helpers HEAVY deepen (after #149)', () => {
   });
 
   it('post149: captureGeminiRequest null when never called', () => {
-    const fetchMock = stubIptvAndGemini({ m3u: null });
-    expect(captureGeminiRequest(fetchMock)).toBeNull();
+    expect(
+      captureGeminiRequest({ mock: { calls: [['https://iptv-org.github.io/iptv/categories/music.m3u']] } }),
+    ).toBeNull();
   });
 
-  it('post149: captureGeminiRequest parses POST body', async () => {
-    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
-    await fetchMock('https://generativelanguage.googleapis.com/v1beta/models/x', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: 'hi' }] }] }),
+  it('post149: captureGeminiRequest parses POST body', () => {
+    const body = JSON.stringify({ contents: [{ parts: [{ text: 'post149' }] }] });
+    const got = captureGeminiRequest({
+      mock: {
+        calls: [
+          [
+            'https://generativelanguage.googleapis.com/v1beta/models/x:generateContent?key=k',
+            { method: 'POST', body, headers: { 'content-type': 'application/json' } },
+          ],
+        ],
+      },
     });
-    const captured = captureGeminiRequest(fetchMock);
-    expect(captured).not.toBeNull();
-    expect(captured!.method).toBe('POST');
-    expect(captured!.body).toHaveProperty('contents');
+    expect(got).not.toBeNull();
+    expect(got!.method).toBe('POST');
+    expect(got!.body).toEqual({ contents: [{ parts: [{ text: 'post149' }] }] });
+    expect(got!.url).toContain('generativelanguage.googleapis.com');
   });
 
-  it('post149: iptvCallsWithInit filters only iptv with init', async () => {
-    const fetchMock = stubIptvAndGemini({});
-    await fetchMock(iptvCategoryUrl('music'));
-    await fetchMock(iptvCategoryUrl('jazz'), { method: 'GET' });
-    expect(iptvCallsWithInit(fetchMock)).toHaveLength(1);
+  it('post149: iptvCallsWithInit filters only iptv with init', () => {
+    const calls = [
+      ['https://iptv-org.github.io/iptv/categories/music.m3u'],
+      ['https://iptv-org.github.io/iptv/categories/jazz.m3u', { method: 'GET' }],
+      ['https://generativelanguage.googleapis.com/x', { method: 'POST' }],
+    ];
+    expect(iptvCallsWithInit({ mock: { calls } })).toHaveLength(1);
+    expect(String(iptvCallsWithInit({ mock: { calls } })[0][0])).toContain('jazz');
   });
 
   it('post149: countHttpStreamLines ignores rtmp and blanks', () => {
