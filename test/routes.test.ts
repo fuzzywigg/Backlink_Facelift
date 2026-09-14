@@ -18998,3 +18998,1010 @@ describe('post141 routes HEAVY deepen (after #141)', () => {
   });
 
 });
+describe('overnight link-audit-pipeline HEAVY deepen (routes)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-link-audit: inventory — fetchStations !res.ok fallback is redirect-status audit', () => {
+    const src = read('src/index.ts');
+    expect(src).toContain('if (!res.ok)');
+    expect(src).toContain("res = await fetch(`${IPTV_BASE}/music.m3u`)");
+    expect(src).not.toMatch(/auditWorker|followRedirect|redirectLoop/i);
+    expect(src).not.toContain("app.get('/playlist'");
+  });
+
+  it('overnight-link-audit: locks src/index.ts digests', () => {
+    expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+    expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b');
+    expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177');
+    expect(sha384('src/index.ts')).toBe('1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65');
+    expect(sha512('src/index.ts')).toBe('28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3');
+    expect(sha3('src/index.ts')).toBe('437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b');
+    expect(blake2b('src/index.ts')).toBe('17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace');
+    expect(ripemd('src/index.ts')).toBe('a8ea25913b26da27277f866fc7988fdcdf281093');
+  });
+
+  it('overnight-link-audit: locks src/index.ts HMAC overnight/link-audit/pipeline', () => {
+    expect(hmacSha256('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+    expect(hmacSha256('link-audit', 'src/index.ts')).toBe('46cbb3c5e7c38a33b9d712e92ff9e6314e64335034b8e9950d6eec280a223998');
+    expect(hmacSha256('pipeline', 'src/index.ts')).toBe('fdb34d92dccb908765aad75fe4667ff7b4cefba9d16257ce5be989303f0c257c');
+  });
+
+  it('overnight-link-audit: locks src/index.ts HMAC TOKENMAXX/HEAVY/redirect-loop/empty-batch', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+    expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+    expect(hmacSha256('redirect-loop', 'src/index.ts')).toBe('a726c967a585ac91b7ad8723c83e945e650ebec59b7d92f4eb7e6e3ab27d84a3');
+    expect(hmacSha256('empty-batch', 'src/index.ts')).toBe('38fc36a8f5ea9dab403f091c602a015d0e748c617cc54b44b807bf1e40853f3d');
+  });
+
+  it('overnight-link-audit: redirect stub 301 — does not follow Location; falls back to music.m3u', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) {
+          return new Response('moved', {
+            status: 301,
+            headers: { Location: 'https://evil.example/loop-301.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect stub 302 — does not follow Location; falls back to music.m3u', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) {
+          return new Response('moved', {
+            status: 302,
+            headers: { Location: 'https://evil.example/loop-302.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect stub 303 — does not follow Location; falls back to music.m3u', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) {
+          return new Response('moved', {
+            status: 303,
+            headers: { Location: 'https://evil.example/loop-303.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect stub 307 — does not follow Location; falls back to music.m3u', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) {
+          return new Response('moved', {
+            status: 307,
+            headers: { Location: 'https://evil.example/loop-307.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect stub 308 — does not follow Location; falls back to music.m3u', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) {
+          return new Response('moved', {
+            status: 308,
+            headers: { Location: 'https://evil.example/loop-308.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-loop stub 301 — primary+music both 301 → 503, never follows Location', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        return new Response('loop', {
+          status: 301,
+          headers: { Location: 'https://evil.example/infinite-301.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toMatchObject({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-loop stub 302 — primary+music both 302 → 503, never follows Location', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        return new Response('loop', {
+          status: 302,
+          headers: { Location: 'https://evil.example/infinite-302.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toMatchObject({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-loop stub 303 — primary+music both 303 → 503, never follows Location', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        return new Response('loop', {
+          status: 303,
+          headers: { Location: 'https://evil.example/infinite-303.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toMatchObject({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-loop stub 307 — primary+music both 307 → 503, never follows Location', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        return new Response('loop', {
+          status: 307,
+          headers: { Location: 'https://evil.example/infinite-307.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toMatchObject({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-loop stub 308 — primary+music both 308 → 503, never follows Location', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        return new Response('loop', {
+          status: 308,
+          headers: { Location: 'https://evil.example/infinite-308.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toMatchObject({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: empty audit batch — header-only M3U yields count 0', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: '#EXTM3U\n' }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body).toMatchObject({ genre: 'music', count: 0, stations: [] });
+  });
+
+  it('overnight-link-audit: empty audit batch — only non-http schemes yields count 0', async () => {
+    const m3u = '#EXTM3U\n#EXTINF:-1 tvg-name="R",R\nrtmp://x\n#EXTINF:-1 tvg-name="F",F\nftp://y\n';
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(body.stations).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — XML body 200 caches []', async () => {
+    const kv = mockKV();
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: '<?xml version="1.0"?><root/>' }));
+    const res = await app.request('/stations?genre=news', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(0);
+    expect(kv.put).toHaveBeenCalledWith('stations:news', '[]', expect.objectContaining({ expirationTtl: 3600 }));
+  });
+
+  it('overnight-link-audit: empty audit batch — warm KV [] short-circuits fetch', async () => {
+    const kv = mockKV(seedStationsCache('jazz', []));
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const body = await json(await app.request('/stations?genre=jazz', undefined, testEnv({ CATALOG_CACHE: kv })));
+    expect(body.count).toBe(0);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-link-audit: malformed URL streams still surface on /stations (no URL validation)', async () => {
+    const m3u = buildSimpleM3U([
+      { name: 'Spacy', url: 'https://example.com/has space.m3u8' },
+      { name: 'Bare', url: 'https://' },
+    ]);
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u }));
+    const body = await json(await app.request('/stations?genre=music', undefined, testEnv()));
+    expect(body.count).toBe(2);
+    const urls = (body.stations as Array<{ url: string }>).map((s) => s.url);
+    expect(urls).toEqual(['https://example.com/has space.m3u8', 'https://']);
+  });
+
+  it('overnight-link-audit: concurrent audit workers — 12 parallel /stations cold misses', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
+    const results = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        app.request('/stations?genre=music', undefined, testEnv()).then(async (r) => ({
+          status: r.status,
+          count: (await json(r)).count,
+        })),
+      ),
+    );
+    expect(results.every((r) => r.status === 200 && r.count === 6)).toBe(true);
+  });
+
+  it('overnight-link-audit: concurrent audit workers — mixed genres distinct iptv paths', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response(SAMPLE_M3U, { status: 200 });
+      }),
+    );
+    await Promise.all([
+      app.request('/stations?genre=jazz', undefined, testEnv()),
+      app.request('/stations?genre=news', undefined, testEnv()),
+      app.request('/stations?genre=rock', undefined, testEnv()),
+    ]);
+    expect(seen).toEqual(expect.arrayContaining([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/news.m3u',
+      'https://iptv-org.github.io/iptv/categories/rock.m3u',
+    ]));
+  });
+
+  it('overnight-link-audit: concurrent warm empty-batch KV hits never fetch', async () => {
+    const kv = mockKV({
+      ...seedStationsCache('music', []),
+      ...seedStationsCache('jazz', []),
+    });
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const results = await Promise.all([
+      app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv })),
+      app.request('/stations?genre=jazz', undefined, testEnv({ CATALOG_CACHE: kv })),
+      app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv })),
+    ]);
+    for (const r of results) {
+      expect(r.status).toBe(200);
+      expect((await json(r)).count).toBe(0);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-link-audit: /curate empty catalog degrades to empty stations list', async () => {
+    vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: '#EXTM3U\n' }));
+    const res = await app.request('/curate?genre=music', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(200);
+    const body = await json(res);
+    // gemini may fail on empty prompt path or return degrade slice of []
+    expect(Array.isArray(body.stations)).toBe(true);
+    expect((body.stations as unknown[]).length).toBe(0);
+  });
+
+  it('overnight-link-audit: genre=music double-fetch on primary redirect 302', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('redir', {
+          status: 302,
+          headers: { Location: 'https://evil.example/music-loop.m3u' },
+        });
+      }),
+    );
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 0 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m0.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 1 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m1.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 2 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m2.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 3 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m3.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 4 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m4.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 5 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m5.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 6 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m6.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 7 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m7.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 8 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m8.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 9 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m9.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 10 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m10.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 11 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m11.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 12 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m12.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 13 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m13.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 14 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m14.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 15 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m15.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 16 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m16.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 17 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m17.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 18 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m18.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 19 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m19.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 20 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m20.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 21 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m21.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 22 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m22.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 23 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m23.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 24 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m24.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 25 status=301 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 301, headers: { Location: 'https://evil.example/m25.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 26 status=302 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 302, headers: { Location: 'https://evil.example/m26.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 27 status=303 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 303, headers: { Location: 'https://evil.example/m27.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 28 status=307 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 307, headers: { Location: 'https://evil.example/m28.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: redirect-matrix 29 status=308 then empty music batch', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) {
+          return new Response('r', { status: 308, headers: { Location: 'https://evil.example/m29.m3u' } });
+        }
+        if (url.endsWith('/music.m3u')) return new Response('#EXTM3U\n', { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const body = await json(await app.request('/stations?genre=pop', undefined, testEnv()));
+    expect(body.count).toBe(0);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it('overnight-link-audit: negative invent fence routes', () => {
+    expect(read('src/index.ts')).not.toMatch(/\/playlist|\/now-playing|auditWorker/);
+  });
+
+  it('overnight-link-audit: mega purity 40x index.ts sha256', () => {
+    for (let i = 0; i < 40; i++) expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+
+  it('overnight-link-audit: final inventory markers', () => {
+    const body = read('test/routes.test.ts');
+    expect(body).toContain("describe('overnight link-audit-pipeline HEAVY deepen (routes)'");
+    expect((body.match(/it\('overnight-link-audit:/g) ?? []).length).toBeGreaterThan(50);
+  });
+});
