@@ -36992,7 +36992,7 @@ describe('post266 mcp HEAVY deepen (after #266 tip leftover / genres-mcp-spec-on
     return a;
   };
 
-  it('post266: inventory — mcp leftover after tip #266 (beyond #266 post261 genres+mcp; tip #263 wrangler+ci; tip #262 media-parser; tip #265 helpers+source)', () => {
+  it('post266: inventory — mcp leftover after tip #266 (beyond #266 post266 genres+mcp; tip #263 wrangler+ci; tip #262 media-parser; tip #265 helpers+source)', () => {
     expect(MCP_MANIFEST.tools).toHaveLength(4);
     expect(read('test/mcp.test.ts')).toContain("describe('post266 mcp HEAVY deepen");
     expect(read('test/mcp.test.ts')).toContain(['describe(', "'post261 mcp HEAVY deepen"].join(''));
@@ -37292,7 +37292,7 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: first-line src/mcp.ts', () => { expect(createHash('sha256').update(read("src/mcp.ts").split('\n')[0]).digest('hex')).toBe("73d0328cf8db2bc4525219dd63f5dc9b67754ff24aaa895010835d654df47da5"); });
   it('post266-extras: UPPER src/mcp.ts', () => { expect(sha256("src/mcp.ts").toUpperCase()).toBe("6AE8FFD7C4B75C471DB2DFF1FE5C6AD61AFF69E38B048A366BB8B7ADB3099683"); });
   it('post266-extras: size*lines src/mcp.ts', () => { expect(statSync(join(repo, "src/mcp.ts")).size * read("src/mcp.ts").split('\n').length).toBe(139876); });
-  it('post266-extras: HMAC post261 src/mcp.ts', () => { expect(hmacSha256("post266", "src/mcp.ts")).toBe("5825838dc9b298dd80ea7f617629f219c2ffc1d0c77d6e2365bc1360c6179e00"); });
+  it('post266-extras: HMAC post266 src/mcp.ts', () => { expect(hmacSha256("post266", "src/mcp.ts")).toBe("5825838dc9b298dd80ea7f617629f219c2ffc1d0c77d6e2365bc1360c6179e00"); });
   it('post266-extras: HMAC after-#266 src/mcp.ts', () => { expect(hmacSha256("after-#266", "src/mcp.ts")).toBe("8ebb0baeceb5d3a270c6b8fb6f144b94496a4a16c006b6c0da0bc8600a449d05"); });
   it('post266-extras: HMAC leftover src/mcp.ts', () => { expect(hmacSha256("leftover", "src/mcp.ts")).toBe("8ace2389ce0308341cb978ba9c33116db731b2166d09e0adc79fa37366b8c712"); });
   it('post266-extras: HMAC TOKENMAXX src/mcp.ts', () => { expect(hmacSha256("TOKENMAXX", "src/mcp.ts")).toBe("cc983fd02cae540665f120f8a72c3867b8d573a30f5a9c84ace5b4cea2fb9f62"); });
@@ -37332,9 +37332,9 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: HMAC no-creds src/mcp.ts', () => { expect(hmacSha256("no-creds", "src/mcp.ts")).toBe("913b75612a46d4953e5fcc7f1d80ecb84b79087529ab3d8b0e7ec6dc7e3a5468"); });
   it('post266-extras: HMAC iptv-org src/mcp.ts', () => { expect(hmacSha256("iptv-org", "src/mcp.ts")).toBe("dcaf0c454cf3ee0bbaba12121ffe1183726881c6eb0f1f0714218d84c63cd1d7"); });
   it('post266-extras: HMAC fuzzywigg src/mcp.ts', () => { expect(hmacSha256("fuzzywigg", "src/mcp.ts")).toBe("93171a03382e2488888b170abdf10cc84dbd7ec7e77448b36c60d6758faac830"); });
-  it('post266-extras: HMAC-SHA1 post261 src/mcp.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("9db31b0c8b726af667308cf510820cbac1366ad0"); });
-  it('post266-extras: HMAC-MD5 post261 src/mcp.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("ff6f7e5a8c27bb3c2b8233828e2a3dba"); });
-  it('post266-extras: utf16le-HMAC post261 src/mcp.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/mcp.ts"),'utf16le')).digest('hex')).toBe("9959338b4703fa125c3baae1960989b4b3242cf00159dfbd4aabe8d8b9ed8065"); });
+  it('post266-extras: HMAC-SHA1 post266 src/mcp.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("8f8703e5b6bed07ef37634b55efd86509dec919d"); });
+  it('post266-extras: HMAC-MD5 post266 src/mcp.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("cc0cf28d3a9b00f70161895f9e373c05"); });
+  it('post266-extras: utf16le-HMAC post266 src/mcp.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/mcp.ts"),'utf16le')).digest('hex')).toBe("80a6ac1456ebbf5bfc9d2603aa266765a265ceb4a68577313674b2129e95f971"); });
   it('post266-extras: sha1 src/mcp.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("848b3977365809fda54fcb74a7d09affe685ea82"); });
   it('post266-extras: md5 src/mcp.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("52e71c72e32e3d95b8b8d61ff4a2cf46"); });
   it('post266-extras: sha384 src/mcp.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("a95bef5fcb3b93e9c05aac94aaa6a49adb47a360bfaf046e65f7254c2249fd1f34ff923ec401752e2701b7260d9949d2"); });
@@ -37389,7 +37389,7 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: first-line src/genres.ts', () => { expect(createHash('sha256').update(read("src/genres.ts").split('\n')[0]).digest('hex')).toBe("907b574a0aac9a6f7bd2904b3af22ac0c611daa5f3e30b8a7a5d8f264f7ddc68"); });
   it('post266-extras: UPPER src/genres.ts', () => { expect(sha256("src/genres.ts").toUpperCase()).toBe("AA626817CF3BC8A707AC5ADBA39F811DFBC23F695E5E0CB9D070007D839D914E"); });
   it('post266-extras: size*lines src/genres.ts', () => { expect(statSync(join(repo, "src/genres.ts")).size * read("src/genres.ts").split('\n').length).toBe(49296); });
-  it('post266-extras: HMAC post261 src/genres.ts', () => { expect(hmacSha256("post266", "src/genres.ts")).toBe("18fc79756bd24dbd7124e6da601fd606ad01a21b256c569e142e82e0bf607e3c"); });
+  it('post266-extras: HMAC post266 src/genres.ts', () => { expect(hmacSha256("post266", "src/genres.ts")).toBe("18fc79756bd24dbd7124e6da601fd606ad01a21b256c569e142e82e0bf607e3c"); });
   it('post266-extras: HMAC after-#266 src/genres.ts', () => { expect(hmacSha256("after-#266", "src/genres.ts")).toBe("68178ec1725dd3bf843ac5be6d64308743b55b03aaa45fd1a50cec78810d0251"); });
   it('post266-extras: HMAC leftover src/genres.ts', () => { expect(hmacSha256("leftover", "src/genres.ts")).toBe("bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f"); });
   it('post266-extras: HMAC TOKENMAXX src/genres.ts', () => { expect(hmacSha256("TOKENMAXX", "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951"); });
@@ -37429,9 +37429,9 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: HMAC no-creds src/genres.ts', () => { expect(hmacSha256("no-creds", "src/genres.ts")).toBe("1efc2476ef5f97e1e8c79cad25705654ca7544c4dfe8dbf123c6ecc6d08a143d"); });
   it('post266-extras: HMAC iptv-org src/genres.ts', () => { expect(hmacSha256("iptv-org", "src/genres.ts")).toBe("1493d15bc7d59b37d840b00afdadc42f8b5d087e532feedd20fccd557a198a5e"); });
   it('post266-extras: HMAC fuzzywigg src/genres.ts', () => { expect(hmacSha256("fuzzywigg", "src/genres.ts")).toBe("449f90c50ae8bb525d12e1afc61f2c9676d4df314072ddd9d39da78f5b3386d5"); });
-  it('post266-extras: HMAC-SHA1 post261 src/genres.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("c9212437588111fef455807895b37f368af8e4bb"); });
-  it('post266-extras: HMAC-MD5 post261 src/genres.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("1a3bf8c25849778adadac720c71b4c86"); });
-  it('post266-extras: utf16le-HMAC post261 src/genres.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/genres.ts"),'utf16le')).digest('hex')).toBe("38e3c583d3e7d89aa3ca05f50a0474f2fa1812cafdc72ff28a50f93e57702278"); });
+  it('post266-extras: HMAC-SHA1 post266 src/genres.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("2ca701c8c3437cda0e21a64f9e5699938ca4940e"); });
+  it('post266-extras: HMAC-MD5 post266 src/genres.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("3381005f0258f494247ffd485296d59b"); });
+  it('post266-extras: utf16le-HMAC post266 src/genres.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/genres.ts"),'utf16le')).digest('hex')).toBe("d786a5bb8261ef247b1e771409296e79937b436768a7b37e9dc2c0b401f4013e"); });
   it('post266-extras: sha1 src/genres.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e"); });
   it('post266-extras: md5 src/genres.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("ee8d34506f688c9e3097b89a35d48aa5"); });
   it('post266-extras: sha384 src/genres.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16"); });
@@ -37476,7 +37476,7 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: first-line docs/mcp-spec.md', () => { expect(createHash('sha256').update(read("docs/mcp-spec.md").split('\n')[0]).digest('hex')).toBe("99c84d33ad819ac91a66e1a30aef3bf512cb393370d7b6fbc8397c8917ba2e66"); });
   it('post266-extras: UPPER docs/mcp-spec.md', () => { expect(sha256("docs/mcp-spec.md").toUpperCase()).toBe("A93978D779B976A1ABA4D34395EEC7628B21BDA910EF8A279D5EFBC05DA56849"); });
   it('post266-extras: size*lines docs/mcp-spec.md', () => { expect(statSync(join(repo, "docs/mcp-spec.md")).size * read("docs/mcp-spec.md").split('\n').length).toBe(515040); });
-  it('post266-extras: HMAC post261 docs/mcp-spec.md', () => { expect(hmacSha256("post266", "docs/mcp-spec.md")).toBe("7098ac69de74f2b060d9bbd346189ce07542b94758719cd9a125d2748b7baafc"); });
+  it('post266-extras: HMAC post266 docs/mcp-spec.md', () => { expect(hmacSha256("post266", "docs/mcp-spec.md")).toBe("7098ac69de74f2b060d9bbd346189ce07542b94758719cd9a125d2748b7baafc"); });
   it('post266-extras: HMAC after-#266 docs/mcp-spec.md', () => { expect(hmacSha256("after-#266", "docs/mcp-spec.md")).toBe("af0e1ed262fdbf6667dedf7bc36b3614ecfd57f0fdbee976c286ccd17fa9b416"); });
   it('post266-extras: HMAC leftover docs/mcp-spec.md', () => { expect(hmacSha256("leftover", "docs/mcp-spec.md")).toBe("cc7b82d7e2cbbb55051894ddba60fbf4023572b4cd7a21b98ebf76001a5d07df"); });
   it('post266-extras: HMAC TOKENMAXX docs/mcp-spec.md', () => { expect(hmacSha256("TOKENMAXX", "docs/mcp-spec.md")).toBe("58bd8b12de8084ece067f68db2cea2ea5dc8b43305c0d5e7e20506fd40e18749"); });
@@ -37516,9 +37516,9 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: HMAC no-creds docs/mcp-spec.md', () => { expect(hmacSha256("no-creds", "docs/mcp-spec.md")).toBe("0b1a3d9791f6d0c02ad0cac98ae5723d8b0e6d29ffb3543b87a9dde980aaa4cd"); });
   it('post266-extras: HMAC iptv-org docs/mcp-spec.md', () => { expect(hmacSha256("iptv-org", "docs/mcp-spec.md")).toBe("f0cc92feffdc00412074b061f650d4216738d7f8e9eb260b8822500b0d7445cf"); });
   it('post266-extras: HMAC fuzzywigg docs/mcp-spec.md', () => { expect(hmacSha256("fuzzywigg", "docs/mcp-spec.md")).toBe("8e0caed7ef994c374b52d69005d69324d5af51ef97c49c876613cf9ed1b93d4d"); });
-  it('post266-extras: HMAC-SHA1 post261 docs/mcp-spec.md', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("08b42dbcf76fbd33f395eb13953052dc240ac91c"); });
-  it('post266-extras: HMAC-MD5 post261 docs/mcp-spec.md', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("625604ca64689ebeff46a30313b964b9"); });
-  it('post266-extras: utf16le-HMAC post261 docs/mcp-spec.md', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("docs/mcp-spec.md"),'utf16le')).digest('hex')).toBe("65e0db8b91a5bac28dcf7f676902c5799d7f11b37e5ae9e9cff11e782efe9d61"); });
+  it('post266-extras: HMAC-SHA1 post266 docs/mcp-spec.md', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("e41240a10a6b8b08d68d42541d47e3c8d414ab98"); });
+  it('post266-extras: HMAC-MD5 post266 docs/mcp-spec.md', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("cf654761efb529da00832a03ffe5e890"); });
+  it('post266-extras: utf16le-HMAC post266 docs/mcp-spec.md', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("docs/mcp-spec.md"),'utf16le')).digest('hex')).toBe("37951909c5290b925e15a001ed82af25b8d26b7fb1fc33e64a29f8e4bf50c9e0"); });
   it('post266-extras: sha1 docs/mcp-spec.md', () => { expect(createHash('sha1').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a"); });
   it('post266-extras: md5 docs/mcp-spec.md', () => { expect(createHash('md5').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("ee7881030c338c1773659cc6378c392c"); });
   it('post266-extras: sha384 docs/mcp-spec.md', () => { expect(createHash('sha384').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("b32096b74bacd48065f014d2695673b3bfad3cb9118b855899a92a849cd38a7dd751db7c9e0705d6d6569d5f05f61227"); });
@@ -37611,7 +37611,7 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: first-line src/types.ts', () => { expect(createHash('sha256').update(read("src/types.ts").split('\n')[0]).digest('hex')).toBe("1d293b13ae9f4103472d1553f95a9368a006f250a1178cb8946d4e566fda25f6"); });
   it('post266-extras: UPPER src/types.ts', () => { expect(sha256("src/types.ts").toUpperCase()).toBe("4008DDD3DD6DD2FB7E8D386DFE2A345E4F21FA5576E229A8FBBE691626F743D3"); });
   it('post266-extras: size*lines src/types.ts', () => { expect(statSync(join(repo, "src/types.ts")).size * read("src/types.ts").split('\n').length).toBe(1218); });
-  it('post266-extras: HMAC post261 src/types.ts', () => { expect(hmacSha256("post266", "src/types.ts")).toBe("184f4f8e1b446f12a98b0c9bf0aa7e646b46034b5b225530ddca40a989efd80d"); });
+  it('post266-extras: HMAC post266 src/types.ts', () => { expect(hmacSha256("post266", "src/types.ts")).toBe("184f4f8e1b446f12a98b0c9bf0aa7e646b46034b5b225530ddca40a989efd80d"); });
   it('post266-extras: HMAC after-#266 src/types.ts', () => { expect(hmacSha256("after-#266", "src/types.ts")).toBe("fd03aabb3f1d9e020440f89186d9362a3cd790317e044e2280ab61e5117c797c"); });
   it('post266-extras: HMAC leftover src/types.ts', () => { expect(hmacSha256("leftover", "src/types.ts")).toBe("80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85"); });
   it('post266-extras: HMAC TOKENMAXX src/types.ts', () => { expect(hmacSha256("TOKENMAXX", "src/types.ts")).toBe("5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc"); });
@@ -37651,9 +37651,9 @@ describe('post266 mcp extras HEAVY deepen (after #266 leftover / genres-mcp-spec
   it('post266-extras: HMAC no-creds src/types.ts', () => { expect(hmacSha256("no-creds", "src/types.ts")).toBe("54a003b7f2d60b6b8cf47b21fd8a0b8044b12fa7a9296db10bf8186e17cb0d47"); });
   it('post266-extras: HMAC iptv-org src/types.ts', () => { expect(hmacSha256("iptv-org", "src/types.ts")).toBe("ca5f1e1fd976bb3fe291c6a55c65ddeff53de41b4fc58212755883dc30307874"); });
   it('post266-extras: HMAC fuzzywigg src/types.ts', () => { expect(hmacSha256("fuzzywigg", "src/types.ts")).toBe("9318202ab26e14c853a66c82681f61370e99b88948d0cb0daced2f0fae39cf07"); });
-  it('post266-extras: HMAC-SHA1 post261 src/types.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("7cfa8814af314dfec3ec99582d8ef7422503b78c"); });
-  it('post266-extras: HMAC-MD5 post261 src/types.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("79184a78bf74f5a9b555e9fa744f97b8"); });
-  it('post266-extras: utf16le-HMAC post261 src/types.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/types.ts"),'utf16le')).digest('hex')).toBe("9ed606e68894060d06bd1ff33b1693d2d668c3212ba74debfb91672ffbe331b9"); });
+  it('post266-extras: HMAC-SHA1 post266 src/types.ts', () => { expect(createHmac('sha1','post266').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("8c4c54c5c2d6f5bd007bca6f41f1f1aa94fd49e0"); });
+  it('post266-extras: HMAC-MD5 post266 src/types.ts', () => { expect(createHmac('md5','post266').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("d10cd62e2855bd9b243694a22f5d5298"); });
+  it('post266-extras: utf16le-HMAC post266 src/types.ts', () => { expect(createHmac('sha256','post266').update(Buffer.from(read("src/types.ts"),'utf16le')).digest('hex')).toBe("41028487273051454e267550b7a9aaf5197a8d310c06015bdf5e6d3562b3e51d"); });
   it('post266-extras: sha1 src/types.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8"); });
   it('post266-extras: md5 src/types.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("ecba663d21928622be656805ad27d0a3"); });
   it('post266-extras: sha384 src/types.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("40618d8902640e6ce24d5caf0b9daf86c4d5f962832b1835a86bb10ad7c37455cc60aa9f965ffd9a98f9a5967048b01c"); });
@@ -37711,7 +37711,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: src/mcp.ts L64', () => { expect(read("src/mcp.ts").split('\n')[63]).toBe("      },"); });
   it('post266-ultra: src/mcp.ts L66', () => { expect(read("src/mcp.ts").split('\n')[65]).toBe("  ],"); });
   it('post266-ultra: src/mcp.ts L68', () => { expect(read("src/mcp.ts").split('\n')[67]).toBe(""); });
-  it('post266-ultra: HMAC post261 src/mcp.ts', () => { expect(hmacSha256("post266", "src/mcp.ts")).toBe("5825838dc9b298dd80ea7f617629f219c2ffc1d0c77d6e2365bc1360c6179e00"); });
+  it('post266-ultra: HMAC post266 src/mcp.ts', () => { expect(hmacSha256("post266", "src/mcp.ts")).toBe("5825838dc9b298dd80ea7f617629f219c2ffc1d0c77d6e2365bc1360c6179e00"); });
   it('post266-ultra: HMAC after-#266 src/mcp.ts', () => { expect(hmacSha256("after-#266", "src/mcp.ts")).toBe("8ebb0baeceb5d3a270c6b8fb6f144b94496a4a16c006b6c0da0bc8600a449d05"); });
   it('post266-ultra: HMAC leftover src/mcp.ts', () => { expect(hmacSha256("leftover", "src/mcp.ts")).toBe("8ace2389ce0308341cb978ba9c33116db731b2166d09e0adc79fa37366b8c712"); });
   it('post266-ultra: HMAC TOKENMAXX src/mcp.ts', () => { expect(hmacSha256("TOKENMAXX", "src/mcp.ts")).toBe("cc983fd02cae540665f120f8a72c3867b8d573a30f5a9c84ace5b4cea2fb9f62"); });
@@ -37736,7 +37736,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: first32-sha src/mcp.ts', () => { expect(createHash('sha256').update(read("src/mcp.ts").slice(0,32)).digest('hex')).toBe("9515210173d3381eb705c21635af7661b67715c0d0a3ff8159c9a9bfcbb648a5"); });
   it('post266-ultra: last32-sha src/mcp.ts', () => { expect(createHash('sha256').update(read("src/mcp.ts").slice(-32)).digest('hex')).toBe("d8037f26c794877c9b36d28d368d8e38d06edb46e6866c8d388c580ef961fbbc"); });
   it('post266-ultra: no-CRLF src/mcp.ts', () => { expect(read("src/mcp.ts")).not.toContain('\r'); expect(readFileSync(join(repo, "src/mcp.ts")).indexOf(0x0d)).toBe(-1); });
-  it('post266-ultra: concat-sha post261 src/mcp.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/mcp.ts")), Buffer.from("post266")])).digest('hex')).toBe("d455db5f2e4d3b380d015548aa443f3376e0b9e4a1835e554633472c2b421259"); });
+  it('post266-ultra: concat-sha post266 src/mcp.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/mcp.ts")), Buffer.from("post266")])).digest('hex')).toBe("d455db5f2e4d3b380d015548aa443f3376e0b9e4a1835e554633472c2b421259"); });
   it('post266-ultra: concat-sha after-#266 src/mcp.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/mcp.ts")), Buffer.from("after-#266")])).digest('hex')).toBe("fae2ca497862d141e7b18fd8030aef57915eed47c8678741dd3891627f6136f5"); });
   it('post266-ultra: concat-sha leftover src/mcp.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/mcp.ts")), Buffer.from("leftover")])).digest('hex')).toBe("0a09a0aa256378ba17deb29e2ebfa8e452810a74b41a4d3d2f05b8c0cc5d0ee8"); });
   it('post266-ultra: concat-sha unsaturated-after-266 src/mcp.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/mcp.ts")), Buffer.from("unsaturated-after-266")])).digest('hex')).toBe("cf5cc88f1acf80f8d1db16e1120b6e333a50ad4a2276a7ebaad56cdc8bf4ba46"); });
@@ -37772,7 +37772,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: src/genres.ts L44', () => { expect(read("src/genres.ts").split('\n')[43]).toBe("  if (!input) return 'music';"); });
   it('post266-ultra: src/genres.ts L46', () => { expect(read("src/genres.ts").split('\n')[45]).toBe("  return map[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : 'music');"); });
   it('post266-ultra: src/genres.ts L48', () => { expect(read("src/genres.ts").split('\n')[47]).toBe(""); });
-  it('post266-ultra: HMAC post261 src/genres.ts', () => { expect(hmacSha256("post266", "src/genres.ts")).toBe("18fc79756bd24dbd7124e6da601fd606ad01a21b256c569e142e82e0bf607e3c"); });
+  it('post266-ultra: HMAC post266 src/genres.ts', () => { expect(hmacSha256("post266", "src/genres.ts")).toBe("18fc79756bd24dbd7124e6da601fd606ad01a21b256c569e142e82e0bf607e3c"); });
   it('post266-ultra: HMAC after-#266 src/genres.ts', () => { expect(hmacSha256("after-#266", "src/genres.ts")).toBe("68178ec1725dd3bf843ac5be6d64308743b55b03aaa45fd1a50cec78810d0251"); });
   it('post266-ultra: HMAC leftover src/genres.ts', () => { expect(hmacSha256("leftover", "src/genres.ts")).toBe("bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f"); });
   it('post266-ultra: HMAC TOKENMAXX src/genres.ts', () => { expect(hmacSha256("TOKENMAXX", "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951"); });
@@ -37797,7 +37797,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: first32-sha src/genres.ts', () => { expect(createHash('sha256').update(read("src/genres.ts").slice(0,32)).digest('hex')).toBe("3f95ad8b054cb77769f3ee7ada08d82dd05cdb389e58875244422a6280ac48fa"); });
   it('post266-ultra: last32-sha src/genres.ts', () => { expect(createHash('sha256').update(read("src/genres.ts").slice(-32)).digest('hex')).toBe("235899a527e6e5cbb2ef2a24c8b1e03af2cf7e7e136a1cc3db20e3559f907aac"); });
   it('post266-ultra: no-CRLF src/genres.ts', () => { expect(read("src/genres.ts")).not.toContain('\r'); expect(readFileSync(join(repo, "src/genres.ts")).indexOf(0x0d)).toBe(-1); });
-  it('post266-ultra: concat-sha post261 src/genres.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/genres.ts")), Buffer.from("post266")])).digest('hex')).toBe("739b5497da6ac602755376fd4e6e3bbf4455ac7a1241f6412fcc9138d8526f5a"); });
+  it('post266-ultra: concat-sha post266 src/genres.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/genres.ts")), Buffer.from("post266")])).digest('hex')).toBe("739b5497da6ac602755376fd4e6e3bbf4455ac7a1241f6412fcc9138d8526f5a"); });
   it('post266-ultra: concat-sha after-#266 src/genres.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/genres.ts")), Buffer.from("after-#266")])).digest('hex')).toBe("a318c9ee9972e7fed7a5b929259b6a5537cdfac5835cfaa591a5252058ceca25"); });
   it('post266-ultra: concat-sha leftover src/genres.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/genres.ts")), Buffer.from("leftover")])).digest('hex')).toBe("eaeb6ef0d17e3655f15bd75fa13c970042931db3a532441ec3014f6580791339"); });
   it('post266-ultra: concat-sha unsaturated-after-266 src/genres.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/genres.ts")), Buffer.from("unsaturated-after-266")])).digest('hex')).toBe("55bcceeb3e1da9ce72fda9a772c497bd4eb3a8cabc803f5905a38b7e6bf04bc0"); });
@@ -37881,7 +37881,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: docs/mcp-spec.md L140', () => { expect(read("docs/mcp-spec.md").split('\n')[139]).toBe("- Base URL: `https://backlink.fuzzywigg.com`"); });
   it('post266-ultra: docs/mcp-spec.md L142', () => { expect(read("docs/mcp-spec.md").split('\n')[141]).toBe("- KV cache means `/stations` calls are fast after first hit per genre (1h TTL)"); });
   it('post266-ultra: docs/mcp-spec.md L144', () => { expect(read("docs/mcp-spec.md").split('\n')[143]).toBe("- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`"); });
-  it('post266-ultra: HMAC post261 docs/mcp-spec.md', () => { expect(hmacSha256("post266", "docs/mcp-spec.md")).toBe("7098ac69de74f2b060d9bbd346189ce07542b94758719cd9a125d2748b7baafc"); });
+  it('post266-ultra: HMAC post266 docs/mcp-spec.md', () => { expect(hmacSha256("post266", "docs/mcp-spec.md")).toBe("7098ac69de74f2b060d9bbd346189ce07542b94758719cd9a125d2748b7baafc"); });
   it('post266-ultra: HMAC after-#266 docs/mcp-spec.md', () => { expect(hmacSha256("after-#266", "docs/mcp-spec.md")).toBe("af0e1ed262fdbf6667dedf7bc36b3614ecfd57f0fdbee976c286ccd17fa9b416"); });
   it('post266-ultra: HMAC leftover docs/mcp-spec.md', () => { expect(hmacSha256("leftover", "docs/mcp-spec.md")).toBe("cc7b82d7e2cbbb55051894ddba60fbf4023572b4cd7a21b98ebf76001a5d07df"); });
   it('post266-ultra: HMAC TOKENMAXX docs/mcp-spec.md', () => { expect(hmacSha256("TOKENMAXX", "docs/mcp-spec.md")).toBe("58bd8b12de8084ece067f68db2cea2ea5dc8b43305c0d5e7e20506fd40e18749"); });
@@ -37906,7 +37906,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: first32-sha docs/mcp-spec.md', () => { expect(createHash('sha256').update(read("docs/mcp-spec.md").slice(0,32)).digest('hex')).toBe("c08b3f513967dc1b6146e36fa050387a9a28fddf456318b56dd1483e2e1d1e2e"); });
   it('post266-ultra: last32-sha docs/mcp-spec.md', () => { expect(createHash('sha256').update(read("docs/mcp-spec.md").slice(-32)).digest('hex')).toBe("3b12815fa47c60cafd98c854094f1a6f4112ccc9338a74db992d1a5b1d4b7481"); });
   it('post266-ultra: no-CRLF docs/mcp-spec.md', () => { expect(read("docs/mcp-spec.md")).not.toContain('\r'); expect(readFileSync(join(repo, "docs/mcp-spec.md")).indexOf(0x0d)).toBe(-1); });
-  it('post266-ultra: concat-sha post261 docs/mcp-spec.md', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "docs/mcp-spec.md")), Buffer.from("post266")])).digest('hex')).toBe("ae16a334fc68d5113b799ccbdd45a600df2d435d962bc247815aac9ccb8be06e"); });
+  it('post266-ultra: concat-sha post266 docs/mcp-spec.md', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "docs/mcp-spec.md")), Buffer.from("post266")])).digest('hex')).toBe("ae16a334fc68d5113b799ccbdd45a600df2d435d962bc247815aac9ccb8be06e"); });
   it('post266-ultra: concat-sha after-#266 docs/mcp-spec.md', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "docs/mcp-spec.md")), Buffer.from("after-#266")])).digest('hex')).toBe("3f719d70ccbfbff28ea96063e26841c140be9aae8b88a30f5b9fc13610820347"); });
   it('post266-ultra: concat-sha leftover docs/mcp-spec.md', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "docs/mcp-spec.md")), Buffer.from("leftover")])).digest('hex')).toBe("63b0788db66c7494ca2dce703ab88175b229b132696c66307bf15da73eb4161f"); });
   it('post266-ultra: concat-sha unsaturated-after-266 docs/mcp-spec.md', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "docs/mcp-spec.md")), Buffer.from("unsaturated-after-266")])).digest('hex')).toBe("b05600b2799a8bdfcb514460b1ab24028685fc8ae2d9dea1451e2ae5ff0b5a3f"); });
@@ -37921,7 +37921,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: src/types.ts L2', () => { expect(read("src/types.ts").split('\n')[1]).toBe("  CATALOG_CACHE: KVNamespace;"); });
   it('post266-ultra: src/types.ts L4', () => { expect(read("src/types.ts").split('\n')[3]).toBe("  GEMINI_API_KEY?: string;"); });
   it('post266-ultra: src/types.ts L6', () => { expect(read("src/types.ts").split('\n')[5]).toBe("}"); });
-  it('post266-ultra: HMAC post261 src/types.ts', () => { expect(hmacSha256("post266", "src/types.ts")).toBe("184f4f8e1b446f12a98b0c9bf0aa7e646b46034b5b225530ddca40a989efd80d"); });
+  it('post266-ultra: HMAC post266 src/types.ts', () => { expect(hmacSha256("post266", "src/types.ts")).toBe("184f4f8e1b446f12a98b0c9bf0aa7e646b46034b5b225530ddca40a989efd80d"); });
   it('post266-ultra: HMAC after-#266 src/types.ts', () => { expect(hmacSha256("after-#266", "src/types.ts")).toBe("fd03aabb3f1d9e020440f89186d9362a3cd790317e044e2280ab61e5117c797c"); });
   it('post266-ultra: HMAC leftover src/types.ts', () => { expect(hmacSha256("leftover", "src/types.ts")).toBe("80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85"); });
   it('post266-ultra: HMAC TOKENMAXX src/types.ts', () => { expect(hmacSha256("TOKENMAXX", "src/types.ts")).toBe("5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc"); });
@@ -37946,7 +37946,7 @@ describe('post266 mcp ultra HEAVY deepen (after #266 residual tip-relaunch lefto
   it('post266-ultra: first32-sha src/types.ts', () => { expect(createHash('sha256').update(read("src/types.ts").slice(0,32)).digest('hex')).toBe("e25495cd15260127e72e11635b62e58b2bd17934d4d16d159d8594ab27a22dd1"); });
   it('post266-ultra: last32-sha src/types.ts', () => { expect(createHash('sha256').update(read("src/types.ts").slice(-32)).digest('hex')).toBe("778ea13101990531f86c897c5d14922e99c3054423b9698d597c5d13afb9da76"); });
   it('post266-ultra: no-CRLF src/types.ts', () => { expect(read("src/types.ts")).not.toContain('\r'); expect(readFileSync(join(repo, "src/types.ts")).indexOf(0x0d)).toBe(-1); });
-  it('post266-ultra: concat-sha post261 src/types.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/types.ts")), Buffer.from("post266")])).digest('hex')).toBe("dc41069bd964c0c4a9c393b4feef46f7a01ca2717e214c9f8089e88c2f71c763"); });
+  it('post266-ultra: concat-sha post266 src/types.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/types.ts")), Buffer.from("post266")])).digest('hex')).toBe("dc41069bd964c0c4a9c393b4feef46f7a01ca2717e214c9f8089e88c2f71c763"); });
   it('post266-ultra: concat-sha after-#266 src/types.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/types.ts")), Buffer.from("after-#266")])).digest('hex')).toBe("6515b80355f961668d8ac91ebb51a2df6e963a476806d7eaf1f82f7c8166fd88"); });
   it('post266-ultra: concat-sha leftover src/types.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/types.ts")), Buffer.from("leftover")])).digest('hex')).toBe("4ea72ebbfdf7dbf2bf82284c38153c0a0259eefb4f74554e895c0382922993e1"); });
   it('post266-ultra: concat-sha unsaturated-after-266 src/types.ts', () => { expect(createHash('sha256').update(Buffer.concat([readFileSync(join(repo, "src/types.ts")), Buffer.from("unsaturated-after-266")])).digest('hex')).toBe("034a5f5073a87a8fc170507c8bc3a7be94acf7002f0e79e5dc701d830e3589bb"); });
