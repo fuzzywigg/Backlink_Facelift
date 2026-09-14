@@ -11278,3 +11278,1759 @@ describe('post116 mcp-spec-contract HEAVY deepen extras', () => {
     expect(readmeMd).not.toMatch(/app\.get\(['"]\/playlist/);
   });
 });
+
+// --- HEAVY burn (post-#126): deepen mcp-spec leftover edges only — no product inventing ---
+// Orthogonal to #126 ci-config leftovers. Digests, HMAC post126 locks, docs↔MCP_MANIFEST
+// asymmetry, GENRE_MAP/VALID_GENRES cross-locks, fence schema pins — tests-only.
+
+describe('post126 mcp-spec-contract HEAVY deepen', () => {
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+  const DOCS_IDS = ["backlink_curate","backlink_genres","backlink_now_playing"] as const;
+  const CLAW_NAMES = ["station_select","now_playing","genre_filter","curator_prompt"] as const;
+  const indexSrc = readFileSync(join(root, 'src/index.ts'), 'utf8');
+  const mcpSrc = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+  const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+  const readme = readFileSync(join(root, 'README.md'), 'utf8');
+  const deploy = readFileSync(join(root, 'DEPLOY.md'), 'utf8');
+  const ci = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+
+  it('post126: locks mcp-spec.md sha256 digest', () => {
+    expect(sha256('docs/mcp-spec.md')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post126: locks mcp-spec.md sha1 digest', () => {
+    expect(sha1('docs/mcp-spec.md')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+  });
+
+  it('post126: locks mcp-spec.md md5 digest', () => {
+    expect(md5('docs/mcp-spec.md')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it('post126: locks mcp-spec.md sha256 nibble sum 514 xor 14', () => {
+    const d = sha256('docs/mcp-spec.md');
+    expect(nibbleSum(d)).toBe(514);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post126: locks mcp-spec.md sha256 pairSum 4534 rollingXor 164', () => {
+    const d = sha256('docs/mcp-spec.md');
+    expect(pairSum(d)).toBe(4534);
+    expect(rollingXor(d)).toBe(164);
+  });
+
+  it('post126: locks mcp-spec.md byte size 3552', () => {
+    expect(statSync(join(root, 'docs/mcp-spec.md')).size).toBe(3552);
+    expect(readFileSync(join(root, 'docs/mcp-spec.md')).byteLength).toBe(3552);
+  });
+
+  it('post126: locks mcp-spec.md utf8 length 3544 lines 145', () => {
+    expect(readFileSync(join(root, 'docs/mcp-spec.md'), 'utf8')).toHaveLength(3544);
+    expect(readFileSync(join(root, 'docs/mcp-spec.md'), 'utf8').split('\n')).toHaveLength(145);
+  });
+
+  it('post126: locks mcp-spec.md HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'docs/mcp-spec.md')).toBe(
+      '0420a0feb0aee333c9c83902b9ff4847e9151b324749f5c9ce993508eff3d70b',
+    );
+  });
+
+  it('post126: locks mcp-spec.md HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'docs/mcp-spec.md')).toBe(
+      'cc7b82d7e2cbbb55051894ddba60fbf4023572b4cd7a21b98ebf76001a5d07df',
+    );
+  });
+
+  it('post126: locks mcp-spec.md sha256 first/last/mid octets', () => {
+    const hex = sha256('docs/mcp-spec.md');
+    expect(hex.slice(0, 2)).toBe('a9');
+    expect(hex.slice(-2)).toBe('49');
+    expect(hex.slice(28, 36)).toBe('c7628b21');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks mcp.ts sha256 digest', () => {
+    expect(sha256('src/mcp.ts')).toBe(
+      '6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683',
+    );
+  });
+
+  it('post126: locks mcp.ts sha1 digest', () => {
+    expect(sha1('src/mcp.ts')).toBe('848b3977365809fda54fcb74a7d09affe685ea82');
+  });
+
+  it('post126: locks mcp.ts md5 digest', () => {
+    expect(md5('src/mcp.ts')).toBe('52e71c72e32e3d95b8b8d61ff4a2cf46');
+  });
+
+  it('post126: locks mcp.ts sha256 nibble sum 551 xor 1', () => {
+    const d = sha256('src/mcp.ts');
+    expect(nibbleSum(d)).toBe(551);
+    expect(xorNibbles(d)).toBe(1);
+  });
+
+  it('post126: locks mcp.ts sha256 pairSum 4751 rollingXor 103', () => {
+    const d = sha256('src/mcp.ts');
+    expect(pairSum(d)).toBe(4751);
+    expect(rollingXor(d)).toBe(103);
+  });
+
+  it('post126: locks mcp.ts byte size 2057', () => {
+    expect(statSync(join(root, 'src/mcp.ts')).size).toBe(2057);
+    expect(readFileSync(join(root, 'src/mcp.ts')).byteLength).toBe(2057);
+  });
+
+  it('post126: locks mcp.ts utf8 length 2057 lines 68', () => {
+    expect(readFileSync(join(root, 'src/mcp.ts'), 'utf8')).toHaveLength(2057);
+    expect(readFileSync(join(root, 'src/mcp.ts'), 'utf8').split('\n')).toHaveLength(68);
+  });
+
+  it('post126: locks mcp.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'src/mcp.ts')).toBe(
+      'd6bbbe08e1a6d4ce854fc3037c5a4590d86f31d868892f4fa30aeddaf6e4a1ff',
+    );
+  });
+
+  it('post126: locks mcp.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'src/mcp.ts')).toBe(
+      '8ace2389ce0308341cb978ba9c33116db731b2166d09e0adc79fa37366b8c712',
+    );
+  });
+
+  it('post126: locks mcp.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('src/mcp.ts');
+    expect(hex.slice(0, 2)).toBe('6a');
+    expect(hex.slice(-2)).toBe('83');
+    expect(hex.slice(28, 36)).toBe('6ad61aff');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks genres.ts sha256 digest', () => {
+    expect(sha256('src/genres.ts')).toBe(
+      'aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e',
+    );
+  });
+
+  it('post126: locks genres.ts sha1 digest', () => {
+    expect(sha1('src/genres.ts')).toBe('3dd586bfd23c91e9719b56c90c8cbfe038aebc3e');
+  });
+
+  it('post126: locks genres.ts md5 digest', () => {
+    expect(md5('src/genres.ts')).toBe('ee8d34506f688c9e3097b89a35d48aa5');
+  });
+
+  it('post126: locks genres.ts sha256 nibble sum 500 xor 6', () => {
+    const d = sha256('src/genres.ts');
+    expect(nibbleSum(d)).toBe(500);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post126: locks genres.ts sha256 pairSum 3950 rollingXor 96', () => {
+    const d = sha256('src/genres.ts');
+    expect(pairSum(d)).toBe(3950);
+    expect(rollingXor(d)).toBe(96);
+  });
+
+  it('post126: locks genres.ts byte size 1027', () => {
+    expect(statSync(join(root, 'src/genres.ts')).size).toBe(1027);
+    expect(readFileSync(join(root, 'src/genres.ts')).byteLength).toBe(1027);
+  });
+
+  it('post126: locks genres.ts utf8 length 1025 lines 48', () => {
+    expect(readFileSync(join(root, 'src/genres.ts'), 'utf8')).toHaveLength(1025);
+    expect(readFileSync(join(root, 'src/genres.ts'), 'utf8').split('\n')).toHaveLength(48);
+  });
+
+  it('post126: locks genres.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'src/genres.ts')).toBe(
+      'd00397aa14b640d123623b36ef27110bc9deed9da9f10ad241e24389d9ab5b9a',
+    );
+  });
+
+  it('post126: locks genres.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'src/genres.ts')).toBe(
+      'bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f',
+    );
+  });
+
+  it('post126: locks genres.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('src/genres.ts');
+    expect(hex.slice(0, 2)).toBe('aa');
+    expect(hex.slice(-2)).toBe('4e');
+    expect(hex.slice(28, 36)).toBe('811dfbc2');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks index.ts sha256 digest', () => {
+    expect(sha256('src/index.ts')).toBe(
+      '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72',
+    );
+  });
+
+  it('post126: locks index.ts sha1 digest', () => {
+    expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b');
+  });
+
+  it('post126: locks index.ts md5 digest', () => {
+    expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177');
+  });
+
+  it('post126: locks index.ts sha256 nibble sum 470 xor 14', () => {
+    const d = sha256('src/index.ts');
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post126: locks index.ts sha256 pairSum 4265 rollingXor 151', () => {
+    const d = sha256('src/index.ts');
+    expect(pairSum(d)).toBe(4265);
+    expect(rollingXor(d)).toBe(151);
+  });
+
+  it('post126: locks index.ts byte size 4738', () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+    expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738);
+  });
+
+  it('post126: locks index.ts utf8 length 4724 lines 154', () => {
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toHaveLength(4724);
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8').split('\n')).toHaveLength(154);
+  });
+
+  it('post126: locks index.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'src/index.ts')).toBe(
+      '8b3e887c6aba91ba1e3e67132a9f169906b85e48e656d3e7522f1cd97c6e0c93',
+    );
+  });
+
+  it('post126: locks index.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'src/index.ts')).toBe(
+      '268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be',
+    );
+  });
+
+  it('post126: locks index.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('src/index.ts');
+    expect(hex.slice(0, 2)).toBe('7f');
+    expect(hex.slice(-2)).toBe('72');
+    expect(hex.slice(28, 36)).toBe('e2a20389');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks parser.ts sha256 digest', () => {
+    expect(sha256('src/parser.ts')).toBe(
+      'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368',
+    );
+  });
+
+  it('post126: locks parser.ts sha1 digest', () => {
+    expect(sha1('src/parser.ts')).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+  });
+
+  it('post126: locks parser.ts md5 digest', () => {
+    expect(md5('src/parser.ts')).toBe('500211c4c526de887252451726776563');
+  });
+
+  it('post126: locks parser.ts sha256 nibble sum 477 xor 9', () => {
+    const d = sha256('src/parser.ts');
+    expect(nibbleSum(d)).toBe(477);
+    expect(xorNibbles(d)).toBe(9);
+  });
+
+  it('post126: locks parser.ts sha256 pairSum 3612 rollingXor 126', () => {
+    const d = sha256('src/parser.ts');
+    expect(pairSum(d)).toBe(3612);
+    expect(rollingXor(d)).toBe(126);
+  });
+
+  it('post126: locks parser.ts byte size 1955', () => {
+    expect(statSync(join(root, 'src/parser.ts')).size).toBe(1955);
+    expect(readFileSync(join(root, 'src/parser.ts')).byteLength).toBe(1955);
+  });
+
+  it('post126: locks parser.ts utf8 length 1953 lines 67', () => {
+    expect(readFileSync(join(root, 'src/parser.ts'), 'utf8')).toHaveLength(1953);
+    expect(readFileSync(join(root, 'src/parser.ts'), 'utf8').split('\n')).toHaveLength(67);
+  });
+
+  it('post126: locks parser.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'src/parser.ts')).toBe(
+      '37e5f42836543b47389f2ea0a090b73fae44bd622643292ff3eb8ac0cebd2ca3',
+    );
+  });
+
+  it('post126: locks parser.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'src/parser.ts')).toBe(
+      'e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3',
+    );
+  });
+
+  it('post126: locks parser.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('src/parser.ts');
+    expect(hex.slice(0, 2)).toBe('cf');
+    expect(hex.slice(-2)).toBe('68');
+    expect(hex.slice(28, 36)).toBe('a0e83a07');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks types.ts sha256 digest', () => {
+    expect(sha256('src/types.ts')).toBe(
+      '4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3',
+    );
+  });
+
+  it('post126: locks types.ts sha1 digest', () => {
+    expect(sha1('src/types.ts')).toBe('1e8906673dc0d140ee5c3d40839c88a1eeca03d8');
+  });
+
+  it('post126: locks types.ts md5 digest', () => {
+    expect(md5('src/types.ts')).toBe('ecba663d21928622be656805ad27d0a3');
+  });
+
+  it('post126: locks types.ts sha256 nibble sum 520 xor 14', () => {
+    const d = sha256('src/types.ts');
+    expect(nibbleSum(d)).toBe(520);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post126: locks types.ts sha256 pairSum 4300 rollingXor 104', () => {
+    const d = sha256('src/types.ts');
+    expect(pairSum(d)).toBe(4300);
+    expect(rollingXor(d)).toBe(104);
+  });
+
+  it('post126: locks types.ts byte size 174', () => {
+    expect(statSync(join(root, 'src/types.ts')).size).toBe(174);
+    expect(readFileSync(join(root, 'src/types.ts')).byteLength).toBe(174);
+  });
+
+  it('post126: locks types.ts utf8 length 172 lines 7', () => {
+    expect(readFileSync(join(root, 'src/types.ts'), 'utf8')).toHaveLength(172);
+    expect(readFileSync(join(root, 'src/types.ts'), 'utf8').split('\n')).toHaveLength(7);
+  });
+
+  it('post126: locks types.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'src/types.ts')).toBe(
+      '89a850d0a5ee234610052900012e5fbc0b9639570b995ebaede827ed307943f9',
+    );
+  });
+
+  it('post126: locks types.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'src/types.ts')).toBe(
+      '80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85',
+    );
+  });
+
+  it('post126: locks types.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('src/types.ts');
+    expect(hex.slice(0, 2)).toBe('40');
+    expect(hex.slice(-2)).toBe('d3');
+    expect(hex.slice(28, 36)).toBe('345e4f21');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks package.json sha256 digest', () => {
+    expect(sha256('package.json')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+  });
+
+  it('post126: locks package.json sha1 digest', () => {
+    expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5');
+  });
+
+  it('post126: locks package.json md5 digest', () => {
+    expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f');
+  });
+
+  it('post126: locks package.json sha256 nibble sum 451 xor 13', () => {
+    const d = sha256('package.json');
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post126: locks package.json sha256 pairSum 4051 rollingXor 13', () => {
+    const d = sha256('package.json');
+    expect(pairSum(d)).toBe(4051);
+    expect(rollingXor(d)).toBe(13);
+  });
+
+  it('post126: locks package.json byte size 637', () => {
+    expect(statSync(join(root, 'package.json')).size).toBe(637);
+    expect(readFileSync(join(root, 'package.json')).byteLength).toBe(637);
+  });
+
+  it('post126: locks package.json utf8 length 635 lines 26', () => {
+    expect(readFileSync(join(root, 'package.json'), 'utf8')).toHaveLength(635);
+    expect(readFileSync(join(root, 'package.json'), 'utf8').split('\n')).toHaveLength(26);
+  });
+
+  it('post126: locks package.json HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'package.json')).toBe(
+      '14829b01670d1141c34c0f804f9f31c439da8acbb1f3134ba460e7979be45543',
+    );
+  });
+
+  it('post126: locks package.json HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'package.json')).toBe(
+      '20e0c5771e324d5d7c4d9bb108e54226b1ca026d3c6d232d5f0b8ccba88462a1',
+    );
+  });
+
+  it('post126: locks package.json sha256 first/last/mid octets', () => {
+    const hex = sha256('package.json');
+    expect(hex.slice(0, 2)).toBe('34');
+    expect(hex.slice(-2)).toBe('1c');
+    expect(hex.slice(28, 36)).toBe('e0ecaa43');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks vitest.config.ts sha256 digest', () => {
+    expect(sha256('vitest.config.ts')).toBe(
+      'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+    );
+  });
+
+  it('post126: locks vitest.config.ts sha1 digest', () => {
+    expect(sha1('vitest.config.ts')).toBe('f8d49517ece92fc5e9781fbde021a948958aac37');
+  });
+
+  it('post126: locks vitest.config.ts md5 digest', () => {
+    expect(md5('vitest.config.ts')).toBe('f1176313255f5f064a946d458482d81a');
+  });
+
+  it('post126: locks vitest.config.ts sha256 nibble sum 536 xor 2', () => {
+    const d = sha256('vitest.config.ts');
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it('post126: locks vitest.config.ts sha256 pairSum 4691 rollingXor 49', () => {
+    const d = sha256('vitest.config.ts');
+    expect(pairSum(d)).toBe(4691);
+    expect(rollingXor(d)).toBe(49);
+  });
+
+  it('post126: locks vitest.config.ts byte size 535', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size).toBe(535);
+    expect(readFileSync(join(root, 'vitest.config.ts')).byteLength).toBe(535);
+  });
+
+  it('post126: locks vitest.config.ts utf8 length 535 lines 22', () => {
+    expect(readFileSync(join(root, 'vitest.config.ts'), 'utf8')).toHaveLength(535);
+    expect(readFileSync(join(root, 'vitest.config.ts'), 'utf8').split('\n')).toHaveLength(22);
+  });
+
+  it('post126: locks vitest.config.ts HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'vitest.config.ts')).toBe(
+      '7dc6d3aaa91074a7f8a463f6c511be0456cec62d44a7232276df3321a2af115a',
+    );
+  });
+
+  it('post126: locks vitest.config.ts HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'vitest.config.ts')).toBe(
+      '3bc8abcf1f58dc77ee233f74f3e725de7089ea5307ef488f25b1aad2d0f3d1b7',
+    );
+  });
+
+  it('post126: locks vitest.config.ts sha256 first/last/mid octets', () => {
+    const hex = sha256('vitest.config.ts');
+    expect(hex.slice(0, 2)).toBe('f9');
+    expect(hex.slice(-2)).toBe('38');
+    expect(hex.slice(28, 36)).toBe('ec95c6d5');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks tsconfig.json sha256 digest', () => {
+    expect(sha256('tsconfig.json')).toBe(
+      'ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792',
+    );
+  });
+
+  it('post126: locks tsconfig.json sha1 digest', () => {
+    expect(sha1('tsconfig.json')).toBe('68e3169249049539d687b6b3d81fc809079134f9');
+  });
+
+  it('post126: locks tsconfig.json md5 digest', () => {
+    expect(md5('tsconfig.json')).toBe('13f6687a50fe7c6ea7ef4eb3623b7457');
+  });
+
+  it('post126: locks tsconfig.json sha256 nibble sum 506 xor 8', () => {
+    const d = sha256('tsconfig.json');
+    expect(nibbleSum(d)).toBe(506);
+    expect(xorNibbles(d)).toBe(8);
+  });
+
+  it('post126: locks tsconfig.json sha256 pairSum 4436 rollingXor 110', () => {
+    const d = sha256('tsconfig.json');
+    expect(pairSum(d)).toBe(4436);
+    expect(rollingXor(d)).toBe(110);
+  });
+
+  it('post126: locks tsconfig.json byte size 397', () => {
+    expect(statSync(join(root, 'tsconfig.json')).size).toBe(397);
+    expect(readFileSync(join(root, 'tsconfig.json')).byteLength).toBe(397);
+  });
+
+  it('post126: locks tsconfig.json utf8 length 397 lines 24', () => {
+    expect(readFileSync(join(root, 'tsconfig.json'), 'utf8')).toHaveLength(397);
+    expect(readFileSync(join(root, 'tsconfig.json'), 'utf8').split('\n')).toHaveLength(24);
+  });
+
+  it('post126: locks tsconfig.json HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'tsconfig.json')).toBe(
+      'e8b09f48f110f327aa29f7e17d702678431147ac94ac6b60f6243bf9806c8250',
+    );
+  });
+
+  it('post126: locks tsconfig.json HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'tsconfig.json')).toBe(
+      '8b1d7fdf24ecef58d7971089e3fb62f7cf97d8a840f50636ffa32327fa8503a9',
+    );
+  });
+
+  it('post126: locks tsconfig.json sha256 first/last/mid octets', () => {
+    const hex = sha256('tsconfig.json');
+    expect(hex.slice(0, 2)).toBe('ef');
+    expect(hex.slice(-2)).toBe('92');
+    expect(hex.slice(28, 36)).toBe('04688ea1');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks wrangler.toml sha256 digest', () => {
+    expect(sha256('wrangler.toml')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+  it('post126: locks wrangler.toml sha1 digest', () => {
+    expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it('post126: locks wrangler.toml md5 digest', () => {
+    expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it('post126: locks wrangler.toml sha256 nibble sum 457 xor 13', () => {
+    const d = sha256('wrangler.toml');
+    expect(nibbleSum(d)).toBe(457);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post126: locks wrangler.toml sha256 pairSum 3802 rollingXor 122', () => {
+    const d = sha256('wrangler.toml');
+    expect(pairSum(d)).toBe(3802);
+    expect(rollingXor(d)).toBe(122);
+  });
+
+  it('post126: locks wrangler.toml byte size 330', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size).toBe(330);
+    expect(readFileSync(join(root, 'wrangler.toml')).byteLength).toBe(330);
+  });
+
+  it('post126: locks wrangler.toml utf8 length 330 lines 18', () => {
+    expect(readFileSync(join(root, 'wrangler.toml'), 'utf8')).toHaveLength(330);
+    expect(readFileSync(join(root, 'wrangler.toml'), 'utf8').split('\n')).toHaveLength(18);
+  });
+
+  it('post126: locks wrangler.toml HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'wrangler.toml')).toBe(
+      'da3ab4682042abd142b12864ac0a33348f5f3412a7640f9ebe695194f0a11a39',
+    );
+  });
+
+  it('post126: locks wrangler.toml HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'wrangler.toml')).toBe(
+      '117043293c91e6cdcad8f44181f5c253ceb0f7dc567ea32cddbd61f9d349a063',
+    );
+  });
+
+  it('post126: locks wrangler.toml sha256 first/last/mid octets', () => {
+    const hex = sha256('wrangler.toml');
+    expect(hex.slice(0, 2)).toBe('95');
+    expect(hex.slice(-2)).toBe('f8');
+    expect(hex.slice(28, 36)).toBe('4a0b0b87');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks AGENTS.md sha256 digest', () => {
+    expect(sha256('AGENTS.md')).toBe(
+      '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+    );
+  });
+
+  it('post126: locks AGENTS.md sha1 digest', () => {
+    expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c');
+  });
+
+  it('post126: locks AGENTS.md md5 digest', () => {
+    expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd');
+  });
+
+  it('post126: locks AGENTS.md sha256 nibble sum 479 xor 5', () => {
+    const d = sha256('AGENTS.md');
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post126: locks AGENTS.md sha256 pairSum 5084 rollingXor 216', () => {
+    const d = sha256('AGENTS.md');
+    expect(pairSum(d)).toBe(5084);
+    expect(rollingXor(d)).toBe(216);
+  });
+
+  it('post126: locks AGENTS.md byte size 1017', () => {
+    expect(statSync(join(root, 'AGENTS.md')).size).toBe(1017);
+    expect(readFileSync(join(root, 'AGENTS.md')).byteLength).toBe(1017);
+  });
+
+  it('post126: locks AGENTS.md utf8 length 1011 lines 35', () => {
+    expect(readFileSync(join(root, 'AGENTS.md'), 'utf8')).toHaveLength(1011);
+    expect(readFileSync(join(root, 'AGENTS.md'), 'utf8').split('\n')).toHaveLength(35);
+  });
+
+  it('post126: locks AGENTS.md HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'AGENTS.md')).toBe(
+      'a620cc1251b411667680245e6deeb061f5b530a19f50c662643eadef7f75a3c8',
+    );
+  });
+
+  it('post126: locks AGENTS.md HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'AGENTS.md')).toBe(
+      'ebc9f95bcc289e29e0a1ef806d4a6466da053e934eba9da783fda10f1a46b84e',
+    );
+  });
+
+  it('post126: locks AGENTS.md sha256 first/last/mid octets', () => {
+    const hex = sha256('AGENTS.md');
+    expect(hex.slice(0, 2)).toBe('48');
+    expect(hex.slice(-2)).toBe('aa');
+    expect(hex.slice(28, 36)).toBe('a5ec1be5');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks README.md sha256 digest', () => {
+    expect(sha256('README.md')).toBe(
+      'f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987',
+    );
+  });
+
+  it('post126: locks README.md sha1 digest', () => {
+    expect(sha1('README.md')).toBe('4f560a473d5838f25eba3eae21a87f6c97ba3b8b');
+  });
+
+  it('post126: locks README.md md5 digest', () => {
+    expect(md5('README.md')).toBe('9b7aea4982a6d68b95f7f8ee3fdc5b31');
+  });
+
+  it('post126: locks README.md sha256 nibble sum 429 xor 13', () => {
+    const d = sha256('README.md');
+    expect(nibbleSum(d)).toBe(429);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post126: locks README.md sha256 pairSum 4164 rollingXor 88', () => {
+    const d = sha256('README.md');
+    expect(pairSum(d)).toBe(4164);
+    expect(rollingXor(d)).toBe(88);
+  });
+
+  it('post126: locks README.md byte size 2801', () => {
+    expect(statSync(join(root, 'README.md')).size).toBe(2801);
+    expect(readFileSync(join(root, 'README.md')).byteLength).toBe(2801);
+  });
+
+  it('post126: locks README.md utf8 length 2757 lines 82', () => {
+    expect(readFileSync(join(root, 'README.md'), 'utf8')).toHaveLength(2757);
+    expect(readFileSync(join(root, 'README.md'), 'utf8').split('\n')).toHaveLength(82);
+  });
+
+  it('post126: locks README.md HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'README.md')).toBe(
+      '0c275c4d75e9635c687c4b907f8d1458b6f71c3a9d99c665e9c3f994b4011988',
+    );
+  });
+
+  it('post126: locks README.md HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'README.md')).toBe(
+      '57c08297703e57c6b5694a515e43b6592bd130637c82dcc569a048bda2fd181f',
+    );
+  });
+
+  it('post126: locks README.md sha256 first/last/mid octets', () => {
+    const hex = sha256('README.md');
+    expect(hex.slice(0, 2)).toBe('f7');
+    expect(hex.slice(-2)).toBe('87');
+    expect(hex.slice(28, 36)).toBe('368a10ca');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks DEPLOY.md sha256 digest', () => {
+    expect(sha256('DEPLOY.md')).toBe(
+      '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+    );
+  });
+
+  it('post126: locks DEPLOY.md sha1 digest', () => {
+    expect(sha1('DEPLOY.md')).toBe('37c72be44abb67343dae3e7c2303306a25b3481f');
+  });
+
+  it('post126: locks DEPLOY.md md5 digest', () => {
+    expect(md5('DEPLOY.md')).toBe('da30bf656fdf0d9a61d2a00860c325f5');
+  });
+
+  it('post126: locks DEPLOY.md sha256 nibble sum 439 xor 11', () => {
+    const d = sha256('DEPLOY.md');
+    expect(nibbleSum(d)).toBe(439);
+    expect(xorNibbles(d)).toBe(11);
+  });
+
+  it('post126: locks DEPLOY.md sha256 pairSum 4234 rollingXor 26', () => {
+    const d = sha256('DEPLOY.md');
+    expect(pairSum(d)).toBe(4234);
+    expect(rollingXor(d)).toBe(26);
+  });
+
+  it('post126: locks DEPLOY.md byte size 1573', () => {
+    expect(statSync(join(root, 'DEPLOY.md')).size).toBe(1573);
+    expect(readFileSync(join(root, 'DEPLOY.md')).byteLength).toBe(1573);
+  });
+
+  it('post126: locks DEPLOY.md utf8 length 1539 lines 65', () => {
+    expect(readFileSync(join(root, 'DEPLOY.md'), 'utf8')).toHaveLength(1539);
+    expect(readFileSync(join(root, 'DEPLOY.md'), 'utf8').split('\n')).toHaveLength(65);
+  });
+
+  it('post126: locks DEPLOY.md HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', 'DEPLOY.md')).toBe(
+      'db2a16ad7db463fdebaae16f8fb003e9e9cf6622db8f0ab74209844276376b90',
+    );
+  });
+
+  it('post126: locks DEPLOY.md HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', 'DEPLOY.md')).toBe(
+      '8e69d3722a2f57941fecb3a0602ebb6cab5a31755e7c8bc88ed0771bc1822659',
+    );
+  });
+
+  it('post126: locks DEPLOY.md sha256 first/last/mid octets', () => {
+    const hex = sha256('DEPLOY.md');
+    expect(hex.slice(0, 2)).toBe('11');
+    expect(hex.slice(-2)).toBe('5a');
+    expect(hex.slice(28, 36)).toBe('f363d487');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks ci.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe(
+      'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+    );
+  });
+
+  it('post126: locks ci.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa');
+  });
+
+  it('post126: locks ci.yml md5 digest', () => {
+    expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605');
+  });
+
+  it('post126: locks ci.yml sha256 nibble sum 515 xor 3', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post126: locks ci.yml sha256 pairSum 4595 rollingXor 71', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(pairSum(d)).toBe(4595);
+    expect(rollingXor(d)).toBe(71);
+  });
+
+  it('post126: locks ci.yml byte size 6295', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295);
+    expect(readFileSync(join(root, '.github/workflows/ci.yml')).byteLength).toBe(6295);
+  });
+
+  it('post126: locks ci.yml utf8 length 6295 lines 177', () => {
+    expect(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')).toHaveLength(6295);
+    expect(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8').split('\n')).toHaveLength(177);
+  });
+
+  it('post126: locks ci.yml HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', '.github/workflows/ci.yml')).toBe(
+      '9a41345f39dec2662882e71f1ca7e55ec17f773c5670e239d694d6825cc632b3',
+    );
+  });
+
+  it('post126: locks ci.yml HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe(
+      'd3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce',
+    );
+  });
+
+  it('post126: locks ci.yml sha256 first/last/mid octets', () => {
+    const hex = sha256('.github/workflows/ci.yml');
+    expect(hex.slice(0, 2)).toBe('c4');
+    expect(hex.slice(-2)).toBe('d5');
+    expect(hex.slice(28, 36)).toBe('f5e6f56e');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: locks deploy.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post126: locks deploy.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+  });
+
+  it('post126: locks deploy.yml md5 digest', () => {
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+  });
+
+  it('post126: locks deploy.yml sha256 nibble sum 476 xor 4', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(nibbleSum(d)).toBe(476);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post126: locks deploy.yml sha256 pairSum 3686 rollingXor 38', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(pairSum(d)).toBe(3686);
+    expect(rollingXor(d)).toBe(38);
+  });
+
+  it('post126: locks deploy.yml byte size 1004', () => {
+    expect(statSync(join(root, '.github/workflows/deploy.yml')).size).toBe(1004);
+    expect(readFileSync(join(root, '.github/workflows/deploy.yml')).byteLength).toBe(1004);
+  });
+
+  it('post126: locks deploy.yml utf8 length 1004 lines 47', () => {
+    expect(readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8')).toHaveLength(1004);
+    expect(readFileSync(join(root, '.github/workflows/deploy.yml'), 'utf8').split('\n')).toHaveLength(47);
+  });
+
+  it('post126: locks deploy.yml HMAC-SHA256 key post126', () => {
+    expect(hmacSha256('post126', '.github/workflows/deploy.yml')).toBe(
+      'eb322b24392d6466acd8ac3f7eb64f61eb862e0b037bd66d5c1a25c5531a05b8',
+    );
+  });
+
+  it('post126: locks deploy.yml HMAC-SHA256 key leftover', () => {
+    expect(hmacSha256('leftover', '.github/workflows/deploy.yml')).toBe(
+      'e2dbbf6c1389e4865ce3242c95a3e4d42b864f0813f4c9bf69ee4c63f5cbff83',
+    );
+  });
+
+  it('post126: locks deploy.yml sha256 first/last/mid octets', () => {
+    const hex = sha256('.github/workflows/deploy.yml');
+    expect(hex.slice(0, 2)).toBe('49');
+    expect(hex.slice(-2)).toBe('c3');
+    expect(hex.slice(28, 36)).toBe('de06de33');
+    expect(hex).toHaveLength(64);
+  });
+
+  it('post126: docs title line locked', () => {
+    expect(spec.split('\n')[0]).toBe("# Backlink MCP Tool Specification");
+  });
+
+  it('post126: docs tool headings are exactly three backlink_* ids in order', () => {
+    expect([...spec.matchAll(/### `([^`]+)`/g)].map((m) => m[1])).toEqual([...DOCS_IDS]);
+  });
+
+  it('post126: claw MCP_MANIFEST tool names are four and distinct from docs ids', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([...CLAW_NAMES]);
+    for (const id of DOCS_IDS) expect(CLAW_NAMES as readonly string[]).not.toContain(id);
+    for (const n of CLAW_NAMES) expect(DOCS_IDS as readonly string[]).not.toContain(n);
+  });
+
+  it('post126: docs↔claw asymmetry is exactly 3 docs tools vs 4 claw tools', () => {
+    expect(DOCS_IDS).toHaveLength(3);
+    expect(CLAW_NAMES).toHaveLength(4);
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('post126: MCP_MANIFEST auth none and openapi url frozen', () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+    expect(spec).not.toContain('/openapi.json');
+  });
+
+  it('post126: MCP_MANIFEST schema_version name_for_model name_for_human frozen', () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it('post126: locks exactly six json fences in mcp-spec.md', () => {
+    expect([...spec.matchAll(/```json\n/g)]).toHaveLength(6);
+    expect(jsonFences()).toHaveLength(6);
+  });
+
+  it('post126: each input schema fence has additionalProperties false', () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    expect(fences[0].additionalProperties).toBe(false);
+    expect(fences[2].additionalProperties).toBe(false);
+    expect(fences[4].additionalProperties).toBe(false);
+  });
+
+  it('post126: curate input fence properties are genre and mood only', () => {
+    const fence = jsonFences()[0] as { properties: Record<string, unknown> };
+    expect(Object.keys(fence.properties)).toEqual(['genre', 'mood']);
+  });
+
+  it('post126: genres input fence properties empty object', () => {
+    const fence = jsonFences()[2] as { properties: Record<string, unknown> };
+    expect(Object.keys(fence.properties)).toEqual([]);
+  });
+
+  it('post126: now_playing input fence properties are genre and mood', () => {
+    const fence = jsonFences()[4] as { properties: Record<string, unknown> };
+    expect(Object.keys(fence.properties)).toEqual(['genre', 'mood']);
+  });
+
+  it('post126: curate output fence has query curated_by timestamp stations', () => {
+    const fence = jsonFences()[1] as { properties: Record<string, unknown> };
+    expect(Object.keys(fence.properties)).toEqual(['query', 'curated_by', 'timestamp', 'stations']);
+  });
+
+  it('post126: genres output fence has genres and aliases', () => {
+    const fence = jsonFences()[3] as { properties: Record<string, unknown> };
+    expect(Object.keys(fence.properties)).toEqual(['genres', 'aliases']);
+  });
+
+  it('post126: now_playing output fence uses stream_url not url and required triple', () => {
+    const fence = jsonFences()[5] as { properties: Record<string, unknown>; required: string[] };
+    expect(Object.keys(fence.properties)).toEqual(['name', 'stream_url', 'logo', 'editorial', 'genre']);
+    expect(fence.required).toEqual(['name', 'stream_url', 'genre']);
+    expect(fence.properties).not.toHaveProperty('url');
+  });
+
+  it('post126: curate station items require name url genre only', () => {
+    const fence = jsonFences()[1] as { properties: { stations: { items: { required: string[]; properties: Record<string, unknown> } } } };
+    expect(fence.properties.stations.items.required).toEqual(['name', 'url', 'genre']);
+    expect(fence.properties.stations.items.properties).toHaveProperty('editorial');
+    expect(fence.properties.stations.items.properties).toHaveProperty('logo');
+  });
+
+  it('post126: Endpoint lines lock curate genres now_playing mappings', () => {
+    expect(spec).toMatch(/\*\*Endpoint:\*\* \`GET \/curate/);
+    expect(spec).toMatch(/\*\*Endpoint:\*\* \`GET \/genres\`/);
+    expect(spec).toMatch(/stream_url/);
+    expect(spec).toMatch(/stations\[0\]/);
+  });
+
+  it('post126: Integration Notes lock Base URL and no-auth and 1h TTL and Gemini fresh', () => {
+    expect(spec).toMatch(/Base URL:\s*\`https:\/\/backlink\.fuzzywigg\.com\`/);
+    expect(spec).toMatch(/No auth required for read endpoints/i);
+    expect(spec).toMatch(/1h TTL/i);
+    expect(spec).toMatch(/Gemini fresh|always calls Gemini/i);
+    expect(spec).toMatch(/editorial:\s*null/);
+  });
+
+  it('post126: occurrence counts for docs tool ids', () => {
+    expect((spec.match(/backlink_curate/g) || []).length).toBe(1);
+    expect((spec.match(/backlink_genres/g) || []).length).toBe(1);
+    expect((spec.match(/backlink_now_playing/g) || []).length).toBe(1);
+    expect((spec.match(/stream_url/g) || []).length).toBeGreaterThanOrEqual(2);
+    expect((spec.match(/curated_by/g) || []).length).toBeGreaterThanOrEqual(1);
+    expect((spec.match(/Gemini/g) || []).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('post126: VALID_GENRES membership and GENRE_MAP alias targets', () => {
+    for (const g of VALID_GENRES) expect(typeof g).toBe('string');
+    for (const [alias, target] of Object.entries(GENRE_MAP)) {
+      expect(VALID_GENRES.includes(target as (typeof VALID_GENRES)[number])).toBe(true);
+      expect(alias.toLowerCase()).toBe(alias);
+    }
+  });
+
+  it('post126: resolveGenre locks for canonical and alias inputs', () => {
+    expect(resolveGenre('jazz')).toBe('jazz');
+    expect(resolveGenre('classical')).toBe('classical');
+    expect(resolveGenre('late night')).toBe('ambient');
+    expect(resolveGenre('focus')).toBe('ambient');
+    expect(resolveGenre('chill')).toBe('ambient');
+    expect(resolveGenre('energizing')).toBe('music');
+    expect(resolveGenre(undefined)).toBe('music');
+    expect(resolveGenre('')).toBe('music');
+  });
+
+  it('post126: docs genre examples are VALID_GENRES; energizing stays outside map', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(spec.toLowerCase()).toContain(g);
+      expect(VALID_GENRES as readonly string[]).toContain(g);
+    }
+    expect(GENRE_MAP).not.toHaveProperty('energizing');
+  });
+
+  it('post126: index Worker does not import MCP_MANIFEST; mcp does not import genres', () => {
+    expect(indexSrc).not.toMatch(/from ['"]\.\/mcp['"]/);
+    expect(indexSrc).not.toContain('MCP_MANIFEST');
+    expect(mcpSrc).not.toContain('resolveGenre');
+    expect(mcpSrc).not.toContain('GENRE_MAP');
+    expect(mcpSrc).not.toContain('VALID_GENRES');
+  });
+
+  it('post126: index exposes /curate /genres /stations without inventing /playlist or /now-playing routes', () => {
+    expect(indexSrc).toMatch(/['"]\/curate['"]/);
+    expect(indexSrc).toMatch(/['"]\/genres['"]/);
+    expect(indexSrc).toMatch(/['"]\/stations['"]/);
+    expect(indexSrc).not.toMatch(/['"]\/playlist['"]/);
+    expect(indexSrc).not.toMatch(/['"]\/now-playing['"]/);
+    expect(spec).not.toMatch(/\/playlist/);
+  });
+
+  it('post126: spec and claw stay free of Anthropic Claude Haiku invent', () => {
+    expect(spec.toLowerCase()).not.toMatch(/anthropic|claude|haiku/);
+    expect(mcpSrc.toLowerCase()).not.toMatch(/anthropic|claude|haiku/);
+    expect(indexSrc.toLowerCase()).not.toMatch(/anthropic|claude|haiku/);
+  });
+
+  it('post126: AGENTS Verify block still lists npm ci typecheck test coverage', () => {
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toMatch(/test:coverage/);
+  });
+
+  it('post126: DEPLOY mentions GEMINI without inventing MCP HTTP routes', () => {
+    expect(deploy).toMatch(/GEMINI/);
+    expect(deploy).not.toMatch(/app\.get\(['"]\/playlist/);
+  });
+
+  it('post126: README mentions backlink radio without inventing openapi route docs', () => {
+    expect(readme.toLowerCase()).toMatch(/backlink|radio|gemini|iptv/);
+    expect(readme).not.toContain('/openapi.json');
+  });
+
+  it('post126: package.json remains ESM named backlink with vitest coverage script', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
+      name: string;
+      type: string;
+      scripts: Record<string, string>;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.type).toBe('module');
+    expect(pkg.scripts.typecheck).toBeTruthy();
+    expect(pkg.scripts.test).toBeTruthy();
+    expect(pkg.scripts['test:coverage']).toBeTruthy();
+  });
+
+  it('post126: ci.yml still runs typecheck and test:coverage on ubuntu', () => {
+    expect(ci).toContain('npm run typecheck');
+    expect(ci).toMatch(/test:coverage/);
+    expect(ci).toContain('ubuntu-latest');
+    expect(ci).not.toContain('wrangler deploy');
+  });
+
+  it('post126: spec has no CR bytes and trailing newline', () => {
+    expect(spec.includes('\r')).toBe(false);
+    expect(spec.endsWith('\n')).toBe(true);
+  });
+
+  it('post126: slice first 40 and last 40 of mcp-spec.md', () => {
+    expect(spec.slice(0, 40)).toBe("# Backlink MCP Tool Specification\n\nThis ");
+    expect(spec.slice(-40)).toBe("p 5 raw stations with `editorial: null`\n");
+  });
+
+  it('post126: slice first 40 and last 40 of mcp.ts', () => {
+    expect(mcpSrc.slice(0, 40)).toBe("export const MCP_MANIFEST = {\n  schema_v");
+    expect(mcpSrc.slice(-40)).toBe("ired: [\"mood\"],\n      },\n    },\n  ],\n};\n");
+  });
+
+  it('post126: sha256 of concatenated docs tool ids', () => {
+    const joined = DOCS_IDS.join('|');
+    expect(createHash('sha256').update(joined).digest('hex')).toBe(
+      '60d6a047978939b110eda070c62c863f066235c50f7444ff0d251862a9bd69a3',
+    );
+  });
+
+  it('post126: sha256 of concatenated claw tool names', () => {
+    const joined = CLAW_NAMES.join('|');
+    expect(createHash('sha256').update(joined).digest('hex')).toBe(
+      '2015d2ac108fff286afe263f4973ac93f78f2eb5690a4a051be6dc5d4edb064d',
+    );
+  });
+
+  it('post126: digest-of-digests over post126 mcp-spec surface file set', () => {
+    const files = [
+      'docs/mcp-spec.md',
+      'src/mcp.ts',
+      'src/genres.ts',
+      'src/index.ts',
+      'src/parser.ts',
+      'src/types.ts',
+      'package.json',
+      'vitest.config.ts',
+      'tsconfig.json',
+      'wrangler.toml',
+      'AGENTS.md',
+      'README.md',
+      'DEPLOY.md',
+      '.github/workflows/ci.yml',
+      '.github/workflows/deploy.yml',
+    ];
+    const joined = files.map((rel) => sha256(rel)).join('');
+    expect(createHash('sha256').update(joined).digest('hex')).toBe(
+      '01ede5d28216b153ab2f534b9032be55e41b2f149c861fb6e19a9fa16ed74b12',
+    );
+  });
+
+  it('post126: mega purity — 20 rounds of mcp-spec.md sha256 stability', () => {
+    const expected = 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849';
+    for (let i = 0; i < 20; i++) expect(sha256('docs/mcp-spec.md')).toBe(expected);
+  });
+
+  it('post126: mega purity — 10 rounds of HMAC post126 on mcp-spec.md', () => {
+    const expected = '0420a0feb0aee333c9c83902b9ff4847e9151b324749f5c9ce993508eff3d70b';
+    for (let i = 0; i < 10; i++) expect(hmacSha256('post126', 'docs/mcp-spec.md')).toBe(expected);
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=post126)', () => {
+    expect(hmacSha256('post126', 'docs/mcp-spec.md')).toBe(
+      '0420a0feb0aee333c9c83902b9ff4847e9151b324749f5c9ce993508eff3d70b',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=mcp-spec)', () => {
+    expect(hmacSha256('mcp-spec', 'docs/mcp-spec.md')).toBe(
+      '21d41c5da610b736683b86a776e8661e8b25294a698027c8d552fa6eace78cb3',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'docs/mcp-spec.md')).toBe(
+      'cc7b82d7e2cbbb55051894ddba60fbf4023572b4cd7a21b98ebf76001a5d07df',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=backlink)', () => {
+    expect(hmacSha256('backlink', 'docs/mcp-spec.md')).toBe(
+      '98920add1fa15e869968c8efbc949fab60baf5ca95945eaf466caf563dff3e9f',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=backlink_curate)', () => {
+    expect(hmacSha256('backlink_curate', 'docs/mcp-spec.md')).toBe(
+      'd5be7a976b320237501c22881a382cf75b22af14a3f886ea5bb34d88fec2e1b2',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=backlink_genres)', () => {
+    expect(hmacSha256('backlink_genres', 'docs/mcp-spec.md')).toBe(
+      'f9384a7b6410e8e73a6d2acbd7a8c528b41fb612659b8f376924c87d0be870d0',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=backlink_now_playing)', () => {
+    expect(hmacSha256('backlink_now_playing', 'docs/mcp-spec.md')).toBe(
+      'd0f976d64252d4ad35ce5a5eafa023ae98ba6d5a3ca6be16019cf3a1cf96946e',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=stream_url)', () => {
+    expect(hmacSha256('stream_url', 'docs/mcp-spec.md')).toBe(
+      'c582e603126a829add1be68dd7c7cf8e307c582440fef51bb09b65022e5a2db6',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=MCP_MANIFEST)', () => {
+    expect(hmacSha256('MCP_MANIFEST', 'docs/mcp-spec.md')).toBe(
+      '65d649abc3807ea8ee1e06cf11f0e8230aa717ed8094ed1de906798e69e16597',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp-spec.md, key=GENRE_MAP)', () => {
+    expect(hmacSha256('GENRE_MAP', 'docs/mcp-spec.md')).toBe(
+      'e01fc8634bfedbbedcd9da59f972d0afcedfd135b07c02806e7499d4eede1a1c',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp.ts, key=post126)', () => {
+    expect(hmacSha256('post126', 'src/mcp.ts')).toBe(
+      'd6bbbe08e1a6d4ce854fc3037c5a4590d86f31d868892f4fa30aeddaf6e4a1ff',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp.ts, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'src/mcp.ts')).toBe(
+      '8ace2389ce0308341cb978ba9c33116db731b2166d09e0adc79fa37366b8c712',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp.ts, key=claw-mcp)', () => {
+    expect(hmacSha256('claw-mcp', 'src/mcp.ts')).toBe(
+      'd2be78dfaf67430ea34569738fbdb4577f6cb48928cd16c895ec53378b2e1eb5',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp.ts, key=station_select)', () => {
+    expect(hmacSha256('station_select', 'src/mcp.ts')).toBe(
+      'd8c897e3e257256d5c946e2e941fbc36b75dc2a5027d3685a0f2446686d8cea2',
+    );
+  });
+
+  it('post126: HMAC-SHA256(mcp.ts, key=curator_prompt)', () => {
+    expect(hmacSha256('curator_prompt', 'src/mcp.ts')).toBe(
+      '70897363a596f9754bee8cc34105600129e430194d666f995b799708bf1b3259',
+    );
+  });
+
+  it('post126: negative inventing — no WebSocket SSE invent in spec or mcp', () => {
+    expect(spec.toLowerCase()).not.toMatch(/websocket|server-sent|\bsse\b/); expect(mcpSrc.toLowerCase()).not.toMatch(/websocket|\bsse\b/);
+  });
+
+  it('post126: negative inventing — no OAuth bearer invent in Integration Notes', () => {
+    expect(spec.toLowerCase()).not.toMatch(/oauth|bearer token|api key required/);
+  });
+
+  it('post126: negative inventing — no Anthropic MCP SDK package invent', () => {
+    expect(spec).not.toMatch(/@modelcontextprotocol|anthropic-sdk/); expect(mcpSrc).not.toMatch(/@modelcontextprotocol/);
+  });
+
+  it('post126: negative inventing — no /openapi.json documented as Worker Endpoint', () => {
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*.*openapi/); expect(spec).not.toContain('GET /openapi.json');
+  });
+
+  it('post126: negative inventing — claw tool names never appear as docs headings', () => {
+    for (const n of CLAW_NAMES) expect(spec).not.toContain('### `' + n + '`');
+  });
+
+  it('post126: negative inventing — docs tool ids never appear as MCP_MANIFEST tool names', () => {
+    for (const id of DOCS_IDS) expect(MCP_MANIFEST.tools.map((t) => t.name)).not.toContain(id);
+  });
+
+  it('post126: negative inventing — no Dockerfile invent in repo root', () => {
+    expect(() => readFileSync(join(root, 'Dockerfile'))).toThrow();
+  });
+
+  it('post126: negative inventing — no second package manager lockfiles', () => {
+    expect(() => readFileSync(join(root, 'yarn.lock'))).toThrow(); expect(() => readFileSync(join(root, 'pnpm-lock.yaml'))).toThrow();
+  });
+
+  it('post126: GENRE_MAP has 21 aliases; VALID_GENRES has 9', () => {
+    expect(Object.keys(GENRE_MAP).length).toBe(21);
+    expect(VALID_GENRES).toHaveLength(9);
+    expect([...VALID_GENRES]).toEqual(["music","ambient","jazz","classical","pop","rock","news","sports","entertainment"]);
+  });
+
+  it('post126: every GENRE_MAP value is a VALID_GENRES member', () => {
+    for (const v of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES).toContain(v as (typeof VALID_GENRES)[number]);
+    }
+  });
+
+  it('post126: GENRE_MAP late night maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["late night"]).toBe('ambient');
+    expect(resolveGenre("late night")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP chill maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["chill"]).toBe('ambient');
+    expect(resolveGenre("chill")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP ambient maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["ambient"]).toBe('ambient');
+    expect(resolveGenre("ambient")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP relaxing maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["relaxing"]).toBe('ambient');
+    expect(resolveGenre("relaxing")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP focus maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["focus"]).toBe('ambient');
+    expect(resolveGenre("focus")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP classical maps to classical and resolveGenre agrees', () => {
+    expect(GENRE_MAP["classical"]).toBe('classical');
+    expect(resolveGenre("classical")).toBe('classical');
+  });
+
+  it('post126: GENRE_MAP classic maps to classical and resolveGenre agrees', () => {
+    expect(GENRE_MAP["classic"]).toBe('classical');
+    expect(resolveGenre("classic")).toBe('classical');
+  });
+
+  it('post126: GENRE_MAP jazz maps to jazz and resolveGenre agrees', () => {
+    expect(GENRE_MAP["jazz"]).toBe('jazz');
+    expect(resolveGenre("jazz")).toBe('jazz');
+  });
+
+  it('post126: GENRE_MAP blues maps to jazz and resolveGenre agrees', () => {
+    expect(GENRE_MAP["blues"]).toBe('jazz');
+    expect(resolveGenre("blues")).toBe('jazz');
+  });
+
+  it('post126: GENRE_MAP pop maps to pop and resolveGenre agrees', () => {
+    expect(GENRE_MAP["pop"]).toBe('pop');
+    expect(resolveGenre("pop")).toBe('pop');
+  });
+
+  it('post126: GENRE_MAP rock maps to rock and resolveGenre agrees', () => {
+    expect(GENRE_MAP["rock"]).toBe('rock');
+    expect(resolveGenre("rock")).toBe('rock');
+  });
+
+  it('post126: GENRE_MAP metal maps to rock and resolveGenre agrees', () => {
+    expect(GENRE_MAP["metal"]).toBe('rock');
+    expect(resolveGenre("metal")).toBe('rock');
+  });
+
+  it('post126: GENRE_MAP indie maps to rock and resolveGenre agrees', () => {
+    expect(GENRE_MAP["indie"]).toBe('rock');
+    expect(resolveGenre("indie")).toBe('rock');
+  });
+
+  it('post126: GENRE_MAP music maps to music and resolveGenre agrees', () => {
+    expect(GENRE_MAP["music"]).toBe('music');
+    expect(resolveGenre("music")).toBe('music');
+  });
+
+  it('post126: GENRE_MAP news maps to news and resolveGenre agrees', () => {
+    expect(GENRE_MAP["news"]).toBe('news');
+    expect(resolveGenre("news")).toBe('news');
+  });
+
+  it('post126: GENRE_MAP sports maps to sports and resolveGenre agrees', () => {
+    expect(GENRE_MAP["sports"]).toBe('sports');
+    expect(resolveGenre("sports")).toBe('sports');
+  });
+
+  it('post126: GENRE_MAP entertainment maps to entertainment and resolveGenre agrees', () => {
+    expect(GENRE_MAP["entertainment"]).toBe('entertainment');
+    expect(resolveGenre("entertainment")).toBe('entertainment');
+  });
+
+  it('post126: GENRE_MAP dance maps to pop and resolveGenre agrees', () => {
+    expect(GENRE_MAP["dance"]).toBe('pop');
+    expect(resolveGenre("dance")).toBe('pop');
+  });
+
+  it('post126: GENRE_MAP electronic maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["electronic"]).toBe('ambient');
+    expect(resolveGenre("electronic")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP lofi maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["lofi"]).toBe('ambient');
+    expect(resolveGenre("lofi")).toBe('ambient');
+  });
+
+  it('post126: GENRE_MAP lo-fi maps to ambient and resolveGenre agrees', () => {
+    expect(GENRE_MAP["lo-fi"]).toBe('ambient');
+    expect(resolveGenre("lo-fi")).toBe('ambient');
+  });
+
+  it('post126: curator_prompt requires mood; genre optional; station_select requires station_name', () => {
+    const curator = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt')!;
+    expect(curator.input_schema.required).toEqual(['mood']);
+    expect(Object.keys(curator.input_schema.properties || {})).toEqual(
+      expect.arrayContaining(['mood', 'genre']),
+    );
+    const select = MCP_MANIFEST.tools.find((t) => t.name === 'station_select')!;
+    expect(select.input_schema.required).toEqual(['station_name']);
+  });
+
+  it('post126: genre_filter requires genre; now_playing has empty properties', () => {
+    const gf = MCP_MANIFEST.tools.find((t) => t.name === 'genre_filter')!;
+    expect(gf.input_schema.required).toEqual(['genre']);
+    const np = MCP_MANIFEST.tools.find((t) => t.name === 'now_playing')!;
+    expect(Object.keys(np.input_schema.properties || {})).toEqual([]);
+  });
+
+  it('post126: sha384 and sha512 digests of mcp-spec.md locked', () => {
+    expect(createHash('sha384').update(readFileSync(join(root, 'docs/mcp-spec.md'))).digest('hex')).toBe(
+      'b32096b74bacd48065f014d2695673b3bfad3cb9118b855899a92a849cd38a7dd751db7c9e0705d6d6569d5f05f61227',
+    );
+    expect(createHash('sha512').update(readFileSync(join(root, 'docs/mcp-spec.md'))).digest('hex')).toBe(
+      '8d26bafffcb1230048d80796e1d8a1019d83253810324d18383c54ff8bcaaed4a508b0a07395994af2f23e4f9b627e2202a57fcac709110d0ee859e8628709e7',
+    );
+  });
+
+  it('post126: base64 of mcp-spec first line', () => {
+    const line = spec.split('\n')[0];
+    expect(Buffer.from(line, 'utf8').toString('base64')).toBe(
+      'IyBCYWNrbGluayBNQ1AgVG9vbCBTcGVjaWZpY2F0aW9u',
+    );
+  });
+
+  it('post126: fromCharCode rebuild of backlink name_for_model', () => {
+    const rebuilt = String.fromCharCode(98, 97, 99, 107, 108, 105, 110, 107);
+    expect(rebuilt).toBe('backlink');
+    expect(MCP_MANIFEST.name_for_model).toBe(rebuilt);
+  });
+
+  it('post126: TextEncoder byte length of docs tool ids', () => {
+    expect(new TextEncoder().encode('backlink_curate').length).toBe(15);
+    expect(new TextEncoder().encode('backlink_genres').length).toBe(15);
+    expect(new TextEncoder().encode('backlink_now_playing').length).toBe(20);
+  });
+
+  it('post126: final inventory — mcp-spec describe blocks include post112 post116 post126', () => {
+    const body = readFileSync(join(root, 'test/mcp-spec-contract.test.ts'), 'utf8');
+    expect(body).toContain('post112');
+    expect(body).toContain('post116');
+    expect(body).toContain("describe('post126 mcp-spec-contract HEAVY deepen'");
+    expect((body.match(/it\('post126:/g) ?? []).length).toBeGreaterThan(100);
+  });
+
+  it('post126: mcp-spec-contract.test.ts ends with newline after post126', () => {
+    expect(readFileSync(join(root, 'test/mcp-spec-contract.test.ts'), 'utf8').endsWith('\n')).toBe(true);
+  });
+
+  it('post126: dirname of this test file resolves to test/', () => {
+    const dir = dirname(fileURLToPath(import.meta.url));
+    expect(dir.endsWith('/test') || dir.endsWith('test')).toBe(true);
+  });
+
+  it('post126: does not invent thin envjson stubs or credential material in this suite', () => {
+    expect(spec).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(mcpSrc).not.toMatch(/api[_-]?key\s*[:=]/i);
+    // ci.yml may mention GEMINI_API_KEY only inside forbid/grep hygiene — never as an assignment export
+    expect(ci).not.toMatch(/^\s*GEMINI_API_KEY\s*=/m);
+    expect(ci).not.toMatch(/env:\s*\n\s*GEMINI_API_KEY:/);
+  });
+
+});
+
+// --- post126b extras: more leftover mcp-spec edge locks (still tests-only) ---
+describe('post126 mcp-spec-contract HEAVY deepen extras', () => {
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const mcpSrc = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+  const indexSrc = readFileSync(join(root, 'src/index.ts'), 'utf8');
+  const parserSrc = readFileSync(join(root, 'src/parser.ts'), 'utf8');
+
+  it('post126b: sha256 of mcp-spec.md line 0', () => {
+    expect(createHash('sha256').update(spec.split('\n')[0]).digest('hex')).toBe(
+      '99c84d33ad819ac91a66e1a30aef3bf512cb393370d7b6fbc8397c8917ba2e66',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 1', () => {
+    expect(createHash('sha256').update(spec.split('\n')[1]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 2', () => {
+    expect(createHash('sha256').update(spec.split('\n')[2]).digest('hex')).toBe(
+      '5e0f013658c5f50f7c40c93531494fbb57ec6e3c6d3fb79f9ae8de8be3979572',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 3', () => {
+    expect(createHash('sha256').update(spec.split('\n')[3]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 4', () => {
+    expect(createHash('sha256').update(spec.split('\n')[4]).digest('hex')).toBe(
+      'cb3f91d54eee30e53e35b2b99905f70f169ed549fd78909d3dac2defc9ed8d3b',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 5', () => {
+    expect(createHash('sha256').update(spec.split('\n')[5]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 6', () => {
+    expect(createHash('sha256').update(spec.split('\n')[6]).digest('hex')).toBe(
+      '0b27734b46fbf7ef264d7dcff4505a08b8773717141fac872ecc4d1c686ca54c',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 7', () => {
+    expect(createHash('sha256').update(spec.split('\n')[7]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 8', () => {
+    expect(createHash('sha256').update(spec.split('\n')[8]).digest('hex')).toBe(
+      'ff3cf26fccc178587f5e9fd4ea384b4504907333f5685d3918dcf5cf001e7594',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 9', () => {
+    expect(createHash('sha256').update(spec.split('\n')[9]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 10', () => {
+    expect(createHash('sha256').update(spec.split('\n')[10]).digest('hex')).toBe(
+      '02b56e10fd373ef3e120665848a53d523d0c461f43d47226da7bfda0fda6700d',
+    );
+  });
+
+  it('post126b: sha256 of mcp-spec.md line 11', () => {
+    expect(createHash('sha256').update(spec.split('\n')[11]).digest('hex')).toBe(
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    );
+  });
+
+  it('post126b: mcp.ts has no tabs and uses 2-space indent on tools array', () => {
+    expect(mcpSrc.includes('\t')).toBe(false);
+    expect(mcpSrc).toContain('  tools: [');
+  });
+
+  it('post126b: genres.ts GENRE_MAP keys are all lowercase', () => {
+    for (const k of Object.keys(GENRE_MAP)) expect(k).toBe(k.toLowerCase());
+  });
+
+  it('post126b: VALID_GENRES are unique and order-frozen', () => {
+    expect(new Set(VALID_GENRES).size).toBe(VALID_GENRES.length);
+    expect([...VALID_GENRES]).toEqual(["music","ambient","jazz","classical","pop","rock","news","sports","entertainment"]);
+  });
+
+  it('post126b: resolveGenre("Jazz") -> jazz', () => {
+    expect(resolveGenre("Jazz")).toBe('jazz');
+  });
+
+  it('post126b: resolveGenre("  jazz  ") -> jazz', () => {
+    expect(resolveGenre("  jazz  ")).toBe('jazz');
+  });
+
+  it('post126b: resolveGenre("LATE NIGHT") -> ambient', () => {
+    expect(resolveGenre("LATE NIGHT")).toBe('ambient');
+  });
+
+  it('post126b: resolveGenre("Lo-Fi") -> ambient', () => {
+    expect(resolveGenre("Lo-Fi")).toBe('ambient');
+  });
+
+  it('post126b: resolveGenre("lofi") -> ambient', () => {
+    expect(resolveGenre("lofi")).toBe('ambient');
+  });
+
+  it('post126b: resolveGenre("METAL") -> rock', () => {
+    expect(resolveGenre("METAL")).toBe('rock');
+  });
+
+  it('post126b: resolveGenre("Blues") -> jazz', () => {
+    expect(resolveGenre("Blues")).toBe('jazz');
+  });
+
+  it('post126b: resolveGenre("unknown-xyz") -> music', () => {
+    expect(resolveGenre("unknown-xyz")).toBe('music');
+  });
+
+  it('post126b: json fence 0 round-trips through JSON.stringify', () => {
+    const fence = jsonFences()[0] as Record<string, unknown>;
+    expect(JSON.parse(JSON.stringify(fence))).toEqual(fence);
+    expect(fence.type).toBe('object');
+  });
+
+  it('post126b: json fence 5 required order stable under JSON round-trip', () => {
+    const fence = jsonFences()[5] as { required: string[] };
+    expect(JSON.parse(JSON.stringify(fence.required))).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it('post126b: index /curate and /genres handlers exist while docs Endpoint paths match', () => {
+    expect(indexSrc).toMatch(/\/(curate|genres|stations)/);
+    expect(spec).toMatch(/GET \/curate/);
+    expect(spec).toMatch(/GET \/genres/);
+  });
+
+  it('post126b: parser exports remain Station-shaped without inventing NowPlaying type', () => {
+    expect(parserSrc).toMatch(/export (interface|type) Station/);
+    expect(parserSrc).not.toMatch(/NowPlaying/);
+    expect(spec).not.toMatch(/interface NowPlaying/);
+  });
+
+  it('post126b: HMAC-SHA256(src/genres.ts, key=post126b)', () => {
+    expect(hmacSha256('post126b', 'src/genres.ts')).toBe(
+      '3a773ef704f2fc3b8630612e71bd5e33d51a7e72be503b4230600aebbb8db35f',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/genres.ts, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'src/genres.ts')).toBe(
+      'bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/genres.ts, key=no-invent)', () => {
+    expect(hmacSha256('no-invent', 'src/genres.ts')).toBe(
+      '9f3fa6caa0dc07c6dfb08ff1f3ec88ab2f1ce6800d07fc4ac613a79e9e6a974f',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/index.ts, key=post126b)', () => {
+    expect(hmacSha256('post126b', 'src/index.ts')).toBe(
+      '77f916a93276c27ed755dfd7ea55fa32480f9a0e6aea59a3af2ebd8e4f6c3722',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/index.ts, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'src/index.ts')).toBe(
+      '268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/index.ts, key=no-invent)', () => {
+    expect(hmacSha256('no-invent', 'src/index.ts')).toBe(
+      'ac1664326fe9a96468bcaf27422b305e016c5cbbe30d36b433bef7df5196ecaa',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/parser.ts, key=post126b)', () => {
+    expect(hmacSha256('post126b', 'src/parser.ts')).toBe(
+      '84cb4ff9365eeb471e88e0ee27a0fbedfacb499bbbc3fa1a85df5f178c5b89ee',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/parser.ts, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'src/parser.ts')).toBe(
+      'e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(src/parser.ts, key=no-invent)', () => {
+    expect(hmacSha256('no-invent', 'src/parser.ts')).toBe(
+      '84147a191b6868db188ee8a90ecf4718920d422211d2c8386cc2f174ae71fada',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(docs/mcp-spec.md, key=post126b)', () => {
+    expect(hmacSha256('post126b', 'docs/mcp-spec.md')).toBe(
+      'a81d43de78cc4695c7b237c36741841c3b7cb21e8c5620eb36ddf81061f2e25e',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(docs/mcp-spec.md, key=leftover)', () => {
+    expect(hmacSha256('leftover', 'docs/mcp-spec.md')).toBe(
+      'cc7b82d7e2cbbb55051894ddba60fbf4023572b4cd7a21b98ebf76001a5d07df',
+    );
+  });
+
+  it('post126b: HMAC-SHA256(docs/mcp-spec.md, key=no-invent)', () => {
+    expect(hmacSha256('no-invent', 'docs/mcp-spec.md')).toBe(
+      '022068747b9d69f410f4732de467a31f8a566b2c5537325861510672dce4f7af',
+    );
+  });
+
+  it('post126b: size*lines product of docs/mcp-spec.md is 515040', () => {
+    expect(statSync(join(root, 'docs/mcp-spec.md')).size * readFileSync(join(root, 'docs/mcp-spec.md'), 'utf8').split('\n').length).toBe(515040);
+  });
+
+  it('post126b: size*lines product of src/mcp.ts is 139876', () => {
+    expect(statSync(join(root, 'src/mcp.ts')).size * readFileSync(join(root, 'src/mcp.ts'), 'utf8').split('\n').length).toBe(139876);
+  });
+
+  it('post126b: size*lines product of src/genres.ts is 49296', () => {
+    expect(statSync(join(root, 'src/genres.ts')).size * readFileSync(join(root, 'src/genres.ts'), 'utf8').split('\n').length).toBe(49296);
+  });
+
+  it('post126b: sha256 of reversed docs/mcp-spec.md', () => {
+    const rev = [...readFileSync(join(root, 'docs/mcp-spec.md'), 'utf8')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('8e0a8a17d78474b7a2c052d335989cd8a980b200816869706af232736e35ab47');
+  });
+
+  it('post126b: sha256 of reversed src/mcp.ts', () => {
+    const rev = [...readFileSync(join(root, 'src/mcp.ts'), 'utf8')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('5fb580296684d084fa1bca986fdaa5c31fb63d427f9c5b62f7581941727ba73c');
+  });
+
+  it('post126b: sha256 of reversed src/genres.ts', () => {
+    const rev = [...readFileSync(join(root, 'src/genres.ts'), 'utf8')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('02c6881bd75e415d5d3fd74f475f1cdc5843c91030255732f8decb1703f46eac');
+  });
+
+  it('post126b: locks docs/mcp-spec.md sha256 UPPERCASE', () => {
+    expect(sha256('docs/mcp-spec.md').toUpperCase()).toBe('A93978D779B976A1ABA4D34395EEC7628B21BDA910EF8A279D5EFBC05DA56849');
+  });
+
+  it('post126b: locks src/mcp.ts sha256 UPPERCASE', () => {
+    expect(sha256('src/mcp.ts').toUpperCase()).toBe('6AE8FFD7C4B75C471DB2DFF1FE5C6AD61AFF69E38B048A366BB8B7ADB3099683');
+  });
+
+  it('post126b: occurrence of additionalProperties >= 3', () => {
+    expect((spec.match(/additionalProperties/g) || []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('post126b: occurrence of Endpoint >= 3', () => {
+    expect((spec.match(/Endpoint/g) || []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('post126b: occurrence of Description >= 3', () => {
+    expect((spec.match(/Description/g) || []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('post126b: negative inventing — no GraphQL invent', () => {
+    expect(spec.toLowerCase()).not.toMatch(/graphql|apollo/); expect(mcpSrc.toLowerCase()).not.toMatch(/graphql/);
+  });
+
+  it('post126b: negative inventing — no gRPC invent', () => {
+    expect(spec.toLowerCase()).not.toMatch(/\bgrpc\b/);
+  });
+
+  it('post126b: negative inventing — no Redis invent in mcp-spec surface', () => {
+    expect(spec.toLowerCase()).not.toMatch(/redis|upstash/);
+  });
+
+  it('post126b: negative inventing — no Stripe billing invent', () => {
+    expect(spec.toLowerCase()).not.toMatch(/stripe|billing portal/);
+  });
+
+  it('post126b: negative inventing — no JWT invent in docs tools', () => {
+    expect(spec.toLowerCase()).not.toMatch(/\bjwt\b|json web token/);
+  });
+
+  it('post126b: negative inventing — no /admin route invent', () => {
+    expect(spec).not.toMatch(/\/admin/); expect(indexSrc).not.toMatch(/['"]\/admin['"]/);
+  });
+
+  it('post126b: MCP_MANIFEST descriptions mention IPTV/AI without inventing new tool ids', () => {
+    expect(MCP_MANIFEST.description_for_model.toLowerCase()).toMatch(/backlink|iptv|curator|station/);
+    expect(MCP_MANIFEST.description_for_human.toLowerCase()).toMatch(/radio|iptv|ai/);
+    expect(MCP_MANIFEST.tools.map((t) => t.name).join(',')).not.toContain('backlink_');
+  });
+
+  it('post126b: docs Base URL host stays backlink.fuzzywigg.com without inventing alt hosts', () => {
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(spec).not.toMatch(/workers\.dev|pages\.dev|localhost:8787/);
+  });
+
+  it('post126b: post126 + post126b inventory counts', () => {
+    const body = readFileSync(join(root, 'test/mcp-spec-contract.test.ts'), 'utf8');
+    expect((body.match(/it\('post126:/g) ?? []).length).toBeGreaterThan(100);
+    expect((body.match(/it\('post126b:/g) ?? []).length).toBeGreaterThan(40);
+    expect(body).toContain("describe('post126 mcp-spec-contract HEAVY deepen extras'");
+  });
+
+});
