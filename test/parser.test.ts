@@ -26552,3 +26552,616 @@ describe('post184-ultra parser ultra HEAVY deepen (after #184 leftover wave)', (
     expect((body.match(/it\('post184-ultra:/g) ?? []).length).toBeGreaterThan(150);
   });
 });
+
+// --- TOKENMAXX HEAVY leftover deepen after #198 tip (parser+routes / not genres+mcp) ---
+describe('post198 parser HEAVY deepen (after #198 tip leftover / parser-routes-only / not genres-mcp / not helpers+source / not wrangler / not ci-config)', () => {
+
+  const read = (rel: string) => readFileSync(join(parserRoot, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+  it('post198: inventory — parser leftover after tip #198 (beyond #189 post184; not genres+mcp #198 / not mcp-spec #196 / not helpers+source #194)', () => {
+    expect(read('src/parser.ts')).toContain('export function parseM3U');
+    expect(read('src/parser.ts')).toContain('tvg-name');
+    expect(read('src/parser.ts')).toContain('group-title');
+    expect(read('src/parser.ts')).toMatch(/rtmp:\/\//);
+    expect(read('test/parser.test.ts')).toContain("describe('post198 parser HEAVY deepen");
+    expect(read('test/parser.test.ts')).toContain(['describe(', "'post184 parser HEAVY deepen"].join(''));
+    expect(read('test/genres.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/mcp.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/helpers.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/source-contracts.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/wrangler-config.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/ci-config.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/mcp-spec-contract.test.ts').includes(['describe(', "'post198 parser HEAVY deepen"].join(''))).toBe(false);
+  });
+
+  it('post198: parseM3U skips rtmp, dedupes URL, keeps http+https', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+https://example.com/a.m3u8
+#EXTINF:-1 tvg-name="Dup",Dup
+https://example.com/a.m3u8
+#EXTINF:-1 tvg-name="Rtmp",Rtmp
+rtmp://example.com/live
+#EXTINF:-1 tvg-name="B",B
+http://example.com/b.m3u8
+`);
+    expect(stations).toHaveLength(2);
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it('post198: parseM3U prefers tvg-name over display comma name + empty attrs', () => {
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Canon198" tvg-logo="" group-title="" tvg-language="" tvg-country="",Display
+https://example.com/c198.m3u8
+`);
+    expect(stations[0]).toEqual({
+      name: 'Canon198',
+      url: 'https://example.com/c198.m3u8',
+      logo: '',
+      group: '',
+      language: '',
+      country: '',
+    });
+  });
+
+  it('post198: parseM3U falls back to comma name when tvg-name missing', () => {
+    const stations = parseM3U(`#EXTINF:-1 group-title="Jazz",Comma Name 198
+https://example.com/comma198.m3u8
+`);
+    expect(stations[0].name).toBe('Comma Name 198');
+    expect(stations[0].group).toBe('Jazz');
+  });
+
+  it('post198: parseM3U ignores blank lines and comments without inventing stations', () => {
+    const stations = parseM3U(`#EXTM3U
+# comment
+#EXTINF:-1 tvg-name="Only198",Only198
+
+https://example.com/only198.m3u8
+#EXTINF:-1 tvg-name="NoUrl",NoUrl
+# another comment
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('Only198');
+  });
+
+  it('post198: SAMPLE_M3U helper countHttpStreamLines stays 6', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+  });
+
+  it('post198: buildSimpleM3U round-trips through parseM3U', () => {
+    const raw = buildSimpleM3U([
+      { name: 'Edge198', url: 'https://example.com/edge198.m3u8', group: 'Ambient', language: 'en', country: 'US', logo: 'https://cdn.example/e198.png' },
+    ]);
+    const s = parseM3U(raw);
+    expect(s).toHaveLength(1);
+    expect(s[0]).toMatchObject({ name: 'Edge198', url: 'https://example.com/edge198.m3u8', group: 'Ambient', language: 'en', country: 'US' });
+  });
+
+  it('post198: forbids sibling-suite invent keys in parser edge slice', () => {
+    const body = read('test/parser.test.ts');
+    expect(body).toContain('parser-routes-only');
+    expect(body).toContain('parser-routes-edges');
+    expect(body).toContain('not-genres-mcp');
+    expect(body).toContain('not-mcp-spec');
+    expect(body).toContain('not-helpers-source');
+    expect(body).toContain('not-wrangler');
+    expect(body).toContain('not-ci-config');
+    expect(body.includes(['describe(', "'post198 helpers"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 source-contracts"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 mcp-spec"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 wrangler"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 ci-config"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 genres"].join(''))).toBe(false);
+    expect(body.includes(['describe(', "'post198 mcp "].join(''))).toBe(false);
+  });
+
+  it('post198: locks src/parser.ts sha256', () => { expect(sha256('src/parser.ts')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368'); });
+  it('post198: locks src/parser.ts sha1', () => { expect(sha1('src/parser.ts')).toBe('701cdecbef5a9049af6bd11497493c4036a60211'); });
+  it('post198: locks src/parser.ts md5', () => { expect(md5('src/parser.ts')).toBe('500211c4c526de887252451726776563'); });
+  it('post198: locks src/parser.ts sha384', () => { expect(sha384('src/parser.ts')).toBe('f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9'); });
+  it('post198: locks src/parser.ts sha512', () => { expect(sha512('src/parser.ts')).toBe('66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89'); });
+  it('post198: locks src/parser.ts sha3-256', () => { expect(sha3('src/parser.ts')).toBe('0ec47247da4cff229cc417b213da73883427985239714e246eb16d1f021bf9c2'); });
+  it('post198: locks src/parser.ts blake2b512', () => { expect(blake2b('src/parser.ts')).toBe('d61759e7d0a68efcd16a74811ad84abebe0b82dab5c16e51261ca37118efc5a3c36aec8bc1523ce2b0d3908cd065c7cb8d1c153ea9a31dec633a90ec53aca7ef'); });
+  it('post198: locks src/parser.ts ripemd160', () => { expect(ripemd('src/parser.ts')).toBe('36f12fc76af98f06dfa651f814e8f2e13b26c96a'); });
+  it('post198: locks src/parser.ts size 1955', () => { expect(statSync(join(parserRoot, 'src/parser.ts')).size).toBe(1955); expect(readFileSync(join(parserRoot, 'src/parser.ts')).byteLength).toBe(1955); });
+  it('post198: locks src/parser.ts utf8 1953 lines 67', () => { expect(read('src/parser.ts')).toHaveLength(1953); expect(read('src/parser.ts').split('\n')).toHaveLength(67); });
+  it('post198: locks src/parser.ts nibble 477 xor 9', () => { const d = sha256('src/parser.ts'); expect(nibbleSum(d)).toBe(477); expect(xorNibbles(d)).toBe(9); });
+  it('post198: locks src/parser.ts pairSum 3612 rollingXor 126', () => { const d = sha256('src/parser.ts'); expect(pairSum(d)).toBe(3612); expect(rollingXor(d)).toBe(126); });
+  it('post198: locks src/parser.ts first/last/mid octets', () => { const d = sha256('src/parser.ts'); expect(d.slice(0, 2)).toBe('cf'); expect(d.slice(-2)).toBe('68'); expect(d.slice(28, 36)).toBe('a0e83a07'); });
+  it('post198: locks src/parser.ts HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'src/parser.ts')).toBe('e6a88d8d71cca48be3756c398dc9ed0250707b4f1bbe254a6f9ec02454145f83'); expect(hmacSha256('after-#198', 'src/parser.ts')).toBe('a49fbe9cb5c0089713c7a76076ee0017961c0ec8657b9162130f9be976b8fd02'); expect(hmacSha256('leftover', 'src/parser.ts')).toBe('e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3'); });
+  it('post198: locks src/parser.ts HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'src/parser.ts')).toBe('eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8'); expect(hmacSha256('HEAVY', 'src/parser.ts')).toBe('fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70'); expect(hmacSha256('no-product-invent', 'src/parser.ts')).toBe('25b61b2dada026216640bb0a1e66ac0b6216c6f7aa182e6af20a1d43bb35446f'); });
+  it('post198: locks src/parser.ts HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'src/parser.ts')).toBe('fecc1f8258da869db2d707d6e6ed0ab5b64f70825cbadbc6332407d68d28f2c6'); expect(hmacSha256('no-src-change', 'src/parser.ts')).toBe('e22a10b16e32cbb5f2170343ce1b4adbdc83427acb731f9ca52fb464cefa605b'); expect(hmacSha256('manifest-lock', 'src/parser.ts')).toBe('1c5081330de4e7e0aaa0d3449a5e9ef4b8f5a8f5c9c6c828827a3a91f5003bdc'); });
+  it('post198: locks src/parser.ts HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'src/parser.ts')).toBe('535391602021b540cfdea69118c622d3d6e075031aa1fb01aab7d7f43eea1f80'); expect(hmacSha256('parser-routes-edges', 'src/parser.ts')).toBe('7c23d0b602fb4b0449c385e56e71831836e725a71a59f70812c5e389f6c89991'); expect(hmacSha256('not-genres-mcp', 'src/parser.ts')).toBe('90421cf94ecf5d4023e08e299017d497cbbe82a6067a6a5dc58a0d27b677c50e'); });
+  it('post198: locks src/parser.ts spaces 432', () => { expect((read('src/parser.ts').match(/ /g) ?? []).length).toBe(432); });
+  it('post198: locks src/parser.ts reversed sha256', () => { const rev = [...read('src/parser.ts')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('a78f8cb8e92e3203b94933c1ec51e34ac1f54892dcc0c99024a48333407e79de'); });
+  it('post198: locks src/parser.ts sha256 UPPERCASE', () => { expect(sha256('src/parser.ts').toUpperCase()).toBe('CF293136412FBA636AD7391BCEA0A0E83A079FBBCC8FC14D0CA41FA6621F4368'); });
+  it('post198: locks src/parser.ts first-line sha256', () => { expect(createHash('sha256').update(read('src/parser.ts').split('\n')[0]).digest('hex')).toBe('64a393f12da7f34518f8343d01e7da0c8da3e9f0b9cf1916ec7af9a35cbf8eb5'); });
+  it('post198: locks src/parser.ts size*lines 130985', () => { expect(statSync(join(parserRoot, 'src/parser.ts')).size * read('src/parser.ts').split('\n').length).toBe(130985); });
+  it('post198: locks src/parser.ts char-class tabs/nl/comma/colon/quotes', () => { const t = read('src/parser.ts'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(66); expect((t.match(/,/g) ?? []).length).toBe(8); expect((t.match(/:/g) ?? []).length).toBe(19); expect((t.match(/"/g) ?? []).length).toBe(15); expect((t.match(/'/g) ?? []).length).toBe(12); });
+  it('post198: locks src/parser.ts HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'src/parser.ts'))).digest('hex')).toBe('be97ca2919ae1bebff1631c3d0959aa340469b01'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'src/parser.ts'))).digest('hex')).toBe('3df09df7d1075ed4a6b2ce3369a262fa'); });
+
+  it('post198: locks src/index.ts sha256', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
+  it('post198: locks src/index.ts sha1', () => { expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b'); });
+  it('post198: locks src/index.ts md5', () => { expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177'); });
+  it('post198: locks src/index.ts sha384', () => { expect(sha384('src/index.ts')).toBe('1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65'); });
+  it('post198: locks src/index.ts sha512', () => { expect(sha512('src/index.ts')).toBe('28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3'); });
+  it('post198: locks src/index.ts sha3-256', () => { expect(sha3('src/index.ts')).toBe('437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b'); });
+  it('post198: locks src/index.ts blake2b512', () => { expect(blake2b('src/index.ts')).toBe('17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace'); });
+  it('post198: locks src/index.ts ripemd160', () => { expect(ripemd('src/index.ts')).toBe('a8ea25913b26da27277f866fc7988fdcdf281093'); });
+  it('post198: locks src/index.ts size 4738', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size).toBe(4738); expect(readFileSync(join(parserRoot, 'src/index.ts')).byteLength).toBe(4738); });
+  it('post198: locks src/index.ts utf8 4724 lines 154', () => { expect(read('src/index.ts')).toHaveLength(4724); expect(read('src/index.ts').split('\n')).toHaveLength(154); });
+  it('post198: locks src/index.ts nibble 470 xor 14', () => { const d = sha256('src/index.ts'); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14); });
+  it('post198: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256('src/index.ts'); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151); });
+  it('post198: locks src/index.ts first/last/mid octets', () => { const d = sha256('src/index.ts'); expect(d.slice(0, 2)).toBe('7f'); expect(d.slice(-2)).toBe('72'); expect(d.slice(28, 36)).toBe('e2a20389'); });
+  it('post198: locks src/index.ts HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'src/index.ts')).toBe('aae1d20520c7375c83efdbbda9a3aa7acc89ad449da34bd2ee8b6a30749d69fe'); expect(hmacSha256('after-#198', 'src/index.ts')).toBe('b4cd39817a2903ebddd4611d3c1f3e0bd9da6d35d73bb554b0aa3f294ea7a57f'); expect(hmacSha256('leftover', 'src/index.ts')).toBe('268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be'); });
+  it('post198: locks src/index.ts HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc'); expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30'); expect(hmacSha256('no-product-invent', 'src/index.ts')).toBe('49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a'); });
+  it('post198: locks src/index.ts HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'src/index.ts')).toBe('c2be27a92bce9fa17108fbf90f63b917d25d4114397192e04caf79ac29e8f44f'); expect(hmacSha256('no-src-change', 'src/index.ts')).toBe('f1b32cf267f0c31a79062ca85a6243b3f166c1d5dcf534c3149a97e9d6ae4846'); expect(hmacSha256('manifest-lock', 'src/index.ts')).toBe('41e4be551225bde732f63c07d1a0d8c24bd630a5c649a3b4c3eb88ca0338c946'); });
+  it('post198: locks src/index.ts HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'src/index.ts')).toBe('3e64a0018121d72f6fb3489229d7155069ae87de1c589e082d376370482c7d0c'); expect(hmacSha256('parser-routes-edges', 'src/index.ts')).toBe('53bc657454e7bdd0cbfcbb0b45609c9f4ce03b345e675bd94776fad286fd19ef'); expect(hmacSha256('not-genres-mcp', 'src/index.ts')).toBe('382d1b7f76da7a0c42a421ebb62040a74d59ff5ed3f049c7e0a7a4c80ae9ebf8'); });
+  it('post198: locks src/index.ts spaces 761', () => { expect((read('src/index.ts').match(/ /g) ?? []).length).toBe(761); });
+  it('post198: locks src/index.ts reversed sha256', () => { const rev = [...read('src/index.ts')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('457830430075a6d1dc4b28436b3c145eb42a640d91301599ca2792fb58433ead'); });
+  it('post198: locks src/index.ts sha256 UPPERCASE', () => { expect(sha256('src/index.ts').toUpperCase()).toBe('7F0D574B0AEDC6CD71D3EA35BB03E2A20389028E6FF2C195718ACFF2E0313A72'); });
+  it('post198: locks src/index.ts first-line sha256', () => { expect(createHash('sha256').update(read('src/index.ts').split('\n')[0]).digest('hex')).toBe('d8233fd79765534121de12d18bc3b54a6968d1868428cf5d52175e9a620cf6d4'); });
+  it('post198: locks src/index.ts size*lines 729652', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size * read('src/index.ts').split('\n').length).toBe(729652); });
+  it('post198: locks src/index.ts char-class tabs/nl/comma/colon/quotes', () => { const t = read('src/index.ts'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(153); expect((t.match(/,/g) ?? []).length).toBe(69); expect((t.match(/:/g) ?? []).length).toBe(72); expect((t.match(/"/g) ?? []).length).toBe(20); expect((t.match(/'/g) ?? []).length).toBe(85); });
+  it('post198: locks src/index.ts HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'src/index.ts'))).digest('hex')).toBe('c8a865b713bfae5080999295281300a70d39ea9f'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'src/index.ts'))).digest('hex')).toBe('b4c22feb0b823a012a232a0e55572f83'); });
+
+  it('post198: locks src/types.ts sha256', () => { expect(sha256('src/types.ts')).toBe('4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3'); });
+  it('post198: locks src/types.ts sha1', () => { expect(sha1('src/types.ts')).toBe('1e8906673dc0d140ee5c3d40839c88a1eeca03d8'); });
+  it('post198: locks src/types.ts md5', () => { expect(md5('src/types.ts')).toBe('ecba663d21928622be656805ad27d0a3'); });
+  it('post198: locks src/types.ts sha384', () => { expect(sha384('src/types.ts')).toBe('40618d8902640e6ce24d5caf0b9daf86c4d5f962832b1835a86bb10ad7c37455cc60aa9f965ffd9a98f9a5967048b01c'); });
+  it('post198: locks src/types.ts sha512', () => { expect(sha512('src/types.ts')).toBe('49cf750d836fe717822e6f08b6ff4998c1f7419a2dfb169a5cfb3001dc1f6dc84df5b428edba879cbd0f7e1b809662e27ee34bf28f88e1efc62ec7d0b37f37cc'); });
+  it('post198: locks src/types.ts sha3-256', () => { expect(sha3('src/types.ts')).toBe('93122aa0fe9ef2958ed1b257bc139e91b30facb2e13e4094620dadf7d4acf8e4'); });
+  it('post198: locks src/types.ts blake2b512', () => { expect(blake2b('src/types.ts')).toBe('fcb08243a6c336e8da2d3500665ae9a80d98f23a06c3da5f771a290a4b45b2697e2b00e440165eb6551886f58a3bdea0ba315c1d4d3caba38ba3af7f108b3723'); });
+  it('post198: locks src/types.ts ripemd160', () => { expect(ripemd('src/types.ts')).toBe('80ca02c12c5db60b8eb1afb1cd21b18983ba16fb'); });
+  it('post198: locks src/types.ts size 174', () => { expect(statSync(join(parserRoot, 'src/types.ts')).size).toBe(174); expect(readFileSync(join(parserRoot, 'src/types.ts')).byteLength).toBe(174); });
+  it('post198: locks src/types.ts utf8 172 lines 7', () => { expect(read('src/types.ts')).toHaveLength(172); expect(read('src/types.ts').split('\n')).toHaveLength(7); });
+  it('post198: locks src/types.ts nibble 520 xor 14', () => { const d = sha256('src/types.ts'); expect(nibbleSum(d)).toBe(520); expect(xorNibbles(d)).toBe(14); });
+  it('post198: locks src/types.ts pairSum 4300 rollingXor 104', () => { const d = sha256('src/types.ts'); expect(pairSum(d)).toBe(4300); expect(rollingXor(d)).toBe(104); });
+  it('post198: locks src/types.ts first/last/mid octets', () => { const d = sha256('src/types.ts'); expect(d.slice(0, 2)).toBe('40'); expect(d.slice(-2)).toBe('d3'); expect(d.slice(28, 36)).toBe('345e4f21'); });
+  it('post198: locks src/types.ts HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'src/types.ts')).toBe('870f6d7e94f43e16828d293c5e1a18b4e5d69f7d22a32d62e04879b8da229593'); expect(hmacSha256('after-#198', 'src/types.ts')).toBe('8db3fda8806ccce59ced25c0fc87fca658e725125c77652a7c2da2f0051e6029'); expect(hmacSha256('leftover', 'src/types.ts')).toBe('80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85'); });
+  it('post198: locks src/types.ts HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'src/types.ts')).toBe('5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc'); expect(hmacSha256('HEAVY', 'src/types.ts')).toBe('c30f6d748b6c06b8387764e536eab11def9e8f3f000f4b2b764e050f64ebc32a'); expect(hmacSha256('no-product-invent', 'src/types.ts')).toBe('431b246bf23d8a3f8ec5228a8746b5ac62ace79e3ec1dc369e9645be295be076'); });
+  it('post198: locks src/types.ts HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'src/types.ts')).toBe('d1e497bd3dc7e06713395285b574a0d0da8bdd3b9614da249b4218aad57bd70b'); expect(hmacSha256('no-src-change', 'src/types.ts')).toBe('66b6c84c4d65babc626f3d0614b2d67cf4e18375f20cf74ae311e52bfcd2acc2'); expect(hmacSha256('manifest-lock', 'src/types.ts')).toBe('96a5eda772aed1d149de5c3486ab886fc5b5f9108ad8b2ff8f11be66f236b356'); });
+  it('post198: locks src/types.ts HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'src/types.ts')).toBe('c8457898aaa605e1e7c3c56c6b315cc5528d3515cb226a2925169156a056c4f4'); expect(hmacSha256('parser-routes-edges', 'src/types.ts')).toBe('ac16a7e16a2a0c2422b916e1a61d2cce51bff0be5e33e73dfabdbd56398ff3a8'); expect(hmacSha256('not-genres-mcp', 'src/types.ts')).toBe('573675ac13dbfceba2006f103a6e822ec989f44505602bc0a85f30f440e6189e'); });
+  it('post198: locks src/types.ts spaces 25', () => { expect((read('src/types.ts').match(/ /g) ?? []).length).toBe(25); });
+  it('post198: locks src/types.ts reversed sha256', () => { const rev = [...read('src/types.ts')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('e02dd34c73f2571af21a48fda8cfd19667149441b37d30de0519262fc76f7f37'); });
+  it('post198: locks src/types.ts sha256 UPPERCASE', () => { expect(sha256('src/types.ts').toUpperCase()).toBe('4008DDD3DD6DD2FB7E8D386DFE2A345E4F21FA5576E229A8FBBE691626F743D3'); });
+  it('post198: locks src/types.ts first-line sha256', () => { expect(createHash('sha256').update(read('src/types.ts').split('\n')[0]).digest('hex')).toBe('1d293b13ae9f4103472d1553f95a9368a006f250a1178cb8946d4e566fda25f6'); });
+  it('post198: locks src/types.ts size*lines 1218', () => { expect(statSync(join(parserRoot, 'src/types.ts')).size * read('src/types.ts').split('\n').length).toBe(1218); });
+  it('post198: locks src/types.ts char-class tabs/nl/comma/colon/quotes', () => { const t = read('src/types.ts'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(6); expect((t.match(/,/g) ?? []).length).toBe(0); expect((t.match(/:/g) ?? []).length).toBe(3); expect((t.match(/"/g) ?? []).length).toBe(0); expect((t.match(/'/g) ?? []).length).toBe(0); });
+  it('post198: locks src/types.ts HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'src/types.ts'))).digest('hex')).toBe('aa05580be123852068a80c4b8e8f22d258b40095'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'src/types.ts'))).digest('hex')).toBe('542917b60823b8b30c114aab956328bb'); });
+
+  it('post198: locks src/genres.ts sha256', () => { expect(sha256('src/genres.ts')).toBe('aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e'); });
+  it('post198: locks src/genres.ts sha1', () => { expect(sha1('src/genres.ts')).toBe('3dd586bfd23c91e9719b56c90c8cbfe038aebc3e'); });
+  it('post198: locks src/genres.ts md5', () => { expect(md5('src/genres.ts')).toBe('ee8d34506f688c9e3097b89a35d48aa5'); });
+  it('post198: locks src/genres.ts sha384', () => { expect(sha384('src/genres.ts')).toBe('ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16'); });
+  it('post198: locks src/genres.ts sha512', () => { expect(sha512('src/genres.ts')).toBe('bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b'); });
+  it('post198: locks src/genres.ts sha3-256', () => { expect(sha3('src/genres.ts')).toBe('d873c498335014a5e3d40e5ab78ea8f3ba4e642df056fff51de989da45634d7f'); });
+  it('post198: locks src/genres.ts blake2b512', () => { expect(blake2b('src/genres.ts')).toBe('731f6cb880bc465d545820c1dff8ccf87b92624a34e703085f2d49af06e6a7f0fe14f2f7b99080a9a1699b32806a33199b21b9b30f6d3b21127cafdaaddb4d67'); });
+  it('post198: locks src/genres.ts ripemd160', () => { expect(ripemd('src/genres.ts')).toBe('bb9faaf8890bdba8dd86bcdf7e418da622d19bf5'); });
+  it('post198: locks src/genres.ts size 1027', () => { expect(statSync(join(parserRoot, 'src/genres.ts')).size).toBe(1027); expect(readFileSync(join(parserRoot, 'src/genres.ts')).byteLength).toBe(1027); });
+  it('post198: locks src/genres.ts utf8 1025 lines 48', () => { expect(read('src/genres.ts')).toHaveLength(1025); expect(read('src/genres.ts').split('\n')).toHaveLength(48); });
+  it('post198: locks src/genres.ts nibble 500 xor 6', () => { const d = sha256('src/genres.ts'); expect(nibbleSum(d)).toBe(500); expect(xorNibbles(d)).toBe(6); });
+  it('post198: locks src/genres.ts pairSum 3950 rollingXor 96', () => { const d = sha256('src/genres.ts'); expect(pairSum(d)).toBe(3950); expect(rollingXor(d)).toBe(96); });
+  it('post198: locks src/genres.ts first/last/mid octets', () => { const d = sha256('src/genres.ts'); expect(d.slice(0, 2)).toBe('aa'); expect(d.slice(-2)).toBe('4e'); expect(d.slice(28, 36)).toBe('811dfbc2'); });
+  it('post198: locks src/genres.ts HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'src/genres.ts')).toBe('8bedd51691faec733a9bb21734da16440246a8d57adb02e286f57d6e460f4bc9'); expect(hmacSha256('after-#198', 'src/genres.ts')).toBe('3840b098496bd18185dbc4c1cf72c9659f54b1f626b4e75dfcde60731b077582'); expect(hmacSha256('leftover', 'src/genres.ts')).toBe('bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f'); });
+  it('post198: locks src/genres.ts HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'src/genres.ts')).toBe('7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951'); expect(hmacSha256('HEAVY', 'src/genres.ts')).toBe('728dd3fe7c4667ea4d489028dc3a100c092d2ede6b7319716769186532d3b575'); expect(hmacSha256('no-product-invent', 'src/genres.ts')).toBe('3d21ae09929f61fc420c1aff78e7fbcdaa55895034e581f9845399de2569142b'); });
+  it('post198: locks src/genres.ts HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'src/genres.ts')).toBe('22d66e269afda39844782f2607b23bacf23e5d02a51249ddec437782bc1a3a78'); expect(hmacSha256('no-src-change', 'src/genres.ts')).toBe('a3b9a583e340975667c401c4933eb3535590637cdc49d496ffec24efecd28810'); expect(hmacSha256('manifest-lock', 'src/genres.ts')).toBe('e9f5e2172614a8e3160d35040a7380c6d239a34a24fe0b257862f3edc83bb4dc'); });
+  it('post198: locks src/genres.ts HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'src/genres.ts')).toBe('c25a9895a12023d7d2e58d2bb8b27c19a8d1588ae17fc405779ee50752dc6b3d'); expect(hmacSha256('parser-routes-edges', 'src/genres.ts')).toBe('98e78e8b48663dcd362fcc1e579d5060ec72cc7d154a8b1fe6edbff91bdd14fe'); expect(hmacSha256('not-genres-mcp', 'src/genres.ts')).toBe('1d2b2a53acce79269a1d994b575f027fe532e0a57e0a1fcca3f563c0a2ab934b'); });
+  it('post198: locks src/genres.ts spaces 144', () => { expect((read('src/genres.ts').match(/ /g) ?? []).length).toBe(144); });
+  it('post198: locks src/genres.ts reversed sha256', () => { const rev = [...read('src/genres.ts')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('02c6881bd75e415d5d3fd74f475f1cdc5843c91030255732f8decb1703f46eac'); });
+  it('post198: locks src/genres.ts sha256 UPPERCASE', () => { expect(sha256('src/genres.ts').toUpperCase()).toBe('AA626817CF3BC8A707AC5ADBA39F811DFBC23F695E5E0CB9D070007D839D914E'); });
+  it('post198: locks src/genres.ts first-line sha256', () => { expect(createHash('sha256').update(read('src/genres.ts').split('\n')[0]).digest('hex')).toBe('907b574a0aac9a6f7bd2904b3af22ac0c611daa5f3e30b8a7a5d8f264f7ddc68'); });
+  it('post198: locks src/genres.ts size*lines 49296', () => { expect(statSync(join(parserRoot, 'src/genres.ts')).size * read('src/genres.ts').split('\n').length).toBe(49296); });
+  it('post198: locks src/genres.ts char-class tabs/nl/comma/colon/quotes', () => { const t = read('src/genres.ts'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(47); expect((t.match(/,/g) ?? []).length).toBe(34); expect((t.match(/:/g) ?? []).length).toBe(26); expect((t.match(/"/g) ?? []).length).toBe(0); expect((t.match(/'/g) ?? []).length).toBe(68); });
+  it('post198: locks src/genres.ts HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'src/genres.ts'))).digest('hex')).toBe('1a13189326223c6335dfb496f8a4b9050e6696bc'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'src/genres.ts'))).digest('hex')).toBe('03ecb683136a57e2af8379a9cf2f6f95'); });
+
+  it('post198: locks package.json sha256', () => { expect(sha256('package.json')).toBe('34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c'); });
+  it('post198: locks package.json sha1', () => { expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5'); });
+  it('post198: locks package.json md5', () => { expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f'); });
+  it('post198: locks package.json sha384', () => { expect(sha384('package.json')).toBe('4208b099e242907b02fce514c0ce890d1805b1a6de73ad0a15e49ce9f5a2eb5e311f6e3175464f97ff91b0ca752f7c20'); });
+  it('post198: locks package.json sha512', () => { expect(sha512('package.json')).toBe('7b56f282c4ae1f06e33354171317d5a318ef8f85cf74f07392a18ee65f40a3ed66acb974513f5bae57b83d67b18132fc67b66dde5aa4dca015f7d5fc14926b28'); });
+  it('post198: locks package.json sha3-256', () => { expect(sha3('package.json')).toBe('e56db806f28d1317bcd7620e70192882b7b8e72c55481fd4cd639b174e04a5a5'); });
+  it('post198: locks package.json blake2b512', () => { expect(blake2b('package.json')).toBe('a4b33748d54cbb972b7e8ed7e5e370d92bee40b0110f42fa1158b2c1ee628ee68d34704af77564c5e3c2c7988d7020f5608a42c3b03bb58567874256c2f1dd1d'); });
+  it('post198: locks package.json ripemd160', () => { expect(ripemd('package.json')).toBe('f3b12f3f8d6366baa145f30bfb68d5bbb06a1bad'); });
+  it('post198: locks package.json size 637', () => { expect(statSync(join(parserRoot, 'package.json')).size).toBe(637); expect(readFileSync(join(parserRoot, 'package.json')).byteLength).toBe(637); });
+  it('post198: locks package.json utf8 635 lines 26', () => { expect(read('package.json')).toHaveLength(635); expect(read('package.json').split('\n')).toHaveLength(26); });
+  it('post198: locks package.json nibble 451 xor 13', () => { const d = sha256('package.json'); expect(nibbleSum(d)).toBe(451); expect(xorNibbles(d)).toBe(13); });
+  it('post198: locks package.json pairSum 4051 rollingXor 13', () => { const d = sha256('package.json'); expect(pairSum(d)).toBe(4051); expect(rollingXor(d)).toBe(13); });
+  it('post198: locks package.json first/last/mid octets', () => { const d = sha256('package.json'); expect(d.slice(0, 2)).toBe('34'); expect(d.slice(-2)).toBe('1c'); expect(d.slice(28, 36)).toBe('e0ecaa43'); });
+  it('post198: locks package.json HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'package.json')).toBe('264e466f33ecbbb4d897d1d02da90dc464eb455e6f36d1e67efb4a28a8ddd574'); expect(hmacSha256('after-#198', 'package.json')).toBe('d72726bc9c8d7c972e5f58a2267a7a8c31b1e453f5d72884b88acbbdd175ddf1'); expect(hmacSha256('leftover', 'package.json')).toBe('20e0c5771e324d5d7c4d9bb108e54226b1ca026d3c6d232d5f0b8ccba88462a1'); });
+  it('post198: locks package.json HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'package.json')).toBe('ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58'); expect(hmacSha256('HEAVY', 'package.json')).toBe('59f02fb62823abdd3ebccdd68ef1f27db9333e414f49a111c132eca85acb6563'); expect(hmacSha256('no-product-invent', 'package.json')).toBe('b4d2e3db95a68120d3e5f1dc0b35bda72e5a8ffa0c34dd3b2b110699c0cd286b'); });
+  it('post198: locks package.json HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'package.json')).toBe('dc869038c3869410db214fb5618c8f6091545ded44463dd4ccdf26cefc3dca56'); expect(hmacSha256('no-src-change', 'package.json')).toBe('f89ef881d4621b0b9716e0341fb3cd014b14115046ec8e1fbc1baa995c764959'); expect(hmacSha256('manifest-lock', 'package.json')).toBe('c78857efdc2a9ef7366350439061383f242d1056da2d338f56f4d698b5748417'); });
+  it('post198: locks package.json HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'package.json')).toBe('16beee53d898856843d82f53b7bdd2bb53496784c24049c7789cb801c01e88dc'); expect(hmacSha256('parser-routes-edges', 'package.json')).toBe('3c8179cc2e6a190a486f32b9b1582a92448d0c7818a755beb20f64800f6c2e1e'); expect(hmacSha256('not-genres-mcp', 'package.json')).toBe('827245fcbb066f1b5e44d4244a6fdad2ce4d73ebf7be1ef500020c7dd222ad83'); });
+  it('post198: locks package.json spaces 106', () => { expect((read('package.json').match(/ /g) ?? []).length).toBe(106); });
+  it('post198: locks package.json reversed sha256', () => { const rev = [...read('package.json')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('76b81fd27392035d0e4776f664acfb5bf67811a2b3ebb57b61b7be81ceb7ccc4'); });
+  it('post198: locks package.json sha256 UPPERCASE', () => { expect(sha256('package.json').toUpperCase()).toBe('34552493F3008B58991D10E7B41EE0ECAA43BF8BA3E79D261AC2A061E6F7181C'); });
+  it('post198: locks package.json first-line sha256', () => { expect(createHash('sha256').update(read('package.json').split('\n')[0]).digest('hex')).toBe('021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96'); });
+  it('post198: locks package.json size*lines 16562', () => { expect(statSync(join(parserRoot, 'package.json')).size * read('package.json').split('\n').length).toBe(16562); });
+  it('post198: locks package.json char-class tabs/nl/comma/colon/quotes', () => { const t = read('package.json'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(25); expect((t.match(/,/g) ?? []).length).toBe(16); expect((t.match(/:/g) ?? []).length).toBe(22); expect((t.match(/"/g) ?? []).length).toBe(74); expect((t.match(/'/g) ?? []).length).toBe(0); });
+  it('post198: locks package.json HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'package.json'))).digest('hex')).toBe('5adefd76b4ac9f0b3f5577fe0101c28e5c3b9e56'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'package.json'))).digest('hex')).toBe('d45d7f5f3b2ef1a911717d2d4a11faa4'); });
+
+  it('post198: locks wrangler.toml sha256', () => { expect(sha256('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8'); });
+  it('post198: locks wrangler.toml sha1', () => { expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6'); });
+  it('post198: locks wrangler.toml md5', () => { expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4'); });
+  it('post198: locks wrangler.toml sha384', () => { expect(sha384('wrangler.toml')).toBe('77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09'); });
+  it('post198: locks wrangler.toml sha512', () => { expect(sha512('wrangler.toml')).toBe('4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96'); });
+  it('post198: locks wrangler.toml sha3-256', () => { expect(sha3('wrangler.toml')).toBe('67dbc36705b469b0f55c46e26ed7ac6355f2d0d59d088cf8d5f1b687c79ae9b9'); });
+  it('post198: locks wrangler.toml blake2b512', () => { expect(blake2b('wrangler.toml')).toBe('c2c7d2994209964f33dd815a5abd5e40369f5a58f9d095a887a3e6096887f41cdabb8621faad084ad76430bdb19430751d1090ac30c3cd8125d6ed8a8c5a2e86'); });
+  it('post198: locks wrangler.toml ripemd160', () => { expect(ripemd('wrangler.toml')).toBe('324931f8f42bb9dda5d95a21011a0897894de2e7'); });
+  it('post198: locks wrangler.toml size 330', () => { expect(statSync(join(parserRoot, 'wrangler.toml')).size).toBe(330); expect(readFileSync(join(parserRoot, 'wrangler.toml')).byteLength).toBe(330); });
+  it('post198: locks wrangler.toml utf8 330 lines 18', () => { expect(read('wrangler.toml')).toHaveLength(330); expect(read('wrangler.toml').split('\n')).toHaveLength(18); });
+  it('post198: locks wrangler.toml nibble 457 xor 13', () => { const d = sha256('wrangler.toml'); expect(nibbleSum(d)).toBe(457); expect(xorNibbles(d)).toBe(13); });
+  it('post198: locks wrangler.toml pairSum 3802 rollingXor 122', () => { const d = sha256('wrangler.toml'); expect(pairSum(d)).toBe(3802); expect(rollingXor(d)).toBe(122); });
+  it('post198: locks wrangler.toml first/last/mid octets', () => { const d = sha256('wrangler.toml'); expect(d.slice(0, 2)).toBe('95'); expect(d.slice(-2)).toBe('f8'); expect(d.slice(28, 36)).toBe('4a0b0b87'); });
+  it('post198: locks wrangler.toml HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'wrangler.toml')).toBe('cd98ef8cfe3181e41fac45dff3fdbf58a347ac084f2034048c4e7377e81e8179'); expect(hmacSha256('after-#198', 'wrangler.toml')).toBe('17c00c03a7d4f170131092209f27e3ff531976bdd331f18216e3d63b1f304e86'); expect(hmacSha256('leftover', 'wrangler.toml')).toBe('117043293c91e6cdcad8f44181f5c253ceb0f7dc567ea32cddbd61f9d349a063'); });
+  it('post198: locks wrangler.toml HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'wrangler.toml')).toBe('7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4'); expect(hmacSha256('HEAVY', 'wrangler.toml')).toBe('0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db'); expect(hmacSha256('no-product-invent', 'wrangler.toml')).toBe('3d99d134e0673c8ff163b29a6c72e49bfa5e599898762bf47dd20f0e65639abb'); });
+  it('post198: locks wrangler.toml HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'wrangler.toml')).toBe('ff10d155b4bfa2137b3d8248b28954f776f80f51ddf29915f4a0792dca9e4b17'); expect(hmacSha256('no-src-change', 'wrangler.toml')).toBe('b542f61e71ea970554a5d78c6f3caa0491697694218687f89822c8cc8509b67b'); expect(hmacSha256('manifest-lock', 'wrangler.toml')).toBe('ba1c46086c0d7c2f08a90b091ba228b20b7bf50c702c3e3478a8b4b96e95d882'); });
+  it('post198: locks wrangler.toml HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'wrangler.toml')).toBe('ff6a9bd62ceb6b76ff09edb57103ff31ea4ea4058e65c2c903ea6d5a925a4ad7'); expect(hmacSha256('parser-routes-edges', 'wrangler.toml')).toBe('c8ee9cb0f434505e12b3203e74702dbcf5ecf2cecd1e09b7732d1363f148948d'); expect(hmacSha256('not-genres-mcp', 'wrangler.toml')).toBe('05269ea4c63b4f0cd9d2a5bee3343ce43412347c2243034da83ecbe1d233ce59'); });
+  it('post198: locks wrangler.toml spaces 26', () => { expect((read('wrangler.toml').match(/ /g) ?? []).length).toBe(26); });
+  it('post198: locks wrangler.toml reversed sha256', () => { const rev = [...read('wrangler.toml')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('ea6a9ab9f608d61dbff959c2a36e09a4822605b77cdc9b1dda5853999ae53ad0'); });
+  it('post198: locks wrangler.toml sha256 UPPERCASE', () => { expect(sha256('wrangler.toml').toUpperCase()).toBe('95B11779A88F0544F3561EEA67994A0B0B874D7B8776579189FA7142FA0473F8'); });
+  it('post198: locks wrangler.toml first-line sha256', () => { expect(createHash('sha256').update(read('wrangler.toml').split('\n')[0]).digest('hex')).toBe('44eea2b40cca4009e9429bc54f55cd083523742a2e6bf8195731b2e95857194e'); });
+  it('post198: locks wrangler.toml size*lines 5940', () => { expect(statSync(join(parserRoot, 'wrangler.toml')).size * read('wrangler.toml').split('\n').length).toBe(5940); });
+  it('post198: locks wrangler.toml char-class tabs/nl/comma/colon/quotes', () => { const t = read('wrangler.toml'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(17); expect((t.match(/,/g) ?? []).length).toBe(1); expect((t.match(/:/g) ?? []).length).toBe(1); expect((t.match(/"/g) ?? []).length).toBe(14); expect((t.match(/'/g) ?? []).length).toBe(0); });
+  it('post198: locks wrangler.toml HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'wrangler.toml'))).digest('hex')).toBe('defaf633a698d5ac1e89bbf628ce0479be8447c9'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'wrangler.toml'))).digest('hex')).toBe('d9559e482ac71ec9e78d126ecf31c2f0'); });
+
+  it('post198: locks AGENTS.md sha256', () => { expect(sha256('AGENTS.md')).toBe('48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa'); });
+  it('post198: locks AGENTS.md sha1', () => { expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c'); });
+  it('post198: locks AGENTS.md md5', () => { expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd'); });
+  it('post198: locks AGENTS.md sha384', () => { expect(sha384('AGENTS.md')).toBe('817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a'); });
+  it('post198: locks AGENTS.md sha512', () => { expect(sha512('AGENTS.md')).toBe('7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908'); });
+  it('post198: locks AGENTS.md sha3-256', () => { expect(sha3('AGENTS.md')).toBe('894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4'); });
+  it('post198: locks AGENTS.md blake2b512', () => { expect(blake2b('AGENTS.md')).toBe('7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0'); });
+  it('post198: locks AGENTS.md ripemd160', () => { expect(ripemd('AGENTS.md')).toBe('6637e853e0148967671e4a3f21bd852255e8ed1c'); });
+  it('post198: locks AGENTS.md size 1017', () => { expect(statSync(join(parserRoot, 'AGENTS.md')).size).toBe(1017); expect(readFileSync(join(parserRoot, 'AGENTS.md')).byteLength).toBe(1017); });
+  it('post198: locks AGENTS.md utf8 1011 lines 35', () => { expect(read('AGENTS.md')).toHaveLength(1011); expect(read('AGENTS.md').split('\n')).toHaveLength(35); });
+  it('post198: locks AGENTS.md nibble 479 xor 5', () => { const d = sha256('AGENTS.md'); expect(nibbleSum(d)).toBe(479); expect(xorNibbles(d)).toBe(5); });
+  it('post198: locks AGENTS.md pairSum 5084 rollingXor 216', () => { const d = sha256('AGENTS.md'); expect(pairSum(d)).toBe(5084); expect(rollingXor(d)).toBe(216); });
+  it('post198: locks AGENTS.md first/last/mid octets', () => { const d = sha256('AGENTS.md'); expect(d.slice(0, 2)).toBe('48'); expect(d.slice(-2)).toBe('aa'); expect(d.slice(28, 36)).toBe('a5ec1be5'); });
+  it('post198: locks AGENTS.md HMAC post198/after-#198/leftover', () => { expect(hmacSha256('post198', 'AGENTS.md')).toBe('f54638b854e4cf61e1fba31e2875c858cae82203510ad610a09abee53b2a9fa0'); expect(hmacSha256('after-#198', 'AGENTS.md')).toBe('5866437db6dcdcda3785cccd31f57a06e94fe2f690fb9a424a929d305ec27369'); expect(hmacSha256('leftover', 'AGENTS.md')).toBe('ebc9f95bcc289e29e0a1ef806d4a6466da053e934eba9da783fda10f1a46b84e'); });
+  it('post198: locks AGENTS.md HMAC TOKENMAXX/HEAVY/no-product-invent', () => { expect(hmacSha256('TOKENMAXX', 'AGENTS.md')).toBe('b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f'); expect(hmacSha256('HEAVY', 'AGENTS.md')).toBe('f5534ae49c23be34018c9e05a44b201edf94a776bd06b184d44b41e02e77c87c'); expect(hmacSha256('no-product-invent', 'AGENTS.md')).toBe('dbfdb45d097dffeee56f94781c4ce33e6c8cfb185871bf00c7237385c42cf264'); });
+  it('post198: locks AGENTS.md HMAC slice-diff/no-src-change/manifest-lock', () => { expect(hmacSha256('slice-diff', 'AGENTS.md')).toBe('870cb0b7ca943c82a943cb231e6171ba55b8a1be90d4368fe1e30a3666060c90'); expect(hmacSha256('no-src-change', 'AGENTS.md')).toBe('94cb89045ff7e09a81a02dd8ee4ee7eb0ef7d412d7260f9ab24056774ed00967'); expect(hmacSha256('manifest-lock', 'AGENTS.md')).toBe('af3b8d7bad009043c764c1d1f67b9526650ba158a9053d887985ddce5dc997c5'); });
+  it('post198: locks AGENTS.md HMAC parser-routes-only/parser-routes-edges/not-genres-mcp', () => { expect(hmacSha256('parser-routes-only', 'AGENTS.md')).toBe('75b0039caeb897d2d9440c7bf60420a66254d68736db80f5e2585ad562f2c523'); expect(hmacSha256('parser-routes-edges', 'AGENTS.md')).toBe('baad36f7c5852635700575e8a6bcdf598c8192ffcca5320453a6339de04fb7b5'); expect(hmacSha256('not-genres-mcp', 'AGENTS.md')).toBe('ef7aa47ab568fa46dafe008ae128369538f4c4164286bed1589915e0459543fc'); });
+  it('post198: locks AGENTS.md spaces 120', () => { expect((read('AGENTS.md').match(/ /g) ?? []).length).toBe(120); });
+  it('post198: locks AGENTS.md reversed sha256', () => { const rev = [...read('AGENTS.md')].reverse().join(''); expect(createHash('sha256').update(rev).digest('hex')).toBe('662d61b72071234b614b17c421d0f8a3fc73757a69c1690a0b6a36fd122672dc'); });
+  it('post198: locks AGENTS.md sha256 UPPERCASE', () => { expect(sha256('AGENTS.md').toUpperCase()).toBe('48E590B4F146E2FBD1EBB409E0D5A5EC1BE50B72B2C310F1C1E360487B36FEAA'); });
+  it('post198: locks AGENTS.md first-line sha256', () => { expect(createHash('sha256').update(read('AGENTS.md').split('\n')[0]).digest('hex')).toBe('e3df46c4dc415311293b71de67e5df2d01a72a69658ef8f8cf5ac9e682d8d618'); });
+  it('post198: locks AGENTS.md size*lines 35595', () => { expect(statSync(join(parserRoot, 'AGENTS.md')).size * read('AGENTS.md').split('\n').length).toBe(35595); });
+  it('post198: locks AGENTS.md char-class tabs/nl/comma/colon/quotes', () => { const t = read('AGENTS.md'); expect((t.match(/\t/g) ?? []).length).toBe(0); expect((t.match(/\n/g) ?? []).length).toBe(34); expect((t.match(/,/g) ?? []).length).toBe(2); expect((t.match(/:/g) ?? []).length).toBe(5); expect((t.match(/"/g) ?? []).length).toBe(0); expect((t.match(/'/g) ?? []).length).toBe(0); });
+  it('post198: locks AGENTS.md HMAC-SHA1/MD5 key post198', () => { expect(createHmac('sha1', 'post198').update(readFileSync(join(parserRoot, 'AGENTS.md'))).digest('hex')).toBe('7a3e4aa44b9b05113841c5c544a075c4c8b4ddcd'); expect(createHmac('md5', 'post198').update(readFileSync(join(parserRoot, 'AGENTS.md'))).digest('hex')).toBe('5f07846ae993a27e046d85a4f9a04d65'); });
+
+  it('post198: keys inventory digest', () => {
+    const keys = ["post198","after-#198","leftover","TOKENMAXX","HEAVY","no-product-invent","slice-diff","no-src-change","manifest-lock","parser-routes-only","parser-routes-edges","not-genres-mcp","not-mcp-spec","not-helpers-source","not-wrangler","not-ci-config","after-merged-198","fuzzywigg","backlink","CATALOG_CACHE","GEMINI_API_KEY","iptv-org","gemini-2.0-flash","VALID_GENRES","HITL","no-creds","station_select","overnight","unit-contract","post198-extras","parser","routes"];
+    expect(keys).toContain('post198');
+    expect(keys).toContain('parser-routes-only');
+    expect(keys).toContain('parser-routes-edges');
+    expect(keys).toContain('not-genres-mcp');
+    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe('d8a40af1acd4e7f6b7ec56dab38b693271ae3801aa978011282b6525f94e8648');
+  });
+
+  it('post198: final inventory markers', () => {
+    const body = read('test/parser.test.ts');
+    expect(body).toContain("describe('post198 parser HEAVY deepen (after #198 tip leftover / parser-routes-only / not genres-mcp / not helpers+source / not wrangler / not ci-config)'");
+    expect(body).toContain("describe('post198 parser extras HEAVY deepen (after #198 leftover / parser-routes-only)'");
+    expect((body.match(/it\('post198:/g) ?? []).length).toBeGreaterThan(40);
+  });
+});
+
+describe('post198 parser extras HEAVY deepen (after #198 leftover / parser-routes-only)', () => {
+
+  const read = (rel: string) => readFileSync(join(parserRoot, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+
+
+  it('post198-extras: sha256 src/parser.ts', () => { expect(sha256('src/parser.ts')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368'); });
+  it('post198-extras: size src/parser.ts', () => { expect(statSync(join(parserRoot, 'src/parser.ts')).size).toBe(1955); });
+  it('post198-extras: utf8-len src/parser.ts', () => { expect(read('src/parser.ts')).toHaveLength(1953); });
+  it('post198-extras: nibble src/parser.ts', () => { expect(nibbleSum(sha256('src/parser.ts'))).toBe(477); });
+  it('post198-extras: HMAC post198 src/parser.ts', () => { expect(hmacSha256("post198", 'src/parser.ts')).toBe('e6a88d8d71cca48be3756c398dc9ed0250707b4f1bbe254a6f9ec02454145f83'); });
+  it('post198-extras: HMAC after-#198 src/parser.ts', () => { expect(hmacSha256("after-#198", 'src/parser.ts')).toBe('a49fbe9cb5c0089713c7a76076ee0017961c0ec8657b9162130f9be976b8fd02'); });
+  it('post198-extras: HMAC leftover src/parser.ts', () => { expect(hmacSha256("leftover", 'src/parser.ts')).toBe('e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3'); });
+  it('post198-extras: HMAC TOKENMAXX src/parser.ts', () => { expect(hmacSha256("TOKENMAXX", 'src/parser.ts')).toBe('eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8'); });
+  it('post198-extras: HMAC HEAVY src/parser.ts', () => { expect(hmacSha256("HEAVY", 'src/parser.ts')).toBe('fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70'); });
+  it('post198-extras: HMAC no-product-invent src/parser.ts', () => { expect(hmacSha256("no-product-invent", 'src/parser.ts')).toBe('25b61b2dada026216640bb0a1e66ac0b6216c6f7aa182e6af20a1d43bb35446f'); });
+  it('post198-extras: HMAC slice-diff src/parser.ts', () => { expect(hmacSha256("slice-diff", 'src/parser.ts')).toBe('fecc1f8258da869db2d707d6e6ed0ab5b64f70825cbadbc6332407d68d28f2c6'); });
+  it('post198-extras: HMAC no-src-change src/parser.ts', () => { expect(hmacSha256("no-src-change", 'src/parser.ts')).toBe('e22a10b16e32cbb5f2170343ce1b4adbdc83427acb731f9ca52fb464cefa605b'); });
+  it('post198-extras: HMAC manifest-lock src/parser.ts', () => { expect(hmacSha256("manifest-lock", 'src/parser.ts')).toBe('1c5081330de4e7e0aaa0d3449a5e9ef4b8f5a8f5c9c6c828827a3a91f5003bdc'); });
+  it('post198-extras: HMAC parser-routes-only src/parser.ts', () => { expect(hmacSha256("parser-routes-only", 'src/parser.ts')).toBe('535391602021b540cfdea69118c622d3d6e075031aa1fb01aab7d7f43eea1f80'); });
+  it('post198-extras: HMAC parser-routes-edges src/parser.ts', () => { expect(hmacSha256("parser-routes-edges", 'src/parser.ts')).toBe('7c23d0b602fb4b0449c385e56e71831836e725a71a59f70812c5e389f6c89991'); });
+  it('post198-extras: HMAC not-genres-mcp src/parser.ts', () => { expect(hmacSha256("not-genres-mcp", 'src/parser.ts')).toBe('90421cf94ecf5d4023e08e299017d497cbbe82a6067a6a5dc58a0d27b677c50e'); });
+  it('post198-extras: HMAC not-mcp-spec src/parser.ts', () => { expect(hmacSha256("not-mcp-spec", 'src/parser.ts')).toBe('435fa3e74647862436fcdf0c1544c8d4059b34d527a7643b1db1eb77290d1367'); });
+  it('post198-extras: HMAC not-helpers-source src/parser.ts', () => { expect(hmacSha256("not-helpers-source", 'src/parser.ts')).toBe('6b93523c94e4b9144bdfe7b4ded6dc685f91de9841fbe0b8b8007559107846fb'); });
+  it('post198-extras: HMAC not-wrangler src/parser.ts', () => { expect(hmacSha256("not-wrangler", 'src/parser.ts')).toBe('7f038c40ced2e51b2d30c6149f6f2cf2f0b9d94932266fc3695218b6f1f3cd90'); });
+  it('post198-extras: HMAC not-ci-config src/parser.ts', () => { expect(hmacSha256("not-ci-config", 'src/parser.ts')).toBe('b4920a9c0575463436ebb40241c2b91c8310425f6870d5250bf728eb7cf2428d'); });
+  it('post198-extras: HMAC after-merged-198 src/parser.ts', () => { expect(hmacSha256("after-merged-198", 'src/parser.ts')).toBe('6659a6d61493d6d52eb81276b7e49e5ab75919728f8c165dd05370647a906de7'); });
+  it('post198-extras: HMAC fuzzywigg src/parser.ts', () => { expect(hmacSha256("fuzzywigg", 'src/parser.ts')).toBe('84bba718304e8ae87e488eb7d34d91334a8a583de252f8bf8c7a1262af17f07a'); });
+  it('post198-extras: HMAC backlink src/parser.ts', () => { expect(hmacSha256("backlink", 'src/parser.ts')).toBe('9d45133ec8b6ea6888b04d7810e9e74a5ae6e40f8b885ac29cf9f8828ecb5bdb'); });
+  it('post198-extras: HMAC CATALOG_CACHE src/parser.ts', () => { expect(hmacSha256("CATALOG_CACHE", 'src/parser.ts')).toBe('ddf856247ffac2b53bdf6f38c362e34889395628388d7f243d715d3b11b95c13'); });
+  it('post198-extras: HMAC GEMINI_API_KEY src/parser.ts', () => { expect(hmacSha256("GEMINI_API_KEY", 'src/parser.ts')).toBe('7ddb5abcdd7dccdf7e820788700b067da5c51b3621013599cc5db5ea6df8d574'); });
+  it('post198-extras: HMAC iptv-org src/parser.ts', () => { expect(hmacSha256("iptv-org", 'src/parser.ts')).toBe('a1c1a7e31db65012bc03f0c219cf6b5c51012ee9753fce5e653b180e24655514'); });
+  it('post198-extras: HMAC gemini-2.0-flash src/parser.ts', () => { expect(hmacSha256("gemini-2.0-flash", 'src/parser.ts')).toBe('2835389a3cb7b57bff2b328a4f671a08b5c12a30f70ab46fdfb0cda4e6cebbed'); });
+  it('post198-extras: HMAC VALID_GENRES src/parser.ts', () => { expect(hmacSha256("VALID_GENRES", 'src/parser.ts')).toBe('c51b775d3e1630afd396e0b40a6528864b9ee09b908f4a7fa0fcbb3e4ad68003'); });
+  it('post198-extras: HMAC HITL src/parser.ts', () => { expect(hmacSha256("HITL", 'src/parser.ts')).toBe('c19453d8fa9b1b5d3b021c6c72d544a8224dd5766c48b73b9ed8ec6366ab4b8c'); });
+  it('post198-extras: HMAC no-creds src/parser.ts', () => { expect(hmacSha256("no-creds", 'src/parser.ts')).toBe('89950b1f9f76306f9c493063768980d9cd7005dca46e56f558d012c7153ac90b'); });
+  it('post198-extras: HMAC station_select src/parser.ts', () => { expect(hmacSha256("station_select", 'src/parser.ts')).toBe('825a1b41c9f217c5e3c62ced8594dca07446d982d8770f792268fb7a8b38aa00'); });
+  it('post198-extras: HMAC overnight src/parser.ts', () => { expect(hmacSha256("overnight", 'src/parser.ts')).toBe('50d40a29dda2f8c87024a971ed95621093ce740bf96c84ef0f7aee69a5284044'); });
+  it('post198-extras: HMAC unit-contract src/parser.ts', () => { expect(hmacSha256("unit-contract", 'src/parser.ts')).toBe('1515d35a3caf5e8a0e4c632cb80a6deafdc007ac0d37a93fb677a170b6bef1ed'); });
+  it('post198-extras: HMAC post198-extras src/parser.ts', () => { expect(hmacSha256("post198-extras", 'src/parser.ts')).toBe('73b12da0717d62b931bc022bcd3165d7b35f9232f841cf7fc2511a243e485461'); });
+  it('post198-extras: HMAC parser src/parser.ts', () => { expect(hmacSha256("parser", 'src/parser.ts')).toBe('9276d22adc96b16b1448de50885b29e41d299ade46428c74e22062b8fe6b617a'); });
+  it('post198-extras: src/parser.ts forbids invent phrase openai', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: src/parser.ts forbids invent phrase anthropic', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: src/parser.ts forbids invent phrase claude', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: src/parser.ts forbids invent phrase workers.ai', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: src/parser.ts forbids invent phrase durable_object', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: src/parser.ts forbids invent phrase vectorize', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: src/parser.ts forbids invent phrase hyperdrive', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: src/parser.ts forbids invent phrase analytics_engine', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: src/parser.ts forbids invent phrase d1_', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: src/parser.ts forbids invent phrase r2_', () => { expect(read('src/parser.ts').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: sha256 src/index.ts', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
+  it('post198-extras: size src/index.ts', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size).toBe(4738); });
+  it('post198-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
+  it('post198-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
+  it('post198-extras: HMAC post198 src/index.ts', () => { expect(hmacSha256("post198", 'src/index.ts')).toBe('aae1d20520c7375c83efdbbda9a3aa7acc89ad449da34bd2ee8b6a30749d69fe'); });
+  it('post198-extras: HMAC after-#198 src/index.ts', () => { expect(hmacSha256("after-#198", 'src/index.ts')).toBe('b4cd39817a2903ebddd4611d3c1f3e0bd9da6d35d73bb554b0aa3f294ea7a57f'); });
+  it('post198-extras: HMAC leftover src/index.ts', () => { expect(hmacSha256("leftover", 'src/index.ts')).toBe('268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be'); });
+  it('post198-extras: HMAC TOKENMAXX src/index.ts', () => { expect(hmacSha256("TOKENMAXX", 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc'); });
+  it('post198-extras: HMAC HEAVY src/index.ts', () => { expect(hmacSha256("HEAVY", 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30'); });
+  it('post198-extras: HMAC no-product-invent src/index.ts', () => { expect(hmacSha256("no-product-invent", 'src/index.ts')).toBe('49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a'); });
+  it('post198-extras: HMAC slice-diff src/index.ts', () => { expect(hmacSha256("slice-diff", 'src/index.ts')).toBe('c2be27a92bce9fa17108fbf90f63b917d25d4114397192e04caf79ac29e8f44f'); });
+  it('post198-extras: HMAC no-src-change src/index.ts', () => { expect(hmacSha256("no-src-change", 'src/index.ts')).toBe('f1b32cf267f0c31a79062ca85a6243b3f166c1d5dcf534c3149a97e9d6ae4846'); });
+  it('post198-extras: HMAC manifest-lock src/index.ts', () => { expect(hmacSha256("manifest-lock", 'src/index.ts')).toBe('41e4be551225bde732f63c07d1a0d8c24bd630a5c649a3b4c3eb88ca0338c946'); });
+  it('post198-extras: HMAC parser-routes-only src/index.ts', () => { expect(hmacSha256("parser-routes-only", 'src/index.ts')).toBe('3e64a0018121d72f6fb3489229d7155069ae87de1c589e082d376370482c7d0c'); });
+  it('post198-extras: HMAC parser-routes-edges src/index.ts', () => { expect(hmacSha256("parser-routes-edges", 'src/index.ts')).toBe('53bc657454e7bdd0cbfcbb0b45609c9f4ce03b345e675bd94776fad286fd19ef'); });
+  it('post198-extras: HMAC not-genres-mcp src/index.ts', () => { expect(hmacSha256("not-genres-mcp", 'src/index.ts')).toBe('382d1b7f76da7a0c42a421ebb62040a74d59ff5ed3f049c7e0a7a4c80ae9ebf8'); });
+  it('post198-extras: HMAC not-mcp-spec src/index.ts', () => { expect(hmacSha256("not-mcp-spec", 'src/index.ts')).toBe('280cf3dd0b7a1d751f6c9e24230dc39f46c19f9ffd289c11bd199a3ca18ab2ec'); });
+  it('post198-extras: HMAC not-helpers-source src/index.ts', () => { expect(hmacSha256("not-helpers-source", 'src/index.ts')).toBe('3f912ff7e4f3826accee23a8463b1ff17075763ca36ab65dbecd08acbd901934'); });
+  it('post198-extras: HMAC not-wrangler src/index.ts', () => { expect(hmacSha256("not-wrangler", 'src/index.ts')).toBe('1b4777c94e7b6e0f97327d147d8da67224118764aba31cc6ccc6774f4d180a51'); });
+  it('post198-extras: HMAC not-ci-config src/index.ts', () => { expect(hmacSha256("not-ci-config", 'src/index.ts')).toBe('048199b532844ec19fe72256d15c23d367d15f2f184ff419c11ebff3360a275d'); });
+  it('post198-extras: HMAC after-merged-198 src/index.ts', () => { expect(hmacSha256("after-merged-198", 'src/index.ts')).toBe('d7b801c522340fccb4393dceeec78d5d6aa038b38813637236d227870185a86f'); });
+  it('post198-extras: HMAC fuzzywigg src/index.ts', () => { expect(hmacSha256("fuzzywigg", 'src/index.ts')).toBe('8b7bac04a4152bc93cee647ecc20a2058cc35d05f01a7e86dafe04cb298ccfb5'); });
+  it('post198-extras: HMAC backlink src/index.ts', () => { expect(hmacSha256("backlink", 'src/index.ts')).toBe('252b29e7d7574d602146d61f7dd1a3d0d09b1374b3dd6955f63e5bd81b39cc90'); });
+  it('post198-extras: HMAC CATALOG_CACHE src/index.ts', () => { expect(hmacSha256("CATALOG_CACHE", 'src/index.ts')).toBe('aeb15102e72a90f212ebe60a587c2ea0e8ac8a9a28f0150dcdb08b02f61b7692'); });
+  it('post198-extras: HMAC GEMINI_API_KEY src/index.ts', () => { expect(hmacSha256("GEMINI_API_KEY", 'src/index.ts')).toBe('bcdc693b733a50487cca26fdd8549b5b526c296566a3c4475f3bc4e6a888617b'); });
+  it('post198-extras: HMAC iptv-org src/index.ts', () => { expect(hmacSha256("iptv-org", 'src/index.ts')).toBe('3c0dc21e4b8267c2ab1bf4452da2bda68627db162628cb9441e1f5d40669e5d9'); });
+  it('post198-extras: HMAC gemini-2.0-flash src/index.ts', () => { expect(hmacSha256("gemini-2.0-flash", 'src/index.ts')).toBe('a6e9cc5633daed5bab6b9ae49c3565df64b00bb4261998c2716df5031daf3c32'); });
+  it('post198-extras: HMAC VALID_GENRES src/index.ts', () => { expect(hmacSha256("VALID_GENRES", 'src/index.ts')).toBe('2211e9dc3aa68885606978ad97ddddbe2e902eb0665b8cde8c052c3abaaa0db6'); });
+  it('post198-extras: HMAC HITL src/index.ts', () => { expect(hmacSha256("HITL", 'src/index.ts')).toBe('130212fd19b5ad02645c499bcc4fc9214fd04007e35b94977b14d2775e04d1b0'); });
+  it('post198-extras: HMAC no-creds src/index.ts', () => { expect(hmacSha256("no-creds", 'src/index.ts')).toBe('db99bb419f05b9e3acfc10001000a112d3e4408c75dade7a526dc6eb78836b3e'); });
+  it('post198-extras: HMAC station_select src/index.ts', () => { expect(hmacSha256("station_select", 'src/index.ts')).toBe('784e6a0de32998b04080793417ccc5d3593c9340b59587a677a954185f42c7bc'); });
+  it('post198-extras: HMAC overnight src/index.ts', () => { expect(hmacSha256("overnight", 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85'); });
+  it('post198-extras: HMAC unit-contract src/index.ts', () => { expect(hmacSha256("unit-contract", 'src/index.ts')).toBe('412e71852a75b114ad44ecc71dd9290ffe6c8884f6759f4bbe5dd38339c4e8da'); });
+  it('post198-extras: HMAC post198-extras src/index.ts', () => { expect(hmacSha256("post198-extras", 'src/index.ts')).toBe('4c106f508eb5dde56bffce8c8f554c34bfd11d7057463eb093e8bbde74a62d9e'); });
+  it('post198-extras: HMAC parser src/index.ts', () => { expect(hmacSha256("parser", 'src/index.ts')).toBe('b0baf6d64702fec99e4a13bc17a8f555b7a5b49b15e42064feb2bff35f7398ae'); });
+  it('post198-extras: src/index.ts forbids invent phrase openai', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: src/index.ts forbids invent phrase anthropic', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: src/index.ts forbids invent phrase claude', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: src/index.ts forbids invent phrase workers.ai', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: src/index.ts forbids invent phrase durable_object', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: src/index.ts forbids invent phrase vectorize', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: src/index.ts forbids invent phrase hyperdrive', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: src/index.ts forbids invent phrase analytics_engine', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: src/index.ts forbids invent phrase d1_', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: src/index.ts forbids invent phrase r2_', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: sha256 src/types.ts', () => { expect(sha256('src/types.ts')).toBe('4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3'); });
+  it('post198-extras: size src/types.ts', () => { expect(statSync(join(parserRoot, 'src/types.ts')).size).toBe(174); });
+  it('post198-extras: utf8-len src/types.ts', () => { expect(read('src/types.ts')).toHaveLength(172); });
+  it('post198-extras: nibble src/types.ts', () => { expect(nibbleSum(sha256('src/types.ts'))).toBe(520); });
+  it('post198-extras: HMAC post198 src/types.ts', () => { expect(hmacSha256("post198", 'src/types.ts')).toBe('870f6d7e94f43e16828d293c5e1a18b4e5d69f7d22a32d62e04879b8da229593'); });
+  it('post198-extras: HMAC after-#198 src/types.ts', () => { expect(hmacSha256("after-#198", 'src/types.ts')).toBe('8db3fda8806ccce59ced25c0fc87fca658e725125c77652a7c2da2f0051e6029'); });
+  it('post198-extras: HMAC leftover src/types.ts', () => { expect(hmacSha256("leftover", 'src/types.ts')).toBe('80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85'); });
+  it('post198-extras: HMAC TOKENMAXX src/types.ts', () => { expect(hmacSha256("TOKENMAXX", 'src/types.ts')).toBe('5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc'); });
+  it('post198-extras: HMAC HEAVY src/types.ts', () => { expect(hmacSha256("HEAVY", 'src/types.ts')).toBe('c30f6d748b6c06b8387764e536eab11def9e8f3f000f4b2b764e050f64ebc32a'); });
+  it('post198-extras: HMAC no-product-invent src/types.ts', () => { expect(hmacSha256("no-product-invent", 'src/types.ts')).toBe('431b246bf23d8a3f8ec5228a8746b5ac62ace79e3ec1dc369e9645be295be076'); });
+  it('post198-extras: HMAC slice-diff src/types.ts', () => { expect(hmacSha256("slice-diff", 'src/types.ts')).toBe('d1e497bd3dc7e06713395285b574a0d0da8bdd3b9614da249b4218aad57bd70b'); });
+  it('post198-extras: HMAC no-src-change src/types.ts', () => { expect(hmacSha256("no-src-change", 'src/types.ts')).toBe('66b6c84c4d65babc626f3d0614b2d67cf4e18375f20cf74ae311e52bfcd2acc2'); });
+  it('post198-extras: HMAC manifest-lock src/types.ts', () => { expect(hmacSha256("manifest-lock", 'src/types.ts')).toBe('96a5eda772aed1d149de5c3486ab886fc5b5f9108ad8b2ff8f11be66f236b356'); });
+  it('post198-extras: HMAC parser-routes-only src/types.ts', () => { expect(hmacSha256("parser-routes-only", 'src/types.ts')).toBe('c8457898aaa605e1e7c3c56c6b315cc5528d3515cb226a2925169156a056c4f4'); });
+  it('post198-extras: HMAC parser-routes-edges src/types.ts', () => { expect(hmacSha256("parser-routes-edges", 'src/types.ts')).toBe('ac16a7e16a2a0c2422b916e1a61d2cce51bff0be5e33e73dfabdbd56398ff3a8'); });
+  it('post198-extras: HMAC not-genres-mcp src/types.ts', () => { expect(hmacSha256("not-genres-mcp", 'src/types.ts')).toBe('573675ac13dbfceba2006f103a6e822ec989f44505602bc0a85f30f440e6189e'); });
+  it('post198-extras: HMAC not-mcp-spec src/types.ts', () => { expect(hmacSha256("not-mcp-spec", 'src/types.ts')).toBe('c18f975aab87ab5777de2cbe65f206b38b134a2b5d7b01410fce2a7ec2c2c4b2'); });
+  it('post198-extras: HMAC not-helpers-source src/types.ts', () => { expect(hmacSha256("not-helpers-source", 'src/types.ts')).toBe('1e8b089696752599a27f79ca322020f699d79ea577c58a7f8cf4961b81cf465e'); });
+  it('post198-extras: HMAC not-wrangler src/types.ts', () => { expect(hmacSha256("not-wrangler", 'src/types.ts')).toBe('317a403718a965b094f58f7a7fbc9429a8c17c9da190d047b5ec2e5f1f00e1c4'); });
+  it('post198-extras: HMAC not-ci-config src/types.ts', () => { expect(hmacSha256("not-ci-config", 'src/types.ts')).toBe('79509156c7a9516bc156a86b6ac9fa35148cb7b198f705a42134462dd7b6e585'); });
+  it('post198-extras: HMAC after-merged-198 src/types.ts', () => { expect(hmacSha256("after-merged-198", 'src/types.ts')).toBe('3081115793d17e257c4eb21466c4b929a317683820e8612bcaa3fb8f5fcf2170'); });
+  it('post198-extras: HMAC fuzzywigg src/types.ts', () => { expect(hmacSha256("fuzzywigg", 'src/types.ts')).toBe('9318202ab26e14c853a66c82681f61370e99b88948d0cb0daced2f0fae39cf07'); });
+  it('post198-extras: HMAC backlink src/types.ts', () => { expect(hmacSha256("backlink", 'src/types.ts')).toBe('e57ac0af28a81c88406f41b07efba081908eb642ad8c26416b188c8a14381bdd'); });
+  it('post198-extras: HMAC CATALOG_CACHE src/types.ts', () => { expect(hmacSha256("CATALOG_CACHE", 'src/types.ts')).toBe('217643d1e9a50ba2be3effa7673ad2785ea71c7441744e68ab2e13963b414686'); });
+  it('post198-extras: HMAC GEMINI_API_KEY src/types.ts', () => { expect(hmacSha256("GEMINI_API_KEY", 'src/types.ts')).toBe('8632030af7092ce4f15cb6ad4d3358ce01c0be8df8f0e9d8f0ac424565844e28'); });
+  it('post198-extras: HMAC iptv-org src/types.ts', () => { expect(hmacSha256("iptv-org", 'src/types.ts')).toBe('ca5f1e1fd976bb3fe291c6a55c65ddeff53de41b4fc58212755883dc30307874'); });
+  it('post198-extras: HMAC gemini-2.0-flash src/types.ts', () => { expect(hmacSha256("gemini-2.0-flash", 'src/types.ts')).toBe('b72909259e90987dd950a6ceb67ec6055502e3251fd0189b9103eaa446f91827'); });
+  it('post198-extras: HMAC VALID_GENRES src/types.ts', () => { expect(hmacSha256("VALID_GENRES", 'src/types.ts')).toBe('96a757d30d94fe78ea2147e822dc6253b999cd19a15f6d719394a666bfbc35ac'); });
+  it('post198-extras: HMAC HITL src/types.ts', () => { expect(hmacSha256("HITL", 'src/types.ts')).toBe('24a9d0042b44f1b08dd117266f91d4794d44bf5007fe1ae9fdd668c4970e5519'); });
+  it('post198-extras: HMAC no-creds src/types.ts', () => { expect(hmacSha256("no-creds", 'src/types.ts')).toBe('54a003b7f2d60b6b8cf47b21fd8a0b8044b12fa7a9296db10bf8186e17cb0d47'); });
+  it('post198-extras: HMAC station_select src/types.ts', () => { expect(hmacSha256("station_select", 'src/types.ts')).toBe('17f8b2954253737ee48837a36505a948abb9c7a6c7efcd18d6da8ebbdbc169bf'); });
+  it('post198-extras: HMAC overnight src/types.ts', () => { expect(hmacSha256("overnight", 'src/types.ts')).toBe('a5f5fbf7cf38ccb97eba6ce7a943e32079eb2f89cc611e5f382d2bc87ea43ef9'); });
+  it('post198-extras: HMAC unit-contract src/types.ts', () => { expect(hmacSha256("unit-contract", 'src/types.ts')).toBe('e7b657faa6d98bdc119db20c8459a58c7838d6f0627d69c83de96b280741f4d4'); });
+  it('post198-extras: HMAC post198-extras src/types.ts', () => { expect(hmacSha256("post198-extras", 'src/types.ts')).toBe('e3a5e188d41b50722de2ef45008e13c5ffd750e6f62d15939874b7ee9ce8c232'); });
+  it('post198-extras: HMAC parser src/types.ts', () => { expect(hmacSha256("parser", 'src/types.ts')).toBe('f74bbccc3cc97e8c3f37dda83009389b9b7fd2e8c995c71fd68bed38286c40eb'); });
+  it('post198-extras: src/types.ts forbids invent phrase openai', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: src/types.ts forbids invent phrase anthropic', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: src/types.ts forbids invent phrase claude', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: src/types.ts forbids invent phrase workers.ai', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: src/types.ts forbids invent phrase durable_object', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: src/types.ts forbids invent phrase vectorize', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: src/types.ts forbids invent phrase hyperdrive', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: src/types.ts forbids invent phrase analytics_engine', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: src/types.ts forbids invent phrase d1_', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: src/types.ts forbids invent phrase r2_', () => { expect(read('src/types.ts').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: sha256 package.json', () => { expect(sha256('package.json')).toBe('34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c'); });
+  it('post198-extras: size package.json', () => { expect(statSync(join(parserRoot, 'package.json')).size).toBe(637); });
+  it('post198-extras: utf8-len package.json', () => { expect(read('package.json')).toHaveLength(635); });
+  it('post198-extras: nibble package.json', () => { expect(nibbleSum(sha256('package.json'))).toBe(451); });
+  it('post198-extras: HMAC post198 package.json', () => { expect(hmacSha256("post198", 'package.json')).toBe('264e466f33ecbbb4d897d1d02da90dc464eb455e6f36d1e67efb4a28a8ddd574'); });
+  it('post198-extras: HMAC after-#198 package.json', () => { expect(hmacSha256("after-#198", 'package.json')).toBe('d72726bc9c8d7c972e5f58a2267a7a8c31b1e453f5d72884b88acbbdd175ddf1'); });
+  it('post198-extras: HMAC leftover package.json', () => { expect(hmacSha256("leftover", 'package.json')).toBe('20e0c5771e324d5d7c4d9bb108e54226b1ca026d3c6d232d5f0b8ccba88462a1'); });
+  it('post198-extras: HMAC TOKENMAXX package.json', () => { expect(hmacSha256("TOKENMAXX", 'package.json')).toBe('ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58'); });
+  it('post198-extras: HMAC HEAVY package.json', () => { expect(hmacSha256("HEAVY", 'package.json')).toBe('59f02fb62823abdd3ebccdd68ef1f27db9333e414f49a111c132eca85acb6563'); });
+  it('post198-extras: HMAC no-product-invent package.json', () => { expect(hmacSha256("no-product-invent", 'package.json')).toBe('b4d2e3db95a68120d3e5f1dc0b35bda72e5a8ffa0c34dd3b2b110699c0cd286b'); });
+  it('post198-extras: HMAC slice-diff package.json', () => { expect(hmacSha256("slice-diff", 'package.json')).toBe('dc869038c3869410db214fb5618c8f6091545ded44463dd4ccdf26cefc3dca56'); });
+  it('post198-extras: HMAC no-src-change package.json', () => { expect(hmacSha256("no-src-change", 'package.json')).toBe('f89ef881d4621b0b9716e0341fb3cd014b14115046ec8e1fbc1baa995c764959'); });
+  it('post198-extras: HMAC manifest-lock package.json', () => { expect(hmacSha256("manifest-lock", 'package.json')).toBe('c78857efdc2a9ef7366350439061383f242d1056da2d338f56f4d698b5748417'); });
+  it('post198-extras: HMAC parser-routes-only package.json', () => { expect(hmacSha256("parser-routes-only", 'package.json')).toBe('16beee53d898856843d82f53b7bdd2bb53496784c24049c7789cb801c01e88dc'); });
+  it('post198-extras: HMAC parser-routes-edges package.json', () => { expect(hmacSha256("parser-routes-edges", 'package.json')).toBe('3c8179cc2e6a190a486f32b9b1582a92448d0c7818a755beb20f64800f6c2e1e'); });
+  it('post198-extras: HMAC not-genres-mcp package.json', () => { expect(hmacSha256("not-genres-mcp", 'package.json')).toBe('827245fcbb066f1b5e44d4244a6fdad2ce4d73ebf7be1ef500020c7dd222ad83'); });
+  it('post198-extras: HMAC not-mcp-spec package.json', () => { expect(hmacSha256("not-mcp-spec", 'package.json')).toBe('90e26713dce4adcc493adf4b36aba8e191d42a79dcf666545b4913cd2ed0f12b'); });
+  it('post198-extras: HMAC not-helpers-source package.json', () => { expect(hmacSha256("not-helpers-source", 'package.json')).toBe('c85a7f070a088d4dad412bd98c8e4b1fa60d43e63f5dde0fcaae58b98eb6937e'); });
+  it('post198-extras: HMAC not-wrangler package.json', () => { expect(hmacSha256("not-wrangler", 'package.json')).toBe('cab83a528bfef7f7d9df314634c92da23516641c81646f2de87d14208bc74ab1'); });
+  it('post198-extras: HMAC not-ci-config package.json', () => { expect(hmacSha256("not-ci-config", 'package.json')).toBe('26e3d05b66a2467cf044dcb4b423a82cc374a792af5aec822051fe664add2358'); });
+  it('post198-extras: HMAC after-merged-198 package.json', () => { expect(hmacSha256("after-merged-198", 'package.json')).toBe('ea55d0d3ab5cfcad66715e9c389270f5a339d5e21ae47363fe12162007583389'); });
+  it('post198-extras: HMAC fuzzywigg package.json', () => { expect(hmacSha256("fuzzywigg", 'package.json')).toBe('29f3398cd55d65de213eea45460d236f4ddaacfa08bb09b4806c16808c9749ab'); });
+  it('post198-extras: HMAC backlink package.json', () => { expect(hmacSha256("backlink", 'package.json')).toBe('6edca9c2fa551d553a75d6e537f429b54763a48bf941865889f51008af5b38f5'); });
+  it('post198-extras: HMAC CATALOG_CACHE package.json', () => { expect(hmacSha256("CATALOG_CACHE", 'package.json')).toBe('80864c6eb119181f7746cc83f6d5cfee07352f1e2554717b929069f4e873922f'); });
+  it('post198-extras: HMAC GEMINI_API_KEY package.json', () => { expect(hmacSha256("GEMINI_API_KEY", 'package.json')).toBe('af6a4ce63cda6979a3b5425f09d776c65adff17550733712750e4b90591c57e0'); });
+  it('post198-extras: HMAC iptv-org package.json', () => { expect(hmacSha256("iptv-org", 'package.json')).toBe('cc2fce6124feabd16b696cdcbc3d0ecc481e9367146c22575291da1497d6e67f'); });
+  it('post198-extras: HMAC gemini-2.0-flash package.json', () => { expect(hmacSha256("gemini-2.0-flash", 'package.json')).toBe('a8b62f12818d2fcd08ddf09e2821a2a106ea0ba830a5ae22203e95a9b5a131dd'); });
+  it('post198-extras: HMAC VALID_GENRES package.json', () => { expect(hmacSha256("VALID_GENRES", 'package.json')).toBe('c0887b6d1092056b1b04ae66f8ef2477a978469378405706b49ed7cd084fbadb'); });
+  it('post198-extras: HMAC HITL package.json', () => { expect(hmacSha256("HITL", 'package.json')).toBe('28ad7c71e0cbd46cab4e1f494c8e29a6140d447b63e530001e98d85096dc6424'); });
+  it('post198-extras: HMAC no-creds package.json', () => { expect(hmacSha256("no-creds", 'package.json')).toBe('15af23ac155e77825588a3afa5d5dd54969bf30578982a9cbce26656593fbef4'); });
+  it('post198-extras: HMAC station_select package.json', () => { expect(hmacSha256("station_select", 'package.json')).toBe('12403ef6772e65e54c71f3a2183faa28cfdd487cf171ddeb91f2bd6c663198fa'); });
+  it('post198-extras: HMAC overnight package.json', () => { expect(hmacSha256("overnight", 'package.json')).toBe('45c3592147b357a6bb77a8190520c5a786cff8446d2d7f4c96b2535e9c907990'); });
+  it('post198-extras: HMAC unit-contract package.json', () => { expect(hmacSha256("unit-contract", 'package.json')).toBe('8d4ddf2f094ac41b53a87112e424fbec54674a640e02ac85495685574ef95704'); });
+  it('post198-extras: HMAC post198-extras package.json', () => { expect(hmacSha256("post198-extras", 'package.json')).toBe('f26bf00cf83dc481fb49911a91afce1c368221a62b22994c34b75ea3aef23744'); });
+  it('post198-extras: HMAC parser package.json', () => { expect(hmacSha256("parser", 'package.json')).toBe('9d5f5486afbdb3ca82605ba64479bdaf18463970c3edb715372661d820c462fc'); });
+  it('post198-extras: package.json forbids invent phrase openai', () => { expect(read('package.json').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: package.json forbids invent phrase anthropic', () => { expect(read('package.json').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: package.json forbids invent phrase claude', () => { expect(read('package.json').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: package.json forbids invent phrase workers.ai', () => { expect(read('package.json').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: package.json forbids invent phrase durable_object', () => { expect(read('package.json').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: package.json forbids invent phrase vectorize', () => { expect(read('package.json').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: package.json forbids invent phrase hyperdrive', () => { expect(read('package.json').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: package.json forbids invent phrase analytics_engine', () => { expect(read('package.json').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: package.json forbids invent phrase d1_', () => { expect(read('package.json').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: package.json forbids invent phrase r2_', () => { expect(read('package.json').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: sha256 AGENTS.md', () => { expect(sha256('AGENTS.md')).toBe('48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa'); });
+  it('post198-extras: size AGENTS.md', () => { expect(statSync(join(parserRoot, 'AGENTS.md')).size).toBe(1017); });
+  it('post198-extras: utf8-len AGENTS.md', () => { expect(read('AGENTS.md')).toHaveLength(1011); });
+  it('post198-extras: nibble AGENTS.md', () => { expect(nibbleSum(sha256('AGENTS.md'))).toBe(479); });
+  it('post198-extras: HMAC post198 AGENTS.md', () => { expect(hmacSha256("post198", 'AGENTS.md')).toBe('f54638b854e4cf61e1fba31e2875c858cae82203510ad610a09abee53b2a9fa0'); });
+  it('post198-extras: HMAC after-#198 AGENTS.md', () => { expect(hmacSha256("after-#198", 'AGENTS.md')).toBe('5866437db6dcdcda3785cccd31f57a06e94fe2f690fb9a424a929d305ec27369'); });
+  it('post198-extras: HMAC leftover AGENTS.md', () => { expect(hmacSha256("leftover", 'AGENTS.md')).toBe('ebc9f95bcc289e29e0a1ef806d4a6466da053e934eba9da783fda10f1a46b84e'); });
+  it('post198-extras: HMAC TOKENMAXX AGENTS.md', () => { expect(hmacSha256("TOKENMAXX", 'AGENTS.md')).toBe('b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f'); });
+  it('post198-extras: HMAC HEAVY AGENTS.md', () => { expect(hmacSha256("HEAVY", 'AGENTS.md')).toBe('f5534ae49c23be34018c9e05a44b201edf94a776bd06b184d44b41e02e77c87c'); });
+  it('post198-extras: HMAC no-product-invent AGENTS.md', () => { expect(hmacSha256("no-product-invent", 'AGENTS.md')).toBe('dbfdb45d097dffeee56f94781c4ce33e6c8cfb185871bf00c7237385c42cf264'); });
+  it('post198-extras: HMAC slice-diff AGENTS.md', () => { expect(hmacSha256("slice-diff", 'AGENTS.md')).toBe('870cb0b7ca943c82a943cb231e6171ba55b8a1be90d4368fe1e30a3666060c90'); });
+  it('post198-extras: HMAC no-src-change AGENTS.md', () => { expect(hmacSha256("no-src-change", 'AGENTS.md')).toBe('94cb89045ff7e09a81a02dd8ee4ee7eb0ef7d412d7260f9ab24056774ed00967'); });
+  it('post198-extras: HMAC manifest-lock AGENTS.md', () => { expect(hmacSha256("manifest-lock", 'AGENTS.md')).toBe('af3b8d7bad009043c764c1d1f67b9526650ba158a9053d887985ddce5dc997c5'); });
+  it('post198-extras: HMAC parser-routes-only AGENTS.md', () => { expect(hmacSha256("parser-routes-only", 'AGENTS.md')).toBe('75b0039caeb897d2d9440c7bf60420a66254d68736db80f5e2585ad562f2c523'); });
+  it('post198-extras: HMAC parser-routes-edges AGENTS.md', () => { expect(hmacSha256("parser-routes-edges", 'AGENTS.md')).toBe('baad36f7c5852635700575e8a6bcdf598c8192ffcca5320453a6339de04fb7b5'); });
+  it('post198-extras: HMAC not-genres-mcp AGENTS.md', () => { expect(hmacSha256("not-genres-mcp", 'AGENTS.md')).toBe('ef7aa47ab568fa46dafe008ae128369538f4c4164286bed1589915e0459543fc'); });
+  it('post198-extras: HMAC not-mcp-spec AGENTS.md', () => { expect(hmacSha256("not-mcp-spec", 'AGENTS.md')).toBe('5064de25959a9b1c74cf24056771f0bc98995f4fd8b64f95bb5ab23ee4466d97'); });
+  it('post198-extras: HMAC not-helpers-source AGENTS.md', () => { expect(hmacSha256("not-helpers-source", 'AGENTS.md')).toBe('554b9ab69072c793dc74e8b1cc7f4cd33f1d1594a0f7fc44f5996812cf0dd78b'); });
+  it('post198-extras: HMAC not-wrangler AGENTS.md', () => { expect(hmacSha256("not-wrangler", 'AGENTS.md')).toBe('3b1e934c1b855ba48fe1b3d11792773883c935297cb50fb6557137ffd2ce7fca'); });
+  it('post198-extras: HMAC not-ci-config AGENTS.md', () => { expect(hmacSha256("not-ci-config", 'AGENTS.md')).toBe('983ea77364b9a15dfd214d9d7783da7e6b465e7f5ac37f48640e0a898855cdbc'); });
+  it('post198-extras: HMAC after-merged-198 AGENTS.md', () => { expect(hmacSha256("after-merged-198", 'AGENTS.md')).toBe('943350c40f2d0e21f92c93357609846c4466bfcdd3d4c7c6687dbd69d35ed4cf'); });
+  it('post198-extras: HMAC fuzzywigg AGENTS.md', () => { expect(hmacSha256("fuzzywigg", 'AGENTS.md')).toBe('8eda2249f938456fded535468826738c7e146ca6574f36f3853700897f5d5163'); });
+  it('post198-extras: HMAC backlink AGENTS.md', () => { expect(hmacSha256("backlink", 'AGENTS.md')).toBe('6da6cfcf4fa0441e1a6cacca52bca8b03afa2a93acb9321dccba7d8dce0f804f'); });
+  it('post198-extras: HMAC CATALOG_CACHE AGENTS.md', () => { expect(hmacSha256("CATALOG_CACHE", 'AGENTS.md')).toBe('091ea475ef4827ea9c4dc046d5bbe7e91505ce4e59d4474fa384a31f7176e580'); });
+  it('post198-extras: HMAC GEMINI_API_KEY AGENTS.md', () => { expect(hmacSha256("GEMINI_API_KEY", 'AGENTS.md')).toBe('69741f5f0094e4bb2cfe0c30539ac82134f9a17312bd155e140d46a1989212c6'); });
+  it('post198-extras: HMAC iptv-org AGENTS.md', () => { expect(hmacSha256("iptv-org", 'AGENTS.md')).toBe('0aff55c1d8bd109ce5a11b8bd72e5509f1d7cc6ef1935ddef7a8231443bcf464'); });
+  it('post198-extras: HMAC gemini-2.0-flash AGENTS.md', () => { expect(hmacSha256("gemini-2.0-flash", 'AGENTS.md')).toBe('42efae3491e3bd78851b00249a2ec44b09a2ee457c07a666d5d3ed94c6301ea5'); });
+  it('post198-extras: HMAC VALID_GENRES AGENTS.md', () => { expect(hmacSha256("VALID_GENRES", 'AGENTS.md')).toBe('d9db876c73c1b923b117dbf619d87c48362614d2bfd0e62b18658230e0a1fbf5'); });
+  it('post198-extras: HMAC HITL AGENTS.md', () => { expect(hmacSha256("HITL", 'AGENTS.md')).toBe('0df134c66ef2431f8f7d8b281ed09c1ffedddaa4fe6f91357592a9a6ef37bece'); });
+  it('post198-extras: HMAC no-creds AGENTS.md', () => { expect(hmacSha256("no-creds", 'AGENTS.md')).toBe('7f85e663a40b787e2df5e296431307e470764c453a109376e28a20dc4d008e50'); });
+  it('post198-extras: HMAC station_select AGENTS.md', () => { expect(hmacSha256("station_select", 'AGENTS.md')).toBe('97f8c43806017259d483cf4af0078542c11849c1ea77ba3efae151d22aee085a'); });
+  it('post198-extras: HMAC overnight AGENTS.md', () => { expect(hmacSha256("overnight", 'AGENTS.md')).toBe('5ba05354e017e7c0a92a911caf121b7d5c5c184a660265e6ef37502320429bc4'); });
+  it('post198-extras: HMAC unit-contract AGENTS.md', () => { expect(hmacSha256("unit-contract", 'AGENTS.md')).toBe('3a0ffc42f47742efa887605ec01ec89e7701e71c686be3f87bf23eb526eed4bd'); });
+  it('post198-extras: HMAC post198-extras AGENTS.md', () => { expect(hmacSha256("post198-extras", 'AGENTS.md')).toBe('4ee25247268b77dffbf5f73996804fe3cfd06166c199d93fdf44f87effd929d1'); });
+  it('post198-extras: HMAC parser AGENTS.md', () => { expect(hmacSha256("parser", 'AGENTS.md')).toBe('b6c7dae9c617f2c82ab0bb696c8170ed1439a95fd591fb23ec310cc499910f1a'); });
+  it('post198-extras: AGENTS.md forbids invent phrase openai', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: AGENTS.md forbids invent phrase anthropic', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: AGENTS.md forbids invent phrase claude', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: AGENTS.md forbids invent phrase workers.ai', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: AGENTS.md forbids invent phrase durable_object', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: AGENTS.md forbids invent phrase vectorize', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: AGENTS.md forbids invent phrase hyperdrive', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: AGENTS.md forbids invent phrase analytics_engine', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: AGENTS.md forbids invent phrase d1_', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: AGENTS.md forbids invent phrase r2_', () => { expect(read('AGENTS.md').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: sha256 README.md', () => { expect(sha256('README.md')).toBe('f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987'); });
+  it('post198-extras: size README.md', () => { expect(statSync(join(parserRoot, 'README.md')).size).toBe(2801); });
+  it('post198-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2757); });
+  it('post198-extras: nibble README.md', () => { expect(nibbleSum(sha256('README.md'))).toBe(429); });
+  it('post198-extras: HMAC post198 README.md', () => { expect(hmacSha256("post198", 'README.md')).toBe('5165d27205e65400182d7df83ff702c41c4dbbf86b2d74036d83842b11bcae6e'); });
+  it('post198-extras: HMAC after-#198 README.md', () => { expect(hmacSha256("after-#198", 'README.md')).toBe('01be1bda628a578d710ab101c36ff10f53250288925044823003dcaebe9ba08a'); });
+  it('post198-extras: HMAC leftover README.md', () => { expect(hmacSha256("leftover", 'README.md')).toBe('57c08297703e57c6b5694a515e43b6592bd130637c82dcc569a048bda2fd181f'); });
+  it('post198-extras: HMAC TOKENMAXX README.md', () => { expect(hmacSha256("TOKENMAXX", 'README.md')).toBe('51a608392fd700865f32aac02646908bf1235d6c4d587e9daa92383d6a777b94'); });
+  it('post198-extras: HMAC HEAVY README.md', () => { expect(hmacSha256("HEAVY", 'README.md')).toBe('4bb62cc19640e3a3d792e3eba8d499203b4729899d5838ec2065ee409ab0430d'); });
+  it('post198-extras: HMAC no-product-invent README.md', () => { expect(hmacSha256("no-product-invent", 'README.md')).toBe('c1d8bb52c5ad591530152e8ec780bd262a1b78aeb7aea241bcef2a46a5e1ad7a'); });
+  it('post198-extras: HMAC slice-diff README.md', () => { expect(hmacSha256("slice-diff", 'README.md')).toBe('afd276d87586dcc4395cec6f4a88c365bedd3992dc0b6a4448b04ad23f186225'); });
+  it('post198-extras: HMAC no-src-change README.md', () => { expect(hmacSha256("no-src-change", 'README.md')).toBe('017324f9cb021cd4af3721c48db1e471d472683f64af8e7f0b4a52d2b77d2fba'); });
+  it('post198-extras: HMAC manifest-lock README.md', () => { expect(hmacSha256("manifest-lock", 'README.md')).toBe('338002f36227d22e700f2cfa8d7a9a592e093f5ffbcef1c27583b8a0d79dd8d5'); });
+  it('post198-extras: HMAC parser-routes-only README.md', () => { expect(hmacSha256("parser-routes-only", 'README.md')).toBe('a028cb674103771d3081cdce798423f9cce4b554b2a4299757f84891393714d8'); });
+  it('post198-extras: HMAC parser-routes-edges README.md', () => { expect(hmacSha256("parser-routes-edges", 'README.md')).toBe('169d9814593067bfcb07505487d09b58d7cda085aa2bbc5f1389b41a7f264045'); });
+  it('post198-extras: HMAC not-genres-mcp README.md', () => { expect(hmacSha256("not-genres-mcp", 'README.md')).toBe('71c5be31ba81a6efe23c0ec9019e83325ae0675fd638f300075fa677bfa0b4b4'); });
+  it('post198-extras: HMAC not-mcp-spec README.md', () => { expect(hmacSha256("not-mcp-spec", 'README.md')).toBe('ea0969434568b0c02ce65e6e77ca5be46dc151350a91024f098c7c0eee11696a'); });
+  it('post198-extras: HMAC not-helpers-source README.md', () => { expect(hmacSha256("not-helpers-source", 'README.md')).toBe('b27ec9fdef0ca94b02c0f2143656924e2ac4efc73952ced9e36127e1df8ccac8'); });
+  it('post198-extras: HMAC not-wrangler README.md', () => { expect(hmacSha256("not-wrangler", 'README.md')).toBe('b6c76e868ab73a6233dcd1aa9742809b980ae3917f1c2b048ac1f7fda77d9c55'); });
+  it('post198-extras: HMAC not-ci-config README.md', () => { expect(hmacSha256("not-ci-config", 'README.md')).toBe('ba991ea6ad65bf9f719c465434c8b75305301249eacb632c6dd721a19f649a5a'); });
+  it('post198-extras: HMAC after-merged-198 README.md', () => { expect(hmacSha256("after-merged-198", 'README.md')).toBe('0e3f63ea4d9620ed8d28e8aa8ed5d5472d287acb592f1288ec2c9ea7983afd02'); });
+  it('post198-extras: HMAC fuzzywigg README.md', () => { expect(hmacSha256("fuzzywigg", 'README.md')).toBe('c1bdcc6210881289dbd7cb0d1815379139a70c052a45bc84a455e263a1a29dfb'); });
+  it('post198-extras: HMAC backlink README.md', () => { expect(hmacSha256("backlink", 'README.md')).toBe('077baa370ddbd2225fb8e82982e8530d778cc0fcc77e24481aa14be4ba1d2684'); });
+  it('post198-extras: HMAC CATALOG_CACHE README.md', () => { expect(hmacSha256("CATALOG_CACHE", 'README.md')).toBe('c9907f02a39576d51bfc275c6e99c614da37a6741e1f621aed2cc91e8b188851'); });
+  it('post198-extras: HMAC GEMINI_API_KEY README.md', () => { expect(hmacSha256("GEMINI_API_KEY", 'README.md')).toBe('9454215091fa86b88019b1e376e9e4f0ed4f51ea581940751f6f582741716d2a'); });
+  it('post198-extras: HMAC iptv-org README.md', () => { expect(hmacSha256("iptv-org", 'README.md')).toBe('0b57bc3623ed34c887c2fe5b8dca907d1421425ef1d4aa57875b3252fb6c62c6'); });
+  it('post198-extras: HMAC gemini-2.0-flash README.md', () => { expect(hmacSha256("gemini-2.0-flash", 'README.md')).toBe('55b8812df979a6b3c9ab0ed3fe86b9a2c8ff2edcaea69043efe7bf326c185642'); });
+  it('post198-extras: HMAC VALID_GENRES README.md', () => { expect(hmacSha256("VALID_GENRES", 'README.md')).toBe('75ddc9d923fb4b7ead18d25e63f38d7ad1b565d5d12444666fcbd4f2ca570128'); });
+  it('post198-extras: HMAC HITL README.md', () => { expect(hmacSha256("HITL", 'README.md')).toBe('63f3a6d94b5bc3a9700609fd321dfdfaf2fb9c726a3e08447301615923c532e0'); });
+  it('post198-extras: HMAC no-creds README.md', () => { expect(hmacSha256("no-creds", 'README.md')).toBe('156fbb321fedfacd1635a84a8d38e0a7450c58d90d2a0c6ff14f862146cc2575'); });
+  it('post198-extras: HMAC station_select README.md', () => { expect(hmacSha256("station_select", 'README.md')).toBe('289b9759c9711fc95c2727e9b042374e19297b25418e436a859007fa247b3e2c'); });
+  it('post198-extras: HMAC overnight README.md', () => { expect(hmacSha256("overnight", 'README.md')).toBe('f9762474a40669cb7842b2e97fa6ee136967913761771ac63602967acfda93c8'); });
+  it('post198-extras: HMAC unit-contract README.md', () => { expect(hmacSha256("unit-contract", 'README.md')).toBe('0f96ae91144012ce6b3fc7d7a2b9a559b2656322b9e6191af9f895109dbfb83f'); });
+  it('post198-extras: HMAC post198-extras README.md', () => { expect(hmacSha256("post198-extras", 'README.md')).toBe('cc781cf126cad8605022c2aab8aec4ed9b8bbf13e20789880c9992a6286815b5'); });
+  it('post198-extras: HMAC parser README.md', () => { expect(hmacSha256("parser", 'README.md')).toBe('60c5532cdaa9864cddd0c425418975ce63685e20c2a2b12715588e51e33e1c04'); });
+  it('post198-extras: README.md forbids invent phrase openai', () => { expect(read('README.md').toLowerCase()).not.toContain("openai"); });
+  it('post198-extras: README.md forbids invent phrase anthropic', () => { expect(read('README.md').toLowerCase()).not.toContain("anthropic"); });
+  it('post198-extras: README.md forbids invent phrase claude', () => { expect(read('README.md').toLowerCase()).not.toContain("claude"); });
+  it('post198-extras: README.md forbids invent phrase workers.ai', () => { expect(read('README.md').toLowerCase()).not.toContain("workers.ai"); });
+  it('post198-extras: README.md forbids invent phrase durable_object', () => { expect(read('README.md').toLowerCase()).not.toContain("durable_object"); });
+  it('post198-extras: README.md forbids invent phrase vectorize', () => { expect(read('README.md').toLowerCase()).not.toContain("vectorize"); });
+  it('post198-extras: README.md forbids invent phrase hyperdrive', () => { expect(read('README.md').toLowerCase()).not.toContain("hyperdrive"); });
+  it('post198-extras: README.md forbids invent phrase analytics_engine', () => { expect(read('README.md').toLowerCase()).not.toContain("analytics_engine"); });
+  it('post198-extras: README.md forbids invent phrase d1_', () => { expect(read('README.md').toLowerCase()).not.toContain("d1_"); });
+  it('post198-extras: README.md forbids invent phrase r2_', () => { expect(read('README.md').toLowerCase()).not.toContain("r2_"); });
+
+  it('post198-extras: keys inventory digest', () => {
+    const keys = ["post198","after-#198","leftover","TOKENMAXX","HEAVY","no-product-invent","slice-diff","no-src-change","manifest-lock","parser-routes-only","parser-routes-edges","not-genres-mcp","not-mcp-spec","not-helpers-source","not-wrangler","not-ci-config","after-merged-198","fuzzywigg","backlink","CATALOG_CACHE","GEMINI_API_KEY","iptv-org","gemini-2.0-flash","VALID_GENRES","HITL","no-creds","station_select","overnight","unit-contract","post198-extras","parser","routes"];
+    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe('d8a40af1acd4e7f6b7ec56dab38b693271ae3801aa978011282b6525f94e8648');
+  });
+  it('post198-extras: final inventory markers', () => {
+    const body = read('test/parser.test.ts');
+    expect(body).toContain("describe('post198 parser HEAVY deepen");
+    expect(body).toContain("describe('post198 parser extras HEAVY deepen");
+    expect((body.match(/it\('post198-extras:/g) ?? []).length).toBeGreaterThan(100);
+  });
+});
