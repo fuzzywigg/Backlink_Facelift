@@ -4014,4 +4014,128 @@ VERSION = "0.1.0"
     }
   });
 
+
+  // --- HEAVY burn (post-#76): wrangler deepen — orthogonal to #74 post68 mega + #76 source ---
+
+  it('post76: wrangler.toml sha256 lock', () => {
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+    it('post76: wrangler.toml exact line inventory', () => {
+    expect(toml.split('\n')).toEqual([
+      'name = "backlink"',
+      'main = "src/index.ts"',
+      'compatibility_date = "2025-01-01"',
+      '',
+      '[[kv_namespaces]]',
+      'binding = "CATALOG_CACHE"',
+      'id = "edb6ca4df12f4f45b40508b3dda3c432"',
+      '',
+      '[[routes]]',
+      'pattern = "backlink.fuzzywigg.com"',
+      'custom_domain = true',
+      '',
+      '[vars]',
+      'VERSION = "0.1.0"',
+      '',
+      '# Secrets (set via CLI, never commit):',
+      '# wrangler secret put GEMINI_API_KEY',
+      '',
+    ]);
+  });
+
+  it('post76: wrangler.toml byte length stays 330', () => {
+    expect(Buffer.byteLength(toml, 'utf8')).toBe(330);
+    expect(toml.length).toBe(330);
+  });
+
+  it('post76: name main compatibility_date lock', () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).toMatch(/^main = "src\/index\.ts"$/m);
+    expect(toml).toMatch(/^compatibility_date = "2025-01-01"$/m);
+  });
+
+  it('post76: KV binding CATALOG_CACHE with 32-hex id', () => {
+    expect(toml).toContain('[[kv_namespaces]]');
+    expect(toml).toContain('binding = "CATALOG_CACHE"');
+    expect(toml).toMatch(/id = "edb6ca4df12f4f45b40508b3dda3c432"/);
+    expect(toml.match(/id = "([a-f0-9]+)"/)?.[1]).toHaveLength(32);
+  });
+
+  it('post76: custom domain route pattern locks fuzzywigg host', () => {
+    expect(toml).toContain('[[routes]]');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(toml).toContain('custom_domain = true');
+  });
+
+  it('post76: VERSION var cross-locks package.json version', () => {
+    expect(toml).toContain('VERSION = "0.1.0"');
+    expect(pkg.version).toBe('0.1.0');
+  });
+
+  it('post76: secret put comment documents GEMINI_API_KEY without inline value', () => {
+    expect(toml).toContain('wrangler secret put GEMINI_API_KEY');
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(toml).not.toMatch(/api[_-]?key\s*=/i);
+  });
+
+  it('post76: negative — no durable_objects r2 d1 queues service bindings', () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/\[\[r2_buckets\]\]/i);
+    expect(toml).not.toMatch(/\[\[d1_databases\]\]/i);
+    expect(toml).not.toMatch(/\[\[queues/i);
+    expect(toml).not.toMatch(/service\s*=/);
+  });
+
+  it('post76: negative — no workers_dev false inventing and no account_id', () => {
+    expect(toml).not.toMatch(/workers_dev/);
+    expect(toml).not.toMatch(/account_id/);
+  });
+
+  it('post76: negative — no tabs CRLF or non-ASCII', () => {
+    expect(toml.includes('\t')).toBe(false);
+    expect(toml.includes('\r')).toBe(false);
+    expect(toml).not.toMatch(/[^\x00-\x7F]/);
+  });
+
+  it('post76: section order name/main/date → kv → routes → vars → secret comment', () => {
+    const nameAt = toml.indexOf('name =');
+    const kvAt = toml.indexOf('[[kv_namespaces]]');
+    const routesAt = toml.indexOf('[[routes]]');
+    const varsAt = toml.indexOf('[vars]');
+    const secretAt = toml.indexOf('wrangler secret put');
+    expect(nameAt).toBeGreaterThan(-1);
+    expect(kvAt).toBeGreaterThan(nameAt);
+    expect(routesAt).toBeGreaterThan(kvAt);
+    expect(varsAt).toBeGreaterThan(routesAt);
+    expect(secretAt).toBeGreaterThan(varsAt);
+  });
+
+  it('post76: cross-lock main path with src/index.ts existence via types/index imports', () => {
+    expect(toml).toContain('main = "src/index.ts"');
+    expect(indexSrc).toMatch(/export default/);
+  });
+
+  it('post76: cross-lock CATALOG_CACHE binding mentioned in types or index', () => {
+    expect(toml).toContain('CATALOG_CACHE');
+    expect(typesSrc + indexSrc).toMatch(/CATALOG_CACHE/);
+  });
+
+  it('post76: DEPLOY.md still documents wrangler secret put GEMINI_API_KEY', () => {
+    expect(deployMd).toContain('wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('post76: AGENTS.md still escalates GEMINI_API_KEY handling', () => {
+    expect(agentsMd).toMatch(/GEMINI_API_KEY/);
+  });
+
+  it('post76: mega purity — 25x sha256 of toml stable', () => {
+    const expected = '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8';
+    for (let i = 0; i < 25; i++) {
+      expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
 });

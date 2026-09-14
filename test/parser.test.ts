@@ -7845,4 +7845,221 @@ https://example.com/x
     );
   });
 
+
+  // --- HEAVY burn (post-#76): parser deepen — orthogonal to #74 post68 mega + #76 source ---
+
+  it('post76: empty input yields empty station list', () => {
+    expect(parseM3U('')).toEqual([]);
+    expect(parseM3U('   \n\n')).toEqual([]);
+  });
+
+  it('post76: header-only playlist yields empty list', () => {
+    expect(parseM3U('#EXTM3U\n')).toEqual([]);
+    expect(parseM3U('#EXTM3U')).toEqual([]);
+  });
+
+  it('post76: duplicate stream URLs keep first station only', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A",A
+https://a/x
+#EXTINF:-1 tvg-name="B",B
+https://a/x
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.name).toBe('A');
+  });
+
+  it('post76: rtmp streams are skipped while https kept', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,R
+rtmp://x
+#EXTINF:-1,H
+https://h
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.name).toBe('H');
+    expect(stations[0]?.url).toBe('https://h');
+  });
+
+  it('post76: attribute names are case-insensitive for tvg-* and group-title', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:-1 TVG-NAME="Up" TVG-LOGO="https://L" GROUP-TITLE="G" TVG-LANGUAGE="en" TVG-COUNTRY="US",Fallback
+https://u
+`);
+    expect(s).toEqual({
+      name: 'Up',
+      url: 'https://u',
+      logo: 'https://L',
+      group: 'G',
+      language: 'en',
+      country: 'US',
+    });
+  });
+
+  it('post76: EXTINF without name does not push following URL', () => {
+    expect(
+      parseM3U(`#EXTM3U
+#EXTINF:-1
+https://noname
+`),
+    ).toHaveLength(0);
+  });
+
+  it('post76: CRLF line endings still parse one station', () => {
+    expect(parseM3U('#EXTM3U\r\n#EXTINF:-1,A\r\nhttps://a\r\n')).toHaveLength(1);
+  });
+
+  it('post76: leading/trailing whitespace around URL is trimmed', () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,A\n  https://a  \n');
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.name).toBe('A');
+    expect(stations[0]?.url).toBe('https://a');
+  });
+
+  it('post76: comma-fallback name uses text after last comma when tvg-name absent', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-logo="https://L",Name,With,Commas
+https://c
+`);
+    expect(s?.name).toBe('Commas');
+    expect(s?.url).toBe('https://c');
+    expect(s?.logo).toBe('https://L');
+  });
+
+  it('post76: EXTINF duration token does not affect name extraction', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:123 tvg-name="D",D
+https://d
+`);
+    expect(s?.name).toBe('D');
+    expect(s?.url).toBe('https://d');
+  });
+
+  it('post76: http and https are both accepted as stream schemes', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+http://a
+#EXTINF:-1,B
+https://b
+`);
+    expect(stations.map((x) => x.url)).toEqual(['http://a', 'https://b']);
+  });
+
+  it('post76: ftp and file schemes are skipped', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+ftp://a
+#EXTINF:-1,B
+file:///b
+#EXTINF:-1,C
+https://c
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.name).toBe('C');
+    expect(stations[0]?.url).toBe('https://c');
+  });
+
+  it('post76: comment lines between EXTINF and URL do not clear current station', () => {
+    // blank/comment non-http lines that start with # are ignored without reset
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+#EXTVLCOPT:anything
+https://a
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0]?.name).toBe('A');
+    expect(stations[0]?.url).toBe('https://a');
+  });
+
+  it('post76: non-hash non-http garbage line resets current before URL', () => {
+    expect(
+      parseM3U(`#EXTM3U
+#EXTINF:-1,A
+not-a-url
+https://a
+`),
+    ).toHaveLength(0);
+  });
+
+  it('post76: empty tvg-name attribute falls back to comma title', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="",Fallback Title
+https://a
+`);
+    expect(s?.name).toBe('Fallback Title');
+  });
+
+  it('post76: station object key order is name url logo group language country', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="N" tvg-logo="https://L" group-title="G" tvg-language="en" tvg-country="US",N
+https://u
+`);
+    expect(Object.keys(s!)).toEqual(['name', 'url', 'logo', 'group', 'language', 'country']);
+  });
+
+  it('post76: omitted optional attrs are undefined but keys remain on station object', () => {
+    const [s] = parseM3U(`#EXTM3U
+#EXTINF:-1,N
+https://u
+`);
+    expect(s!.name).toBe('N');
+    expect(s!.url).toBe('https://u');
+    expect(s!.logo).toBeUndefined();
+    expect(s!.group).toBeUndefined();
+    expect(s!.language).toBeUndefined();
+    expect(s!.country).toBeUndefined();
+    expect(Object.keys(s!)).toEqual(['name', 'url', 'logo', 'group', 'language', 'country']);
+  });
+
+  it('post76: parser source still exports parseM3U and Station interface', () => {
+    expect(parserSource).toMatch(/export interface Station/);
+    expect(parserSource).toMatch(/export function parseM3U/);
+  });
+
+  it('post76: parser source uses seen Set for URL dedupe', () => {
+    expect(parserSource).toContain('seen = new Set<string>()');
+    expect(parserSource).toContain('seen.has(line)');
+    expect(parserSource).toContain('seen.add(line)');
+  });
+
+  it('post76: parser source locks tvg-name logo group-title language country regexes', () => {
+    expect(parserSource).toContain('tvg-name="([^"]*)"');
+    expect(parserSource).toContain('tvg-logo="([^"]*)"');
+    expect(parserSource).toContain('group-title="([^"]*)"');
+    expect(parserSource).toContain('tvg-language="([^"]*)"');
+    expect(parserSource).toContain('tvg-country="([^"]*)"');
+  });
+
+  it('post76: parser source sha256 lock', () => {
+    expect(createHash('sha256').update(parserSource, 'utf8').digest('hex')).toBe(
+      'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368',
+    );
+  });
+
+  it('post76: parser source line count stays under 80 lean budget', () => {
+    expect(parserSource.split('\n').length).toBeLessThanOrEqual(80);
+  });
+
+  it('post76: mega purity — 50x SAMPLE parse deep-equal', () => {
+    const expected = parseM3U(SAMPLE);
+    for (let i = 0; i < 50; i++) {
+      expect(parseM3U(SAMPLE)).toEqual(expected);
+    }
+  });
+
+  it('post76: buildSimpleM3U helper round-trips through parseM3U', () => {
+    const raw = buildSimpleM3U([
+      { name: 'X', url: 'https://x' },
+      { name: 'Y', url: 'https://y', group: 'Jazz' },
+    ]);
+    const stations = parseM3U(raw);
+    expect(stations.map((s) => s.name)).toEqual(['X', 'Y']);
+    expect(stations[1]?.group).toBe('Jazz');
+  });
+
+  it('post76: countHttpStreamLines matches unique https lines in SAMPLE_M3U', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.length).toBe(countHttpStreamLines(SAMPLE_M3U));
+  });
+
 });

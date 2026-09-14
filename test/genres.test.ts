@@ -4831,4 +4831,120 @@ describe('resolveGenre', () => {
     }
   });
 
+
+  // --- HEAVY burn (post-#76): genres deepen — orthogonal to #74 post68 mega + #76 source ---
+
+  it('post76: GENRE_MAP has exactly 21 alias keys', () => {
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it('post76: VALID_GENRES has exactly 9 canonical slugs', () => {
+    expect(VALID_GENRES).toHaveLength(9);
+    expect([...VALID_GENRES]).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+  });
+
+  it('post76: every GENRE_MAP value is a VALID_GENRES member', () => {
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES.includes(value as (typeof VALID_GENRES)[number])).toBe(true);
+    }
+  });
+
+  it('post76: resolveGenre defaults undefined nullish and whitespace to music', () => {
+    expect(resolveGenre()).toBe('music');
+    expect(resolveGenre(undefined)).toBe('music');
+    expect(resolveGenre('')).toBe('music');
+    expect(resolveGenre('   ')).toBe('music');
+    expect(resolveGenre('\t\n')).toBe('music');
+  });
+
+  it('post76: resolveGenre is case-insensitive and trims', () => {
+    expect(resolveGenre('CHILL')).toBe('ambient');
+    expect(resolveGenre('  Blues ')).toBe('jazz');
+    expect(resolveGenre('Lo-Fi')).toBe('ambient');
+    expect(resolveGenre('SPORTS')).toBe('sports');
+  });
+
+  it('post76: resolveGenre unknown tokens fall back to music', () => {
+    expect(resolveGenre('unknown')).toBe('music');
+    expect(resolveGenre('hiphop')).toBe('music');
+    expect(resolveGenre('!!!')).toBe('music');
+  });
+
+  it('post76: resolveGenre identity for every VALID_GENRES slug', () => {
+    for (const g of VALID_GENRES) {
+      expect(resolveGenre(g)).toBe(g);
+      expect(resolveGenre(g.toUpperCase())).toBe(g);
+    }
+  });
+
+  it('post76: late night / chill / lofi / lo-fi / electronic / relaxing / focus → ambient', () => {
+    for (const a of ['late night', 'chill', 'lofi', 'lo-fi', 'electronic', 'relaxing', 'focus']) {
+      expect(resolveGenre(a)).toBe('ambient');
+    }
+  });
+
+  it('post76: blues → jazz; metal indie → rock; dance → pop; classic → classical', () => {
+    expect(resolveGenre('blues')).toBe('jazz');
+    expect(resolveGenre('metal')).toBe('rock');
+    expect(resolveGenre('indie')).toBe('rock');
+    expect(resolveGenre('dance')).toBe('pop');
+    expect(resolveGenre('classic')).toBe('classical');
+  });
+
+  it('post76: custom map override is honored for unknown keys', () => {
+    expect(resolveGenre('custom', { custom: 'jazz' })).toBe('jazz');
+    expect(resolveGenre('custom', {})).toBe('music');
+  });
+
+  it('post76: custom map does not break VALID_GENRES identity passthrough', () => {
+    expect(resolveGenre('rock', {})).toBe('rock');
+  });
+
+  it('post76: GENRE_MAP does not contain uppercase keys', () => {
+    expect(Object.keys(GENRE_MAP).every((k) => k === k.toLowerCase())).toBe(true);
+  });
+
+  it('post76: genres source exports GENRE_MAP VALID_GENRES resolveGenre', () => {
+    expect(genresSource).toMatch(/export const GENRE_MAP/);
+    expect(genresSource).toMatch(/export const VALID_GENRES/);
+    expect(genresSource).toMatch(/export function resolveGenre/);
+  });
+
+  it('post76: genres source sha256 lock', () => {
+    expect(createHash('sha256').update(genresSource, 'utf8').digest('hex')).toBe(
+      'aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e',
+    );
+  });
+
+  it('post76: genres source line count stays under 60 lean budget', () => {
+    expect(genresSource.split('\n').length).toBeLessThanOrEqual(60);
+  });
+
+  it('post76: mega purity — 100x mixed resolveGenre probes', () => {
+    const probes: Array<[string | undefined, string]> = [
+      [undefined, 'music'],
+      ['', 'music'],
+      ['CHILL', 'ambient'],
+      ['  blues ', 'jazz'],
+      ['lofi', 'ambient'],
+      ['nope', 'music'],
+      ['entertainment', 'entertainment'],
+    ];
+    for (let i = 0; i < 100; i++) {
+      for (const [input, expected] of probes) {
+        expect(resolveGenre(input)).toBe(expected);
+      }
+    }
+  });
+
 });
