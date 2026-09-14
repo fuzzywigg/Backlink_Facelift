@@ -50279,7 +50279,7 @@ describe('post266 wrangler HEAVY deepen (after tip #266 leftover / tip-relaunch-
   it('post266: locks src/index.ts blake2b512', () => { expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace"); });
   it('post266: locks src/index.ts ripemd160', () => { expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093"); });
   it('post266: locks src/index.ts size 4738', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738); });
-  it('post266: locks src/index.ts utf8 4723 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4723); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
+  it('post266: locks src/index.ts utf8 4724 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4724); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post266: locks src/index.ts nibble 470 xor 14', () => { const d = sha256("src/index.ts"); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14); });
   it('post266: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256("src/index.ts"); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151); });
   it('post266: locks package.json sha256', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -50375,7 +50375,7 @@ describe('post266 wrangler HEAVY deepen (after tip #266 leftover / tip-relaunch-
   it('post266: locks README.md blake2b512', () => { expect(blake2b("README.md")).toBe("b0dd4414083fb8b70c8d61ce20a29a344e35eb41a9812c704f2cd27b131d89155ddd6a9534c7105a3d45bf117ca967adbcd7ea38d06a0ceaaf711cfa46ed8167"); });
   it('post266: locks README.md ripemd160', () => { expect(ripemd("README.md")).toBe("7ca15419150a224242d22a61bd3585c51b5af14d"); });
   it('post266: locks README.md size 2801', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); expect(readFileSync(join(root, "README.md")).byteLength).toBe(2801); });
-  it('post266: locks README.md utf8 2755 lines 82', () => { expect(read("README.md")).toHaveLength(2755); expect(read("README.md").split('\n')).toHaveLength(82); });
+  it('post266: locks README.md utf8 2757 lines 82', () => { expect(read("README.md")).toHaveLength(2757); expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post266: locks README.md nibble 429 xor 13', () => { const d = sha256("README.md"); expect(nibbleSum(d)).toBe(429); expect(xorNibbles(d)).toBe(13); });
   it('post266: locks README.md pairSum 4164 rollingXor 88', () => { const d = sha256("README.md"); expect(pairSum(d)).toBe(4164); expect(rollingXor(d)).toBe(88); });
   it('post266: locks .gitignore sha256', () => { expect(sha256(".gitignore")).toBe("474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698"); });
@@ -50544,7 +50544,7 @@ describe('post266 wrangler extras HEAVY deepen (after #266 leftover slice / wran
   it('post266-extras: HMAC beyond-merged-helpers-source src/index.ts', () => { expect(hmacSha256("beyond-merged-helpers-source", "src/index.ts")).toBe("193acbcdcca20338d61f6f390026cfbb6fd37dce6f8f78ff8d84574e02daeade"); });
   it('post266-extras: HMAC beyond-merged-genres-mcp src/index.ts', () => { expect(hmacSha256("beyond-merged-genres-mcp", "src/index.ts")).toBe("be11ff45ef3a9eb0ba2ec1578a3135b02f73c64567eac1095d8f15d7e1a2356f"); });
   it('post266-extras: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post266-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post266-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post266-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post266-extras: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post266-extras: sha256 package.json', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -50974,7 +50974,7 @@ describe('post266 wrangler extras HEAVY deepen (after #266 leftover slice / wran
   it('post266-extras: HMAC beyond-merged-helpers-source README.md', () => { expect(hmacSha256("beyond-merged-helpers-source", "README.md")).toBe("ed4dee3a27cf6f57de325d7f67b3fccca8c700ed4fc03c9091bcdedcf5371d73"); });
   it('post266-extras: HMAC beyond-merged-genres-mcp README.md', () => { expect(hmacSha256("beyond-merged-genres-mcp", "README.md")).toBe("78a4e518699e2c727f4f15c2fd346063f582d2bfad9e2c121a78a9015e307980"); });
   it('post266-extras: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post266-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post266-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post266-extras: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post266-extras: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post266-extras: sha256 .gitignore', () => { expect(sha256(".gitignore")).toBe("474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698"); });
@@ -51222,7 +51222,7 @@ describe('post266 wrangler ultra HEAVY deepen (after #266 fixtures leftover / ti
   it('post266-ultra: HMAC beyond-merged-helpers-source src/index.ts', () => { expect(hmacSha256("beyond-merged-helpers-source", "src/index.ts")).toBe("193acbcdcca20338d61f6f390026cfbb6fd37dce6f8f78ff8d84574e02daeade"); });
   it('post266-ultra: HMAC beyond-merged-genres-mcp src/index.ts', () => { expect(hmacSha256("beyond-merged-genres-mcp", "src/index.ts")).toBe("be11ff45ef3a9eb0ba2ec1578a3135b02f73c64567eac1095d8f15d7e1a2356f"); });
   it('post266-ultra: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post266-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post266-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post266-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post266-ultra: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post266-ultra: sha256 package.json', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -51652,7 +51652,7 @@ describe('post266 wrangler ultra HEAVY deepen (after #266 fixtures leftover / ti
   it('post266-ultra: HMAC beyond-merged-helpers-source README.md', () => { expect(hmacSha256("beyond-merged-helpers-source", "README.md")).toBe("ed4dee3a27cf6f57de325d7f67b3fccca8c700ed4fc03c9091bcdedcf5371d73"); });
   it('post266-ultra: HMAC beyond-merged-genres-mcp README.md', () => { expect(hmacSha256("beyond-merged-genres-mcp", "README.md")).toBe("78a4e518699e2c727f4f15c2fd346063f582d2bfad9e2c121a78a9015e307980"); });
   it('post266-ultra: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post266-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post266-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post266-ultra: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post266-ultra: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post266-ultra: sha256 .gitignore', () => { expect(sha256(".gitignore")).toBe("474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698"); });
