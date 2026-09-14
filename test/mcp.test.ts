@@ -31055,7 +31055,7 @@ describe('post220 mcp HEAVY deepen (after #220 tip leftover / genres-mcp-spec-on
   it('post220: residual — station_select description + property description exact', () => {
     const tool = MCP_MANIFEST.tools.find((t) => t.name === 'station_select')!;
     expect(tool.description).toBe('Set the currently playing station by name.');
-    expect(tool.input_schema.properties.station_name.description).toBe('Partial or full name of the station to select.');
+    expect(tool.input_schema.properties.station_name!.description).toBe('Partial or full name of the station to select.');
   });
 
   it('post220: residual — now_playing description mentions stream URL and country', () => {
@@ -31070,15 +31070,15 @@ describe('post220 mcp HEAVY deepen (after #220 tip leftover / genres-mcp-spec-on
     expect(tool.description).toContain('jazz');
     expect(tool.description).toContain('news');
     expect(tool.description).toContain('classical');
-    expect(tool.input_schema.properties.genre.description).toBe('Genre keyword to filter by.');
+    expect(tool.input_schema.properties.genre!.description).toBe('Genre keyword to filter by.');
   });
 
   it('post220: residual — curator_prompt mood examples include focus work / late night jazz', () => {
     const tool = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt')!;
-    expect(tool.input_schema.properties.mood.description).toContain('focus work');
-    expect(tool.input_schema.properties.mood.description).toContain('late night jazz');
-    expect(tool.input_schema.properties.mood.description).toContain('morning energy');
-    expect(tool.input_schema.properties.genre.description).toBe('Optional genre to constrain the selection.');
+    expect(tool.input_schema.properties.mood!.description).toContain('focus work');
+    expect(tool.input_schema.properties.mood!.description).toContain('late night jazz');
+    expect(tool.input_schema.properties.mood!.description).toContain('morning energy');
+    expect(tool.input_schema.properties.genre!.description).toBe('Optional genre to constrain the selection.');
   });
 
   it('post220: residual — no tool schema invents additionalProperties fence', () => {
