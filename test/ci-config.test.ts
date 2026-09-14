@@ -4464,19 +4464,28 @@ describe('CI / package test wiring', () => {
     expect(read('.github/workflows/ci.yml')).toMatch(/node-version:\s*"20"/);
   });
 
-  it('post66: repeat of cancel-in-progress true does not invent duplicates beyond one', () => {
+  it('post66: cancel-in-progress true appears once as concurrency + once in hygiene grep', () => {
+    // live concurrency key + hygiene assertion that greps the same literal
     expect([...read('.github/workflows/ci.yml').matchAll(/cancel-in-progress:\s*true/g)]).toHaveLength(
-      1,
+      2,
     );
+    const header = read('.github/workflows/ci.yml').slice(
+      0,
+      read('.github/workflows/ci.yml').indexOf('jobs:'),
+    );
+    expect([...header.matchAll(/cancel-in-progress:\s*true/g)]).toHaveLength(1);
   });
 
   it('post66: trim of CI workflow name line is name: CI', () => {
     expect(read('.github/workflows/ci.yml').split('\n')[0].trim()).toBe('name: CI');
   });
 
-  it('post66: includes checks for workflow_dispatch only in deploy not CI', () => {
-    expect(read('.github/workflows/deploy.yml').includes('workflow_dispatch')).toBe(true);
-    expect(read('.github/workflows/ci.yml').includes('workflow_dispatch')).toBe(false);
+  it('post66: workflow_dispatch is deploy trigger; CI only mentions it via hygiene grep', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(/^on:\n {2}workflow_dispatch:\s*$/m);
+    const ci = read('.github/workflows/ci.yml');
+    const onBlock = ci.slice(ci.indexOf('\non:'), ci.indexOf('\nconcurrency:'));
+    expect(onBlock).not.toMatch(/workflow_dispatch/);
+    expect(ci).toContain("grep -q 'workflow_dispatch' .github/workflows/deploy.yml");
   });
 
   it('post66: indexOf order locks CI on: before concurrency before permissions before jobs', () => {
@@ -4578,8 +4587,14 @@ describe('CI / package test wiring', () => {
     expect(deploy).not.toMatch(/continue-on-error:/);
   });
 
-  it('post66: CI defaults.run.shell bash is the only shell: declaration', () => {
-    expect([...read('.github/workflows/ci.yml').matchAll(/shell:\s*bash/g)]).toHaveLength(1);
+  it('post66: CI defaults.run.shell bash plus hygiene grep is the only shell:bash pair', () => {
+    // defaults.run.shell + hygiene grep that asserts the same literal
+    expect([...read('.github/workflows/ci.yml').matchAll(/shell:\s*bash/g)]).toHaveLength(2);
+    const header = read('.github/workflows/ci.yml').slice(
+      0,
+      read('.github/workflows/ci.yml').indexOf('jobs:'),
+    );
+    expect(header).toMatch(/defaults:\s*\n\s*run:\s*\n\s*shell:\s*bash/);
     expect(read('.github/workflows/deploy.yml')).not.toMatch(/shell:/);
   });
 
@@ -4644,8 +4659,11 @@ describe('CI / package test wiring', () => {
     expect(secrets.sort()).toEqual(['CF_ACCOUNT_ID', 'CF_API_TOKEN', 'GEMINI_API_KEY'].sort());
   });
 
-  it('post66: CI upload-artifact@v4 appears exactly once', () => {
-    expect([...read('.github/workflows/ci.yml').matchAll(/upload-artifact@v4/g)]).toHaveLength(1);
+  it('post66: CI upload-artifact@v4 appears once as uses: + once in hygiene grep', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/upload-artifact@v4/g)]).toHaveLength(2);
+    expect([...read('.github/workflows/ci.yml').matchAll(/uses:\s*actions\/upload-artifact@v4/g)]).toHaveLength(
+      1,
+    );
     expect(read('.github/workflows/deploy.yml')).not.toContain('upload-artifact');
   });
 
