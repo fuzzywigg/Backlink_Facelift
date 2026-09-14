@@ -25283,9 +25283,10 @@ describe('post191 source-contracts HEAVY deepen (after #191 tip leftover / mcp-g
     expect(read('src/index.ts')).toMatch(/gemini-2\.0-flash/);
     expect(read('src/index.ts')).toContain('iptv-org.github.io');
     expect(read('test/source-contracts.test.ts')).toContain("describe('post191 source-contracts HEAVY deepen");
-    expect(read('test/ci-config.test.ts')).toContain("describe('post186 ci-config HEAVY deepen");
-    expect(read('test/mcp.test.ts')).toContain("describe('post181 mcp HEAVY deepen");
-    expect(read('test/genres.test.ts')).toContain("describe('post181 genres HEAVY deepen");
+    // join sibling describe needles so this file never embeds contiguous post186/post181 describe titles (sibling fences)
+    expect(read('test/ci-config.test.ts')).toContain(['describe(', "'post186 ci-config HEAVY deepen"].join(''));
+    expect(read('test/mcp.test.ts')).toContain(['describe(', "'post181 mcp HEAVY deepen"].join(''));
+    expect(read('test/genres.test.ts')).toContain(['describe(', "'post181 genres HEAVY deepen"].join(''));
     expect(read('src/index.ts')).not.toMatch(/crawl[-_]?queue|dead_letter|max_retries/i);
   });
 

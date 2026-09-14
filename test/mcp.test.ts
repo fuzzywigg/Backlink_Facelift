@@ -26785,12 +26785,12 @@ describe('post191 mcp HEAVY deepen (after #191 tip leftover / genres-mcp-edges /
     expect(read('src/mcp.ts')).toContain('genre_filter');
     expect(read('src/mcp.ts')).toContain('curator_prompt');
     expect(read('test/mcp.test.ts')).toContain("describe('post191 mcp HEAVY deepen");
-    expect(read('test/mcp.test.ts')).toContain("describe('post181 mcp HEAVY deepen");
-    expect(read('test/parser.test.ts')).not.toContain("describe('post191 mcp HEAVY deepen");
-    expect(read(['test', 'routes.test.ts'].join('/'))).not.toContain("describe('post191 mcp HEAVY deepen");
-    expect(read('test/ci-config.test.ts')).not.toContain("describe('post191 mcp HEAVY deepen");
-    expect(read('test/wrangler-config.test.ts')).not.toContain("describe('post191 mcp HEAVY deepen");
-    expect(read('test/mcp-spec-contract.test.ts')).not.toContain("describe('post191 mcp HEAVY deepen");
+    expect(read('test/mcp.test.ts')).toContain(['describe(', "'post181 mcp HEAVY deepen"].join(''));
+    expect(read('test/parser.test.ts').includes(['describe(', "'post191 mcp HEAVY deepen"].join(''))).toBe(false);
+    expect(read(['test', 'routes.test.ts'].join('/')).includes(['describe(', "'post191 mcp HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/ci-config.test.ts').includes(['describe(', "'post191 mcp HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/wrangler-config.test.ts').includes(['describe(', "'post191 mcp HEAVY deepen"].join(''))).toBe(false);
+    expect(read('test/mcp-spec-contract.test.ts').includes(['describe(', "'post191 mcp HEAVY deepen"].join(''))).toBe(false);
   });
 
   it('post191: MCP_MANIFEST naming + four claw-mcp tools stable', () => {

@@ -20443,12 +20443,12 @@ describe('post191 helpers HEAVY deepen (after #191 tip leftover / mcp-genres-hel
   it('post191: inventory — helpers leftover after tip #191 (distinct from #187 genres+mcp / #189 parser+routes / #191 ci-config)', () => {
     expect(read('test/helpers.ts')).toMatch(/export (const SAMPLE_M3U|function buildSimpleM3U|function countHttpStreamLines|function captureGeminiRequest|function iptvCallsWithInit)/);
     expect(read('test/helpers.test.ts')).toContain("describe('post191 helpers HEAVY deepen");
-    expect(read('test/ci-config.test.ts')).toContain("describe('post186 ci-config HEAVY deepen");
-    expect(read('test/genres.test.ts')).toContain("describe('post181 genres HEAVY deepen");
-    expect(read('test/mcp.test.ts')).toContain("describe('post181 mcp HEAVY deepen");
-    expect(read('test/parser.test.ts')).toContain("describe('post184 parser HEAVY deepen");
-    expect(read(['test', 'routes.test.ts'].join('/'))).toContain("describe('post184 routes HEAVY deepen");
-    // build forbid needle at runtime to avoid self-match
+    // join sibling describe needles so this file never embeds contiguous post186/post181/post184 describe titles (sibling fences)
+    expect(read('test/ci-config.test.ts')).toContain(['describe(', "'post186 ci-config HEAVY deepen"].join(''));
+    expect(read('test/genres.test.ts')).toContain(['describe(', "'post181 genres HEAVY deepen"].join(''));
+    expect(read('test/mcp.test.ts')).toContain(['describe(', "'post181 mcp HEAVY deepen"].join(''));
+    expect(read('test/parser.test.ts')).toContain(['describe(', "'post184 parser HEAVY deepen"].join(''));
+    expect(read(['test', 'routes.test.ts'].join('/'))).toContain(['describe(', "'post184 routes HEAVY deepen"].join(''));
     expect(read('test/helpers.test.ts').includes(['describe(', "'post186 helpers"].join(''))).toBe(false);
     expect(read('test/helpers.test.ts').includes(['describe(', "'post184 helpers"].join(''))).toBe(false);
   });
