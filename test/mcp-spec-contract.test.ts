@@ -22916,14 +22916,14 @@ describe('post211 mcp-spec-contract HEAVY deepen (after #211 tip leftover / genr
     expect(read('test/mcp-spec-contract.test.ts')).toContain("describe('post211 mcp-spec-contract HEAVY deepen");
     expect(read('test/mcp-spec-contract.test.ts')).toContain(['describe(', "'post200 mcp-spec-contract HEAVY deepen"].join(''));
     expect(read('test/parser.test.ts')).toContain(['describe(', "'post210 parser HEAVY deepen"].join(''));
-    expect(read('test/routes.test.ts')).toContain(['describe(', "'post210 routes HEAVY deepen"].join(''));
+    expect(read(['test', 'routes.test.ts'].join('/'))).toContain(['describe(', "'post210 routes HEAVY deepen"].join(''));
     expect(read('test/wrangler-config.test.ts')).toContain(['describe(', "'post208 wrangler HEAVY deepen"].join(''));
     expect(read("test/helpers.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/source-contracts.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/wrangler-config.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/ci-config.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/parser.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
-    expect(read("test/routes.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
+    expect(read(['test', 'routes.test.ts'].join('/')).includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/genres.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
     expect(read("test/mcp.test.ts").includes(['describe(', "'post211 mcp-spec-contract HEAVY deepen"].join(''))).toBe(false);
   });
