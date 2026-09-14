@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -2476,5 +2477,1369 @@ describe('source ↔ product contracts', () => {
     const index = read('src/index.ts');
     expect(index).toContain('User request: ${query}');
     expect(index).toContain('Available stations:\\n${stationList}');
+  });
+
+  // --- HEAVY burn (post-#68): source ↔ product / docs / digest deepen ---
+
+  it("locks sha256 of index.ts", () => {
+    const src = read("src/index.ts");
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it("locks sha1 of index.ts", () => {
+    expect(createHash('sha1').update(read("src/index.ts"), 'utf8').digest('hex')).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it("locks md5 of index.ts", () => {
+    expect(createHash('md5').update(read("src/index.ts"), 'utf8').digest('hex')).toBe("8c9cdb320becf0effa2d8027b66a2177");
+  });
+
+  it("locks UTF-8 byte length of index.ts via TextEncoder and fs.statSync", () => {
+    const src = read("src/index.ts");
+    expect(new TextEncoder().encode(src).length).toBe(4738);
+    expect(statSync(join(root, "src/index.ts")).size).toBe(4738);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(4738);
+  });
+
+  it("locks char length and split line count of index.ts", () => {
+    const src = read("src/index.ts");
+    expect(src.length).toBe(4724);
+    expect(src.split('\n').length).toBe(154);
+    expect(src.split('\n').filter((l) => l.length > 0).length).toBe(125);
+    expect((src.match(/\n/g) ?? []).length).toBe(153);
+  });
+
+  it("locks sha256 prefix/suffix of index.ts", () => {
+    const digest = createHash('sha256').update(read("src/index.ts"), 'utf8').digest('hex');
+    expect(digest.startsWith("7f0d574b")).toBe(true);
+    expect(digest.endsWith("e0313a72")).toBe(true);
+    expect(digest).toHaveLength(64);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("locks charCodeAt sum of index.ts", () => {
+    const sum = [...read("src/index.ts")].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(488918);
+  });
+
+  it("locks LF-only no BOM no tabs for index.ts", () => {
+    const src = read("src/index.ts");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks first four char codes of index.ts", () => {
+    expect([...read("src/index.ts").slice(0, 4)].map((c) => c.charCodeAt(0))).toEqual([105,109,112,111]);
+  });
+
+  it("locks Buffer.from equals TextEncoder for index.ts", () => {
+    const src = read("src/index.ts");
+    expect([...Buffer.from(src, 'utf8')]).toEqual([...new TextEncoder().encode(src)]);
+  });
+
+  it("locks sha256 of parser.ts", () => {
+    const src = read("src/parser.ts");
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368");
+  });
+
+  it("locks sha1 of parser.ts", () => {
+    expect(createHash('sha1').update(read("src/parser.ts"), 'utf8').digest('hex')).toBe("701cdecbef5a9049af6bd11497493c4036a60211");
+  });
+
+  it("locks md5 of parser.ts", () => {
+    expect(createHash('md5').update(read("src/parser.ts"), 'utf8').digest('hex')).toBe("500211c4c526de887252451726776563");
+  });
+
+  it("locks UTF-8 byte length of parser.ts via TextEncoder and fs.statSync", () => {
+    const src = read("src/parser.ts");
+    expect(new TextEncoder().encode(src).length).toBe(1955);
+    expect(statSync(join(root, "src/parser.ts")).size).toBe(1955);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(1955);
+  });
+
+  it("locks char length and split line count of parser.ts", () => {
+    const src = read("src/parser.ts");
+    expect(src.length).toBe(1953);
+    expect(src.split('\n').length).toBe(67);
+    expect(src.split('\n').filter((l) => l.length > 0).length).toBe(56);
+    expect((src.match(/\n/g) ?? []).length).toBe(66);
+  });
+
+  it("locks sha256 prefix/suffix of parser.ts", () => {
+    const digest = createHash('sha256').update(read("src/parser.ts"), 'utf8').digest('hex');
+    expect(digest.startsWith("cf293136")).toBe(true);
+    expect(digest.endsWith("621f4368")).toBe(true);
+    expect(digest).toHaveLength(64);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("locks charCodeAt sum of parser.ts", () => {
+    const sum = [...read("src/parser.ts")].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(160347);
+  });
+
+  it("locks LF-only no BOM no tabs for parser.ts", () => {
+    const src = read("src/parser.ts");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks first four char codes of parser.ts", () => {
+    expect([...read("src/parser.ts").slice(0, 4)].map((c) => c.charCodeAt(0))).toEqual([101,120,112,111]);
+  });
+
+  it("locks Buffer.from equals TextEncoder for parser.ts", () => {
+    const src = read("src/parser.ts");
+    expect([...Buffer.from(src, 'utf8')]).toEqual([...new TextEncoder().encode(src)]);
+  });
+
+  it("locks sha256 of genres.ts", () => {
+    const src = read("src/genres.ts");
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it("locks sha1 of genres.ts", () => {
+    expect(createHash('sha1').update(read("src/genres.ts"), 'utf8').digest('hex')).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it("locks md5 of genres.ts", () => {
+    expect(createHash('md5').update(read("src/genres.ts"), 'utf8').digest('hex')).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it("locks UTF-8 byte length of genres.ts via TextEncoder and fs.statSync", () => {
+    const src = read("src/genres.ts");
+    expect(new TextEncoder().encode(src).length).toBe(1027);
+    expect(statSync(join(root, "src/genres.ts")).size).toBe(1027);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(1027);
+  });
+
+  it("locks char length and split line count of genres.ts", () => {
+    const src = read("src/genres.ts");
+    expect(src.length).toBe(1025);
+    expect(src.split('\n').length).toBe(48);
+    expect(src.split('\n').filter((l) => l.length > 0).length).toBe(44);
+    expect((src.match(/\n/g) ?? []).length).toBe(47);
+  });
+
+  it("locks sha256 prefix/suffix of genres.ts", () => {
+    const digest = createHash('sha256').update(read("src/genres.ts"), 'utf8').digest('hex');
+    expect(digest.startsWith("aa626817")).toBe(true);
+    expect(digest.endsWith("839d914e")).toBe(true);
+    expect(digest).toHaveLength(64);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("locks charCodeAt sum of genres.ts", () => {
+    const sum = [...read("src/genres.ts")].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(90942);
+  });
+
+  it("locks LF-only no BOM no tabs for genres.ts", () => {
+    const src = read("src/genres.ts");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks first four char codes of genres.ts", () => {
+    expect([...read("src/genres.ts").slice(0, 4)].map((c) => c.charCodeAt(0))).toEqual([47,42,42,32]);
+  });
+
+  it("locks Buffer.from equals TextEncoder for genres.ts", () => {
+    const src = read("src/genres.ts");
+    expect([...Buffer.from(src, 'utf8')]).toEqual([...new TextEncoder().encode(src)]);
+  });
+
+  it("locks sha256 of mcp.ts", () => {
+    const src = read("src/mcp.ts");
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683");
+  });
+
+  it("locks sha1 of mcp.ts", () => {
+    expect(createHash('sha1').update(read("src/mcp.ts"), 'utf8').digest('hex')).toBe("848b3977365809fda54fcb74a7d09affe685ea82");
+  });
+
+  it("locks md5 of mcp.ts", () => {
+    expect(createHash('md5').update(read("src/mcp.ts"), 'utf8').digest('hex')).toBe("52e71c72e32e3d95b8b8d61ff4a2cf46");
+  });
+
+  it("locks UTF-8 byte length of mcp.ts via TextEncoder and fs.statSync", () => {
+    const src = read("src/mcp.ts");
+    expect(new TextEncoder().encode(src).length).toBe(2057);
+    expect(statSync(join(root, "src/mcp.ts")).size).toBe(2057);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(2057);
+  });
+
+  it("locks char length and split line count of mcp.ts", () => {
+    const src = read("src/mcp.ts");
+    expect(src.length).toBe(2057);
+    expect(src.split('\n').length).toBe(68);
+    expect(src.split('\n').filter((l) => l.length > 0).length).toBe(67);
+    expect((src.match(/\n/g) ?? []).length).toBe(67);
+  });
+
+  it("locks sha256 prefix/suffix of mcp.ts", () => {
+    const digest = createHash('sha256').update(read("src/mcp.ts"), 'utf8').digest('hex');
+    expect(digest.startsWith("6ae8ffd7")).toBe(true);
+    expect(digest.endsWith("b3099683")).toBe(true);
+    expect(digest).toHaveLength(64);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("locks charCodeAt sum of mcp.ts", () => {
+    const sum = [...read("src/mcp.ts")].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(155333);
+  });
+
+  it("locks LF-only no BOM no tabs for mcp.ts", () => {
+    const src = read("src/mcp.ts");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks first four char codes of mcp.ts", () => {
+    expect([...read("src/mcp.ts").slice(0, 4)].map((c) => c.charCodeAt(0))).toEqual([101,120,112,111]);
+  });
+
+  it("locks Buffer.from equals TextEncoder for mcp.ts", () => {
+    const src = read("src/mcp.ts");
+    expect([...Buffer.from(src, 'utf8')]).toEqual([...new TextEncoder().encode(src)]);
+  });
+
+  it("locks sha256 of types.ts", () => {
+    const src = read("src/types.ts");
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+  });
+
+  it("locks sha1 of types.ts", () => {
+    expect(createHash('sha1').update(read("src/types.ts"), 'utf8').digest('hex')).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8");
+  });
+
+  it("locks md5 of types.ts", () => {
+    expect(createHash('md5').update(read("src/types.ts"), 'utf8').digest('hex')).toBe("ecba663d21928622be656805ad27d0a3");
+  });
+
+  it("locks UTF-8 byte length of types.ts via TextEncoder and fs.statSync", () => {
+    const src = read("src/types.ts");
+    expect(new TextEncoder().encode(src).length).toBe(174);
+    expect(statSync(join(root, "src/types.ts")).size).toBe(174);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(174);
+  });
+
+  it("locks char length and split line count of types.ts", () => {
+    const src = read("src/types.ts");
+    expect(src.length).toBe(172);
+    expect(src.split('\n').length).toBe(7);
+    expect(src.split('\n').filter((l) => l.length > 0).length).toBe(6);
+    expect((src.match(/\n/g) ?? []).length).toBe(6);
+  });
+
+  it("locks sha256 prefix/suffix of types.ts", () => {
+    const digest = createHash('sha256').update(read("src/types.ts"), 'utf8').digest('hex');
+    expect(digest.startsWith("4008ddd3")).toBe(true);
+    expect(digest.endsWith("26f743d3")).toBe(true);
+    expect(digest).toHaveLength(64);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("locks charCodeAt sum of types.ts", () => {
+    const sum = [...read("src/types.ts")].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(21759);
+  });
+
+  it("locks LF-only no BOM no tabs for types.ts", () => {
+    const src = read("src/types.ts");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks first four char codes of types.ts", () => {
+    expect([...read("src/types.ts").slice(0, 4)].map((c) => c.charCodeAt(0))).toEqual([101,120,112,111]);
+  });
+
+  it("locks Buffer.from equals TextEncoder for types.ts", () => {
+    const src = read("src/types.ts");
+    expect([...Buffer.from(src, 'utf8')]).toEqual([...new TextEncoder().encode(src)]);
+  });
+
+  it("locks src/ directory inventory to five TypeScript modules", () => {
+    const files = readdirSync(join(root, 'src')).sort();
+    expect(files).toEqual(['genres.ts', 'index.ts', 'mcp.ts', 'parser.ts', 'types.ts']);
+    expect(files).toHaveLength(5);
+    expect(files.every((f) => f.endsWith('.ts'))).toBe(true);
+  });
+
+  it("locks src tree free of .js .jsx .tsx .mjs companions", () => {
+    const files = readdirSync(join(root, 'src'));
+    expect(files.some((f) => /\.(js|jsx|tsx|mjs|cjs)$/.test(f))).toBe(false);
+  });
+
+  it("cross-locks combined src sha256 of concatenation order index→parser→genres→mcp→types", () => {
+    const blob = ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']
+      .map((f) => read(f))
+      .join('\0');
+    expect(createHash('sha256').update(blob, 'utf8').digest('hex')).toBe("6686c4834fa76438ca42ae8fc3a1e0b1f7f8271edf6c5914a4b08a9f9feaa2a4");
+  });
+
+  it("locks total src UTF-8 byte budget across five modules", () => {
+    const total = ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']
+      .map((f) => statSync(join(root, f)).size)
+      .reduce((a, b) => a + b, 0);
+    expect(total).toBe(9951);
+  });
+
+  it("locks index import block order and count", () => {
+    const imports = read('src/index.ts').split('\n').filter((l) => l.startsWith('import '));
+    expect(imports).toEqual([
+      "import { Hono } from 'hono';",
+      "import { cors } from 'hono/cors';",
+      "import { GENRE_MAP, VALID_GENRES, resolveGenre } from './genres';",
+      "import { parseM3U, Station } from './parser';",
+      "import { Env } from './types';",
+    ]);
+    expect(imports).toHaveLength(5);
+  });
+
+  it("locks index fetch call count to three (primary + music fallback + Gemini)", () => {
+    expect([...read('src/index.ts').matchAll(/\bfetch\(/g)]).toHaveLength(3);
+  });
+
+  it("locks index c.json response builder count", () => {
+    expect([...read('src/index.ts').matchAll(/c\.json\(/g)]).toHaveLength(8);
+  });
+
+  it("locks index await keyword count", () => {
+    expect([...read('src/index.ts').matchAll(/\bawait\s+/g)]).toHaveLength(10);
+  });
+
+  it("locks index try/catch pair counts for catalog + Gemini paths", () => {
+    expect([...read('src/index.ts').matchAll(/\btry\s*\{/g)]).toHaveLength(3);
+    expect([...read('src/index.ts').matchAll(/\bcatch\s*\{/g)]).toHaveLength(3);
+  });
+
+  it("locks index backtick template literal delimiter count", () => {
+    expect([...read('src/index.ts').matchAll(/`/g)]).toHaveLength(14);
+  });
+
+  it("locks index crab emoji code point and single occurrence", () => {
+    const index = read('src/index.ts');
+    expect([...index].filter((c) => c === '\u{1F980}')).toHaveLength(1);
+    expect('\u{1F980}'.codePointAt(0)).toBe(0x1f980);
+    expect(index).toContain("powered_by: 'Backlink/Geryon \u{1F980}'");
+  });
+
+  it("locks index em-dash code point in station list format line", () => {
+    const index = read('src/index.ts');
+    expect([...index].filter((c) => c === '\u{2014}').length).toBeGreaterThanOrEqual(1);
+    expect('\u{2014}'.codePointAt(0)).toBe(0x2014);
+    expect(index).toContain('] \u{2014} ');
+  });
+
+  it("locks index free of Anthropic Claude OpenAI Azure Bedrock vendors", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/anthropic|claude|openai|azure|bedrock|cohere|mistral/i);
+  });
+
+  it("locks index free of console.log debug leftovers", () => {
+    expect(read('src/index.ts')).not.toMatch(/console\.(log|debug|info|warn|error)\(/);
+  });
+
+  it("locks index free of process.env Node bindings", () => {
+    expect(read('src/index.ts')).not.toContain('process.env');
+    expect(read('src/index.ts')).not.toMatch(/\bprocess\./);
+  });
+
+  it("locks index free of Deno Bun Node runtime imports", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/from\s+['"]node:/);
+    expect(index).not.toMatch(/from\s+['"]bun:/);
+    expect(index).not.toMatch(/from\s+['"]deno:/);
+  });
+
+  it("locks index free of middleware beyond single cors use", () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/app\.use\(/g)]).toHaveLength(1);
+    expect(index).toContain("app.use('*', cors())");
+  });
+
+  it("locks index free of streaming SSE WebSocket upgrade", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/text\/event-stream|EventSource|websocket/i);
+  });
+
+  it("locks index free of Authorization Bearer header construction", () => {
+    expect(read('src/index.ts')).not.toMatch(/Authorization|Bearer /);
+  });
+
+  it("locks index Gemini key only as query param not header", () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('generateContent?key=');
+    expect(index).toContain('${apiKey}');
+    expect(index).not.toMatch(/x-goog-api-key/i);
+  });
+
+  it("locks index stationList numbering starts at i + 1", () => {
+    expect(read('src/index.ts')).toContain('${i + 1}. ${s.name}');
+  });
+
+  it("locks index export default app as final non-empty statement", () => {
+    const nonempty = read('src/index.ts').split('\n').filter((l) => l.trim().length > 0);
+    expect(nonempty.at(-1)).toBe('export default app;');
+  });
+
+  it("locks index IPTV_BASE appears exactly once as const", () => {
+    expect([...read('src/index.ts').matchAll(/const IPTV_BASE = /g)]).toHaveLength(1);
+    expect([...read('src/index.ts').matchAll(/IPTV_BASE/g)].length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("locks index cacheKey stations:genre template exactly once", () => {
+    expect([...read('src/index.ts').matchAll(/stations:\$\{genre\}/g)]).toHaveLength(1);
+  });
+
+  it("locks index kv.get then kv.put order in fetchStations", () => {
+    const index = read('src/index.ts');
+    const getAt = index.indexOf('await kv.get(cacheKey)');
+    const putAt = index.indexOf('await kv.put(cacheKey');
+    expect(getAt).toBeGreaterThan(-1);
+    expect(putAt).toBeGreaterThan(getAt);
+  });
+
+  it("locks index JSON.parse cached stations cast as Station[]", () => {
+    expect(read('src/index.ts')).toContain('return JSON.parse(cached) as Station[]');
+  });
+
+  it("locks index JSON.stringify stations for kv.put", () => {
+    expect(read('src/index.ts')).toContain('JSON.stringify(stations)');
+  });
+
+  it("locks index new Date().toISOString timestamp on /curate", () => {
+    expect(read('src/index.ts')).toContain('timestamp: new Date().toISOString()');
+  });
+
+  it("locks index /genres spreads VALID_GENRES into array", () => {
+    expect(read('src/index.ts')).toContain('genres: [...VALID_GENRES]');
+    expect(read('src/index.ts')).toContain('aliases: GENRE_MAP');
+  });
+
+  it("locks index /stations query genreParam then resolveGenre", () => {
+    const block = read('src/index.ts').slice(
+      read('src/index.ts').indexOf("app.get('/stations'"),
+      read('src/index.ts').indexOf("app.get('/curate'"),
+    );
+    expect(block).toContain("const genreParam = c.req.query('genre')");
+    expect(block).toContain('const genre = resolveGenre(genreParam)');
+    expect(block).not.toContain("c.req.query('mood')");
+  });
+
+  it("locks index /curate reads genre and mood query params", () => {
+    const block = read('src/index.ts').slice(read('src/index.ts').indexOf("app.get('/curate'"));
+    expect(block).toContain("const genreParam = c.req.query('genre')");
+    expect(block).toContain("const mood = c.req.query('mood')");
+    expect(block).toContain('const genre = resolveGenre(genreParam ?? mood)');
+  });
+
+  it("locks index graceful degradation map keeps logo and null editorial", () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('editorial: null');
+    expect(index).toContain('logo: s.logo');
+    expect(index).toContain('url: s.url');
+    expect(index).toContain('name: s.name');
+  });
+
+  it("locks index callGemini return type array of editorial objects", () => {
+    expect(read('src/index.ts')).toContain(
+      'Promise<Array<{ name: string; url: string; logo?: string; editorial: string; genre: string }>>',
+    );
+  });
+
+  it("locks index contents parts text prompt shape for Gemini body", () => {
+    expect(read('src/index.ts')).toContain('contents: [{ parts: [{ text: prompt }] }]');
+  });
+
+  it("locks index free of rate-limit Redis or DO counters", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/redis|ratelimit|rate_limit|DurableObject/i);
+  });
+
+  it("locks index free of html/jsx/css response helpers", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/c\.html\(|c\.text\(|text\/html|application\/xml/);
+  });
+
+  it("locks index free of zod yup joi validation libs", () => {
+    expect(read('src/index.ts')).not.toMatch(/from\s+['"]zod['"]|from\s+['"]yup['"]|from\s+['"]joi['"]/);
+  });
+
+  it("locks parser arrow unicode free; only em-dash non-ascii", () => {
+    const parser = read('src/parser.ts');
+    const nonAscii = [...parser].filter((c) => (c.codePointAt(0) ?? 0) > 127);
+    expect(nonAscii).toHaveLength(1);
+    expect(nonAscii[0]).toBe('\u{2014}');
+  });
+
+  it("locks parser startsWith http and https exactly once each pattern", () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/startsWith\('http:\/\/'\)/g)]).toHaveLength(1);
+    expect([...parser.matchAll(/startsWith\('https:\/\/'\)/g)]).toHaveLength(1);
+  });
+
+  it("locks parser regex extractors case-insensitive flag", () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/\/i\)/g)].length).toBeGreaterThanOrEqual(5);
+    expect(parser).toContain('/tvg-name="([^"]*)"/i');
+    expect(parser).toContain('/tvg-logo="([^"]*)"/i');
+    expect(parser).toContain('/group-title="([^"]*)"/i');
+    expect(parser).toContain('/tvg-language="([^"]*)"/i');
+    expect(parser).toContain('/tvg-country="([^"]*)"/i');
+  });
+
+  it("locks parser lastIndexOf comma fallback for display name", () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain("const commaIdx = line.lastIndexOf(',')");
+    expect(parser).toContain('line.slice(commaIdx + 1).trim()');
+  });
+
+  it("locks parser free of fetch network and DOMParser", () => {
+    const parser = read('src/parser.ts');
+    expect(parser).not.toMatch(/\bfetch\s*\(/);
+    expect(parser).not.toMatch(/DOMParser|XMLHttpRequest/);
+  });
+
+  it("locks parser free of default export", () => {
+    expect(read('src/parser.ts')).not.toMatch(/export\s+default/);
+  });
+
+  it("locks parser Station interface before parseM3U function", () => {
+    const parser = read('src/parser.ts');
+    expect(parser.indexOf('export interface Station')).toBeLessThan(parser.indexOf('export function parseM3U'));
+  });
+
+  it("locks parser current reset occurs on EXTINF http and non-http branches", () => {
+    expect([...read('src/parser.ts').matchAll(/current = \{\}/g)]).toHaveLength(4);
+  });
+
+  it("locks parser seen.add(line) before stations.push", () => {
+    const parser = read('src/parser.ts');
+    expect(parser.indexOf('seen.add(line)')).toBeLessThan(parser.indexOf('stations.push'));
+  });
+
+  it("locks genres arrow unicode single occurrence in file header comment", () => {
+    const genres = read('src/genres.ts');
+    const nonAscii = [...genres].filter((c) => (c.codePointAt(0) ?? 0) > 127);
+    expect(nonAscii).toHaveLength(1);
+    expect(nonAscii[0]).toBe('\u{2192}');
+    expect(genres).toContain('mood aliases \u{2192} category');
+  });
+
+  it("locks genres GENRE_MAP key count 21 and value set subset of VALID_GENRES", () => {
+    const keys = Object.keys(GENRE_MAP);
+    expect(keys).toHaveLength(21);
+    for (const v of Object.values(GENRE_MAP)) {
+      expect(VALID_GENRES.includes(v as (typeof VALID_GENRES)[number])).toBe(true);
+    }
+  });
+
+  it("locks genres source lists late night as first GENRE_MAP key", () => {
+    expect(read('src/genres.ts')).toMatch(/GENRE_MAP[\s\S]*?'late night':\s*'ambient'/);
+    const mapBlock = read('src/genres.ts').slice(
+      read('src/genres.ts').indexOf('export const GENRE_MAP'),
+      read('src/genres.ts').indexOf('export const VALID_GENRES'),
+    );
+    expect(mapBlock.indexOf("'late night'")).toBeLessThan(mapBlock.indexOf('chill:'));
+  });
+
+  it("locks genres resolveGenre uses VALID_GENRES.includes with ValidGenre cast", () => {
+    expect(read('src/genres.ts')).toContain(
+      'return map[lower] ?? (VALID_GENRES.includes(lower as ValidGenre) ? lower : \'music\')',
+    );
+  });
+
+  it("locks genres free of network and console", () => {
+    const genres = read('src/genres.ts');
+    expect(genres).not.toMatch(/\bfetch\s*\(/);
+    expect(genres).not.toMatch(/console\./);
+  });
+
+  it("locks genres ValidGenre type export precedes resolveGenre", () => {
+    const genres = read('src/genres.ts');
+    expect(genres.indexOf('export type ValidGenre')).toBeLessThan(genres.indexOf('export function resolveGenre'));
+  });
+
+  it("locks mcp.ts is pure ASCII", () => {
+    const mcp = read('src/mcp.ts');
+    expect([...mcp].every((c) => c.charCodeAt(0) < 128)).toBe(true);
+    expect(mcp.codePointAt(0)).toBe(mcp.charCodeAt(0));
+  });
+
+  it("locks mcp double-quote style for JSON-like string literals", () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('schema_version: "v1"');
+    expect(mcp).not.toContain("schema_version: 'v1'");
+  });
+
+  it("locks mcp tool name tokens exactly once each", () => {
+    const mcp = read('src/mcp.ts');
+    expect([...mcp.matchAll(/name: "station_select"/g)]).toHaveLength(1);
+    expect([...mcp.matchAll(/name: "now_playing"/g)]).toHaveLength(1);
+    expect([...mcp.matchAll(/name: "genre_filter"/g)]).toHaveLength(1);
+    expect([...mcp.matchAll(/name: "curator_prompt"/g)]).toHaveLength(1);
+  });
+
+  it("locks mcp tool order station_select → now_playing → genre_filter → curator_prompt", () => {
+    const mcp = read('src/mcp.ts');
+    const a = mcp.indexOf('name: "station_select"');
+    const b = mcp.indexOf('name: "now_playing"');
+    const c = mcp.indexOf('name: "genre_filter"');
+    const d = mcp.indexOf('name: "curator_prompt"');
+    expect(a).toBeGreaterThan(-1);
+    expect(b).toBeGreaterThan(a);
+    expect(c).toBeGreaterThan(b);
+    expect(d).toBeGreaterThan(c);
+  });
+
+  it("locks mcp free of fetch and Hono imports", () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).not.toMatch(/^import /m);
+    expect(mcp).not.toMatch(/\bfetch\s*\(/);
+    expect(mcp).not.toContain('hono');
+  });
+
+  it("locks mcp export const MCP_MANIFEST as sole export", () => {
+    expect([...read('src/mcp.ts').matchAll(/^export /gm)]).toHaveLength(1);
+    expect(read('src/mcp.ts')).toMatch(/^export const MCP_MANIFEST = \{/m);
+  });
+
+  it("locks mcp ends with closing brace semicolon", () => {
+    expect(read('src/mcp.ts').trimEnd().endsWith('};')).toBe(true);
+  });
+
+  it("locks types.ts em-dash single non-ascii in JSDoc comment", () => {
+    const types = read('src/types.ts');
+    const nonAscii = [...types].filter((c) => (c.codePointAt(0) ?? 0) > 127);
+    expect(nonAscii).toHaveLength(1);
+    expect(nonAscii[0]).toBe('\u{2014}');
+  });
+
+  it("locks types.ts exact source text", () => {
+    expect(read('src/types.ts')).toBe("export interface Env {\n  CATALOG_CACHE: KVNamespace;\n  /** Optional at runtime — `/curate` returns 503 when unset (#8). */\n  GEMINI_API_KEY?: string;\n  VERSION?: string;\n}\n");
+  });
+
+  it("locks types.ts references issue #8 in GEMINI optional comment", () => {
+    expect(read('src/types.ts')).toContain('#8');
+    expect(read('src/types.ts')).toContain('/curate');
+    expect(read('src/types.ts')).toContain('503');
+  });
+
+  it("locks types.ts free of import statements", () => {
+    expect(read('src/types.ts')).not.toMatch(/^import /m);
+  });
+
+  it("locks sha256 of DEPLOY.md", () => {
+    expect(createHash('sha256').update(read("DEPLOY.md"), 'utf8').digest('hex')).toBe("11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a");
+  });
+
+  it("locks md5 of DEPLOY.md", () => {
+    expect(createHash('md5').update(read("DEPLOY.md"), 'utf8').digest('hex')).toBe("da30bf656fdf0d9a61d2a00860c325f5");
+  });
+
+  it("locks byte/char/line budgets of DEPLOY.md", () => {
+    const src = read("DEPLOY.md");
+    expect(new TextEncoder().encode(src).length).toBe(1573);
+    expect(src.length).toBe(1539);
+    expect(src.split('\n').length).toBe(65);
+    expect(statSync(join(root, "DEPLOY.md")).size).toBe(1573);
+  });
+
+  it("locks LF-only no BOM for DEPLOY.md", () => {
+    const src = read("DEPLOY.md");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks sha256 of AGENTS.md", () => {
+    expect(createHash('sha256').update(read("AGENTS.md"), 'utf8').digest('hex')).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it("locks md5 of AGENTS.md", () => {
+    expect(createHash('md5').update(read("AGENTS.md"), 'utf8').digest('hex')).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it("locks byte/char/line budgets of AGENTS.md", () => {
+    const src = read("AGENTS.md");
+    expect(new TextEncoder().encode(src).length).toBe(1017);
+    expect(src.length).toBe(1011);
+    expect(src.split('\n').length).toBe(35);
+    expect(statSync(join(root, "AGENTS.md")).size).toBe(1017);
+  });
+
+  it("locks LF-only no BOM for AGENTS.md", () => {
+    const src = read("AGENTS.md");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks sha256 of README.md", () => {
+    expect(createHash('sha256').update(read("README.md"), 'utf8').digest('hex')).toBe("f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987");
+  });
+
+  it("locks md5 of README.md", () => {
+    expect(createHash('md5').update(read("README.md"), 'utf8').digest('hex')).toBe("9b7aea4982a6d68b95f7f8ee3fdc5b31");
+  });
+
+  it("locks byte/char/line budgets of README.md", () => {
+    const src = read("README.md");
+    expect(new TextEncoder().encode(src).length).toBe(2801);
+    expect(src.length).toBe(2757);
+    expect(src.split('\n').length).toBe(82);
+    expect(statSync(join(root, "README.md")).size).toBe(2801);
+  });
+
+  it("locks LF-only no BOM for README.md", () => {
+    const src = read("README.md");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks sha256 of docs/mcp-spec.md", () => {
+    expect(createHash('sha256').update(read("docs/mcp-spec.md"), 'utf8').digest('hex')).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849");
+  });
+
+  it("locks md5 of docs/mcp-spec.md", () => {
+    expect(createHash('md5').update(read("docs/mcp-spec.md"), 'utf8').digest('hex')).toBe("ee7881030c338c1773659cc6378c392c");
+  });
+
+  it("locks byte/char/line budgets of docs/mcp-spec.md", () => {
+    const src = read("docs/mcp-spec.md");
+    expect(new TextEncoder().encode(src).length).toBe(3552);
+    expect(src.length).toBe(3544);
+    expect(src.split('\n').length).toBe(145);
+    expect(statSync(join(root, "docs/mcp-spec.md")).size).toBe(3552);
+  });
+
+  it("locks LF-only no BOM for docs/mcp-spec.md", () => {
+    const src = read("docs/mcp-spec.md");
+    expect(src.includes('\r')).toBe(false);
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.endsWith('\n')).toBe(true);
+  });
+
+  it("locks .cursor/environment.json exact digests and shape", () => {
+    const env = read('.cursor/environment.json');
+    expect(createHash('sha256').update(env, 'utf8').digest('hex')).toBe("4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694");
+    expect(createHash('md5').update(env, 'utf8').digest('hex')).toBe("956c8804543595a31d6a7051aecd6528");
+    expect(env.length).toBe(57);
+    expect(JSON.parse(env)).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+  });
+
+  it("cross-locks package.json name with wrangler.toml and MCP name_for_model", () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string };
+    expect(pkg.name).toBe('backlink');
+    expect(read('wrangler.toml')).toContain('name = "backlink"');
+    expect(read('src/mcp.ts')).toContain('name_for_model: "backlink"');
+    expect(read('src/index.ts')).toContain("name: 'Backlink'");
+  });
+
+  it("cross-locks package version with wrangler VERSION and index fallback", () => {
+    const pkg = JSON.parse(read('package.json')) as { version: string };
+    expect(pkg.version).toBe('0.1.0');
+    expect(read('wrangler.toml')).toContain('VERSION = "0.1.0"');
+    expect([...read('src/index.ts').matchAll(/c\.env\.VERSION \?\? '0\.1\.0'/g)]).toHaveLength(2);
+  });
+
+  it("cross-locks AGENTS.md Safe Agent Actions with src module paths", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('src/genres.ts');
+    expect(agents).toContain('src/index.ts');
+    expect(agents).toContain('src/parser.ts');
+    expect(agents).toContain('test/');
+  });
+
+  it("cross-locks AGENTS.md Verify block with package.json scripts", () => {
+    const agents = read('AGENTS.md');
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it("cross-locks AGENTS.md escalate GEMINI with types optional key and DEPLOY secret", () => {
+    expect(read('AGENTS.md')).toContain('GEMINI_API_KEY');
+    expect(read('src/types.ts')).toContain('GEMINI_API_KEY?: string');
+    expect(read('DEPLOY.md')).toContain('wrangler secret put GEMINI_API_KEY');
+    expect(read('wrangler.toml')).toContain('wrangler secret put GEMINI_API_KEY');
+  });
+
+  it("cross-locks AGENTS.md domain target with wrangler route pattern", () => {
+    expect(read('AGENTS.md')).toContain('backlink.fuzzywigg.com');
+    expect(read('wrangler.toml')).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(read('DEPLOY.md')).toContain('backlink.fuzzywigg.com');
+    expect(read('README.md')).toContain('https://backlink.fuzzywigg.com');
+    expect(read('src/index.ts')).not.toContain('backlink.fuzzywigg.com');
+  });
+
+  it("cross-locks DEPLOY.md Gemini 2.0 Flash with index model id", () => {
+    expect(read('DEPLOY.md')).toContain('Gemini 2.0 Flash');
+    expect(read('src/index.ts')).toContain('gemini-2.0-flash');
+    expect(read('README.md')).toContain('Gemini 2.0 Flash');
+  });
+
+  it("cross-locks DEPLOY.md CATALOG_CACHE with types and wrangler binding", () => {
+    expect(read('DEPLOY.md')).toContain('CATALOG_CACHE');
+    expect(read('src/types.ts')).toContain('CATALOG_CACHE: KVNamespace');
+    expect(read('wrangler.toml')).toContain('binding = "CATALOG_CACHE"');
+    expect(read('src/index.ts')).toContain('c.env.CATALOG_CACHE');
+  });
+
+  it("cross-locks README API examples with registered Worker routes", () => {
+    const readme = read('README.md');
+    const index = read('src/index.ts');
+    for (const route of ['/curate', '/stations', '/genres', '/health']) {
+      expect(readme).toContain(route);
+      expect(index).toContain("app.get('" + route + "'");
+    }
+  });
+
+  it("cross-locks README curated_by example with index curated_by field", () => {
+    expect(read('README.md')).toContain('"curated_by": "Backlink/Geryon"');
+    expect(read('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+  });
+
+  it("cross-locks README Available Genres list with VALID_GENRES order", () => {
+    const readme = read('README.md');
+    const joined = [...VALID_GENRES].join(' · ');
+    expect(readme).toContain(joined);
+  });
+
+  it("cross-locks README aliases chill lofi blues with GENRE_MAP", () => {
+    const readme = read('README.md');
+    expect(readme).toContain('chill');
+    expect(readme).toContain('lofi');
+    expect(readme).toContain('blues');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP.blues).toBe('jazz');
+  });
+
+  it("cross-locks docs/mcp-spec tool headings with MCP_MANIFEST tool count mismatch acknowledged", () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec).toContain('### `backlink_curate`');
+    expect(spec).toContain('### `backlink_genres`');
+    expect(spec).toContain('### `backlink_now_playing`');
+    expect(read('src/mcp.ts')).toContain('name: "curator_prompt"');
+    expect(read('src/mcp.ts')).toContain('name: "genre_filter"');
+    expect(read('src/mcp.ts')).toContain('name: "now_playing"');
+  });
+
+  it("cross-locks mcp-spec Endpoint /curate with index route registration", () => {
+    expect(read('docs/mcp-spec.md')).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(read('src/index.ts')).toContain("app.get('/curate'");
+  });
+
+  it("locks AGENTS.md Tier A Autonomy L2 classification", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('Tier: A');
+    expect(agents).toContain('Autonomy: L2');
+    expect(agents).toContain('parent_governance: github.com/fuzzywigg/agents-governance');
+  });
+
+  it("locks AGENTS.md escalate CORS and billing bullets", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('Changes to CORS or authentication logic');
+    expect(agents).toContain('Any billing or CF account configuration');
+    expect(agents).toContain('Adding new external data sources beyond iptv-org');
+  });
+
+  it("locks DEPLOY.md HITL Andrew review first production deploy", () => {
+    expect(read('DEPLOY.md')).toContain('First production deploy must be reviewed by Andrew');
+    expect(read('DEPLOY.md')).toContain('HITL Required');
+  });
+
+  it("locks DEPLOY.md local dev localhost:8787 documentation only", () => {
+    expect(read('DEPLOY.md')).toContain('http://localhost:8787');
+    expect(read('src/index.ts')).not.toContain('localhost');
+    expect(read('src/index.ts')).not.toContain('8787');
+  });
+
+  it("locks DEPLOY.md free of committed API key material", () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(deploy).not.toMatch(/sk-[a-zA-Z0-9]{10,}/);
+  });
+
+  it("locks README CI badge points at Backlink_Facelift ci.yml", () => {
+    expect(read('README.md')).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg',
+    );
+  });
+
+  it("locks README Stack bullets Cloudflare Workers Hono iptv-org Gemini CF KV", () => {
+    const readme = read('README.md');
+    expect(readme).toContain('Cloudflare Workers');
+    expect(readme).toContain('Hono');
+    expect(readme).toContain('iptv-org');
+    expect(readme).toContain('Gemini 2.0 Flash');
+    expect(readme).toContain('CF KV');
+    expect(readme).toContain('1h TTL');
+  });
+
+  it("locks README notes jazz/ambient category 404 fallback behavior", () => {
+    const readme = read('README.md');
+    expect(readme).toContain('music.m3u');
+    expect(readme).toContain('editorial: null');
+    expect(readme).toMatch(/404/);
+  });
+
+  it("locks index and parser share Station type only from parser module", () => {
+    expect(read('src/index.ts')).toContain("import { parseM3U, Station } from './parser'");
+    expect(read('src/types.ts')).not.toContain('Station');
+    expect(read('src/genres.ts')).not.toContain('Station');
+    expect(read('src/mcp.ts')).not.toContain('Station');
+  });
+
+  it("locks no circular imports among src modules via static from paths", () => {
+    const index = read('src/index.ts');
+    const parser = read('src/parser.ts');
+    const genres = read('src/genres.ts');
+    const mcp = read('src/mcp.ts');
+    const types = read('src/types.ts');
+    expect(parser).not.toMatch(/from\s+['"]\.\//);
+    expect(genres).not.toMatch(/from\s+['"]\.\//);
+    expect(mcp).not.toMatch(/from\s+['"]\.\//);
+    expect(types).not.toMatch(/from\s+['"]\.\//);
+    expect(index).toMatch(/from\s+['"]\.\/genres['"]/);
+    expect(index).toMatch(/from\s+['"]\.\/parser['"]/);
+    expect(index).toMatch(/from\s+['"]\.\/types['"]/);
+    expect(index).not.toMatch(/from\s+['"]\.\/mcp['"]/);
+  });
+
+  it("locks src files free of @ts-ignore @ts-expect-error and eslint-disable", () => {
+    for (const f of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      const src = read(f);
+      expect(src).not.toMatch(/@ts-ignore|@ts-expect-error|eslint-disable/);
+    }
+  });
+
+  it("locks src files free of debugger statements", () => {
+    for (const f of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(f)).not.toMatch(/\bdebugger\b/);
+    }
+  });
+
+  it("locks src files free of base64 blob literals longer than 40", () => {
+    for (const f of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(f)).not.toMatch(/[A-Za-z0-9+\/]{40,}={0,2}/);
+    }
+  });
+
+  it("locks index prompt Be specific about what makes each station right for the mood", () => {
+    expect(read('src/index.ts')).toContain(
+      'Be specific about what makes each station right for the mood.',
+    );
+  });
+
+  it("locks index prompt short editorial blurb 1-2 sentences max", () => {
+    expect(read('src/index.ts')).toContain('short editorial blurb (1-2 sentences max)');
+  });
+
+  it("locks index JSON schema example keys name url logo editorial genre", () => {
+    expect(read('src/index.ts')).toContain(
+      '[{"name": "...", "url": "...", "logo": "...", "editorial": "...", "genre": "..."}]',
+    );
+  });
+
+  it("locks index group ?? genre and language ?? en coalescing in stationList", () => {
+    expect(read('src/index.ts')).toContain('s.group ?? genre');
+    expect(read('src/index.ts')).toContain("s.language ?? 'en'");
+  });
+
+  it("locks index free of second Gemini model fallback ids", () => {
+    const index = read('src/index.ts');
+    expect(index).not.toContain('gemini-1.5');
+    expect(index).not.toContain('gemini-pro');
+    expect(index).not.toContain('gemini-2.5');
+    expect([...index.matchAll(/gemini-2\.0-flash/g)]).toHaveLength(1);
+  });
+
+  it("locks index v1beta models path exactly once", () => {
+    expect([...read('src/index.ts').matchAll(/v1beta\/models/g)]).toHaveLength(1);
+  });
+
+  it("locks index generativelanguage.googleapis.com host exactly once", () => {
+    expect([...read('src/index.ts').matchAll(/generativelanguage\.googleapis\.com/g)]).toHaveLength(1);
+  });
+
+  it("locks index iptv-org.github.io host exactly once via IPTV_BASE", () => {
+    expect([...read('src/index.ts').matchAll(/iptv-org\.github\.io/g)]).toHaveLength(1);
+  });
+
+  it("locks index free of hard-coded station URLs", () => {
+    expect(read('src/index.ts')).not.toMatch(/https:\/\/(?!iptv-org\.github\.io|generativelanguage\.googleapis\.com)[^'"`\s]+/);
+  });
+
+  it("locks parser free of hard-coded example.com fixtures", () => {
+    expect(read('src/parser.ts')).not.toContain('example.com');
+    expect(read('src/parser.ts')).not.toContain('http://');
+    expect(read('src/parser.ts')).toContain("startsWith('http://')");
+  });
+
+  it("locks genres map values never invent playlist or now-playing categories", () => {
+    for (const v of Object.values(GENRE_MAP)) {
+      expect(v).not.toMatch(/playlist|now-playing|openapi/i);
+    }
+    expect(VALID_GENRES).not.toContain('playlist' as never);
+  });
+
+  it("locks MCP auth none and no oauth client fields", () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('auth: { type: "none" }');
+    expect(mcp).not.toMatch(/oauth|client_id|client_secret|api_key_header/i);
+  });
+
+  it("locks MCP description_for_human iptv-org catalog wording", () => {
+    expect(read('src/mcp.ts')).toContain(
+      'description_for_human: "AI-curated live radio from the iptv-org catalog."',
+    );
+  });
+
+  it("locks environment.json install is exactly npm ci with no extra flags", () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as { install: string };
+    expect(env.install).toBe('npm ci');
+    expect(env.install).not.toContain('--');
+    expect(env.install.split(/\s+/)).toEqual(['npm', 'ci']);
+  });
+
+  it("locks package.json type module for ESM Worker", () => {
+    const pkg = JSON.parse(read('package.json')) as { type: string };
+    expect(pkg.type).toBe('module');
+  });
+
+  it("locks package.json sole runtime dependency hono", () => {
+    const pkg = JSON.parse(read('package.json')) as { dependencies: Record<string, string> };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+  });
+
+  it("locks package.json description mentions iptv-org catalog", () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+    expect(read('src/index.ts')).toContain("description: '" + pkg.description + "'");
+  });
+
+  it("locks createHash sha256 digest Buffer length 32 for index.ts", () => {
+    expect(createHash('sha256').update(read('src/index.ts'), 'utf8').digest()).toHaveLength(32);
+  });
+
+  it("locks createHash md5 digest Buffer length 16 for parser.ts", () => {
+    expect(createHash('md5').update(read('src/parser.ts'), 'utf8').digest()).toHaveLength(16);
+  });
+
+  it("locks createHash sha1 digest Buffer length 20 for genres.ts", () => {
+    expect(createHash('sha1').update(read('src/genres.ts'), 'utf8').digest()).toHaveLength(20);
+  });
+
+  it("locks second TextEncoder pass identical for mcp.ts", () => {
+    const src = read('src/mcp.ts');
+    const a = new TextEncoder().encode(src);
+    const b = new TextEncoder().encode(src);
+    expect([...a]).toEqual([...b]);
+    expect(a.length).toBe(2057);
+  });
+
+  it("locks types.ts lean under 200 UTF-8 bytes", () => {
+    expect(statSync(join(root, 'src/types.ts')).size).toBeLessThan(200);
+    expect(statSync(join(root, 'src/types.ts')).size).toBe(174);
+  });
+
+  it("locks genres.ts under 1100 UTF-8 bytes", () => {
+    expect(statSync(join(root, 'src/genres.ts')).size).toBe(1027);
+    expect(statSync(join(root, 'src/genres.ts')).size).toBeLessThan(1100);
+  });
+
+  it("locks parser.ts under 2000 UTF-8 bytes", () => {
+    expect(statSync(join(root, 'src/parser.ts')).size).toBe(1955);
+    expect(statSync(join(root, 'src/parser.ts')).size).toBeLessThan(2000);
+  });
+
+  it("locks mcp.ts under 2100 UTF-8 bytes", () => {
+    expect(statSync(join(root, 'src/mcp.ts')).size).toBe(2057);
+    expect(statSync(join(root, 'src/mcp.ts')).size).toBeLessThan(2100);
+  });
+
+  it("locks index.ts under 4800 UTF-8 bytes", () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+    expect(statSync(join(root, 'src/index.ts')).size).toBeLessThan(4800);
+  });
+
+  it("locks codePointAt sequence for IPTV_BASE host", () => {
+    expect([...('iptv-org.github.io')].map((c) => c.charCodeAt(0))).toEqual([105,112,116,118,45,111,114,103,46,103,105,116,104,117,98,46,105,111]);
+  });
+
+  it("locks codePointAt sequence for Gemini host", () => {
+    expect([...('generativelanguage.googleapis.com')].map((c) => c.charCodeAt(0))).toEqual([103,101,110,101,114,97,116,105,118,101,108,97,110,103,117,97,103,101,46,103,111,111,103,108,101,97,112,105,115,46,99,111,109]);
+  });
+
+  it("locks TextEncoder bytes for CATALOG_CACHE binding token", () => {
+    expect([...new TextEncoder().encode('CATALOG_CACHE')]).toEqual([67,65,84,65,76,79,71,95,67,65,67,72,69]);
+  });
+
+  it("locks TextEncoder bytes for GEMINI_API_KEY token", () => {
+    expect([...new TextEncoder().encode('GEMINI_API_KEY')]).toEqual([71,69,77,73,78,73,95,65,80,73,95,75,69,89]);
+  });
+
+  it("locks TextEncoder bytes for MCP_MANIFEST export name", () => {
+    expect([...new TextEncoder().encode('MCP_MANIFEST')]).toEqual([77,67,80,95,77,65,78,73,70,69,83,84]);
+  });
+
+  it("locks index app.get path string char codes for /health", () => {
+    expect([...('/health')].map((c) => c.charCodeAt(0))).toEqual([47, 104, 101, 97, 108, 116, 104]);
+  });
+
+  it("locks index app.get path string char codes for /curate", () => {
+    expect([...('/curate')].map((c) => c.charCodeAt(0))).toEqual([47, 99, 117, 114, 97, 116, 101]);
+  });
+
+  it("locks index app.get path string char codes for /stations", () => {
+    expect([...('/stations')].map((c) => c.charCodeAt(0))).toEqual([47,115,116,97,116,105,111,110,115]);
+  });
+
+  it("locks index app.get path string char codes for /genres", () => {
+    expect([...('/genres')].map((c) => c.charCodeAt(0))).toEqual([47,103,101,110,114,101,115]);
+  });
+
+  it("locks resolveGenre default music char codes", () => {
+    expect([...('music')].map((c) => c.charCodeAt(0))).toEqual([109, 117, 115, 105, 99]);
+    expect(read('src/genres.ts')).toContain("return 'music'");
+  });
+
+  it("locks parseM3U function name char codes", () => {
+    expect([...('parseM3U')].map((c) => c.charCodeAt(0))).toEqual([112,97,114,115,101,77,51,85]);
+  });
+
+  it("locks Backlink product name char codes in index root payload", () => {
+    expect([...('Backlink')].map((c) => c.charCodeAt(0))).toEqual([66,97,99,107,108,105,110,107]);
+    expect(read('src/index.ts')).toContain("name: 'Backlink'");
+  });
+
+  it("locks Geryon curated_by token char codes", () => {
+    expect([...('Backlink/Geryon')].map((c) => c.charCodeAt(0))).toEqual([66,97,99,107,108,105,110,107,47,71,101,114,121,111,110]);
+  });
+
+  it("locks expirationTtl 3600 digit char codes", () => {
+    expect([...('3600')].map((c) => c.charCodeAt(0))).toEqual([51, 54, 48, 48]);
+    expect(read('src/index.ts')).toContain('expirationTtl: 3600');
+  });
+
+  it("locks maxOutputTokens 512 digit char codes", () => {
+    expect([...('512')].map((c) => c.charCodeAt(0))).toEqual([53, 49, 50]);
+  });
+
+  it("locks temperature 0.7 digit char codes", () => {
+    expect([...('0.7')].map((c) => c.charCodeAt(0))).toEqual([48, 46, 55]);
+  });
+
+  it("locks retry_after 60 digit char codes", () => {
+    expect([...('60')].map((c) => c.charCodeAt(0))).toEqual([54, 48]);
+    expect([...read('src/index.ts').matchAll(/retry_after:\s*60/g)]).toHaveLength(3);
+  });
+
+  it("locks AGENTS.md free of API keys and account ids", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(agents).not.toMatch(/edb6ca4df12f4f45b40508b3dda3c432/);
+  });
+
+  it("locks README free of wrangler KV id embedding", () => {
+    expect(read('README.md')).not.toContain('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it("locks docs/mcp-spec free of GEMINI_API_KEY literal", () => {
+    expect(read('docs/mcp-spec.md')).not.toContain('GEMINI_API_KEY');
+  });
+
+  it("locks all src files use single quotes for JS string literals in index imports", () => {
+    expect(read('src/index.ts')).toContain("from 'hono'");
+    expect(read('src/index.ts')).toContain("from 'hono/cors'");
+    expect(read('src/index.ts')).toContain("from './genres'");
+  });
+
+  it("locks mcp.ts uses double quotes exclusively for manifest string values", () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toMatch(/"[a-zA-Z]/);
+    expect(mcp).not.toMatch(/:\s*'[^']+'/);
+  });
+
+  it("locks index semicolon statement style (no ASI-only free functions)", () => {
+    expect(read('src/index.ts')).toContain('export default app;');
+    expect(read('src/index.ts')).toContain("app.use('*', cors());");
+  });
+
+  it("locks parser uses two-space indent not four", () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(/^  name: string;/m);
+    expect(parser).not.toMatch(/^    name: string;/m);
+  });
+
+  it("locks genres uses two-space indent for map entries", () => {
+    expect(read('src/genres.ts')).toMatch(/^  chill: 'ambient',/m);
+  });
+
+  it("locks types uses two-space indent for Env fields", () => {
+    expect(read('src/types.ts')).toMatch(/^  CATALOG_CACHE: KVNamespace;/m);
+  });
+
+  it("locks index fetchStations and callGemini are async function declarations", () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/async function fetchStations\(/);
+    expect(index).toMatch(/async function callGemini\(/);
+    expect(index).not.toMatch(/const fetchStations\s*=/);
+    expect(index).not.toMatch(/const callGemini\s*=/);
+  });
+
+  it("locks index Hono app const precedes route registration", () => {
+    const index = read('src/index.ts');
+    expect(index.indexOf('const app = new Hono')).toBeLessThan(index.indexOf("app.use('*', cors())"));
+    expect(index.indexOf("app.use('*', cors())")).toBeLessThan(index.indexOf("app.get('/',"));
+  });
+
+  it("locks index callGemini defined before const app", () => {
+    const index = read('src/index.ts');
+    expect(index.indexOf('async function callGemini')).toBeLessThan(index.indexOf('const app = new Hono'));
+    expect(index.indexOf('async function fetchStations')).toBeLessThan(index.indexOf('async function callGemini'));
+  });
+
+  it("locks index IPTV_BASE defined before fetchStations", () => {
+    const index = read('src/index.ts');
+    expect(index.indexOf('const IPTV_BASE')).toBeLessThan(index.indexOf('async function fetchStations'));
+  });
+
+  it("locks types.ts exact line inventory", () => {
+    expect(read('src/types.ts').split('\n')).toEqual([
+      "export interface Env {",
+      "  CATALOG_CACHE: KVNamespace;",
+      "  /** Optional at runtime — `/curate` returns 503 when unset (#8). */",
+      "  GEMINI_API_KEY?: string;",
+      "  VERSION?: string;",
+      "}",
+      "",
+    ]);
+  });
+
+  it("locks environment.json exact line inventory", () => {
+    expect(read('.cursor/environment.json').split('\n')).toEqual([
+      "{",
+      "  \"name\": \"Backlink_Facelift\",",
+      "  \"install\": \"npm ci\"",
+      "}",
+      "",
+    ]);
+  });
+
+  it("locks wrangler.toml sha256 still aligned with source-contract domain expectations", () => {
+    expect(createHash('sha256').update(read('wrangler.toml'), 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+  });
+
+  it("locks package.json sha256 for description/version contract stability", () => {
+    expect(createHash('sha256').update(read('package.json'), 'utf8').digest('hex')).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it("locks VALID_GENRES lexicographic order is not alphabetical (music first)", () => {
+    const alpha = [...VALID_GENRES].sort((a, b) => a.localeCompare(b));
+    expect([...VALID_GENRES]).not.toEqual(alpha);
+    expect(VALID_GENRES[0]).toBe('music');
+  });
+
+  it("locks GENRE_MAP key insertion order starts with late night", () => {
+    expect(Object.keys(GENRE_MAP)[0]).toBe('late night');
+    expect(Object.keys(GENRE_MAP).at(-1)).toBe('lo-fi');
+  });
+
+  it("locks src file names sort lexicographically genres index mcp parser types", () => {
+    expect(readdirSync(join(root, 'src')).sort((a, b) => a.localeCompare(b))).toEqual([
+      'genres.ts',
+      'index.ts',
+      'mcp.ts',
+      'parser.ts',
+      'types.ts',
+    ]);
+  });
+
+  it("locks index free of // TODO-style product invent comments", () => {
+    expect(read('src/index.ts')).not.toMatch(/\bTODO\b|\bFIXME\b|\bHACK\b/);
+  });
+
+  it("locks parser comment documents Non-http URL rtmp skip", () => {
+    expect(read('src/parser.ts')).toContain('Non-http URL (rtmp://, etc.)');
+  });
+
+  it("locks index comment documents Fallback to music.m3u", () => {
+    expect(read('src/index.ts')).toContain('// Fallback to music.m3u');
+  });
+
+  it("locks index comment documents Graceful degradation top 5", () => {
+    expect(read('src/index.ts')).toContain('// Graceful degradation: return top 5 without editorial');
+  });
+
+  it("locks types JSDoc Optional at runtime /curate 503", () => {
+    expect(read('src/types.ts')).toContain('Optional at runtime');
+    expect(read('src/types.ts')).toContain('returns 503 when unset');
+  });
+
+  it("locks sha256 of index differs from parser genres mcp types", () => {
+    const digests = ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'].map((f) =>
+      createHash('sha256').update(read(f), 'utf8').digest('hex'),
+    );
+    expect(new Set(digests).size).toBe(5);
+  });
+
+  it("locks md5 of docs files are unique across DEPLOY AGENTS README mcp-spec", () => {
+    const digests = ['DEPLOY.md', 'AGENTS.md', 'README.md', 'docs/mcp-spec.md'].map((f) =>
+      createHash('md5').update(read(f), 'utf8').digest('hex'),
+    );
+    expect(new Set(digests).size).toBe(4);
+  });
+
+  it("locks index String length less than UTF-8 bytes due to multi-byte emoji/dash", () => {
+    const src = read('src/index.ts');
+    expect(src.length).toBe(4724);
+    expect(Buffer.byteLength(src, 'utf8')).toBe(4738);
+    expect(Buffer.byteLength(src, 'utf8')).toBeGreaterThan(src.length);
+  });
+
+  it("locks mcp String length equals UTF-8 bytes (ASCII-only)", () => {
+    const src = read('src/mcp.ts');
+    expect(src.length).toBe(Buffer.byteLength(src, 'utf8'));
+    expect(src.length).toBe(2057);
+  });
+
+  it("locks genres String length less than UTF-8 bytes due to arrow", () => {
+    const src = read('src/genres.ts');
+    expect(Buffer.byteLength(src, 'utf8') - src.length).toBe(2); // U+2192 is 3 bytes → +2
+  });
+
+  it("locks parser String length less than UTF-8 bytes due to em-dash", () => {
+    const src = read('src/parser.ts');
+    expect(Buffer.byteLength(src, 'utf8') - src.length).toBe(2); // U+2014 is 3 bytes → +2
+  });
+
+  it("locks types String length less than UTF-8 bytes due to em-dash", () => {
+    const src = read('src/types.ts');
+    expect(Buffer.byteLength(src, 'utf8') - src.length).toBe(2);
   });
 });
