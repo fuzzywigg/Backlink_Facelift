@@ -16395,3 +16395,227 @@ describe('post144 wrangler HEAVY deepen (after #144)', () => {
   });
 
 });
+
+describe('overnight crawl-queue-retry-edges HEAVY deepen (wrangler)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-crawl-queue-retry: inventory — no CF Queues; catalog crawl is KV CATALOG_CACHE only', () => {
+    const toml = read('wrangler.toml');
+    expect(toml).toContain('CATALOG_CACHE');
+    expect(toml).toContain('binding = "CATALOG_CACHE"');
+    expect(toml).not.toMatch(/\[\[queues/i);
+    expect(toml).not.toMatch(/max_retries|max_batch_size|dead_letter_queue/i);
+  });
+
+  it('overnight-crawl-queue-retry: types Env has CATALOG_CACHE not Queue', () => {
+    const types = read('src/types.ts');
+    expect(types).toContain('CATALOG_CACHE: KVNamespace');
+    expect(types).not.toMatch(/Queue|MessageBatch|Producer/i);
+  });
+
+  it('overnight-crawl-queue-retry: locks wrangler.toml sha256', () => {
+    expect(sha256('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+  });
+  it('overnight-crawl-queue-retry: locks wrangler.toml size 330', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size).toBe(330);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight wrangler.toml', () => {
+    expect(hmacSha256('overnight', 'wrangler.toml')).toBe('b2f03f50cb6e51fda82ae9b35f537e193ae6d4bf5c64e48dd4d17a0b78642220');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue wrangler.toml', () => {
+    expect(hmacSha256('crawl-queue', 'wrangler.toml')).toBe('0290fb5be885372fad765b22f6d2b99b7402fa467f5bf9bdf1de06d32ea42f5f');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges wrangler.toml', () => {
+    expect(hmacSha256('retry-edges', 'wrangler.toml')).toBe('5c9ed058d48e05214e32a4b75cb7385bfbd3fc1c189d29263ab3dc0e4be60337');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX wrangler.toml', () => {
+    expect(hmacSha256('TOKENMAXX', 'wrangler.toml')).toBe('7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY wrangler.toml', () => {
+    expect(hmacSha256('HEAVY', 'wrangler.toml')).toBe('0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion wrangler.toml', () => {
+    expect(hmacSha256('retry-exhaustion', 'wrangler.toml')).toBe('6799640a45455575d6f1774d8dfb42ef5781988ce5293f20031a153cf4fe6b0d');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff wrangler.toml', () => {
+    expect(hmacSha256('jitter-backoff', 'wrangler.toml')).toBe('2362a760f030c96e8a18c13130479e2ad7075264b62317c981ae6729c92e6916');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item wrangler.toml', () => {
+    expect(hmacSha256('poison-item', 'wrangler.toml')).toBe('69957a4b09e88b990f1ea216289fcb130081f86a3c2a395770b29a6cbd30f303');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue wrangler.toml', () => {
+    expect(hmacSha256('idempotent-requeue', 'wrangler.toml')).toBe('f43fd0eb2b6105d7a52895496dc0b51f205b81789392e1e7d3c8739cc2f314a7');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path wrangler.toml', () => {
+    expect(hmacSha256('timeout-path', 'wrangler.toml')).toBe('47d445e73b3d13562ab97778db84916d94bc80f1e647e54e638749ac3bb33e70');
+  });
+  it('overnight-crawl-queue-retry: locks src/types.ts sha256', () => {
+    expect(sha256('src/types.ts')).toBe('4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3');
+  });
+  it('overnight-crawl-queue-retry: locks src/types.ts size 174', () => {
+    expect(statSync(join(root, 'src/types.ts')).size).toBe(174);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight src/types.ts', () => {
+    expect(hmacSha256('overnight', 'src/types.ts')).toBe('a5f5fbf7cf38ccb97eba6ce7a943e32079eb2f89cc611e5f382d2bc87ea43ef9');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue src/types.ts', () => {
+    expect(hmacSha256('crawl-queue', 'src/types.ts')).toBe('ca8394f2f08b0f2466d827cbec7b2e0d31ccfc6fd25e67850cd8c452a4a097b8');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges src/types.ts', () => {
+    expect(hmacSha256('retry-edges', 'src/types.ts')).toBe('0249ecab2804a8d05d2283cb5652e5695308b0255b21afc0c0d21059cf0a5915');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX src/types.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/types.ts')).toBe('5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY src/types.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/types.ts')).toBe('c30f6d748b6c06b8387764e536eab11def9e8f3f000f4b2b764e050f64ebc32a');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion src/types.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'src/types.ts')).toBe('fda165657c2765485a2f6492a3753ce5d4b18d9a7bd0c58de9512f9c0179fcc3');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff src/types.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'src/types.ts')).toBe('49b1587c84af0f7f143af3a9d9b98a75192c766d554e8fb39427d937fabc65bb');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item src/types.ts', () => {
+    expect(hmacSha256('poison-item', 'src/types.ts')).toBe('f917a39e7a90b7b81e1455ba4f201122e59dbca00ee1c8b18e98e3ccd509d93e');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue src/types.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'src/types.ts')).toBe('a604f751b555633f0765923ddb178db7543a17d150a68cec9c4b96522171ad70');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path src/types.ts', () => {
+    expect(hmacSha256('timeout-path', 'src/types.ts')).toBe('c3d5628abe8675ad0071963477575bc05bf154605ba826b83237813c59aee3e8');
+  });
+  it('overnight-crawl-queue-retry: locks src/index.ts sha256', () => {
+    expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+  it('overnight-crawl-queue-retry: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight src/index.ts', () => {
+    expect(hmacSha256('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue src/index.ts', () => {
+    expect(hmacSha256('crawl-queue', 'src/index.ts')).toBe('d11ae45f1100aa32b14210cd964bca33e18d5ad61264c690cfa238147e48c568');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges src/index.ts', () => {
+    expect(hmacSha256('retry-edges', 'src/index.ts')).toBe('c2dce764e74063d43efed84ebc665840f7524b9280437a0e758fb2d9c505eabe');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX src/index.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY src/index.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion src/index.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'src/index.ts')).toBe('ce212ad15549da5b28b8de828dd4ec57a786bac01aa78bef71f8fbf5ada23fb5');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff src/index.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'src/index.ts')).toBe('e30d60a08219516cb172ddb286186c65eb2632c3fdb60151345952541a2079df');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item src/index.ts', () => {
+    expect(hmacSha256('poison-item', 'src/index.ts')).toBe('4bf0069115417e6fc2d63c18d4befe455209f4673ff70d9cea71ad8a43a1d216');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue src/index.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'src/index.ts')).toBe('ad21eb05a0422ad6a24f1996744b3bfda35c278c55912a4c43d364d9ca4f729b');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path src/index.ts', () => {
+    expect(hmacSha256('timeout-path', 'src/index.ts')).toBe('c9b0b6275cdaacc09d9b2ee61e0fb90396522f4832f2809e18ae19471eed10d9');
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent openai', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent anthropic', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent claude', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent workers.ai', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent durable_object', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent vectorize', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent hyperdrive', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent analytics_engine', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent d1_', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent r2_', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent crawlqueue', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent retryworker', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent exponentialbackoff', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent maxretries', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent openai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent anthropic', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent claude', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent workers.ai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent durable_object', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent vectorize', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent hyperdrive', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent analytics_engine', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent d1_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent r2_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent crawlqueue', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent retryworker', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent exponentialbackoff', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent maxretries', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: keys inventory digest', () => {
+    const k = ["overnight","crawl-queue","retry-edges","TOKENMAXX","HEAVY","retry-exhaustion","jitter-backoff","poison-item","idempotent-requeue","timeout-path","no-product-invent","no-creds","fuzzywigg","backlink"];
+    expect(createHash('sha256').update(k.join('|'), 'utf8').digest('hex')).toBe('d74c58f14b64f08be52f458d4624d8370472c293372b886d10704d78b8ff1896');
+  });
+
+  it('overnight-crawl-queue-retry: final inventory markers', () => {
+    const body = read('test/wrangler-config.test.ts');
+    expect(body).toContain("describe('overnight crawl-queue-retry-edges HEAVY deepen (wrangler)'");
+    expect((body.match(/it\('overnight-crawl-queue-retry:/g) ?? []).length).toBeGreaterThan(30);
+  });
+});

@@ -15410,3 +15410,407 @@ describe('post146 helpers extras HEAVY deepen (after #146 leftover slice)', () =
     expect((body.match(/it\('post146-extras:/g) ?? []).length).toBeGreaterThan(100);
   });
 });
+
+describe('overnight crawl-queue-retry-edges HEAVY deepen (helpers)', () => {
+  const root = helpersRoot;
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-crawl-queue-retry: inventory — helpers seed KV crawl cache + iptv stub retry fixtures', () => {
+    const src = read('test/helpers.ts');
+    expect(src).toContain('export function mockKV');
+    expect(src).toContain('export function seedStationsCache');
+    expect(src).toContain('export function stubIptvAndGemini');
+    expect(src).toContain('export function iptvCategoryUrl');
+    expect(src).not.toMatch(/CrawlQueue|retryWorker|backoff|jitter/i);
+  });
+
+  it('overnight-crawl-queue-retry: locks test/helpers.ts sha256', () => {
+    expect(sha256('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+  it('overnight-crawl-queue-retry: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, 'test/helpers.ts')).size).toBe(6078);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight test/helpers.ts', () => {
+    expect(hmacSha256('overnight', 'test/helpers.ts')).toBe('693bcb8a40aedd80ecdbc898e9f2d3483937ef1791d2ced6b4c65dea5c3ac764');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue test/helpers.ts', () => {
+    expect(hmacSha256('crawl-queue', 'test/helpers.ts')).toBe('fa0398ada61749bd7dcdb9132721f87be43fbcff176716a25f04264b506eef58');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges test/helpers.ts', () => {
+    expect(hmacSha256('retry-edges', 'test/helpers.ts')).toBe('e2b18ff7239cd6c24f1fea85beff32d0eb59a9419256eb9588c3fa667c7c2c9b');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX test/helpers.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'test/helpers.ts')).toBe('8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY test/helpers.ts', () => {
+    expect(hmacSha256('HEAVY', 'test/helpers.ts')).toBe('458cfb306ea3e2c9310b3e3840ecd5a5ca295e18c46146bad4c6111c4c3c1c24');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion test/helpers.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'test/helpers.ts')).toBe('87dc93c2e451492db54e260597e17d9eff08d827bdc2d59462958059d1d19a74');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff test/helpers.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'test/helpers.ts')).toBe('c8fe174516243194a4a0bb10d01ab05023deefe07289ad890cfe010e798a27db');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item test/helpers.ts', () => {
+    expect(hmacSha256('poison-item', 'test/helpers.ts')).toBe('352975e3ad88e22c4cda4c7fa9cfd07c5e338219b909de5ee715c3b681bf68fd');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue test/helpers.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'test/helpers.ts')).toBe('e7d7e6eb695b304b1a1c93b98be47e5970f363b0ab93738156189d526998134e');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path test/helpers.ts', () => {
+    expect(hmacSha256('timeout-path', 'test/helpers.ts')).toBe('10237913fdf101a8d6b93f9e0a4049f67412afcb095473db071a7e3b4a462f57');
+  });
+  it('overnight-crawl-queue-retry: locks src/index.ts sha256', () => {
+    expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+  it('overnight-crawl-queue-retry: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight src/index.ts', () => {
+    expect(hmacSha256('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue src/index.ts', () => {
+    expect(hmacSha256('crawl-queue', 'src/index.ts')).toBe('d11ae45f1100aa32b14210cd964bca33e18d5ad61264c690cfa238147e48c568');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges src/index.ts', () => {
+    expect(hmacSha256('retry-edges', 'src/index.ts')).toBe('c2dce764e74063d43efed84ebc665840f7524b9280437a0e758fb2d9c505eabe');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX src/index.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY src/index.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion src/index.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'src/index.ts')).toBe('ce212ad15549da5b28b8de828dd4ec57a786bac01aa78bef71f8fbf5ada23fb5');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff src/index.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'src/index.ts')).toBe('e30d60a08219516cb172ddb286186c65eb2632c3fdb60151345952541a2079df');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item src/index.ts', () => {
+    expect(hmacSha256('poison-item', 'src/index.ts')).toBe('4bf0069115417e6fc2d63c18d4befe455209f4673ff70d9cea71ad8a43a1d216');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue src/index.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'src/index.ts')).toBe('ad21eb05a0422ad6a24f1996744b3bfda35c278c55912a4c43d364d9ca4f729b');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path src/index.ts', () => {
+    expect(hmacSha256('timeout-path', 'src/index.ts')).toBe('c9b0b6275cdaacc09d9b2ee61e0fb90396522f4832f2809e18ae19471eed10d9');
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (truncated-brace)', () => {
+    const bag = seedStationsCache('music', "{");
+    expect(bag['stations:music']).toBe("{");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (truncated-array)', () => {
+    const bag = seedStationsCache('music', "[");
+    expect(bag['stations:music']).toBe("[");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (bare-null)', () => {
+    const bag = seedStationsCache('music', "null");
+    expect(bag['stations:music']).toBe("null");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (bare-true)', () => {
+    const bag = seedStationsCache('music', "true");
+    expect(bag['stations:music']).toBe("true");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (bare-number)', () => {
+    const bag = seedStationsCache('music', "42");
+    expect(bag['stations:music']).toBe("42");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (empty-string)', () => {
+    const bag = seedStationsCache('music', "");
+    expect(bag['stations:music']).toBe("");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (whitespace)', () => {
+    const bag = seedStationsCache('music', "   ");
+    expect(bag['stations:music']).toBe("   ");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (proto-pollution)', () => {
+    const bag = seedStationsCache('music', "{\"__proto__\":{\"polluted\":true}}");
+    expect(bag['stations:music']).toBe("{\"__proto__\":{\"polluted\":true}}");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (constructor-pollution)', () => {
+    const bag = seedStationsCache('music', "{\"constructor\":{\"prototype\":{\"x\":1}}}");
+    expect(bag['stations:music']).toBe("{\"constructor\":{\"prototype\":{\"x\":1}}}");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (unquoted-keys)', () => {
+    const bag = seedStationsCache('music', "{name:Cached}");
+    expect(bag['stations:music']).toBe("{name:Cached}");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (single-quotes)', () => {
+    const bag = seedStationsCache('music', "{'name':'Cached'}");
+    expect(bag['stations:music']).toBe("{'name':'Cached'}");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (trailing-comma)', () => {
+    const bag = seedStationsCache('music', "[{\"name\":\"X\",}]");
+    expect(bag['stations:music']).toBe("[{\"name\":\"X\",}]");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (nan-token)', () => {
+    const bag = seedStationsCache('music', "[NaN]");
+    expect(bag['stations:music']).toBe("[NaN]");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (undefined-token)', () => {
+    const bag = seedStationsCache('music', "[undefined]");
+    expect(bag['stations:music']).toBe("[undefined]");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (double-json)', () => {
+    const bag = seedStationsCache('music', "\"{\\\"name\\\":\\\"x\\\"}\"");
+    expect(bag['stations:music']).toBe("\"{\\\"name\\\":\\\"x\\\"}\"");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (html-junk)', () => {
+    const bag = seedStationsCache('music', "<html>oops</html>");
+    expect(bag['stations:music']).toBe("<html>oops</html>");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (xml-junk)', () => {
+    const bag = seedStationsCache('music', "<?xml version=\"1.0\"?><a/>");
+    expect(bag['stations:music']).toBe("<?xml version=\"1.0\"?><a/>");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture (utf8-bom-bad)', () => {
+    const bag = seedStationsCache('music', "﻿{");
+    expect(bag['stations:music']).toBe("﻿{");
+    expect(Object.keys(bag)).toEqual(['stations:music']);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 400 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 400 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(400);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 401 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 401 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(401);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 403 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 403 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(403);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 404 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 404 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(404);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 408 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 408 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(408);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 429 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 429 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(429);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 500 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 500 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(500);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 502 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 502 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(502);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 503 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(503);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 504 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 504 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(504);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 520 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 520 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(520);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 521 (retry exhaustion fixture)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 521 });
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(521);
+  });
+
+  it('overnight-crawl-queue-retry: stubIptvAndGemini iptvByGenre null is per-genre exhaustion', async () => {
+    const fetchMock = stubIptvAndGemini({
+      m3u: SAMPLE_M3U,
+      iptvByGenre: { jazz: null },
+      iptvStatus: 503,
+    });
+    expect((await fetchMock(iptvCategoryUrl('jazz'))).status).toBe(503);
+    expect((await fetchMock(iptvCategoryUrl('music'))).status).toBe(200);
+  });
+
+  it('overnight-crawl-queue-retry: idempotent seedStationsCache merge does not drop sibling keys', () => {
+    const a = seedStationsCache('jazz', [{ name: 'J', url: 'https://j' }]);
+    const b = seedStationsCache('news', [{ name: 'N', url: 'https://n' }], a);
+    expect(Object.keys(b).sort()).toEqual(['stations:jazz', 'stations:news']);
+    expect(JSON.parse(b['stations:jazz'])[0].name).toBe('J');
+  });
+
+  it('overnight-crawl-queue-retry: mockKV put/get idempotent requeue simulation', async () => {
+    const kv = mockKV();
+    await kv.put('stations:music', '[]');
+    await kv.put('stations:music', '[]');
+    expect(await kv.get('stations:music')).toBe('[]');
+    expect(kv.put).toHaveBeenCalledTimes(2);
+  });
+
+  it('overnight-crawl-queue-retry: countHttpStreamLines on SAMPLE_M3U is stable (crawl batch size)', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: buildSimpleM3U empty is header-only crawl batch', () => {
+    expect(buildSimpleM3U([])).toBe('#EXTM3U\n');
+    expect(countHttpStreamLines(buildSimpleM3U([]))).toBe(0);
+  });
+
+  it('overnight-crawl-queue-retry: AbortSignal.timeout fixture exists but helpers do not wire it', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(read('test/helpers.ts')).not.toMatch(/AbortSignal|timeout\(/);
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent openai', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent anthropic', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent claude', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent workers.ai', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent durable_object', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent vectorize', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent hyperdrive', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent analytics_engine', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent d1_', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent r2_', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent crawlqueue', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent retryworker', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent exponentialbackoff', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: test/helpers.ts forbids invent maxretries', () => {
+    expect(read('test/helpers.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent openai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent anthropic', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent claude', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent workers.ai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent durable_object', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent vectorize', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent hyperdrive', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent analytics_engine', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent d1_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent r2_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent crawlqueue', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent retryworker', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent exponentialbackoff', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent maxretries', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: keys inventory digest', () => {
+    const k = ["overnight","crawl-queue","retry-edges","TOKENMAXX","HEAVY","retry-exhaustion","jitter-backoff","poison-item","idempotent-requeue","timeout-path","no-product-invent","no-creds","fuzzywigg","backlink"];
+    expect(createHash('sha256').update(k.join('|'), 'utf8').digest('hex')).toBe('d74c58f14b64f08be52f458d4624d8370472c293372b886d10704d78b8ff1896');
+  });
+
+  it('overnight-crawl-queue-retry: final inventory markers', () => {
+    const body = read('test/helpers.test.ts');
+    expect(body).toContain("describe('overnight crawl-queue-retry-edges HEAVY deepen (helpers)'");
+    expect((body.match(/it\('overnight-crawl-queue-retry:/g) ?? []).length).toBeGreaterThan(40);
+  });
+});

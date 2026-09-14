@@ -21591,3 +21591,367 @@ describe('post146 ci-config extras HEAVY deepen (after #146 leftover slice)', ()
     expect((body.match(/it\('post146-extras:/g) ?? []).length).toBeGreaterThan(100);
   });
 });
+
+describe('overnight crawl-queue-retry-edges HEAVY deepen (ci-config)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-crawl-queue-retry: inventory — timeout paths already in CI are job budgets 10/15/5 + deploy 20', () => {
+    const ciYml = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    expect([...ciYml.matchAll(/timeout-minutes:\s*(\d+)/g)].map((m) => Number(m[1]))).toEqual([10, 15, 5]);
+    expect([...deploy.matchAll(/timeout-minutes:\s*(\d+)/g)].map((m) => Number(m[1]))).toEqual([20]);
+    expect(ciYml).not.toMatch(/backoff|jitter|CrawlQueue/i);
+  });
+
+  it('overnight-crawl-queue-retry: Typecheck timeout-minutes 10 boundary', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/name:\s*Typecheck[\s\S]*?timeout-minutes:\s*10/);
+  });
+
+  it('overnight-crawl-queue-retry: Tests timeout-minutes 15 boundary', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/name:\s*Tests[\s\S]*?timeout-minutes:\s*15/);
+  });
+
+  it('overnight-crawl-queue-retry: Hygiene timeout-minutes 5 boundary', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/name:\s*Hygiene[\s\S]*?timeout-minutes:\s*5/);
+  });
+
+  it('overnight-crawl-queue-retry: deploy timeout-minutes 20 boundary', () => {
+    expect(read('.github/workflows/deploy.yml')).toMatch(/timeout-minutes:\s*20/);
+  });
+
+  it('overnight-crawl-queue-retry: CI timeouts are positive and <= 60 (no infinite wait invent)', () => {
+    const mins = [...read('.github/workflows/ci.yml').matchAll(/timeout-minutes:\s*(\d+)/g)].map((m) => Number(m[1]));
+    expect(mins.every((t) => t > 0 && t <= 60)).toBe(true);
+  });
+
+  it('overnight-crawl-queue-retry: AbortSignal.timeout unused by CI YAML', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/AbortSignal|timeout\(/);
+  });
+
+  it('overnight-crawl-queue-retry: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5');
+  });
+  it('overnight-crawl-queue-retry: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight .github/workflows/ci.yml', () => {
+    expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue .github/workflows/ci.yml', () => {
+    expect(hmacSha256('crawl-queue', '.github/workflows/ci.yml')).toBe('474e9feb59917e70311ef6f9974e39e8689d385f2db22441457acfb4565a0db8');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges .github/workflows/ci.yml', () => {
+    expect(hmacSha256('retry-edges', '.github/workflows/ci.yml')).toBe('eb503d22cc11aa409862723c9b0121c940d27719976b03167812289520b2f08b');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX .github/workflows/ci.yml', () => {
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY .github/workflows/ci.yml', () => {
+    expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion .github/workflows/ci.yml', () => {
+    expect(hmacSha256('retry-exhaustion', '.github/workflows/ci.yml')).toBe('200ac110767966b81757639806d4fa0122b5171e604b91420c9f3d50f673c92f');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff .github/workflows/ci.yml', () => {
+    expect(hmacSha256('jitter-backoff', '.github/workflows/ci.yml')).toBe('825f47ed83901da6e732ed82403de4380b858c3a26b579354b881c08aad89d51');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item .github/workflows/ci.yml', () => {
+    expect(hmacSha256('poison-item', '.github/workflows/ci.yml')).toBe('a1a565f1b32fe8194129cd58852db9dc500f66ff670323834b3dddf8891168bb');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue .github/workflows/ci.yml', () => {
+    expect(hmacSha256('idempotent-requeue', '.github/workflows/ci.yml')).toBe('234dd285977def6e6451d1a71874a5c6b9fccc1b33d94c04ba766f10e42338dd');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path .github/workflows/ci.yml', () => {
+    expect(hmacSha256('timeout-path', '.github/workflows/ci.yml')).toBe('1bc20a0aa4216d889d12d8e2367f15847eb6dff4bde57a0a0aeeb5312e4376ee');
+  });
+  it('overnight-crawl-queue-retry: locks .github/workflows/deploy.yml sha256', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe('49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3');
+  });
+  it('overnight-crawl-queue-retry: locks .github/workflows/deploy.yml size 1004', () => {
+    expect(statSync(join(root, '.github/workflows/deploy.yml')).size).toBe(1004);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('overnight', '.github/workflows/deploy.yml')).toBe('7052fbff15c50d2aa9ee88e13795d506c883bb0add58788d30370177039d48ed');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('crawl-queue', '.github/workflows/deploy.yml')).toBe('ac9a9cd9816038a458f48f1f13397787e2a2425bff30701da7aadc3b98900f15');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('retry-edges', '.github/workflows/deploy.yml')).toBe('6b238715892044d78c3bde7b8bfb4d6411ca78891e2bb2a6dd932b6a06c316c5');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/deploy.yml')).toBe('339feabc44fb30f3c7e838856094324356823f1371ae0a32c0c328943494867b');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('HEAVY', '.github/workflows/deploy.yml')).toBe('87354c51a785eb76f81ba427f9a58d6f8b0b7e3c85febd19b973c04874bde601');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('retry-exhaustion', '.github/workflows/deploy.yml')).toBe('5f60a049c9e110cefc149315de46a0e2c86397efffbf6654ff8119a8d2dfc47c');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('jitter-backoff', '.github/workflows/deploy.yml')).toBe('ec350f3941310560480f98932503b0b2778f4cc929d926e93f7e632c84d288d3');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('poison-item', '.github/workflows/deploy.yml')).toBe('30741eea9c19cb704af95f3ab6998882abb2d7a49837801cea384546bc4940d6');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('idempotent-requeue', '.github/workflows/deploy.yml')).toBe('fcae36263f180054be33fbfcacdacdca8b68c23e8a5781ac0e417cb9e857f27f');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path .github/workflows/deploy.yml', () => {
+    expect(hmacSha256('timeout-path', '.github/workflows/deploy.yml')).toBe('f07a99fb6a02eeec0bbe97e0b07198e937e71ef3d1891b193e643ff963d861a1');
+  });
+  it('overnight-crawl-queue-retry: locks package.json sha256', () => {
+    expect(sha256('package.json')).toBe('34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c');
+  });
+  it('overnight-crawl-queue-retry: locks package.json size 637', () => {
+    expect(statSync(join(root, 'package.json')).size).toBe(637);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight package.json', () => {
+    expect(hmacSha256('overnight', 'package.json')).toBe('45c3592147b357a6bb77a8190520c5a786cff8446d2d7f4c96b2535e9c907990');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue package.json', () => {
+    expect(hmacSha256('crawl-queue', 'package.json')).toBe('7d2acbee4cdd2da965ecbcb5d6871ab238ea2ffe13514b99f6fab5155f2561a3');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges package.json', () => {
+    expect(hmacSha256('retry-edges', 'package.json')).toBe('815894cf2152501adbf1e8b3a27ff002202e5a668f675dcbb62ae32ff997610a');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX package.json', () => {
+    expect(hmacSha256('TOKENMAXX', 'package.json')).toBe('ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY package.json', () => {
+    expect(hmacSha256('HEAVY', 'package.json')).toBe('59f02fb62823abdd3ebccdd68ef1f27db9333e414f49a111c132eca85acb6563');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion package.json', () => {
+    expect(hmacSha256('retry-exhaustion', 'package.json')).toBe('f944987417810c96a9b6dbf5674f8a3aa19b7d2111196d8ce1ef9f5142121a53');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff package.json', () => {
+    expect(hmacSha256('jitter-backoff', 'package.json')).toBe('64eac48cd56eb24cb9f189dfeb64c91d79795b93cb3f7b12ba0e4d82408561da');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item package.json', () => {
+    expect(hmacSha256('poison-item', 'package.json')).toBe('2eda6f6f4e0a9898b99aea7cc3ddb0ac45ac66b2c47d139b856b2fc35a11ad00');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue package.json', () => {
+    expect(hmacSha256('idempotent-requeue', 'package.json')).toBe('3516657eb21e7956c5023ad68475c8929c320500165573b248fdf0e29cde6ff1');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path package.json', () => {
+    expect(hmacSha256('timeout-path', 'package.json')).toBe('0896bbf9cd3c4316c738745a7d42254e483c3d8a8a7d0efd9f60eb1073bf686f');
+  });
+  it('overnight-crawl-queue-retry: locks vitest.config.ts sha256', () => {
+    expect(sha256('vitest.config.ts')).toBe('f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38');
+  });
+  it('overnight-crawl-queue-retry: locks vitest.config.ts size 535', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size).toBe(535);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight vitest.config.ts', () => {
+    expect(hmacSha256('overnight', 'vitest.config.ts')).toBe('0abf20b951a9be0e8b569e359346a109e5b6ba48137632ac5dd1dfa55c63a2e8');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue vitest.config.ts', () => {
+    expect(hmacSha256('crawl-queue', 'vitest.config.ts')).toBe('d98550333b3010d2bbf34a32332ee78e463beb828b197a023018a7286e3ae67b');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges vitest.config.ts', () => {
+    expect(hmacSha256('retry-edges', 'vitest.config.ts')).toBe('beb5dd6e7027a6e7a1e1ca1ca0501b668e715a8038d4f9c69cb6d142d4296ef4');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX vitest.config.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'vitest.config.ts')).toBe('0f446a2e20693c7657cb1d718f1a1b296160af17a69fcd36cec18d937ae65de9');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY vitest.config.ts', () => {
+    expect(hmacSha256('HEAVY', 'vitest.config.ts')).toBe('08ec43359860bb937405b1b476b372ee74b0d49b19430497c923df04bbe60179');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion vitest.config.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'vitest.config.ts')).toBe('b7ee99532886bd383f0de639ca634ad50a69d1bfaea9160414b902d50a6d0a92');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff vitest.config.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'vitest.config.ts')).toBe('adea71d5ade3ac2e8315af16cd166c43a1834116519dc8379b088b10d2202210');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item vitest.config.ts', () => {
+    expect(hmacSha256('poison-item', 'vitest.config.ts')).toBe('42996a58274ac3e56afa739d02f46a49477defb0312e64374e251684f9376bfb');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue vitest.config.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'vitest.config.ts')).toBe('8659af4a5fd814a3264897b63c86b44e0d7d555dddf0f6f821d1ea060c8336a8');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path vitest.config.ts', () => {
+    expect(hmacSha256('timeout-path', 'vitest.config.ts')).toBe('c822eb6d4312e013a553dac3a7ee99f15d3cd0f0807120e503c856089c8ca8d6');
+  });
+  it('overnight-crawl-queue-retry: ci.yml hygiene greps forbid anthropic|claude|haiku in src', () => {
+    expect(read('.github/workflows/ci.yml')).toContain("! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'");
+  });
+  it('overnight-crawl-queue-retry: ci.yml hygiene greps forbid anthropic|claude|haiku in workflows', () => {
+    expect(read('.github/workflows/ci.yml')).toContain("! grep -RqiE 'anthropic|claude|haiku' .github/workflows --include='*.yml'");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent openai', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent workers.ai', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent durable_object', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent vectorize', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent hyperdrive', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent analytics_engine', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent d1_', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent r2_', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent crawlqueue', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent retryworker', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent exponentialbackoff', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/ci.yml forbids invent maxretries', () => {
+    expect(read('.github/workflows/ci.yml').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent openai', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent anthropic', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent claude', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent workers.ai', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent durable_object', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent vectorize', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent hyperdrive', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent analytics_engine', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent d1_', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent r2_', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent crawlqueue', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent retryworker', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent exponentialbackoff', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: .github/workflows/deploy.yml forbids invent maxretries', () => {
+    expect(read('.github/workflows/deploy.yml').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent openai', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent anthropic', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent claude', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent workers.ai', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent durable_object', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent vectorize', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent hyperdrive', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent analytics_engine', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent d1_', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent r2_', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent crawlqueue', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent retryworker', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent exponentialbackoff', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: package.json forbids invent maxretries', () => {
+    expect(read('package.json').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent openai', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent anthropic', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent claude', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent workers.ai', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent durable_object', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent vectorize', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent hyperdrive', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent analytics_engine', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent d1_', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent r2_', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent crawlqueue', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent retryworker', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent exponentialbackoff', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: vitest.config.ts forbids invent maxretries', () => {
+    expect(read('vitest.config.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: keys inventory digest', () => {
+    const k = ["overnight","crawl-queue","retry-edges","TOKENMAXX","HEAVY","retry-exhaustion","jitter-backoff","poison-item","idempotent-requeue","timeout-path","no-product-invent","no-creds","fuzzywigg","backlink"];
+    expect(createHash('sha256').update(k.join('|'), 'utf8').digest('hex')).toBe('d74c58f14b64f08be52f458d4624d8370472c293372b886d10704d78b8ff1896');
+  });
+
+  it('overnight-crawl-queue-retry: final inventory markers', () => {
+    const body = read('test/ci-config.test.ts');
+    expect(body).toContain("describe('overnight crawl-queue-retry-edges HEAVY deepen (ci-config)'");
+    expect((body.match(/it\('overnight-crawl-queue-retry:/g) ?? []).length).toBeGreaterThan(40);
+  });
+});

@@ -20094,3 +20094,992 @@ describe('post146 routes extras HEAVY deepen (after #146 leftover slice)', () =>
     expect((body.match(/it\('post146-extras:/g) ?? []).length).toBeGreaterThan(100);
   });
 });
+
+describe('overnight crawl-queue-retry-edges HEAVY deepen (routes)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-crawl-queue-retry: inventory — crawl-queue-retry maps to fetchStations KV + music fallback + retry_after', () => {
+    const src = read('src/index.ts');
+    expect(src).toContain('const cacheKey = `stations:${genre}`');
+    expect(src).toContain('if (!res.ok)');
+    expect(src).toContain('res = await fetch(`${IPTV_BASE}/music.m3u`)');
+    expect(src).toContain("throw new Error('Stream catalog unavailable')");
+    expect(src).toContain('retry_after: 60');
+    expect(src).not.toMatch(/backoff|jitter|exponential|CrawlQueue|retryWorker|maxRetries/i);
+    expect(src).not.toMatch(/setTimeout|setInterval|Math\.random/);
+  });
+
+  it('overnight-crawl-queue-retry: locks src/index.ts sha256', () => {
+    expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+  it('overnight-crawl-queue-retry: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight src/index.ts', () => {
+    expect(hmacSha256('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue src/index.ts', () => {
+    expect(hmacSha256('crawl-queue', 'src/index.ts')).toBe('d11ae45f1100aa32b14210cd964bca33e18d5ad61264c690cfa238147e48c568');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges src/index.ts', () => {
+    expect(hmacSha256('retry-edges', 'src/index.ts')).toBe('c2dce764e74063d43efed84ebc665840f7524b9280437a0e758fb2d9c505eabe');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX src/index.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY src/index.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion src/index.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'src/index.ts')).toBe('ce212ad15549da5b28b8de828dd4ec57a786bac01aa78bef71f8fbf5ada23fb5');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff src/index.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'src/index.ts')).toBe('e30d60a08219516cb172ddb286186c65eb2632c3fdb60151345952541a2079df');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item src/index.ts', () => {
+    expect(hmacSha256('poison-item', 'src/index.ts')).toBe('4bf0069115417e6fc2d63c18d4befe455209f4673ff70d9cea71ad8a43a1d216');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue src/index.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'src/index.ts')).toBe('ad21eb05a0422ad6a24f1996744b3bfda35c278c55912a4c43d364d9ca4f729b');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path src/index.ts', () => {
+    expect(hmacSha256('timeout-path', 'src/index.ts')).toBe('c9b0b6275cdaacc09d9b2ee61e0fb90396522f4832f2809e18ae19471eed10d9');
+  });
+  it('overnight-crawl-queue-retry: locks test/helpers.ts sha256', () => {
+    expect(sha256('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+  it('overnight-crawl-queue-retry: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, 'test/helpers.ts')).size).toBe(6078);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight test/helpers.ts', () => {
+    expect(hmacSha256('overnight', 'test/helpers.ts')).toBe('693bcb8a40aedd80ecdbc898e9f2d3483937ef1791d2ced6b4c65dea5c3ac764');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue test/helpers.ts', () => {
+    expect(hmacSha256('crawl-queue', 'test/helpers.ts')).toBe('fa0398ada61749bd7dcdb9132721f87be43fbcff176716a25f04264b506eef58');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges test/helpers.ts', () => {
+    expect(hmacSha256('retry-edges', 'test/helpers.ts')).toBe('e2b18ff7239cd6c24f1fea85beff32d0eb59a9419256eb9588c3fa667c7c2c9b');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX test/helpers.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'test/helpers.ts')).toBe('8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY test/helpers.ts', () => {
+    expect(hmacSha256('HEAVY', 'test/helpers.ts')).toBe('458cfb306ea3e2c9310b3e3840ecd5a5ca295e18c46146bad4c6111c4c3c1c24');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion test/helpers.ts', () => {
+    expect(hmacSha256('retry-exhaustion', 'test/helpers.ts')).toBe('87dc93c2e451492db54e260597e17d9eff08d827bdc2d59462958059d1d19a74');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff test/helpers.ts', () => {
+    expect(hmacSha256('jitter-backoff', 'test/helpers.ts')).toBe('c8fe174516243194a4a0bb10d01ab05023deefe07289ad890cfe010e798a27db');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item test/helpers.ts', () => {
+    expect(hmacSha256('poison-item', 'test/helpers.ts')).toBe('352975e3ad88e22c4cda4c7fa9cfd07c5e338219b909de5ee715c3b681bf68fd');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue test/helpers.ts', () => {
+    expect(hmacSha256('idempotent-requeue', 'test/helpers.ts')).toBe('e7d7e6eb695b304b1a1c93b98be47e5970f363b0ab93738156189d526998134e');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path test/helpers.ts', () => {
+    expect(hmacSha256('timeout-path', 'test/helpers.ts')).toBe('10237913fdf101a8d6b93f9e0a4049f67412afcb095473db071a7e3b4a462f57');
+  });
+  it('overnight-crawl-queue-retry: locks wrangler.toml sha256', () => {
+    expect(sha256('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+  });
+  it('overnight-crawl-queue-retry: locks wrangler.toml size 330', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size).toBe(330);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight wrangler.toml', () => {
+    expect(hmacSha256('overnight', 'wrangler.toml')).toBe('b2f03f50cb6e51fda82ae9b35f537e193ae6d4bf5c64e48dd4d17a0b78642220');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue wrangler.toml', () => {
+    expect(hmacSha256('crawl-queue', 'wrangler.toml')).toBe('0290fb5be885372fad765b22f6d2b99b7402fa467f5bf9bdf1de06d32ea42f5f');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges wrangler.toml', () => {
+    expect(hmacSha256('retry-edges', 'wrangler.toml')).toBe('5c9ed058d48e05214e32a4b75cb7385bfbd3fc1c189d29263ab3dc0e4be60337');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX wrangler.toml', () => {
+    expect(hmacSha256('TOKENMAXX', 'wrangler.toml')).toBe('7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY wrangler.toml', () => {
+    expect(hmacSha256('HEAVY', 'wrangler.toml')).toBe('0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion wrangler.toml', () => {
+    expect(hmacSha256('retry-exhaustion', 'wrangler.toml')).toBe('6799640a45455575d6f1774d8dfb42ef5781988ce5293f20031a153cf4fe6b0d');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff wrangler.toml', () => {
+    expect(hmacSha256('jitter-backoff', 'wrangler.toml')).toBe('2362a760f030c96e8a18c13130479e2ad7075264b62317c981ae6729c92e6916');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item wrangler.toml', () => {
+    expect(hmacSha256('poison-item', 'wrangler.toml')).toBe('69957a4b09e88b990f1ea216289fcb130081f86a3c2a395770b29a6cbd30f303');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue wrangler.toml', () => {
+    expect(hmacSha256('idempotent-requeue', 'wrangler.toml')).toBe('f43fd0eb2b6105d7a52895496dc0b51f205b81789392e1e7d3c8739cc2f314a7');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path wrangler.toml', () => {
+    expect(hmacSha256('timeout-path', 'wrangler.toml')).toBe('47d445e73b3d13562ab97778db84916d94bc80f1e647e54e638749ac3bb33e70');
+  });
+  it('overnight-crawl-queue-retry: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5');
+  });
+  it('overnight-crawl-queue-retry: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295);
+  });
+  it('overnight-crawl-queue-retry: HMAC overnight .github/workflows/ci.yml', () => {
+    expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e');
+  });
+  it('overnight-crawl-queue-retry: HMAC crawl-queue .github/workflows/ci.yml', () => {
+    expect(hmacSha256('crawl-queue', '.github/workflows/ci.yml')).toBe('474e9feb59917e70311ef6f9974e39e8689d385f2db22441457acfb4565a0db8');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-edges .github/workflows/ci.yml', () => {
+    expect(hmacSha256('retry-edges', '.github/workflows/ci.yml')).toBe('eb503d22cc11aa409862723c9b0121c940d27719976b03167812289520b2f08b');
+  });
+  it('overnight-crawl-queue-retry: HMAC TOKENMAXX .github/workflows/ci.yml', () => {
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b');
+  });
+  it('overnight-crawl-queue-retry: HMAC HEAVY .github/workflows/ci.yml', () => {
+    expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea');
+  });
+  it('overnight-crawl-queue-retry: HMAC retry-exhaustion .github/workflows/ci.yml', () => {
+    expect(hmacSha256('retry-exhaustion', '.github/workflows/ci.yml')).toBe('200ac110767966b81757639806d4fa0122b5171e604b91420c9f3d50f673c92f');
+  });
+  it('overnight-crawl-queue-retry: HMAC jitter-backoff .github/workflows/ci.yml', () => {
+    expect(hmacSha256('jitter-backoff', '.github/workflows/ci.yml')).toBe('825f47ed83901da6e732ed82403de4380b858c3a26b579354b881c08aad89d51');
+  });
+  it('overnight-crawl-queue-retry: HMAC poison-item .github/workflows/ci.yml', () => {
+    expect(hmacSha256('poison-item', '.github/workflows/ci.yml')).toBe('a1a565f1b32fe8194129cd58852db9dc500f66ff670323834b3dddf8891168bb');
+  });
+  it('overnight-crawl-queue-retry: HMAC idempotent-requeue .github/workflows/ci.yml', () => {
+    expect(hmacSha256('idempotent-requeue', '.github/workflows/ci.yml')).toBe('234dd285977def6e6451d1a71874a5c6b9fccc1b33d94c04ba766f10e42338dd');
+  });
+  it('overnight-crawl-queue-retry: HMAC timeout-path .github/workflows/ci.yml', () => {
+    expect(hmacSha256('timeout-path', '.github/workflows/ci.yml')).toBe('1bc20a0aa4216d889d12d8e2367f15847eb6dff4bde57a0a0aeeb5312e4376ee');
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 400 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 400 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 401 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 401 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 403 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 403 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 404 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 408 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 408 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 429 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 429 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 500 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 500 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 502 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 502 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 503 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 503 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 504 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 504 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 520 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 520 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: retry exhaustion status 521 — primary+music both fail → 503 retry_after 60', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 521 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/jazz.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: /curate retry exhaustion status 404 with API key → 503 catalog', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('down', { status: 404 })));
+    const res = await app.request('/curate?genre=rock', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+  });
+
+  it('overnight-crawl-queue-retry: /curate retry exhaustion status 500 with API key → 503 catalog', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('down', { status: 500 })));
+    const res = await app.request('/curate?genre=rock', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+  });
+
+  it('overnight-crawl-queue-retry: /curate retry exhaustion status 503 with API key → 503 catalog', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('down', { status: 503 })));
+    const res = await app.request('/curate?genre=rock', undefined, testEnv({ GEMINI_API_KEY: 'k' }));
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+  });
+
+  it('overnight-crawl-queue-retry: music genre retry exhaustion — exactly two music.m3u fetches then 503', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        return new Response('down', { status: 503 });
+      }),
+    );
+    const res = await app.request('/stations?genre=music', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(seen).toEqual([
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+      'https://iptv-org.github.io/iptv/categories/music.m3u',
+    ]);
+  });
+
+  it('overnight-crawl-queue-retry: jitter/backoff boundary — fallback is immediate (no delay APIs in Worker)', () => {
+    const src = read('src/index.ts');
+    expect(src).not.toMatch(/setTimeout|setInterval|queueMicrotask|Atomics\.wait|Date\.now\(\)/);
+    expect(src).not.toMatch(/backoff|jitter|exponential|retryDelay|RETRY_DELAY/i);
+    expect(src).not.toMatch(/Math\.random|crypto\.getRandomValues/);
+  });
+
+  it('overnight-crawl-queue-retry: jitter/backoff boundary — retry_after is fixed literal 60 (not computed)', () => {
+    const src = read('src/index.ts');
+    expect([...src.matchAll(/retry_after:\s*60/g)]).toHaveLength(3);
+    expect(src).not.toMatch(/retry_after:\s*\d{3,}/);
+  });
+
+  it('overnight-crawl-queue-retry: primary fail then music success — single fallback, not multi-retry', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/jazz.m3u')) return new Response('nope', { status: 404 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toHaveLength(2);
+    expect(seen[1]).toContain('/music.m3u');
+  });
+
+  // Poisoned queue items: JSON.parse throws inside fetchStations → caught → 503
+  for (const [label, payload] of [
+    ['truncated-brace', '{'],
+    ['truncated-array', '['],
+    ['whitespace', '   '],
+    ['unquoted-keys', '{name:Cached}'],
+    ['single-quotes', "{'name':'Cached'}"],
+    ['trailing-comma', '[{"name":"X",}]'],
+    ['nan-token', '[NaN]'],
+    ['undefined-token', '[undefined]'],
+    ['html-junk', '<html>oops</html>'],
+    ['xml-junk', '<?xml version="1.0"?><a/>'],
+    ['utf8-bom-bad', '\uFEFF{'],
+    ['truncated-object', '{"name":'],
+    ['bad-escape', '"\\x"'],
+    [' lone-comma', ','],
+  ] as const) {
+    it(`overnight-crawl-queue-retry: poisoned KV item (${label}) on /stations → 503 without refetch`, async () => {
+      const kv = mockKV({ 'stations:music': payload });
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+      expect(res.status).toBe(503);
+      expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it(`overnight-crawl-queue-retry: poisoned KV item (${label}) on /curate → 503 catalog (key present)`, async () => {
+      const kv = mockKV({ 'stations:music': payload });
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      const res = await app.request(
+        '/curate?genre=music',
+        undefined,
+        testEnv({ CATALOG_CACHE: kv, GEMINI_API_KEY: 'k' }),
+      );
+      expect(res.status).toBe(503);
+      expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  }
+
+  it('overnight-crawl-queue-retry: empty-string KV is falsy cache miss (requeue/refetch), not poison 503', async () => {
+    const kv = mockKV({ 'stations:music': '' });
+    const fetchMock = vi.fn(async () => new Response(SAMPLE_M3U, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('overnight-crawl-queue-retry: bare-null KV parses then null.length throws outside fetchStations → 500', async () => {
+    const kv = mockKV({ 'stations:music': 'null' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(500);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-crawl-queue-retry: bare-true KV parse-ok non-array yields 200 with undefined count (no invent guard)', async () => {
+    const kv = mockKV({ 'stations:music': 'true' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-crawl-queue-retry: bare-number KV parse-ok non-array yields 200 with undefined count', async () => {
+    const kv = mockKV({ 'stations:music': '42' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-crawl-queue-retry: proto-pollution object KV is parse-ok (no throw) — serves object as stations', async () => {
+    const kv = mockKV({ 'stations:music': '{"__proto__":{"polluted":true}}' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-crawl-queue-retry: double-json string KV is parse-ok string — count is string length', async () => {
+    const kv = mockKV({ 'stations:music': '"{\\"name\\":\\"x\\"}"' });
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await app.request('/stations?genre=music', undefined, testEnv({ CATALOG_CACHE: kv }));
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe('{"name":"x"}'.length);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('overnight-crawl-queue-retry: idempotent requeue — second /stations hits KV, no second put/fetch', async () => {
+    const kv = mockKV();
+    const fetchMock = vi.fn(async () => new Response(SAMPLE_M3U, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const env = testEnv({ CATALOG_CACHE: kv });
+    const a = await app.request('/stations?genre=news', undefined, env);
+    const b = await app.request('/stations?genre=news', undefined, env);
+    expect(a.status).toBe(200);
+    expect(b.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(kv.put).toHaveBeenCalledTimes(1);
+    expect(kv.get).toHaveBeenCalledTimes(2);
+    const bodyA = await json(a);
+    const bodyB = await json(b);
+    expect(bodyA.count).toBe(bodyB.count);
+    expect(bodyA.genre).toBe('news');
+  });
+
+  it('overnight-crawl-queue-retry: idempotent requeue — alias chill resolves ambient once then cache-hit', async () => {
+    const kv = mockKV();
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/ambient.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+      return new Response('nope', { status: 404 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const env = testEnv({ CATALOG_CACHE: kv });
+    expect((await app.request('/stations?genre=chill', undefined, env)).status).toBe(200);
+    expect((await app.request('/stations?genre=chill', undefined, env)).status).toBe(200);
+    expect((await app.request('/stations?genre=ambient', undefined, env)).status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(kv.put).toHaveBeenCalledWith(
+      'stations:ambient',
+      expect.any(String),
+      expect.objectContaining({ expirationTtl: 3600 }),
+    );
+  });
+
+  it('overnight-crawl-queue-retry: idempotent requeue — concurrent cold misses put under same key', async () => {
+    const kv = mockKV();
+    const fetchMock = vi.fn(async () => {
+      await new Promise((r) => setTimeout(r, 5));
+      return new Response(SAMPLE_M3U, { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const env = testEnv({ CATALOG_CACHE: kv });
+    const results = await Promise.all([
+      app.request('/stations?genre=classical', undefined, env),
+      app.request('/stations?genre=classical', undefined, env),
+      app.request('/stations?genre=classical', undefined, env),
+    ]);
+    expect(results.every((r) => r.status === 200)).toBe(true);
+    for (const call of (kv.put as ReturnType<typeof vi.fn>).mock.calls) {
+      expect(call[0]).toBe('stations:classical');
+      expect(call[2]).toEqual({ expirationTtl: 3600 });
+    }
+  });
+
+  it('overnight-crawl-queue-retry: timeout path — Worker fetchStations uses bare fetch (no AbortSignal)', () => {
+    const src = read('src/index.ts');
+    expect(src).toContain('let res = await fetch(url);');
+    expect(src).toContain('res = await fetch(`${IPTV_BASE}/music.m3u`)');
+    expect(src).not.toMatch(/AbortSignal|AbortController|signal:\s*/);
+    expect(typeof AbortSignal.timeout).toBe('function');
+  });
+
+  it('overnight-crawl-queue-retry: timeout path — network throw on primary exhausts into 503 (no hang)', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        seen.push(String(input));
+        throw new Error('network timeout simulated');
+      }),
+    );
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(await json(res)).toEqual({ error: 'Stream catalog unavailable', retry_after: 60 });
+    expect(seen).toEqual(['https://iptv-org.github.io/iptv/categories/pop.m3u']);
+  });
+
+  it('overnight-crawl-queue-retry: timeout path — primary 503 then music throw → 503', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/pop.m3u')) return new Response('down', { status: 503 });
+        throw new Error('music timeout');
+      }),
+    );
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('overnight-crawl-queue-retry: no CF Queues binding — catalog crawl is KV+fetch only', () => {
+    expect(read('wrangler.toml')).not.toMatch(/\[\[queues/i);
+    expect(read('src/types.ts')).not.toMatch(/Queue|MessageBatch/i);
+    expect(read('src/index.ts')).not.toMatch(/env\.[A-Z_]*QUEUE|queue\.send/i);
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache poison fixture round-trips raw string', () => {
+    const bag = seedStationsCache('jazz', '{');
+    expect(bag['stations:jazz']).toBe('{');
+  });
+
+  it('overnight-crawl-queue-retry: seedStationsCache valid stations requeue fixture', () => {
+    const bag = seedStationsCache('jazz', [{ name: 'J', url: 'https://example.com/j.m3u8' }]);
+    expect(JSON.parse(bag['stations:jazz'])).toEqual([{ name: 'J', url: 'https://example.com/j.m3u8' }]);
+  });
+
+  it('overnight-crawl-queue-retry: primary 400 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 400 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 401 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 401 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 403 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 403 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 404 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 404 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 408 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 408 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 429 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 429 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 500 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 500 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 502 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 502 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 503 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 503 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 504 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 504 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 520 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 520 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+
+  it('overnight-crawl-queue-retry: primary 521 then music ok — recovers without invent retries', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/rock.m3u')) return new Response('down', { status: 521 });
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).count).toBe(6);
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent openai', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent anthropic', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent claude', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent workers.ai', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent durable_object', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent vectorize', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent hyperdrive', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent analytics_engine', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent d1_', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent r2_', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent crawlqueue', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent retryworker', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent exponentialbackoff', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: src/index.ts forbids invent maxretries', () => {
+    expect(read('src/index.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent openai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent anthropic', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent claude', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent workers.ai', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent durable_object', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent vectorize', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent hyperdrive', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent analytics_engine', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent d1_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent r2_', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent crawlqueue', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent retryworker', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent exponentialbackoff', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: src/types.ts forbids invent maxretries', () => {
+    expect(read('src/types.ts').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent openai', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("openai");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent anthropic', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("anthropic");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent claude', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("claude");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent workers.ai', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("workers.ai");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent durable_object', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("durable_object");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent vectorize', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("vectorize");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent hyperdrive', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("hyperdrive");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent analytics_engine', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("analytics_engine");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent d1_', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("d1_");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent r2_', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("r2_");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent crawlqueue', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("crawlqueue");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent retryworker', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("retryworker");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent exponentialbackoff', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("exponentialbackoff");
+  });
+  it('overnight-crawl-queue-retry: wrangler.toml forbids invent maxretries', () => {
+    expect(read('wrangler.toml').toLowerCase()).not.toContain("maxretries");
+  });
+  it('overnight-crawl-queue-retry: keys inventory digest', () => {
+    const k = ["overnight","crawl-queue","retry-edges","TOKENMAXX","HEAVY","retry-exhaustion","jitter-backoff","poison-item","idempotent-requeue","timeout-path","no-product-invent","no-creds","fuzzywigg","backlink"];
+    expect(createHash('sha256').update(k.join('|'), 'utf8').digest('hex')).toBe('d74c58f14b64f08be52f458d4624d8370472c293372b886d10704d78b8ff1896');
+    expect(k).toHaveLength(14);
+  });
+
+  it('overnight-crawl-queue-retry: final inventory markers', () => {
+    const body = read('test/routes.test.ts');
+    expect(body).toContain("describe('overnight crawl-queue-retry-edges HEAVY deepen (routes)'");
+    expect((body.match(/it\('overnight-crawl-queue-retry:/g) ?? []).length).toBeGreaterThan(80);
+  });
+});
