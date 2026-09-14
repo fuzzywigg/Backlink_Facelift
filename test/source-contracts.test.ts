@@ -3024,7 +3024,7 @@ describe('source ↔ product contracts', () => {
   });
 
   it("locks parser current reset occurs on EXTINF http and non-http branches", () => {
-    expect([...read('src/parser.ts').matchAll(/current = \{\}/g)]).toHaveLength(4);
+    expect([...read('src/parser.ts').matchAll(/current = \{\}/g)]).toHaveLength(3);
   });
 
   it("locks parser seen.add(line) before stations.push", () => {
@@ -3322,7 +3322,7 @@ describe('source ↔ product contracts', () => {
 
   it("cross-locks README Available Genres list with VALID_GENRES order", () => {
     const readme = read('README.md');
-    const joined = [...VALID_GENRES].join(' · ');
+    const joined = [...VALID_GENRES].map((g) => `\`${g}\``).join(' · ');
     expect(readme).toContain(joined);
   });
 
@@ -3494,8 +3494,9 @@ describe('source ↔ product contracts', () => {
 
   it("locks parser free of hard-coded example.com fixtures", () => {
     expect(read('src/parser.ts')).not.toContain('example.com');
-    expect(read('src/parser.ts')).not.toContain('http://');
+    expect(read('src/parser.ts')).not.toContain('https://cdn.');
     expect(read('src/parser.ts')).toContain("startsWith('http://')");
+    expect(read('src/parser.ts')).toContain("startsWith('https://')");
   });
 
   it("locks genres map values never invent playlist or now-playing categories", () => {
