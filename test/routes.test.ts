@@ -19340,12 +19340,10 @@ describe('overnight link-audit-pipeline HEAVY deepen (routes)', () => {
   it('overnight-link-audit: concurrent audit workers — 12 parallel /stations cold misses', async () => {
     vi.stubGlobal('fetch', stubIptvAndGemini({ m3u: SAMPLE_M3U }));
     const results = await Promise.all(
-      Array.from({ length: 12 }, () =>
-        app.request('/stations?genre=music', undefined, testEnv()).then(async (r) => ({
-          status: r.status,
-          count: (await json(r)).count,
-        })),
-      ),
+      Array.from({ length: 12 }, async () => {
+        const r = await app.request('/stations?genre=music', undefined, testEnv());
+        return { status: r.status, count: (await json(r)).count };
+      }),
     );
     expect(results.every((r) => r.status === 200 && r.count === 6)).toBe(true);
   });
