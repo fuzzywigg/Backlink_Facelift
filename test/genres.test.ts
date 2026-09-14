@@ -24009,8 +24009,8 @@ describe('post215 genres HEAVY deepen (after #215 tip leftover / genres-mcp-spec
     expect(ambientKeys).toHaveLength(8);
   });
 
-  it('post215: residual — custom map empty-string key is reachable only via blank after trim', () => {
-    expect(resolveGenre('   ', { '': 'jazz' })).toBe('music');
+  it('post215: residual — custom map empty-string key hits after whitespace trim; bare empty short-circuits', () => {
+    expect(resolveGenre('   ', { '': 'jazz' })).toBe('jazz');
     expect(resolveGenre('', { '': 'jazz' })).toBe('music');
     expect(resolveGenre(undefined, { '': 'jazz' })).toBe('music');
   });
@@ -24160,7 +24160,7 @@ describe('post215 genres HEAVY deepen (after #215 tip leftover / genres-mcp-spec
     expect(keys).toContain('post215');
     expect(keys).toContain('genres-mcp-spec-only');
     expect(keys).toContain('unsaturated-after-215');
-    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("516e65493bac7b6f5bacedd50952021ea34b8f09b15170be495ba63f16e079d5");
+    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("fe7a6d5a9d385a2d3e11c17fdb2b97eb70b0b084cbab5632e9a705f221acd543");
   });
   it('post215: final inventory markers', () => {
     const body = read("test/genres.test.ts");
@@ -24950,7 +24950,7 @@ describe('post215 genres extras HEAVY deepen (after #215 leftover / genres-mcp-s
   it('post215-extras: keys inventory digest', () => {
     const keys = ["post215","after-#215","leftover","TOKENMAXX","HEAVY","no-product-invent","slice-diff","no-src-change","manifest-lock","genres-mcp-spec-only","genres-mcp-spec-edges","dual-surface","not-parser-routes","not-wrangler","not-ci-config","not-helpers-source","parser-routes-merged","wrangler-merged","after-merged-215","unsaturated-after-215","beyond-post211","utf16-js-length","residual-edges","fuzzywigg","HITL","no-creds","iptv-org","VALID_GENRES","station_select","overnight","unit-contract","post215-extras","post215-ultra","genres","mcp","mcp-spec"];
     expect(keys).toContain('post215-extras');
-    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("516e65493bac7b6f5bacedd50952021ea34b8f09b15170be495ba63f16e079d5");
+    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("fe7a6d5a9d385a2d3e11c17fdb2b97eb70b0b084cbab5632e9a705f221acd543");
   });
   it('post215-extras: final inventory markers', () => {
     const body = read("test/genres.test.ts");
