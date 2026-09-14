@@ -20094,3 +20094,1437 @@ describe('post146 routes extras HEAVY deepen (after #146 leftover slice)', () =>
     expect((body.match(/it\('post146-extras:/g) ?? []).length).toBeGreaterThan(100);
   });
 });
+
+describe('overnight redirect-chain unit HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256File = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1File = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5File = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384File = (rel: string) =>
+    createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512File = (rel: string) =>
+    createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3File = (rel: string) =>
+    createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2bFile = (rel: string) =>
+    createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemdFile = (rel: string) =>
+    createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256File = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+  const IPTV = 'https://iptv-org.github.io/iptv/categories';
+  const PRIMARY_PLUS_MUSIC = (genre: string) =>
+    [`${IPTV}/${genre}.m3u`, `${IPTV}/music.m3u`] as const;
+
+  /** 204/304 (and friends) must use a null body under undici/Fetch. */
+  function redirectResponse(status: number, headers: Record<string, string> = {}): Response {
+    const nullBody = status === 204 || status === 205 || status === 304;
+    return new Response(nullBody ? null : 'redir', { status, headers });
+  }
+
+  /** Mock that returns 3xx+Location for primary genre; never serves Location targets. */
+  function mockPrimaryRedirect(opts: {
+    genre: string;
+    status: number;
+    location?: string;
+    musicStatus?: number;
+    musicBody?: string;
+    musicLocation?: string;
+  }) {
+    const seen: string[] = [];
+    const fn = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      seen.push(url);
+      if (url.endsWith(`/${opts.genre}.m3u`)) {
+        const headers: Record<string, string> = {};
+        if (opts.location !== undefined) headers.Location = opts.location;
+        return redirectResponse(opts.status, headers);
+      }
+      if (url.endsWith('/music.m3u')) {
+        const status = opts.musicStatus ?? 200;
+        const headers: Record<string, string> = {};
+        if (opts.musicLocation !== undefined) headers.Location = opts.musicLocation;
+        if (status >= 200 && status < 300) {
+          return new Response(opts.musicBody ?? SAMPLE_M3U, { status, headers });
+        }
+        return redirectResponse(status, headers);
+      }
+      // Any Location chase would land here — must never be requested.
+      return new Response('unexpected-hop', { status: 599 });
+    });
+    vi.stubGlobal('fetch', fn);
+    return { seen, fn };
+  }
+
+  it('redirect-chain: fetchStations has no Location header reads', () => {
+    const src = read('src/index.ts');
+    expect(src).not.toMatch(/Location/i);
+    expect(src).not.toMatch(/redirect/i);
+    expect(src).not.toMatch(/follow/i);
+    expect(src).not.toMatch(/maxHops|max_hops|hopLimit|hop_limit/i);
+    expect(src).toContain('if (!res.ok)');
+    expect(src).toContain("${IPTV_BASE}/${genre}.m3u");
+    expect(src).toContain("${IPTV_BASE}/music.m3u");
+  });
+
+  it('redirect-chain: fetch is called without redirect init options', () => {
+    const src = read('src/index.ts');
+    expect(src).toMatch(/await fetch\(url\)/);
+    expect(src).not.toMatch(/redirect:\s*['"]manual['"]/);
+    expect(src).not.toMatch(/redirect:\s*['"]follow['"]/);
+    expect(src).not.toMatch(/redirect:\s*['"]error['"]/);
+  });
+
+  it('redirect-chain: locks src/index.ts sha256', () => {
+    expect(sha256File('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+  it('redirect-chain: locks src/index.ts sha1', () => {
+    expect(sha1File('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b');
+  });
+  it('redirect-chain: locks src/index.ts md5', () => {
+    expect(md5File('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177');
+  });
+  it('redirect-chain: locks src/index.ts sha384', () => {
+    expect(sha384File('src/index.ts')).toBe('1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65');
+  });
+  it('redirect-chain: locks src/index.ts sha512', () => {
+    expect(sha512File('src/index.ts')).toBe('28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3');
+  });
+  it('redirect-chain: locks src/index.ts sha3-256', () => {
+    expect(sha3File('src/index.ts')).toBe('437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b');
+  });
+  it('redirect-chain: locks src/index.ts blake2b512', () => {
+    expect(blake2bFile('src/index.ts')).toBe('17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace');
+  });
+  it('redirect-chain: locks src/index.ts ripemd160', () => {
+    expect(ripemdFile('src/index.ts')).toBe('a8ea25913b26da27277f866fc7988fdcdf281093');
+  });
+  it('redirect-chain: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, 'src/index.ts')).size).toBe(4738);
+    expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738);
+  });
+  it('redirect-chain: locks src/index.ts utf8/lines', () => {
+    expect(read('src/index.ts')).toHaveLength(4724);
+    expect(read('src/index.ts').split('\n')).toHaveLength(154);
+  });
+  it('redirect-chain: locks src/index.ts nibble 470 xor 14', () => {
+    const d = sha256File('src/index.ts');
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+  it('redirect-chain: locks src/index.ts pairSum 4265 rollingXor 151', () => {
+    const d = sha256File('src/index.ts');
+    expect(pairSum(d)).toBe(4265);
+    expect(rollingXor(d)).toBe(151);
+  });
+  it('redirect-chain: locks src/index.ts first/last/mid octets', () => {
+    const d = sha256File('src/index.ts');
+    expect(d.slice(0, 2)).toBe('7f');
+    expect(d.slice(-2)).toBe('72');
+    expect(d.slice(28, 36)).toBe('e2a20389');
+  });
+  it('redirect-chain: HMAC redirect-chain locks src/index.ts', () => {
+    expect(hmacSha256File('redirect-chain', 'src/index.ts')).toBe('ababc20c49c5614ad27b0b68d69ecbf37dc07acd8cf965446ab4b0a4f3753311');
+  });
+  it('redirect-chain: HMAC overnight locks src/index.ts', () => {
+    expect(hmacSha256File('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+  });
+  it('redirect-chain: HMAC TOKENMAXX locks src/index.ts', () => {
+    expect(hmacSha256File('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+  });
+  it('redirect-chain: HMAC HEAVY locks src/index.ts', () => {
+    expect(hmacSha256File('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+  });
+  it('redirect-chain: HMAC no-product-invent locks src/index.ts', () => {
+    expect(hmacSha256File('no-product-invent', 'src/index.ts')).toBe('49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a');
+  });
+  it('redirect-chain: HMAC max-hop locks src/index.ts', () => {
+    expect(hmacSha256File('max-hop', 'src/index.ts')).toBe('b8f6ddac2a58b8a75425287b3f0b00e52318d49937b8b7fcde1f1a8e91519e0f');
+  });
+  it('redirect-chain: HMAC cyclic locks src/index.ts', () => {
+    expect(hmacSha256File('cyclic', 'src/index.ts')).toBe('4148e2bc2d595c5c3af1e82166f23f3323321430d74a77b263a25ce99474bf02');
+  });
+  it('redirect-chain: HMAC leftover locks src/index.ts', () => {
+    expect(hmacSha256File('leftover', 'src/index.ts')).toBe('268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be');
+  });
+  it('redirect-chain: HMAC after-redirect locks src/index.ts', () => {
+    expect(hmacSha256File('after-redirect', 'src/index.ts')).toBe('00fd7939e7a87e85d074b9808859c6b341495f5e45856686c8367e17e4cf75b8');
+  });
+  it('redirect-chain: HMAC absolute-relative locks src/index.ts', () => {
+    expect(hmacSha256File('absolute-relative', 'src/index.ts')).toBe('7c9f77d28273999ba1343c3161bb67d12d39e6d0baff4c7a49b086e77e43e416');
+  });
+  it('redirect-chain: HMAC 3xx-variants locks src/index.ts', () => {
+    expect(hmacSha256File('3xx-variants', 'src/index.ts')).toBe('a73e5336b7f00e6fb16eca3ae3bb41f1d624bb7bd312245d792e4437ed08269b');
+  });
+  it('redirect-chain: HMAC hop-limit locks src/index.ts', () => {
+    expect(hmacSha256File('hop-limit', 'src/index.ts')).toBe('4fec54e24fe9353cfaf0521352855a534b2b41eff2ec28505f5d396bf10d82b9');
+  });
+  it('redirect-chain: locks src/index.ts spaces count', () => {
+    expect((read('src/index.ts').match(/ /g) ?? []).length).toBe(761);
+  });
+  it('redirect-chain: locks src/index.ts UPPERCASE sha256', () => {
+    expect(sha256File('src/index.ts').toUpperCase()).toBe('7F0D574B0AEDC6CD71D3EA35BB03E2A20389028E6FF2C195718ACFF2E0313A72');
+  });
+  it('redirect-chain: locks src/index.ts reversed sha256', () => {
+    const rev = [...read('src/index.ts')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('457830430075a6d1dc4b28436b3c145eb42a640d91301599ca2792fb58433ead');
+  });
+  it('redirect-chain: locks src/index.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read('src/index.ts').split('\n')[0]).digest('hex')).toBe('d8233fd79765534121de12d18bc3b54a6968d1868428cf5d52175e9a620cf6d4');
+  });
+  it('redirect-chain: mega purity 20x index.ts sha256', () => {
+    const expected = '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72';
+    for (let i = 0; i < 20; i++) expect(sha256File('src/index.ts')).toBe(expected);
+  });
+
+  it.each([301,302,307,308] as const)(
+    'redirect-chain: coded 3xx %i on /stations falls back to music (max 2 hops)',
+    async (status) => {
+      const genre = 'rock';
+      const { seen } = mockPrimaryRedirect({ genre, status, location: 'https://evil.example/x.m3u' });
+      const res = await app.request(`/stations?genre=${genre}`, undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect((await json(res)).count).toBe(6);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      expect(seen).toHaveLength(2);
+      expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+    },
+  );
+
+  it.each([300,301,302,303,304,305,306,307,308] as const)(
+    'redirect-chain: HTTP %i primary on /stations → music fallback, no Location chase',
+    async (status) => {
+      const genre = 'jazz';
+      const { seen } = mockPrimaryRedirect({
+        genre,
+        status,
+        location: 'https://hop.example/1.m3u',
+      });
+      const res = await app.request(`/stations?genre=${genre}`, undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      expect(seen).toHaveLength(2);
+    },
+  );
+
+  it.each([300,301,302,303,304,305,306,307,308] as const)(
+    'redirect-chain: HTTP %i primary on /curate → music fallback then Gemini',
+    async (status) => {
+      const genre = 'news';
+      const seen: string[] = [];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: RequestInfo | URL) => {
+          const url = String(input);
+          seen.push(url);
+          if (url.endsWith('/news.m3u')) {
+            return redirectResponse(status, { Location: 'https://evil.example/steal.m3u'  });
+          }
+          if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+          if (url.includes('generativelanguage')) {
+            return geminiTextResponse(
+              '[{"name":"Alpha FM","url":"https://example.com/alpha.m3u8","editorial":"e","genre":"news"}]',
+            );
+          }
+          return new Response('nope', { status: 404 });
+        }),
+      );
+      const res = await app.request(
+        '/curate?genre=news',
+        undefined,
+        testEnv({ GEMINI_API_KEY: 'k' }),
+      );
+      expect(res.status).toBe(200);
+      expect(seen[0]).toBe(`${IPTV}/news.m3u`);
+      expect(seen[1]).toBe(`${IPTV}/music.m3u`);
+      expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+      expect(seen.some((u) => u.includes('generativelanguage'))).toBe(true);
+    },
+  );
+
+  it('redirect-chain: 301 absolute Location https_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "https://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 301 absolute Location https_iptv_org_github_io_iptv_categories never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "https://iptv-org.github.io/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 301 absolute Location http_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "http://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 301 absolute Location https_cdn_example_a_b_c_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "https://cdn.example/a/b/c.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 302 absolute Location https_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "https://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 302 absolute Location https_iptv_org_github_io_iptv_categories never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "https://iptv-org.github.io/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 302 absolute Location http_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "http://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 302 absolute Location https_cdn_example_a_b_c_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "https://cdn.example/a/b/c.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 307 absolute Location https_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "https://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 307 absolute Location https_iptv_org_github_io_iptv_categories never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "https://iptv-org.github.io/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 307 absolute Location http_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "http://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 307 absolute Location https_cdn_example_a_b_c_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "https://cdn.example/a/b/c.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 308 absolute Location https_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "https://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 308 absolute Location https_iptv_org_github_io_iptv_categories never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "https://iptv-org.github.io/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 308 absolute Location http_evil_example_steal_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "http://evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 308 absolute Location https_cdn_example_a_b_c_m3u never followed', async () => {
+    const genre = 'pop';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "https://cdn.example/a/b/c.m3u" });
+    const res = await app.request('/stations?genre=pop', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+    expect(seen.every((u) => u.startsWith(IPTV + '/'))).toBe(true);
+  });
+  it('redirect-chain: 301 relative Location _iptv_categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "../categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "./music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _evil_example_steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "//evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _redir_1 never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "?redir=1" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _fragment never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "#fragment" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location categories_jazz_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "categories/jazz.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 301 relative Location _steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 301, location: "/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _iptv_categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "../categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "./music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _evil_example_steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "//evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _redir_1 never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "?redir=1" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _fragment never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "#fragment" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location categories_jazz_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "categories/jazz.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 302 relative Location _steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 302, location: "/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _iptv_categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "../categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "./music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _evil_example_steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "//evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _redir_1 never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "?redir=1" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _fragment never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "#fragment" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location categories_jazz_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "categories/jazz.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 307 relative Location _steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 307, location: "/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _iptv_categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "/iptv/categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _categories_music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "../categories/music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "./music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location music_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "music.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _evil_example_steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "//evil.example/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _redir_1 never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "?redir=1" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _fragment never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "#fragment" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location categories_jazz_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "categories/jazz.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it('redirect-chain: 308 relative Location _steal_m3u never followed', async () => {
+    const genre = 'classical';
+    const { seen } = mockPrimaryRedirect({ genre, status: 308, location: "/steal.m3u" });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    expect(seen).toHaveLength(2);
+  });
+  it.each([
+    { status: 300 as const, location: "https://evil.example/steal.m3u" },
+    { status: 300 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 300 as const, location: "/iptv/categories/music.m3u" },
+    { status: 300 as const, location: "../categories/music.m3u" },
+    { status: 300 as const, location: "./music.m3u" },
+    { status: 300 as const, location: "music.m3u" },
+    { status: 301 as const, location: "https://evil.example/steal.m3u" },
+    { status: 301 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 301 as const, location: "/iptv/categories/music.m3u" },
+    { status: 301 as const, location: "../categories/music.m3u" },
+    { status: 301 as const, location: "./music.m3u" },
+    { status: 301 as const, location: "music.m3u" },
+    { status: 302 as const, location: "https://evil.example/steal.m3u" },
+    { status: 302 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 302 as const, location: "/iptv/categories/music.m3u" },
+    { status: 302 as const, location: "../categories/music.m3u" },
+    { status: 302 as const, location: "./music.m3u" },
+    { status: 302 as const, location: "music.m3u" },
+    { status: 303 as const, location: "https://evil.example/steal.m3u" },
+    { status: 303 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 303 as const, location: "/iptv/categories/music.m3u" },
+    { status: 303 as const, location: "../categories/music.m3u" },
+    { status: 303 as const, location: "./music.m3u" },
+    { status: 303 as const, location: "music.m3u" },
+    { status: 304 as const, location: "https://evil.example/steal.m3u" },
+    { status: 304 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 304 as const, location: "/iptv/categories/music.m3u" },
+    { status: 304 as const, location: "../categories/music.m3u" },
+    { status: 304 as const, location: "./music.m3u" },
+    { status: 304 as const, location: "music.m3u" },
+    { status: 305 as const, location: "https://evil.example/steal.m3u" },
+    { status: 305 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 305 as const, location: "/iptv/categories/music.m3u" },
+    { status: 305 as const, location: "../categories/music.m3u" },
+    { status: 305 as const, location: "./music.m3u" },
+    { status: 305 as const, location: "music.m3u" },
+    { status: 306 as const, location: "https://evil.example/steal.m3u" },
+    { status: 306 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 306 as const, location: "/iptv/categories/music.m3u" },
+    { status: 306 as const, location: "../categories/music.m3u" },
+    { status: 306 as const, location: "./music.m3u" },
+    { status: 306 as const, location: "music.m3u" },
+    { status: 307 as const, location: "https://evil.example/steal.m3u" },
+    { status: 307 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 307 as const, location: "/iptv/categories/music.m3u" },
+    { status: 307 as const, location: "../categories/music.m3u" },
+    { status: 307 as const, location: "./music.m3u" },
+    { status: 307 as const, location: "music.m3u" },
+    { status: 308 as const, location: "https://evil.example/steal.m3u" },
+    { status: 308 as const, location: "https://iptv-org.github.io/iptv/categories/music.m3u" },
+    { status: 308 as const, location: "/iptv/categories/music.m3u" },
+    { status: 308 as const, location: "../categories/music.m3u" },
+    { status: 308 as const, location: "./music.m3u" },
+    { status: 308 as const, location: "music.m3u" },
+  ])('redirect-chain: mixed target status=$status location=$location max-hop=2', async ({ status, location }) => {
+    const genre = 'ambient';
+    const { seen } = mockPrimaryRedirect({ genre, status, location });
+    const res = await app.request('/stations?genre=ambient', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toHaveLength(2);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+  });
+
+  it.each([301,302,307,308] as const)(
+    'redirect-chain: cyclic A→B→A Location on %i never chased (max-hop 2)',
+    async (status) => {
+      const genre = 'rock';
+      const hopA = 'https://cycle.example/a.m3u';
+      const hopB = 'https://cycle.example/b.m3u';
+      const seen: string[] = [];
+      let primaryHits = 0;
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: RequestInfo | URL) => {
+          const url = String(input);
+          seen.push(url);
+          if (url.endsWith('/rock.m3u')) {
+            primaryHits += 1;
+            return redirectResponse(status, { Location: hopA  });
+          }
+          if (url === hopA) {
+            return redirectResponse(status, { Location: hopB  });
+          }
+          if (url === hopB) {
+            return redirectResponse(status, { Location: hopA  });
+          }
+          if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+          return new Response('nope', { status: 404 });
+        }),
+      );
+      const res = await app.request('/stations?genre=rock', undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(primaryHits).toBe(1);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      expect(seen).toHaveLength(2);
+      expect(seen.includes(hopA)).toBe(false);
+      expect(seen.includes(hopB)).toBe(false);
+    },
+  );
+
+  it.each([300,301,302,303,304,305,306,307,308] as const)(
+    'redirect-chain: self-cyclic Location on %i never re-fetches primary',
+    async (status) => {
+      const genre = 'jazz';
+      const self = `${IPTV}/jazz.m3u`;
+      const { seen } = mockPrimaryRedirect({ genre, status, location: self });
+      const res = await app.request('/stations?genre=jazz', undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      expect(seen.filter((u) => u === self)).toHaveLength(1);
+    },
+  );
+
+  it.each([301,302,307,308] as const)(
+    'redirect-chain: max-hop — %i with 5-deep Location chain stays at 2 fetches',
+    async (status) => {
+      const genre = 'news';
+      const chain = Array.from({ length: 5 }, (_, i) => `https://hop.example/${i}.m3u`);
+      const seen: string[] = [];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: RequestInfo | URL) => {
+          const url = String(input);
+          seen.push(url);
+          if (url.endsWith('/news.m3u')) {
+            return redirectResponse(status, { Location: chain[0]  });
+          }
+          const idx = chain.indexOf(url);
+          if (idx >= 0 && idx < chain.length - 1) {
+            return redirectResponse(status, { Location: chain[idx + 1]  });
+          }
+          if (idx === chain.length - 1) return new Response(SAMPLE_M3U, { status: 200 });
+          if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+          return new Response('nope', { status: 404 });
+        }),
+      );
+      const res = await app.request('/stations?genre=news', undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(seen).toHaveLength(2);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      for (const hop of chain) expect(seen.includes(hop)).toBe(false);
+    },
+  );
+
+  it.each([301,302,307,308] as const)(
+    'redirect-chain: primary+music both %i → 503 catalog unavailable',
+    async (status) => {
+      const genre = 'rock';
+      const { seen } = mockPrimaryRedirect({
+        genre,
+        status,
+        location: 'https://a.example/1.m3u',
+        musicStatus: status,
+        musicLocation: 'https://b.example/2.m3u',
+      });
+      const res = await app.request('/stations?genre=rock', undefined, testEnv());
+      expect(res.status).toBe(503);
+      expect(await json(res)).toEqual({
+        error: 'Stream catalog unavailable',
+        retry_after: 60,
+      });
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+      expect(seen).toHaveLength(2);
+    },
+  );
+
+  it.each([301,302,307,308] as const)(
+    'redirect-chain: %i fallback caches under original genre key not music',
+    async (status) => {
+      const genre = 'jazz';
+      const kv = mockKV();
+      mockPrimaryRedirect({ genre, status, location: '../music.m3u' });
+      const res = await app.request(
+        '/stations?genre=jazz',
+        undefined,
+        testEnv({ CATALOG_CACHE: kv }),
+      );
+      expect(res.status).toBe(200);
+      expect(kv.put).toHaveBeenCalledWith(
+        'stations:jazz',
+        expect.any(String),
+        expect.objectContaining({ expirationTtl: 3600 }),
+      );
+      expect(kv.put).not.toHaveBeenCalledWith('stations:music', expect.anything(), expect.anything());
+    },
+  );
+
+  it('redirect-chain: genre=rock status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'rock',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=rock',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('rock')]);
+  });
+  it('redirect-chain: genre=rock status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'rock',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=rock',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('rock')]);
+  });
+  it('redirect-chain: genre=rock status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'rock',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=rock',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('rock')]);
+  });
+  it('redirect-chain: genre=rock status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'rock',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=rock',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('rock')]);
+  });
+  it('redirect-chain: genre=jazz status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'jazz',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=jazz',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('jazz')]);
+  });
+  it('redirect-chain: genre=jazz status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'jazz',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=jazz',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('jazz')]);
+  });
+  it('redirect-chain: genre=jazz status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'jazz',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=jazz',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('jazz')]);
+  });
+  it('redirect-chain: genre=jazz status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'jazz',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=jazz',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('jazz')]);
+  });
+  it('redirect-chain: genre=news status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'news',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=news',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('news')]);
+  });
+  it('redirect-chain: genre=news status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'news',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=news',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('news')]);
+  });
+  it('redirect-chain: genre=news status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'news',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=news',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('news')]);
+  });
+  it('redirect-chain: genre=news status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'news',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=news',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('news')]);
+  });
+  it('redirect-chain: genre=pop status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'pop',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=pop',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('pop')]);
+  });
+  it('redirect-chain: genre=pop status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'pop',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=pop',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('pop')]);
+  });
+  it('redirect-chain: genre=pop status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'pop',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=pop',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('pop')]);
+  });
+  it('redirect-chain: genre=pop status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'pop',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=pop',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('pop')]);
+  });
+  it('redirect-chain: genre=classical status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'classical',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=classical',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('classical')]);
+  });
+  it('redirect-chain: genre=classical status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'classical',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=classical',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('classical')]);
+  });
+  it('redirect-chain: genre=classical status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'classical',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=classical',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('classical')]);
+  });
+  it('redirect-chain: genre=classical status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'classical',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=classical',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('classical')]);
+  });
+  it('redirect-chain: genre=ambient status=301 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'ambient',
+      status: 301,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=ambient',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('ambient')]);
+  });
+  it('redirect-chain: genre=ambient status=302 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'ambient',
+      status: 302,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=ambient',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('ambient')]);
+  });
+  it('redirect-chain: genre=ambient status=307 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'ambient',
+      status: 307,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=ambient',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('ambient')]);
+  });
+  it('redirect-chain: genre=ambient status=308 hop-limit 2 + CORS', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'ambient',
+      status: 308,
+      location: '/relative/music.m3u',
+    });
+    const res = await app.request(
+      '/stations?genre=ambient',
+      { headers: { Origin: 'https://client.example' } },
+      testEnv(),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC('ambient')]);
+  });
+  it.each([300,301,302,303,304,305,306,307,308] as const)(
+    'redirect-chain: %i without Location header still music-fallbacks',
+    async (status) => {
+      const genre = 'pop';
+      const { seen } = mockPrimaryRedirect({ genre, status });
+      const res = await app.request('/stations?genre=pop', undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(genre)]);
+    },
+  );
+
+  it('redirect-chain: empty Location string on 302 never chased', async () => {
+    const { seen } = mockPrimaryRedirect({ genre: 'rock', status: 302, location: '' });
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen).toHaveLength(2);
+  });
+
+  it('redirect-chain: Location header case — fetchStations ignores headers entirely', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/rock.m3u')) {
+          return new Response('redir', {
+            status: 301,
+            headers: { location: 'https://evil.example/lower.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request('/stations?genre=rock', undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect(seen.some((u) => u.includes('evil.example'))).toBe(false);
+  });
+
+  it.each([
+    ['indie', 'rock'],
+    ['metal', 'rock'],
+    ['chill', 'ambient'],
+    ['lo-fi', 'ambient'],
+    ['blues', 'jazz'],
+    ['dance', 'pop'],
+  ] as const)('redirect-chain: alias %s→%s with 302 absolute Location', async (alias, resolved) => {
+    const { seen } = mockPrimaryRedirect({
+      genre: resolved,
+      status: 302,
+      location: 'https://evil.example/alias.m3u',
+    });
+    const res = await app.request(`/stations?genre=${encodeURIComponent(alias)}`, undefined, testEnv());
+    expect(res.status).toBe(200);
+    expect((await json(res)).genre).toBe(resolved);
+    expect(seen).toEqual([...PRIMARY_PLUS_MUSIC(resolved)]);
+  });
+
+  it('redirect-chain: concurrent 301 requests each stay at hop-limit 2', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        calls.push(url);
+        if (url.endsWith('/rock.m3u')) {
+          return new Response('redir', {
+            status: 301,
+            headers: { Location: 'https://evil.example/x.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const env = testEnv();
+    const results = await Promise.all([
+      app.request('/stations?genre=rock', undefined, env),
+      app.request('/stations?genre=rock', undefined, env),
+      app.request('/stations?genre=rock', undefined, env),
+    ]);
+    for (const res of results) {
+      expect(res.status).toBe(200);
+      expect((await json(res)).count).toBe(6);
+    }
+    expect(calls.every((u) => u.startsWith(IPTV))).toBe(true);
+    expect(calls.some((u) => u.includes('evil.example'))).toBe(false);
+    expect(calls.length).toBe(6); // 3 requests × 2 hops
+  });
+
+  it('redirect-chain: primary relative + music absolute both 307 → 503', async () => {
+    const { seen } = mockPrimaryRedirect({
+      genre: 'classical',
+      status: 307,
+      location: '/rel.m3u',
+      musicStatus: 307,
+      musicLocation: 'https://evil.example/abs.m3u',
+    });
+    const res = await app.request('/stations?genre=classical', undefined, testEnv());
+    expect(res.status).toBe(503);
+    expect(seen).toHaveLength(2);
+    expect(seen.some((u) => u.includes('evil.example') || u.endsWith('/rel.m3u'))).toBe(false);
+  });
+
+  it.each(['Moved Permanently', 'Found', 'See Other', 'Temporary Redirect', 'Permanent Redirect'] as const)(
+    'redirect-chain: statusText %s ignored — only status + !res.ok matters',
+    async (statusText) => {
+      const seen: string[] = [];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: RequestInfo | URL) => {
+          const url = String(input);
+          seen.push(url);
+          if (url.endsWith('/rock.m3u')) {
+            return new Response('body-ignored', { status: 302, statusText });
+          }
+          if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+          return new Response('nope', { status: 404 });
+        }),
+      );
+      const res = await app.request('/stations?genre=rock', undefined, testEnv());
+      expect(res.status).toBe(200);
+      expect(seen).toHaveLength(2);
+    },
+  );
+
+  it('redirect-chain: /curate cyclic relative Location on 308 never chased', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (url.endsWith('/ambient.m3u')) {
+          return new Response('redir', {
+            status: 308,
+            headers: { Location: '../categories/ambient.m3u' },
+          });
+        }
+        if (url.endsWith('/music.m3u')) return new Response(SAMPLE_M3U, { status: 200 });
+        if (url.includes('generativelanguage')) return curatedGeminiJson();
+        return new Response('nope', { status: 404 });
+      }),
+    );
+    const res = await app.request(
+      '/curate?genre=chill&mood=focus',
+      undefined,
+      testEnv({ GEMINI_API_KEY: 'k' }),
+    );
+    expect(res.status).toBe(200);
+    expect(seen[0]).toBe(`${IPTV}/ambient.m3u`);
+    expect(seen[1]).toBe(`${IPTV}/music.m3u`);
+    expect(seen.filter((u) => u.includes('iptv-org'))).toHaveLength(2);
+  });
+
+  it('redirect-chain: negative invent fence — no hop-limit product in src', () => {
+    const src = read('src/index.ts');
+    expect(src).not.toMatch(/maxRedirect|redirectChain|followRedirect/i);
+    expect(src).not.toMatch(/headers\.get\(['"]location['"]\)/i);
+    expect(src).not.toContain('/playlist');
+    expect(src).not.toContain('/now-playing');
+  });
+
+  it('redirect-chain: existing coded tests still named in suite', () => {
+    const body = read('test/routes.test.ts');
+    expect(body).toContain("falls back to music.m3u on primary 301 redirect status");
+    expect(body).toContain("falls back to music.m3u on primary 302 and 307");
+    expect(body).toContain("falls back to music.m3u on primary 308 permanent redirect");
+    expect(body).toContain("does not follow Location on primary 302");
+  });
+
+  it('redirect-chain: keys inventory digest', () => {
+    const keys = [
+      'redirect-chain','overnight','TOKENMAXX','HEAVY','no-product-invent',
+      'max-hop','cyclic','absolute-relative','3xx-variants','hop-limit',
+      '301','302','307','308','Location',
+    ];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe(
+      '7babf61e8f692d65f31364bd515ac2c19fc43fb8f3982f26908cf58cb5ac48a3',
+    );
+    expect(keys).toHaveLength(15);
+  });
+
+  it('redirect-chain: final inventory markers', () => {
+    const body = read('test/routes.test.ts');
+    expect(body).toContain("describe('overnight redirect-chain unit HEAVY deepen'");
+    expect((body.match(/it\('redirect-chain:/g) ?? []).length + (body.match(/it\.each/g) ?? []).length).toBeGreaterThan(40);
+  });
+});
