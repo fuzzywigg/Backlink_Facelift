@@ -23634,7 +23634,6 @@ describe('post163 routes extras HEAVY deepen (after #163 leftover slice)', () =>
 
 // --- TOKENMAXX HEAVY leftover deepen after #171 (distinct from post166 ci-config) ---
 describe('post171 routes HEAVY deepen (after #171 / leftover after #166 ci-config)', () => {
-  const root = root;
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
   const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
@@ -24332,7 +24331,6 @@ describe('post171 routes HEAVY deepen (after #171 / leftover after #166 ci-confi
 });
 
 describe('post171 routes extras HEAVY deepen (after #171 leftover slice)', () => {
-  const root = root;
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
   const hmacSha256 = (key: string, rel: string) =>
