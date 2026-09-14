@@ -3902,4 +3902,1012 @@ describe('MCP_MANIFEST', () => {
     expect(MCP_MANIFEST.tools.flat()).toEqual(MCP_MANIFEST.tools);
     expect(MCP_MANIFEST.tools.flat(1)[0]).toBe(MCP_MANIFEST.tools[0]);
   });
+
+  // ── post-#66 HEAVY burn: orthogonal MCP_MANIFEST locks (after routes #66) ──
+
+  it('post66: locks toolNamed helper returns identical reference as bracket access', () => {
+    expect(toolNamed('station_select')).toBe(MCP_MANIFEST.tools[0]);
+    expect(toolNamed('now_playing')).toBe(MCP_MANIFEST.tools[1]);
+    expect(toolNamed('genre_filter')).toBe(MCP_MANIFEST.tools[2]);
+    expect(toolNamed('curator_prompt')).toBe(MCP_MANIFEST.tools[3]);
+  });
+
+  it('post66: locks JSON key order inside each input_schema as type→properties[→required]', () => {
+    expect(Object.keys(toolNamed('station_select').input_schema)).toEqual([
+      'type',
+      'properties',
+      'required',
+    ]);
+    expect(Object.keys(toolNamed('now_playing').input_schema)).toEqual(['type', 'properties']);
+    expect(Object.keys(toolNamed('genre_filter').input_schema)).toEqual([
+      'type',
+      'properties',
+      'required',
+    ]);
+    expect(Object.keys(toolNamed('curator_prompt').input_schema)).toEqual([
+      'type',
+      'properties',
+      'required',
+    ]);
+  });
+
+  it('post66: locks property insertion order mood before genre on curator_prompt', () => {
+    expect(Object.keys(toolNamed('curator_prompt').input_schema.properties)).toEqual([
+      'mood',
+      'genre',
+    ]);
+  });
+
+  it('post66: locks nested property object keys as type then description only', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const [key, prop] of Object.entries(tool.input_schema.properties)) {
+        expect(Object.keys(prop as object), `${tool.name}.${key}`).toEqual(['type', 'description']);
+      }
+    }
+  });
+
+  it('post66: locks charCodeAt checksum of name_for_model backlink', () => {
+    const sum = [...MCP_MANIFEST.name_for_model].reduce((a, c) => a + c.charCodeAt(0), 0);
+    // b(98)+a(97)+c(99)+k(107)+l(108)+i(105)+n(110)+k(107) = 831
+    expect(sum).toBe(831);
+    expect(MCP_MANIFEST.name_for_model.length).toBe(8);
+  });
+
+  it('post66: locks charCodeAt checksum of schema_version v1', () => {
+    expect(MCP_MANIFEST.schema_version.charCodeAt(0)).toBe(118); // v
+    expect(MCP_MANIFEST.schema_version.charCodeAt(1)).toBe(49); // 1
+    expect(
+      [...MCP_MANIFEST.schema_version].reduce((a, c) => a + c.charCodeAt(0), 0),
+    ).toBe(167);
+  });
+
+  it('post66: locks vowel counts in tool names (a e i o u only)', () => {
+    const vowels = (s: string) => (s.match(/[aeiou]/g) ?? []).length;
+    expect(vowels('station_select')).toBe(5); // a i o e e
+    expect(vowels('now_playing')).toBe(3); // o a i
+    expect(vowels('genre_filter')).toBe(4); // e e i e
+    expect(vowels('curator_prompt')).toBe(4); // u a o o
+  });
+
+  it('post66: locks consonant letter counts in tool names', () => {
+    const consonants = (s: string) => (s.replace(/_/g, '').match(/[bcdfghjklmnpqrstvwxyz]/g) ?? []).length;
+    expect(consonants('station_select')).toBe(8);
+    expect(consonants('now_playing')).toBe(7);
+    expect(consonants('genre_filter')).toBe(7);
+    expect(consonants('curator_prompt')).toBe(9);
+  });
+
+  it('post66: locks cumulative description_for_model comma and period counts', () => {
+    expect((MCP_MANIFEST.description_for_model.match(/,/g) ?? []).length).toBe(4);
+    expect((MCP_MANIFEST.description_for_model.match(/\./g) ?? []).length).toBe(2);
+    expect((MCP_MANIFEST.description_for_human.match(/,/g) ?? []).length).toBe(0);
+    expect((MCP_MANIFEST.description_for_human.match(/\./g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks hyphen token now-playing appears once in model description', () => {
+    expect((MCP_MANIFEST.description_for_model.match(/now-playing/g) ?? []).length).toBe(1);
+    expect(MCP_MANIFEST.description_for_model).toContain('now-playing');
+    expect(MCP_MANIFEST.description_for_human).not.toContain('now-playing');
+  });
+
+  it('post66: locks AI-curated hyphenation in both descriptions', () => {
+    expect(MCP_MANIFEST.description_for_model).toContain('AI-curated');
+    expect(MCP_MANIFEST.description_for_human).toContain('AI-curated');
+    expect((MCP_MANIFEST.description_for_model.match(/AI-curated/g) ?? []).length).toBe(1);
+    expect((MCP_MANIFEST.description_for_human.match(/AI-curated/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks iptv-org catalog phrase only on human description', () => {
+    expect(MCP_MANIFEST.description_for_human).toBe(
+      'AI-curated live radio from the iptv-org catalog.',
+    );
+    expect(MCP_MANIFEST.description_for_model).not.toContain('iptv-org');
+    expect(MCP_MANIFEST.description_for_model).not.toContain('catalog');
+  });
+
+  it('post66: locks openapi.json URL path segments and leading slash', () => {
+    const url = MCP_MANIFEST.api.url;
+    expect(url.startsWith('/')).toBe(true);
+    expect(url.endsWith('.json')).toBe(true);
+    expect(url.split('/').filter(Boolean)).toEqual(['openapi.json']);
+    expect(url.includes('://')).toBe(false);
+  });
+
+  it('post66: locks auth.type none is lowercase ASCII four letters', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(MCP_MANIFEST.auth.type).toMatch(/^[a-z]{4}$/);
+    expect(MCP_MANIFEST.auth.type.toUpperCase()).toBe('NONE');
+  });
+
+  it('post66: locks api.type openapi is lowercase seven letters', () => {
+    expect(MCP_MANIFEST.api.type).toBe('openapi');
+    expect(MCP_MANIFEST.api.type).toMatch(/^[a-z]{7}$/);
+    expect(MCP_MANIFEST.api.type.length).toBe(7);
+  });
+
+  it('post66: Array.prototype.toSorted by name is alpha without mutating live order', () => {
+    const sorted = (MCP_MANIFEST.tools as unknown as { toSorted: (fn: (a: { name: string }, b: { name: string }) => number) => typeof MCP_MANIFEST.tools }).toSorted(
+      (a, b) => a.name.localeCompare(b.name),
+    );
+    expect(sorted.map((t) => t.name)).toEqual([
+      'curator_prompt',
+      'genre_filter',
+      'now_playing',
+      'station_select',
+    ]);
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post66: Array.prototype.toReversed yields curator→genre→now→station copy', () => {
+    const reversed = (MCP_MANIFEST.tools as unknown as { toReversed: () => typeof MCP_MANIFEST.tools }).toReversed();
+    expect(reversed.map((t) => t.name)).toEqual([
+      'curator_prompt',
+      'genre_filter',
+      'now_playing',
+      'station_select',
+    ]);
+    expect(reversed[0]).toBe(MCP_MANIFEST.tools[3]);
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+  });
+
+  it('post66: Array.prototype.with replaces index 1 without mutating live tools', () => {
+    const clone = (
+      MCP_MANIFEST.tools as unknown as {
+        with: (i: number, v: (typeof MCP_MANIFEST.tools)[number]) => typeof MCP_MANIFEST.tools;
+      }
+    ).with(1, {
+      name: 'replaced',
+      description: 'temp',
+      input_schema: { type: 'object', properties: {} },
+    });
+    expect(clone[1].name).toBe('replaced');
+    expect(MCP_MANIFEST.tools[1].name).toBe('now_playing');
+    expect(clone).toHaveLength(4);
+  });
+
+  it('post66: findLast and findLastIndex locate curator_prompt at end', () => {
+    const tools = MCP_MANIFEST.tools as unknown as {
+      findLast: (fn: (t: (typeof MCP_MANIFEST.tools)[number]) => boolean) => (typeof MCP_MANIFEST.tools)[number];
+      findLastIndex: (fn: (t: (typeof MCP_MANIFEST.tools)[number]) => boolean) => number;
+    };
+    expect(tools.findLast((t) => t.name.includes('_')).name).toBe('curator_prompt');
+    expect(tools.findLastIndex((t) => t.name.startsWith('genre'))).toBe(2);
+    expect(tools.findLastIndex((t) => t.name === 'missing')).toBe(-1);
+  });
+
+  it('post66: locks Uint8Array byte view of JSON.stringify equals length 1534', () => {
+    const bytes = new TextEncoder().encode(JSON.stringify(MCP_MANIFEST));
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes.byteLength).toBe(1534);
+    expect(bytes[0]).toBe('{'.charCodeAt(0));
+    expect(bytes[bytes.length - 1]).toBe('}'.charCodeAt(0));
+  });
+
+  it('post66: locks DataView first and last bytes of manifest JSON', () => {
+    const buf = new TextEncoder().encode(JSON.stringify(MCP_MANIFEST)).buffer;
+    const view = new DataView(buf);
+    expect(view.getUint8(0)).toBe(0x7b); // {
+    expect(view.getUint8(view.byteLength - 1)).toBe(0x7d); // }
+    expect(view.byteLength).toBe(1534);
+  });
+
+  it('post66: locks TextDecoder decode of tools-only JSON round-trip', () => {
+    const encoded = new TextEncoder().encode(JSON.stringify(MCP_MANIFEST.tools));
+    const decoded = new TextDecoder().decode(encoded);
+    expect(JSON.parse(decoded)).toEqual(MCP_MANIFEST.tools);
+    expect(encoded.byteLength).toBe(1095);
+  });
+
+  it('post66: locks per-tool JSON.stringify lengths', () => {
+    const lengths = MCP_MANIFEST.tools.map((t) => JSON.stringify(t).length);
+    expect(lengths).toEqual([256, 169, 260, 405]);
+    expect(lengths.reduce((a, b) => a + b, 0)).toBe(1090);
+    // tools array JSON is 1095 = '[' + join(',') + ']' → 1 + 1090 + 3 commas + 1
+    expect(JSON.stringify(MCP_MANIFEST.tools).length).toBe(1095);
+  });
+
+  it('post66: locks structuredClone identity independence for required arrays', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    clone.tools[0].input_schema.required!.push('invented');
+    expect(MCP_MANIFEST.tools[0].input_schema.required).toEqual(['station_name']);
+    expect(clone.tools[0].input_schema.required).toEqual(['station_name', 'invented']);
+  });
+
+  it('post66: locks structuredClone mutation of property description is isolated', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    const prop = clone.tools[2].input_schema.properties.genre as { description: string };
+    prop.description = 'mutated';
+    expect(
+      (MCP_MANIFEST.tools[2].input_schema.properties.genre as { description: string }).description,
+    ).toBe('Genre keyword to filter by.');
+  });
+
+  it('post66: Object.preventExtensions on clone does not affect live extensibility', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    Object.preventExtensions(clone);
+    expect(Object.isExtensible(clone)).toBe(false);
+    expect(Object.isExtensible(MCP_MANIFEST)).toBe(true);
+    expect(Object.isExtensible(MCP_MANIFEST.tools)).toBe(true);
+  });
+
+  it('post66: Reflect.deleteProperty on clone auth.type leaves live auth intact', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    expect(Reflect.deleteProperty(clone.auth, 'type')).toBe(true);
+    expect(clone.auth).toEqual({});
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+  });
+
+  it('post66: Reflect.set on clone api.url leaves live /openapi.json', () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    expect(Reflect.set(clone.api, 'url', '/elsewhere.json')).toBe(true);
+    expect(clone.api.url).toBe('/elsewhere.json');
+    expect(MCP_MANIFEST.api.url).toBe('/openapi.json');
+  });
+
+  it('post66: Proxy set trap cannot redirect live schema_version', () => {
+    let trapped = false;
+    const proxy = new Proxy(MCP_MANIFEST, {
+      set(target, prop, value) {
+        if (prop === 'schema_version') {
+          trapped = true;
+          return true; // pretend success without writing
+        }
+        return Reflect.set(target, prop, value);
+      },
+    });
+    (proxy as { schema_version: string }).schema_version = 'v999';
+    expect(trapped).toBe(true);
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it('post66: locks Map group of tools by required-field presence', () => {
+    const withRequired = MCP_MANIFEST.tools.filter((t) => (t.input_schema.required?.length ?? 0) > 0);
+    const without = MCP_MANIFEST.tools.filter((t) => !t.input_schema.required);
+    expect(withRequired.map((t) => t.name)).toEqual([
+      'station_select',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+    expect(without.map((t) => t.name)).toEqual(['now_playing']);
+  });
+
+  it('post66: locks Object.groupBy tools by property count when available', () => {
+    const groupBy = (
+      Object as unknown as {
+        groupBy?: <T>(items: T[], fn: (item: T) => string) => Record<string, T[]>;
+      }
+    ).groupBy;
+    if (!groupBy) {
+      // Node without Object.groupBy — assert manually
+      const counts = MCP_MANIFEST.tools.map((t) => Object.keys(t.input_schema.properties).length);
+      expect(counts).toEqual([1, 0, 1, 2]);
+      return;
+    }
+    const grouped = groupBy(MCP_MANIFEST.tools, (t) =>
+      String(Object.keys(t.input_schema.properties).length),
+    );
+    expect(grouped['0']).toHaveLength(1);
+    expect(grouped['0'][0].name).toBe('now_playing');
+    expect(grouped['1']).toHaveLength(2);
+    expect(grouped['2']).toHaveLength(1);
+    expect(grouped['2'][0].name).toBe('curator_prompt');
+  });
+
+  it('post66: locks Set of all property description strings size 4 unique', () => {
+    const descs = MCP_MANIFEST.tools.flatMap((t) =>
+      Object.values(t.input_schema.properties).map((p) => (p as { description: string }).description),
+    );
+    expect(descs).toHaveLength(4);
+    expect(new Set(descs).size).toBe(4);
+  });
+
+  it('post66: locks station_name description Partial or full name exact', () => {
+    expect(
+      (toolNamed('station_select').input_schema.properties.station_name as { description: string })
+        .description,
+    ).toBe('Partial or full name of the station to select.');
+  });
+
+  it('post66: locks genre_filter.genre description exact', () => {
+    expect(
+      (toolNamed('genre_filter').input_schema.properties.genre as { description: string }).description,
+    ).toBe('Genre keyword to filter by.');
+  });
+
+  it('post66: locks curator_prompt.mood description exact with examples', () => {
+    expect(
+      (toolNamed('curator_prompt').input_schema.properties.mood as { description: string }).description,
+    ).toBe(
+      'Describe the mood, activity, or vibe (e.g. focus work, late night jazz, morning energy).',
+    );
+  });
+
+  it('post66: locks curator_prompt.genre optional description exact', () => {
+    expect(
+      (toolNamed('curator_prompt').input_schema.properties.genre as { description: string }).description,
+    ).toBe('Optional genre to constrain the selection.');
+  });
+
+  it('post66: locks example tokens in genre_filter description jazz news classical', () => {
+    const d = toolNamed('genre_filter').description;
+    expect(d).toContain('jazz');
+    expect(d).toContain('news');
+    expect(d).toContain('classical');
+    expect(d.indexOf('jazz')).toBeLessThan(d.indexOf('news'));
+    expect(d.indexOf('news')).toBeLessThan(d.indexOf('classical'));
+  });
+
+  it('post66: locks mood example ordering focus work → late night jazz → morning energy', () => {
+    const d = (
+      toolNamed('curator_prompt').input_schema.properties.mood as { description: string }
+    ).description;
+    expect(d.indexOf('focus work')).toBeLessThan(d.indexOf('late night jazz'));
+    expect(d.indexOf('late night jazz')).toBeLessThan(d.indexOf('morning energy'));
+  });
+
+  it('post66: does not declare protocolVersion jsonrpc methods or result keys', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    expect(raw).not.toMatch(/protocolVersion|jsonrpc|"methods"|capabilities/i);
+    expect(raw).not.toContain('result');
+    expect(raw).not.toContain('params');
+  });
+
+  it('post66: does not declare Anthropic Claude OpenAI tool-calling vendor keys', () => {
+    const raw = JSON.stringify(MCP_MANIFEST).toLowerCase();
+    expect(raw).not.toContain('anthropic');
+    expect(raw).not.toContain('claude');
+    expect(raw).not.toContain('openai');
+    expect(raw).not.toContain('function_call');
+    expect(raw).not.toContain('tool_choice');
+  });
+
+  it('post66: does not declare Gemini or generative language vendor strings', () => {
+    const raw = JSON.stringify(MCP_MANIFEST).toLowerCase();
+    expect(raw).not.toContain('gemini');
+    expect(raw).not.toContain('generativelanguage');
+    expect(raw).not.toContain('google');
+  });
+
+  it('post66: locks no digit characters outside schema_version across string fields', () => {
+    const strings = [
+      MCP_MANIFEST.name_for_model,
+      MCP_MANIFEST.name_for_human,
+      MCP_MANIFEST.description_for_model,
+      MCP_MANIFEST.description_for_human,
+      MCP_MANIFEST.auth.type,
+      MCP_MANIFEST.api.type,
+      MCP_MANIFEST.api.url,
+      ...MCP_MANIFEST.tools.map((t) => t.name),
+      ...MCP_MANIFEST.tools.map((t) => t.description),
+      ...MCP_MANIFEST.tools.flatMap((t) =>
+        Object.values(t.input_schema.properties).map((p) => (p as { description: string }).description),
+      ),
+    ];
+    for (const s of strings) {
+      expect(s, s).not.toMatch(/\d/);
+    }
+    expect(MCP_MANIFEST.schema_version).toMatch(/\d/);
+  });
+
+  it('post66: locks padStart/padEnd of schema_version are pure decoration', () => {
+    expect(MCP_MANIFEST.schema_version.padStart(4, '0')).toBe('00v1');
+    expect(MCP_MANIFEST.schema_version.padEnd(4, 'x')).toBe('v1xx');
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it('post66: locks normalize NFC/NFD/NFKC/NFKD are identity for ASCII fields', () => {
+    const fields = [
+      MCP_MANIFEST.schema_version,
+      MCP_MANIFEST.name_for_model,
+      MCP_MANIFEST.name_for_human,
+      MCP_MANIFEST.description_for_model,
+      MCP_MANIFEST.description_for_human,
+    ];
+    for (const f of fields) {
+      expect(f.normalize('NFC')).toBe(f);
+      expect(f.normalize('NFD')).toBe(f);
+      expect(f.normalize('NFKC')).toBe(f);
+      expect(f.normalize('NFKD')).toBe(f);
+    }
+  });
+
+  it('post66: locks matchAll word tokens for name_for_human', () => {
+    const tokens = [...MCP_MANIFEST.name_for_human.matchAll(/[A-Za-z]+/g)].map((m) => m[0]);
+    expect(tokens).toEqual(['Backlink', 'Radio']);
+  });
+
+  it('post66: locks matchAll snake tokens for every tool name', () => {
+    const all = MCP_MANIFEST.tools.flatMap((t) =>
+      [...t.name.matchAll(/[a-z]+/g)].map((m) => m[0]),
+    );
+    expect(all).toEqual([
+      'station',
+      'select',
+      'now',
+      'playing',
+      'genre',
+      'filter',
+      'curator',
+      'prompt',
+    ]);
+  });
+
+  it('post66: locks codePointAt equals charCodeAt for all ASCII name fields', () => {
+    for (const s of [MCP_MANIFEST.name_for_model, MCP_MANIFEST.name_for_human, MCP_MANIFEST.schema_version]) {
+      for (let i = 0; i < s.length; i++) {
+        expect(s.codePointAt(i)).toBe(s.charCodeAt(i));
+      }
+    }
+  });
+
+  it('post66: locks localeCompare en-US tool names ascending differs from declaration', () => {
+    const declared = MCP_MANIFEST.tools.map((t) => t.name);
+    const sorted = [...declared].sort((a, b) => a.localeCompare(b, 'en-US'));
+    expect(sorted).not.toEqual(declared);
+    expect(sorted[0]).toBe('curator_prompt');
+    expect(sorted.at(-1)).toBe('station_select');
+  });
+
+  it('post66: locks Intl.Collator compare of tool names matches localeCompare', () => {
+    const collator = new Intl.Collator('en');
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    for (let i = 0; i < names.length - 1; i++) {
+      expect(Math.sign(collator.compare(names[i], names[i + 1]))).toBe(
+        Math.sign(names[i].localeCompare(names[i + 1])),
+      );
+    }
+  });
+
+  it('post66: locks Bitwise OR of tool name lengths equals 15 (14|11|12|14)', () => {
+    const lengths = MCP_MANIFEST.tools.map((t) => t.name.length);
+    expect(lengths.reduce((a, b) => a | b, 0)).toBe(15);
+    expect(lengths.reduce((a, b) => a & b, 0xffff)).toBe(8);
+    expect(lengths.reduce((a, b) => a ^ b, 0)).toBe(7);
+  });
+
+  it('post66: locks sum of tool description lengths 42+81+81+80 = 284', () => {
+    expect(MCP_MANIFEST.tools.reduce((a, t) => a + t.description.length, 0)).toBe(284);
+  });
+
+  it('post66: locks sum of property description lengths 46+27+88+42 = 203', () => {
+    const sum = MCP_MANIFEST.tools
+      .flatMap((t) =>
+        Object.values(t.input_schema.properties).map((p) => (p as { description: string }).description.length),
+      )
+      .reduce((a, b) => a + b, 0);
+    expect(sum).toBe(203);
+  });
+
+  it('post66: locks average tool description length is 71', () => {
+    const avg =
+      MCP_MANIFEST.tools.reduce((a, t) => a + t.description.length, 0) / MCP_MANIFEST.tools.length;
+    expect(avg).toBe(71);
+  });
+
+  it('post66: locks max tool description length is 81 shared by now_playing and genre_filter', () => {
+    const lengths = MCP_MANIFEST.tools.map((t) => t.description.length);
+    expect(Math.max(...lengths)).toBe(81);
+    expect(MCP_MANIFEST.tools.filter((t) => t.description.length === 81).map((t) => t.name)).toEqual([
+      'now_playing',
+      'genre_filter',
+    ]);
+  });
+
+  it('post66: locks min tool description length is 42 for station_select', () => {
+    expect(Math.min(...MCP_MANIFEST.tools.map((t) => t.description.length))).toBe(42);
+    expect(toolNamed('station_select').description.length).toBe(42);
+  });
+
+  it('post66: locks description_for_model word sequence Interact…mood.', () => {
+    const words = MCP_MANIFEST.description_for_model.split(/\s+/);
+    expect(words[0]).toBe('Interact');
+    expect(words.at(-1)).toBe('mood.');
+    expect(words).toHaveLength(29);
+    expect(words.includes('Backlink,')).toBe(true);
+    expect(words.includes('IPTV')).toBe(true);
+  });
+
+  it('post66: locks description_for_human word sequence AI-curated…catalog.', () => {
+    const words = MCP_MANIFEST.description_for_human.split(/\s+/);
+    expect(words).toEqual([
+      'AI-curated',
+      'live',
+      'radio',
+      'from',
+      'the',
+      'iptv-org',
+      'catalog.',
+    ]);
+  });
+
+  it('post66: locks startsWith/endsWith matrix for description_for_model', () => {
+    const d = MCP_MANIFEST.description_for_model;
+    expect(d.startsWith('Interact with Backlink')).toBe(true);
+    expect(d.endsWith('for a mood.')).toBe(true);
+    expect(d.startsWith('AI')).toBe(false);
+    expect(d.endsWith('catalog.')).toBe(false);
+  });
+
+  it('post66: locks includes matrix for service/station/mood/catalog tokens', () => {
+    expect(MCP_MANIFEST.description_for_model.includes('service')).toBe(true);
+    expect(MCP_MANIFEST.description_for_model.includes('station')).toBe(true);
+    expect(MCP_MANIFEST.description_for_model.includes('mood')).toBe(true);
+    expect(MCP_MANIFEST.description_for_model.includes('catalog')).toBe(false);
+    expect(MCP_MANIFEST.description_for_human.includes('catalog')).toBe(true);
+    expect(MCP_MANIFEST.description_for_human.includes('service')).toBe(false);
+  });
+
+  it('post66: locks indexOf AI appears twice in model description (AI-curated and AI curator)', () => {
+    const d = MCP_MANIFEST.description_for_model;
+    const first = d.indexOf('AI');
+    const second = d.indexOf('AI', first + 1);
+    const third = d.indexOf('AI', second + 1);
+    expect(first).toBeGreaterThan(-1);
+    expect(second).toBeGreaterThan(first);
+    expect(third).toBe(-1);
+    expect(d.slice(first, first + 10)).toBe('AI-curated');
+    expect(d.slice(second, second + 2)).toBe('AI');
+  });
+
+  it('post66: locks lastIndexOf period positions in both descriptions', () => {
+    expect(MCP_MANIFEST.description_for_model.lastIndexOf('.')).toBe(
+      MCP_MANIFEST.description_for_model.length - 1,
+    );
+    expect(MCP_MANIFEST.description_for_human.lastIndexOf('.')).toBe(
+      MCP_MANIFEST.description_for_human.length - 1,
+    );
+    expect(MCP_MANIFEST.description_for_model.indexOf('.')).toBeLessThan(
+      MCP_MANIFEST.description_for_model.lastIndexOf('.'),
+    );
+  });
+
+  it('post66: locks replace of IPTV→iptv in a copy does not mutate live model description', () => {
+    const replaced = MCP_MANIFEST.description_for_model.replace('IPTV', 'iptv');
+    expect(replaced).toContain('iptv');
+    expect(replaced).not.toContain('IPTV');
+    expect(MCP_MANIFEST.description_for_model).toContain('IPTV');
+  });
+
+  it('post66: locks split on period yields two sentences for model description', () => {
+    const parts = MCP_MANIFEST.description_for_model.split('. ').filter(Boolean);
+    expect(parts).toHaveLength(2);
+    expect(parts[0].startsWith('Interact')).toBe(true);
+    expect(parts[1].startsWith('Select')).toBe(true);
+  });
+
+  it('post66: locks tool object own keys name→description→input_schema order', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.keys(tool)).toEqual(['name', 'description', 'input_schema']);
+    }
+  });
+
+  it('post66: locks typeof every top-level field', () => {
+    expect(typeof MCP_MANIFEST.schema_version).toBe('string');
+    expect(typeof MCP_MANIFEST.name_for_model).toBe('string');
+    expect(typeof MCP_MANIFEST.name_for_human).toBe('string');
+    expect(typeof MCP_MANIFEST.description_for_model).toBe('string');
+    expect(typeof MCP_MANIFEST.description_for_human).toBe('string');
+    expect(typeof MCP_MANIFEST.auth).toBe('object');
+    expect(typeof MCP_MANIFEST.api).toBe('object');
+    expect(typeof MCP_MANIFEST.tools).toBe('object');
+    expect(Array.isArray(MCP_MANIFEST.tools)).toBe(true);
+  });
+
+  it('post66: locks Number(schema_version) is NaN while Number(slice(1)) is 1', () => {
+    expect(Number(MCP_MANIFEST.schema_version)).toBeNaN();
+    expect(Number(MCP_MANIFEST.schema_version.slice(1))).toBe(1);
+    expect(Number.parseFloat(MCP_MANIFEST.schema_version.slice(1))).toBe(1);
+  });
+
+  it('post66: locks Boolean wrappers — non-empty strings truthy empty required absent falsy path', () => {
+    expect(Boolean(MCP_MANIFEST.name_for_model)).toBe(true);
+    expect(Boolean(toolNamed('now_playing').input_schema.required)).toBe(false);
+    expect(Boolean(toolNamed('station_select').input_schema.required)).toBe(true);
+  });
+
+  it('post66: locks JSON.stringify replacer array whitelist schema_version+tools only', () => {
+    const partial = JSON.stringify(MCP_MANIFEST, ['schema_version', 'tools', 'name']);
+    expect(partial).toContain('"schema_version":"v1"');
+    expect(partial).toContain('"name":"station_select"');
+    expect(partial).not.toContain('description_for_model');
+    expect(partial).not.toContain('openapi');
+  });
+
+  it('post66: locks JSON.stringify space tab pretty still parses equal', () => {
+    const pretty = JSON.stringify(MCP_MANIFEST, null, '\t');
+    expect(pretty).toContain('\n\t"schema_version"');
+    expect(JSON.parse(pretty)).toEqual(MCP_MANIFEST);
+    expect(pretty.split('\n').length).toBeGreaterThan(20);
+  });
+
+  it('post66: locks btoa/atob round-trip of name_for_model when available', () => {
+    if (typeof btoa !== 'function' || typeof atob !== 'function') {
+      expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+      return;
+    }
+    expect(atob(btoa(MCP_MANIFEST.name_for_model))).toBe('backlink');
+    expect(btoa(MCP_MANIFEST.schema_version)).toBe(btoa('v1'));
+  });
+
+  it('post66: locks encodeURIComponent of api.url preserves slash encoding', () => {
+    expect(encodeURIComponent(MCP_MANIFEST.api.url)).toBe('%2Fopenapi.json');
+    expect(decodeURIComponent('%2Fopenapi.json')).toBe('/openapi.json');
+  });
+
+  it('post66: locks URL parsing of api.url against https://example.com base', () => {
+    const u = new URL(MCP_MANIFEST.api.url, 'https://example.com');
+    expect(u.pathname).toBe('/openapi.json');
+    expect(u.origin).toBe('https://example.com');
+    expect(u.search).toBe('');
+    expect(u.hash).toBe('');
+  });
+
+  it('post66: locks no symbol own keys on manifest auth api or tools', () => {
+    expect(Object.getOwnPropertySymbols(MCP_MANIFEST)).toEqual([]);
+    expect(Object.getOwnPropertySymbols(MCP_MANIFEST.auth)).toEqual([]);
+    expect(Object.getOwnPropertySymbols(MCP_MANIFEST.api)).toEqual([]);
+    expect(Object.getOwnPropertySymbols(MCP_MANIFEST.tools)).toEqual([]);
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.getOwnPropertySymbols(tool)).toEqual([]);
+    }
+  });
+
+  it('post66: locks prototype chain Object.prototype for plain objects Array for tools', () => {
+    expect(Object.getPrototypeOf(MCP_MANIFEST)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(MCP_MANIFEST.auth)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(MCP_MANIFEST.api)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(MCP_MANIFEST.tools)).toBe(Array.prototype);
+    expect(Object.getPrototypeOf(MCP_MANIFEST.tools[0])).toBe(Object.prototype);
+  });
+
+  it('post66: locks constructor names Object vs Array', () => {
+    expect(MCP_MANIFEST.constructor.name).toBe('Object');
+    expect(MCP_MANIFEST.tools.constructor.name).toBe('Array');
+    expect(MCP_MANIFEST.auth.constructor.name).toBe('Object');
+  });
+
+  it('post66: locks valueOf/toString defaults on plain objects', () => {
+    expect(MCP_MANIFEST.auth.valueOf()).toBe(MCP_MANIFEST.auth);
+    expect(MCP_MANIFEST.auth.toString()).toBe('[object Object]');
+    expect(MCP_MANIFEST.tools.toString()).toBe('[object Object],[object Object],[object Object],[object Object]');
+  });
+
+  it('post66: locks Array.prototype.every/some/property invariants', () => {
+    expect(MCP_MANIFEST.tools.every((t) => t.input_schema.type === 'object')).toBe(true);
+    expect(MCP_MANIFEST.tools.some((t) => t.name === 'now_playing')).toBe(true);
+    expect(MCP_MANIFEST.tools.some((t) => t.name === 'missing')).toBe(false);
+    expect(MCP_MANIFEST.tools.every((t) => t.name.includes('_'))).toBe(true);
+  });
+
+  it('post66: locks Array.prototype.filter property-count partitions', () => {
+    expect(MCP_MANIFEST.tools.filter((t) => Object.keys(t.input_schema.properties).length === 0)).toHaveLength(
+      1,
+    );
+    expect(MCP_MANIFEST.tools.filter((t) => Object.keys(t.input_schema.properties).length === 1)).toHaveLength(
+      2,
+    );
+    expect(MCP_MANIFEST.tools.filter((t) => Object.keys(t.input_schema.properties).length === 2)).toHaveLength(
+      1,
+    );
+  });
+
+  it('post66: locks Array.prototype.flatMap of property keys universe', () => {
+    const keys = MCP_MANIFEST.tools.flatMap((t) => Object.keys(t.input_schema.properties));
+    expect(keys).toEqual(['station_name', 'genre', 'mood', 'genre']);
+    expect(new Set(keys)).toEqual(new Set(['station_name', 'genre', 'mood']));
+  });
+
+  it('post66: locks reduceRight of tool names builds reverse CSV', () => {
+    const csv = MCP_MANIFEST.tools.reduceRight((acc, t) => (acc ? `${acc},${t.name}` : t.name), '');
+    expect(csv).toBe('curator_prompt,genre_filter,now_playing,station_select');
+  });
+
+  it('post66: locks slice(-2) tools are genre_filter and curator_prompt', () => {
+    expect(MCP_MANIFEST.tools.slice(-2).map((t) => t.name)).toEqual([
+      'genre_filter',
+      'curator_prompt',
+    ]);
+    expect(MCP_MANIFEST.tools.slice(0, 2).map((t) => t.name)).toEqual([
+      'station_select',
+      'now_playing',
+    ]);
+  });
+
+  it('post66: locks copyWithin on a clone does not touch live tools', () => {
+    const clone = MCP_MANIFEST.tools.slice();
+    clone.copyWithin(0, 3);
+    expect(clone[0].name).toBe('curator_prompt');
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+  });
+
+  it('post66: locks fill on a clone isolates from live tools[0]', () => {
+    const clone = MCP_MANIFEST.tools.slice();
+    clone.fill(clone[3]);
+    expect(clone.every((t) => t.name === 'curator_prompt')).toBe(true);
+    expect(MCP_MANIFEST.tools.map((t) => t.name)[0]).toBe('station_select');
+  });
+
+  it('post66: locks splice on clone removes now_playing without live change', () => {
+    const clone = MCP_MANIFEST.tools.slice();
+    const removed = clone.splice(1, 1);
+    expect(removed[0].name).toBe('now_playing');
+    expect(clone.map((t) => t.name)).toEqual([
+      'station_select',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('post66: locks unshift/push on clone leave live length 4', () => {
+    const clone = MCP_MANIFEST.tools.slice();
+    clone.unshift({
+      name: 'head',
+      description: 'x',
+      input_schema: { type: 'object', properties: {} },
+    });
+    clone.push({
+      name: 'tail',
+      description: 'y',
+      input_schema: { type: 'object', properties: {} },
+    });
+    expect(clone).toHaveLength(6);
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it('post66: locks WeakSet membership of live tool object identities', () => {
+    const ws = new WeakSet(MCP_MANIFEST.tools);
+    expect(ws.has(MCP_MANIFEST.tools[0])).toBe(true);
+    expect(ws.has(MCP_MANIFEST.tools[3])).toBe(true);
+    expect(ws.has(structuredClone(MCP_MANIFEST.tools[0]))).toBe(false);
+  });
+
+  it('post66: locks WeakMap tool→name lookup for live identities only', () => {
+    const wm = new WeakMap<(typeof MCP_MANIFEST.tools)[number], string>();
+    for (const t of MCP_MANIFEST.tools) wm.set(t, t.name);
+    expect(wm.get(MCP_MANIFEST.tools[2])).toBe('genre_filter');
+    expect(wm.get(structuredClone(MCP_MANIFEST.tools[2]))).toBeUndefined();
+  });
+
+  it('post66: locks Iterator from tools.values exhausts four names', () => {
+    const it = MCP_MANIFEST.tools.values();
+    expect(it.next().value.name).toBe('station_select');
+    expect(it.next().value.name).toBe('now_playing');
+    expect(it.next().value.name).toBe('genre_filter');
+    expect(it.next().value.name).toBe('curator_prompt');
+    expect(it.next().done).toBe(true);
+  });
+
+  it('post66: locks for-await-of over sync iterable tools via Array', async () => {
+    const names: string[] = [];
+    for await (const tool of MCP_MANIFEST.tools) {
+      names.push(tool.name);
+    }
+    expect(names).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post66: locks Promise.all mapped tool name resolution order', async () => {
+    const names = await Promise.all(MCP_MANIFEST.tools.map(async (t) => t.name));
+    expect(names).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post66: locks queueMicrotask observes stable tools length', async () => {
+    await new Promise<void>((resolve) => {
+      queueMicrotask(() => {
+        expect(MCP_MANIFEST.tools.length).toBe(4);
+        resolve();
+      });
+    });
+  });
+
+  it('post66: locks performance.now monotonic around manifest JSON stringify', () => {
+    const t0 = performance.now();
+    const raw = JSON.stringify(MCP_MANIFEST);
+    const t1 = performance.now();
+    expect(raw.length).toBe(1534);
+    expect(t1).toBeGreaterThanOrEqual(t0);
+  });
+
+  it('post66: locks crypto.randomUUID format differs from any locked string field', () => {
+    if (typeof crypto === 'undefined' || typeof crypto.randomUUID !== 'function') {
+      expect(MCP_MANIFEST.schema_version).toBe('v1');
+      return;
+    }
+    const id = crypto.randomUUID();
+    expect(id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(JSON.stringify(MCP_MANIFEST)).not.toContain(id);
+  });
+
+  it('post66: locks no emoji or non-ASCII code units in entire manifest JSON', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    for (let i = 0; i < raw.length; i++) {
+      expect(raw.charCodeAt(i)).toBeLessThan(128);
+    }
+  });
+
+  it('post66: locks no backslash escape sequences beyond JSON structural escapes', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    // Only structural JSON quotes — no \\n \\t in string contents
+    expect(raw).not.toContain('\\n');
+    expect(raw).not.toContain('\\t');
+    expect(raw).not.toContain('\\r');
+    expect(raw).not.toContain('\\u');
+  });
+
+  it('post66: locks double-quote count in JSON.stringify is even', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    const quotes = (raw.match(/"/g) ?? []).length;
+    expect(quotes % 2).toBe(0);
+    expect(quotes).toBeGreaterThan(40);
+  });
+
+  it('post66: locks brace and bracket balance in JSON.stringify', () => {
+    const raw = JSON.stringify(MCP_MANIFEST);
+    const opens = (raw.match(/\{/g) ?? []).length;
+    const closes = (raw.match(/\}/g) ?? []).length;
+    const bopens = (raw.match(/\[/g) ?? []).length;
+    const bcloses = (raw.match(/\]/g) ?? []).length;
+    expect(opens).toBe(closes);
+    expect(bopens).toBe(bcloses);
+    expect(opens).toBeGreaterThan(10);
+    expect(bopens).toBeGreaterThanOrEqual(4); // tools array + required arrays
+  });
+
+  it('post66: locks cross-field Backlink casing — model desc + name_for_human only', () => {
+    expect(MCP_MANIFEST.description_for_model).toContain('Backlink');
+    expect(MCP_MANIFEST.name_for_human).toContain('Backlink');
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(MCP_MANIFEST.description_for_human).not.toContain('Backlink');
+  });
+
+  it('post66: locks Radio title token only on name_for_human not model name', () => {
+    expect(MCP_MANIFEST.name_for_human).toContain('Radio');
+    expect(MCP_MANIFEST.name_for_model).not.toContain('Radio');
+    expect(MCP_MANIFEST.name_for_model).not.toContain('radio');
+  });
+
+  it('post66: locks curator_prompt is the only tool with two properties', () => {
+    const multi = MCP_MANIFEST.tools.filter(
+      (t) => Object.keys(t.input_schema.properties).length > 1,
+    );
+    expect(multi).toHaveLength(1);
+    expect(multi[0].name).toBe('curator_prompt');
+  });
+
+  it('post66: locks now_playing is the only tool without required array', () => {
+    const bare = MCP_MANIFEST.tools.filter((t) => t.input_schema.required === undefined);
+    expect(bare).toHaveLength(1);
+    expect(bare[0].name).toBe('now_playing');
+    expect('required' in bare[0].input_schema).toBe(false);
+  });
+
+  it('post66: locks required arrays length inventory 1 1 1 across three tools', () => {
+    const reqLens = MCP_MANIFEST.tools.map((t) => t.input_schema.required?.length ?? 0);
+    expect(reqLens).toEqual([1, 0, 1, 1]);
+  });
+
+  it('post66: locks station_name is the longest property key (12 chars)', () => {
+    const keys = MCP_MANIFEST.tools.flatMap((t) => Object.keys(t.input_schema.properties));
+    expect(Math.max(...keys.map((k) => k.length))).toBe(12);
+    expect(keys.filter((k) => k.length === 12)).toEqual(['station_name']);
+  });
+
+  it('post66: locks mood is the shortest property key (4 chars)', () => {
+    const keys = [...new Set(MCP_MANIFEST.tools.flatMap((t) => Object.keys(t.input_schema.properties)))];
+    expect(Math.min(...keys.map((k) => k.length))).toBe(4);
+    expect(keys.filter((k) => k.length === 4)).toEqual(['mood']);
+  });
+
+  it('post66: locks genre property key length 5 appears twice across tools', () => {
+    const keys = MCP_MANIFEST.tools.flatMap((t) => Object.keys(t.input_schema.properties));
+    expect(keys.filter((k) => k === 'genre')).toHaveLength(2);
+    expect('genre'.length).toBe(5);
+  });
+
+  it('post66: locks input_schema.properties empty object isSame identity for now_playing only once', () => {
+    const empty = toolNamed('now_playing').input_schema.properties;
+    expect(empty).toEqual({});
+    expect(Object.keys(empty)).toEqual([]);
+    expect(Object.isFrozen(empty)).toBe(false);
+  });
+
+  it('post66: locks JSON path tools[0].input_schema.required[0] === station_name', () => {
+    expect(MCP_MANIFEST.tools[0].input_schema.required![0]).toBe('station_name');
+    expect(MCP_MANIFEST.tools[2].input_schema.required![0]).toBe('genre');
+    expect(MCP_MANIFEST.tools[3].input_schema.required![0]).toBe('mood');
+  });
+
+  it('post66: locks deep equality of JSON.parse round-trip for each tool alone', () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(JSON.parse(JSON.stringify(tool))).toEqual(tool);
+      expect(JSON.parse(JSON.stringify(tool))).not.toBe(tool);
+    }
+  });
+
+  it('post66: locks Object.assign shallow copy shares nested input_schema reference', () => {
+    const copy = Object.assign({}, MCP_MANIFEST.tools[0]);
+    expect(copy).toEqual(MCP_MANIFEST.tools[0]);
+    expect(copy).not.toBe(MCP_MANIFEST.tools[0]);
+    expect(copy.input_schema).toBe(MCP_MANIFEST.tools[0].input_schema);
+  });
+
+  it('post66: locks spread tool copy shares nested input_schema reference', () => {
+    const copy = { ...MCP_MANIFEST.tools[3] };
+    expect(copy.input_schema).toBe(MCP_MANIFEST.tools[3].input_schema);
+    expect(copy.name).toBe('curator_prompt');
+  });
+
+  it('post66: locks Object.hasOwn for every top-level and tool field', () => {
+    for (const key of Object.keys(MCP_MANIFEST) as (keyof typeof MCP_MANIFEST)[]) {
+      expect(Object.hasOwn(MCP_MANIFEST, key)).toBe(true);
+    }
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.hasOwn(tool, 'name')).toBe(true);
+      expect(Object.hasOwn(tool, 'description')).toBe(true);
+      expect(Object.hasOwn(tool, 'input_schema')).toBe(true);
+      expect(Object.hasOwn(tool, 'required')).toBe(false);
+    }
+  });
+
+  it('post66: locks in-operator true for top-level keys false for invented', () => {
+    expect('schema_version' in MCP_MANIFEST).toBe(true);
+    expect('tools' in MCP_MANIFEST).toBe(true);
+    expect('invented' in MCP_MANIFEST).toBe(false);
+    expect('length' in MCP_MANIFEST.tools).toBe(true);
+  });
+
+  it('post66: locks delete on clone tools length property fails on array length', () => {
+    const clone = MCP_MANIFEST.tools.slice();
+    // length is non-configurable; delete returns false in sloppy... but modules are strict
+    expect(() => {
+      delete (clone as unknown as { length?: number }).length;
+    }).toThrow();
+    expect(MCP_MANIFEST.tools.length).toBe(4);
+  });
+
+  it('post66: locks freeze of tools[0] clone name throws on assign', () => {
+    const frozen = Object.freeze(structuredClone(MCP_MANIFEST.tools[0]));
+    expect(() => {
+      (frozen as { name: string }).name = 'x';
+    }).toThrow();
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+  });
+
+  it('post66: locks seal of auth clone blocks new keys allows type rewrite', () => {
+    const sealed = Object.seal(structuredClone(MCP_MANIFEST.auth));
+    expect(() => {
+      (sealed as { extra?: string }).extra = 'nope';
+    }).toThrow();
+    sealed.type = 'rewritten';
+    expect(sealed.type).toBe('rewritten');
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+  });
+
+  it('post66: locks final cross-check — tools CSV + schema v1 + auth none + openapi path', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name).join('|')).toBe(
+      'station_select|now_playing|genre_filter|curator_prompt',
+    );
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+    expect(JSON.stringify(MCP_MANIFEST).length).toBe(1534);
+  });
+
 });
