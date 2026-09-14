@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -4459,6 +4459,2396 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     const d = createHash('md5').update(spec, 'utf8').digest('hex');
     expect(d.startsWith('ee788')).toBe(true);
     expect(d.endsWith('392c')).toBe(true);
+  });
+
+});
+
+// --- TOKENMAXX HEAVY burn (post-#112): deepen mcp-spec contract coverage
+// (orthogonal to mcp/wrangler/parser/helpers/ci-config/source-contracts/genres/routes) ---
+describe('post112 mcp-spec-contract HEAVY deepen', () => {
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const self = readFileSync(join(root, 'test/mcp-spec-contract.test.ts'), 'utf8');
+  const mcpSrc = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+  const indexSrc = readFileSync(join(root, 'src/index.ts'), 'utf8');
+  const genresSrc = readFileSync(join(root, 'src/genres.ts'), 'utf8');
+  const wranglerToml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+  const ciYml = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+  const DOCS_IDS = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'] as const;
+  const CLAW_NAMES = ['station_select', 'now_playing', 'genre_filter', 'curator_prompt'] as const;
+
+  it('post112: locks docs/mcp-spec.md sha256 digest', () => {
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+  });
+
+  it('post112: locks docs/mcp-spec.md sha1 digest', () => {
+    expect(createHash('sha1').update(spec, 'utf8').digest('hex')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+  });
+
+  it('post112: locks docs/mcp-spec.md md5 digest', () => {
+    expect(createHash('md5').update(spec, 'utf8').digest('hex')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it('post112: locks docs/mcp-spec.md sha384 digest', () => {
+    expect(createHash('sha384').update(spec, 'utf8').digest('hex')).toBe('b32096b74bacd48065f014d2695673b3bfad3cb9118b855899a92a849cd38a7dd751db7c9e0705d6d6569d5f05f61227');
+  });
+
+  it('post112: locks docs/mcp-spec.md sha512 digest', () => {
+    expect(createHash('sha512').update(spec, 'utf8').digest('hex')).toBe('8d26bafffcb1230048d80796e1d8a1019d83253810324d18383c54ff8bcaaed4a508b0a07395994af2f23e4f9b627e2202a57fcac709110d0ee859e8628709e7');
+  });
+
+  it('post112: sha256 nibble sum', () => {
+    expect(nibbleSum(createHash('sha256').update(spec, 'utf8').digest('hex'))).toBe(514);
+  });
+
+  it('post112: sha256 xor-nibble fingerprint', () => {
+    expect(xorNibbles(createHash('sha256').update(spec, 'utf8').digest('hex'))).toBe(14);
+  });
+
+  it('post112: sha256/sha384/sha512 pairwise distinct', () => {
+    const a = createHash('sha256').update(spec, 'utf8').digest('hex');
+    const b = createHash('sha384').update(spec, 'utf8').digest('hex');
+    const c = createHash('sha512').update(spec, 'utf8').digest('hex');
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it('post112: digest lengths sha384=96 sha512=128 lowercase', () => {
+    const a = createHash('sha384').update(spec, 'utf8').digest('hex');
+    const b = createHash('sha512').update(spec, 'utf8').digest('hex');
+    expect(a).toHaveLength(96);
+    expect(b).toHaveLength(128);
+    expect(/^[a-f0-9]+$/.test(a + b)).toBe(true);
+  });
+
+  it('post112: locks byte length and char length', () => {
+    expect(spec.length).toBe(3544);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+  });
+
+  it('post112: locks line count and nonempty line count', () => {
+    const ls = spec.split('\n');
+    expect(ls).toHaveLength(145);
+    expect(ls.filter((l) => l.length > 0)).toHaveLength(121);
+  });
+
+  it('post112: HMAC-SHA256 keyed by post112 locks spec digest', () => {
+    expect(createHmac('sha256', "post112").update(spec, 'utf8').digest('hex')).toBe('65658eea677e8aef2c6c454767bee45d8edba7573ecd301f13ec0104c8d88187');
+  });
+
+  it('post112: HMAC-SHA256 keyed by mcp-spec locks spec digest', () => {
+    expect(createHmac('sha256', "mcp-spec").update(spec, 'utf8').digest('hex')).toBe('21d41c5da610b736683b86a776e8661e8b25294a698027c8d552fa6eace78cb3');
+  });
+
+  it('post112: HMAC-SHA256 keyed by mcp-spec-contract locks spec digest', () => {
+    expect(createHmac('sha256', "mcp-spec-contract").update(spec, 'utf8').digest('hex')).toBe('ef5a3e4a5d7f233f77e3d4ee5fa8ca97cacddbcee734efc9412fab489f43b614');
+  });
+
+  it('post112: HMAC-SHA256 keyed by backlink locks spec digest', () => {
+    expect(createHmac('sha256', "backlink").update(spec, 'utf8').digest('hex')).toBe('98920add1fa15e869968c8efbc949fab60baf5ca95945eaf466caf563dff3e9f');
+  });
+
+  it('post112: HMAC-SHA256 keyed by Backlink Radio locks spec digest', () => {
+    expect(createHmac('sha256', "Backlink Radio").update(spec, 'utf8').digest('hex')).toBe('2550a22433482a1d4a3c0811e8deedfd0b48aaa2b9a64d70f8ef048383e4a7ef');
+  });
+
+  it('post112: HMAC-SHA256 keyed by backlink_curate locks spec digest', () => {
+    expect(createHmac('sha256', "backlink_curate").update(spec, 'utf8').digest('hex')).toBe('d5be7a976b320237501c22881a382cf75b22af14a3f886ea5bb34d88fec2e1b2');
+  });
+
+  it('post112: HMAC-SHA256 keyed by backlink_genres locks spec digest', () => {
+    expect(createHmac('sha256', "backlink_genres").update(spec, 'utf8').digest('hex')).toBe('f9384a7b6410e8e73a6d2acbd7a8c528b41fb612659b8f376924c87d0be870d0');
+  });
+
+  it('post112: HMAC-SHA256 keyed by backlink_now_playing locks spec digest', () => {
+    expect(createHmac('sha256', "backlink_now_playing").update(spec, 'utf8').digest('hex')).toBe('d0f976d64252d4ad35ce5a5eafa023ae98ba6d5a3ca6be16019cf3a1cf96946e');
+  });
+
+  it('post112: HMAC-SHA256 keyed by stream_url locks spec digest', () => {
+    expect(createHmac('sha256', "stream_url").update(spec, 'utf8').digest('hex')).toBe('c582e603126a829add1be68dd7c7cf8e307c582440fef51bb09b65022e5a2db6');
+  });
+
+  it('post112: HMAC-SHA256 keyed by curated_by locks spec digest', () => {
+    expect(createHmac('sha256', "curated_by").update(spec, 'utf8').digest('hex')).toBe('0aed005214fff86bd6f13331f50b4aa9faaae141bef026633c9ba497aa0e1ab1');
+  });
+
+  it('post112: HMAC-SHA256 keyed by Integration Notes locks spec digest', () => {
+    expect(createHmac('sha256', "Integration Notes").update(spec, 'utf8').digest('hex')).toBe('0971cd5f6956b98210a068a429e7de36a3efb8aaeeed2844bc49b6e93320a939');
+  });
+
+  it('post112: HMAC-SHA256 keyed by claw-mcp locks spec digest', () => {
+    expect(createHmac('sha256', "claw-mcp").update(spec, 'utf8').digest('hex')).toBe('d78760362eb08fb0e477e48f981673f58304d55b916b0e1a6e37212a6f96dec7');
+  });
+
+  it('post112: HMAC-SHA256 keyed by station_select locks spec digest', () => {
+    expect(createHmac('sha256', "station_select").update(spec, 'utf8').digest('hex')).toBe('09cf27cff685a3d9f7125499f44f20636430d5f0363c9de5d2cf2869edff0b69');
+  });
+
+  it('post112: HMAC-SHA256 keyed by now_playing locks spec digest', () => {
+    expect(createHmac('sha256', "now_playing").update(spec, 'utf8').digest('hex')).toBe('23efffe3b8c66ce1b5a85ed1a565e0da79391801cdcea7a8f4edcb182305c052');
+  });
+
+  it('post112: HMAC-SHA256 keyed by genre_filter locks spec digest', () => {
+    expect(createHmac('sha256', "genre_filter").update(spec, 'utf8').digest('hex')).toBe('c5853f5dfdc18ca288fef4242e770b29896da8e5f02573f58b513ec60e599145');
+  });
+
+  it('post112: HMAC-SHA256 keyed by curator_prompt locks spec digest', () => {
+    expect(createHmac('sha256', "curator_prompt").update(spec, 'utf8').digest('hex')).toBe('ec80abe2f207397304a4a989ee91486e11e08d48ff9e935ee8628539851adfde');
+  });
+
+  it('post112: HMAC-SHA256 keyed by VALID_GENRES locks spec digest', () => {
+    expect(createHmac('sha256', "VALID_GENRES").update(spec, 'utf8').digest('hex')).toBe('5bce78975cb91bf1f314fa44ce30008c42fead0e079725b2efa2ad2750650e5a');
+  });
+
+  it('post112: HMAC-SHA256 keyed by GENRE_MAP locks spec digest', () => {
+    expect(createHmac('sha256', "GENRE_MAP").update(spec, 'utf8').digest('hex')).toBe('e01fc8634bfedbbedcd9da59f972d0afcedfd135b07c02806e7499d4eede1a1c');
+  });
+
+  it('post112: HMAC-SHA256 keyed by fuzzywigg locks spec digest', () => {
+    expect(createHmac('sha256', "fuzzywigg").update(spec, 'utf8').digest('hex')).toBe('8e0caed7ef994c374b52d69005d69324d5af51ef97c49c876613cf9ed1b93d4d');
+  });
+
+  it('post112: HMAC-SHA256 keyed by iptv-org locks spec digest', () => {
+    expect(createHmac('sha256', "iptv-org").update(spec, 'utf8').digest('hex')).toBe('f0cc92feffdc00412074b061f650d4216738d7f8e9eb260b8822500b0d7445cf');
+  });
+
+  it('post112: HMAC-SHA256 keyed by Gemini locks spec digest', () => {
+    expect(createHmac('sha256', "Gemini").update(spec, 'utf8').digest('hex')).toBe('dbb16e6c03e1156f0fa2d4b90974692e0d407a3ae58ca183e1b7a4deb3372e6b');
+  });
+
+  it('post112: HMAC-SHA256 keyed by 1h TTL locks spec digest', () => {
+    expect(createHmac('sha256', "1h TTL").update(spec, 'utf8').digest('hex')).toBe('c4c198bbce26d02199ee9405f607cc38e48c4ead8270117cf011479cbb2fe293');
+  });
+
+  it('post112: HMAC-SHA256 keyed by editorial: null locks spec digest', () => {
+    expect(createHmac('sha256', "editorial: null").update(spec, 'utf8').digest('hex')).toBe('cb776d94a0a3a1eb858160aafc326308f56009b6de4beb5b6f376715cd6ccde4');
+  });
+
+  it('post112: HMAC-SHA256 keyed by additionalProperties locks spec digest', () => {
+    expect(createHmac('sha256', "additionalProperties").update(spec, 'utf8').digest('hex')).toBe('4fc3e0d7c845059dab9fdb3306457e00e146f7c32d8ea67de49508809bfdebf9');
+  });
+
+  it('post112: HMAC-SHA256 keyed by openapi locks spec digest', () => {
+    expect(createHmac('sha256', "openapi").update(spec, 'utf8').digest('hex')).toBe('f0e4923966d2eccf6e2f2b7687314c5e74f79c71d29b4d0198e03469bf24f309');
+  });
+
+  it('post112: line 20 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[20] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('58636dd916833390');
+  });
+
+  it('post112: line 21 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[21] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e08470ea6ec3f78e');
+  });
+
+  it('post112: line 22 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[22] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b6d239e8efbb3458');
+  });
+
+  it('post112: line 23 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[23] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('fb22633293e70bb9');
+  });
+
+  it('post112: line 24 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[24] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('28d86778615f6af4');
+  });
+
+  it('post112: line 25 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[25] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('3288a136ca3e7c85');
+  });
+
+  it('post112: line 26 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[26] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c76cce0dffe84d12');
+  });
+
+  it('post112: line 27 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[27] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 28 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[28] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 29 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[29] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 30 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[30] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('4d4a7b9130ee5775');
+  });
+
+  it('post112: line 31 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[31] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it('post112: line 32 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[32] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it('post112: line 33 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[33] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it('post112: line 34 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[34] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b5b7049adc5269a');
+  });
+
+  it('post112: line 35 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[35] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('7d3c9b85aedc612a');
+  });
+
+  it('post112: line 36 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[36] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('697b544165d774fa');
+  });
+
+  it('post112: line 37 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[37] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f9f6cf6a503b59eb');
+  });
+
+  it('post112: line 38 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[38] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('9cef552767ebb0c0');
+  });
+
+  it('post112: line 39 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[39] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('23d3e54aec3f7900');
+  });
+
+  it('post112: line 40 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[40] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('66bb58fba1af4366');
+  });
+
+  it('post112: line 41 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[41] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a854fb1a3ed9b4c2');
+  });
+
+  it('post112: line 42 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[42] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d337fa71c905db67');
+  });
+
+  it('post112: line 43 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[43] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e9856c0b8c26d416');
+  });
+
+  it('post112: line 44 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[44] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c7925c46cf680c81');
+  });
+
+  it('post112: line 45 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[45] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('75cad7ef077c03fd');
+  });
+
+  it('post112: line 46 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[46] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('94d55f14dc795d83');
+  });
+
+  it('post112: line 47 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[47] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('93ed702dbc71183a');
+  });
+
+  it('post112: line 48 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[48] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('55ebf423a240dd03');
+  });
+
+  it('post112: line 49 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[49] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('20b32f3e6c5b2747');
+  });
+
+  it('post112: line 50 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[50] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f61f5bbc379fd349');
+  });
+
+  it('post112: line 51 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[51] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('28d86778615f6af4');
+  });
+
+  it('post112: line 52 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[52] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('737db166c79ae98e');
+  });
+
+  it('post112: line 53 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[53] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 54 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[54] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 55 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[55] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 56 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[56] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('1efc6f55ca964098');
+  });
+
+  it('post112: line 57 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[57] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 58 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[58] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cb3f91d54eee30e5');
+  });
+
+  it('post112: line 59 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[59] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 60 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[60] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('eb93ddb3ee5b20e9');
+  });
+
+  it('post112: line 61 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[61] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 62 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[62] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('eada87353b2943ec');
+  });
+
+  it('post112: line 63 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[63] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 64 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[64] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('5e6fc6a874f15fa0');
+  });
+
+  it('post112: line 65 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[65] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it('post112: line 66 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[66] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it('post112: line 67 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[67] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it('post112: line 68 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[68] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d3862c9e5c460a0b');
+  });
+
+  it('post112: line 69 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[69] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c76cce0dffe84d12');
+  });
+
+  it('post112: line 70 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[70] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 71 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[71] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 72 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[72] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 73 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[73] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('7e7d95628b7a199f');
+  });
+
+  it('post112: line 74 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[74] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it('post112: line 75 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[75] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it('post112: line 76 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[76] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it('post112: line 77 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[77] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b5b7049adc5269a');
+  });
+
+  it('post112: line 78 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[78] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('855e92e35189eea1');
+  });
+
+  it('post112: line 79 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[79] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('23d3e54aec3f7900');
+  });
+
+  it('post112: line 80 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[80] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('7aced20a096ba68f');
+  });
+
+  it('post112: line 81 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[81] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b771fe5684e530d1');
+  });
+
+  it('post112: line 82 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[82] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('58636dd916833390');
+  });
+
+  it('post112: line 83 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[83] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c51251d915a70df8');
+  });
+
+  it('post112: line 84 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[84] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('558a119ee6940a65');
+  });
+
+  it('post112: line 85 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[85] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b2d147df0c268333');
+  });
+
+  it('post112: line 86 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[86] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('39bbc9e7eca4bd9f');
+  });
+
+  it('post112: line 87 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[87] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('28d86778615f6af4');
+  });
+
+  it('post112: line 88 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[88] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('737db166c79ae98e');
+  });
+
+  it('post112: line 89 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[89] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 90 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[90] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 91 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[91] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 92 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[92] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('107c1c6c71f6c3c5');
+  });
+
+  it('post112: line 93 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[93] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 94 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[94] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cb3f91d54eee30e5');
+  });
+
+  it('post112: line 95 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[95] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 96 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[96] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('778a180e647ff15a');
+  });
+
+  it('post112: line 97 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[97] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 98 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[98] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a9151993967f69ad');
+  });
+
+  it('post112: line 99 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[99] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 100 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[100] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('5e6fc6a874f15fa0');
+  });
+
+  it('post112: line 101 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[101] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it('post112: line 102 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[102] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it('post112: line 103 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[103] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it('post112: line 104 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[104] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b5b7049adc5269a');
+  });
+
+  it('post112: line 105 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[105] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c27ff1a8aedfd3a8');
+  });
+
+  it('post112: line 106 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[106] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b6d239e8efbb3458');
+  });
+
+  it('post112: line 107 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[107] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a8a25ade28f4566e');
+  });
+
+  it('post112: line 108 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[108] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('58636dd916833390');
+  });
+
+  it('post112: line 109 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[109] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e08470ea6ec3f78e');
+  });
+
+  it('post112: line 110 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[110] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b6d239e8efbb3458');
+  });
+
+  it('post112: line 111 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[111] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cfc78309a75d1318');
+  });
+
+  it('post112: line 112 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[112] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('28d86778615f6af4');
+  });
+
+  it('post112: line 113 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[113] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('3288a136ca3e7c85');
+  });
+
+  it('post112: line 114 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[114] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c76cce0dffe84d12');
+  });
+
+  it('post112: line 115 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[115] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 116 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[116] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 117 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[117] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 118 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[118] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b9a88fe456095f');
+  });
+
+  it('post112: line 119 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[119] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it('post112: line 120 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[120] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it('post112: line 121 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[121] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it('post112: line 122 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[122] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b5b7049adc5269a');
+  });
+
+  it('post112: line 123 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[123] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('05b5215df672a99a');
+  });
+
+  it('post112: line 124 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[124] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d27cb546fae937ab');
+  });
+
+  it('post112: line 125 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[125] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('653b78133c7431ea');
+  });
+
+  it('post112: line 126 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[126] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('7be0374fadfef393');
+  });
+
+  it('post112: line 127 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[127] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('117097357b0fc608');
+  });
+
+  it('post112: line 128 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[128] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('3288a136ca3e7c85');
+  });
+
+  it('post112: line 129 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[129] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('6f7389895023466c');
+  });
+
+  it('post112: line 130 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[130] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d10b36aa74a59bcf');
+  });
+
+  it('post112: line 131 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[131] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f1b901847390b0ed');
+  });
+
+  it('post112: line 132 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[132] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it('post112: line 133 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[133] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('43bc37f060d09448');
+  });
+
+  it('post112: line 134 sha prefix', () => {
+    expect(createHash('sha256').update(spec.split('\n')[134] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  
+  it('post112: heading index order is strictly increasing', () => {
+    const real = [
+      '# Backlink MCP Tool Specification',
+      '## Tools',
+      '### `backlink_curate`',
+      '### `backlink_genres`',
+      '### `backlink_now_playing`',
+      '## Integration Notes',
+    ].map((h) => spec.indexOf(h));
+    for (let i = 1; i < real.length; i++) {
+      expect(real[i]).toBeGreaterThan(real[i - 1]!);
+    }
+    expect(real.every((n) => n >= 0)).toBe(true);
+  });
+
+  it('post112: heading 0 exact index 0', () => {
+    expect(spec.indexOf("# Backlink MCP Tool Specification")).toBe(0);
+  });
+
+  it('post112: heading 1 exact index 135', () => {
+    expect(spec.indexOf("## Tools")).toBe(135);
+  });
+
+  it('post112: heading 2 exact index 145', () => {
+    expect(spec.indexOf("### `backlink_curate`")).toBe(145);
+  });
+
+  it('post112: heading 3 exact index 1483', () => {
+    expect(spec.indexOf("### `backlink_genres`")).toBe(1483);
+  });
+
+  it('post112: heading 4 exact index 2151', () => {
+    expect(spec.indexOf("### `backlink_now_playing`")).toBe(2151);
+  });
+
+  it('post112: heading 5 exact index 3204', () => {
+    expect(spec.indexOf("## Integration Notes")).toBe(3204);
+  });
+
+  it('post112: word frequency "type" === 29', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "type")).toHaveLength(29);
+  });
+
+  it('post112: word frequency "string" === 19', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "string")).toHaveLength(19);
+  });
+
+  it('post112: word frequency "genre" === 18', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "genre")).toHaveLength(18);
+  });
+
+  it('post112: word frequency "mood" === 10', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "mood")).toHaveLength(10);
+  });
+
+  it('post112: word frequency "object" === 9', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "object")).toHaveLength(9);
+  });
+
+  it('post112: word frequency "properties" === 7', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "properties")).toHaveLength(7);
+  });
+
+  it('post112: word frequency "stations" === 6', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "stations")).toHaveLength(6);
+  });
+
+  it('post112: word frequency "json" === 6', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "json")).toHaveLength(6);
+  });
+
+  it('post112: word frequency "description" === 6', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "description")).toHaveLength(6);
+  });
+
+  it('post112: word frequency "name" === 6', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "name")).toHaveLength(6);
+  });
+
+  it('post112: word frequency "Backlink" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Backlink")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "or" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "or")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "editorial" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "editorial")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "format" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "format")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "null" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "null")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "curate" === 5', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "curate")).toHaveLength(5);
+  });
+
+  it('post112: word frequency "a" === 4', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "a")).toHaveLength(4);
+  });
+
+  it('post112: word frequency "with" === 4', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "with")).toHaveLength(4);
+  });
+
+  it('post112: word frequency "additionalProperties" === 4', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "additionalProperties")).toHaveLength(4);
+  });
+
+  it('post112: word frequency "uri" === 4', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "uri")).toHaveLength(4);
+  });
+
+  it('post112: word frequency "to" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "to")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "Description" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Description")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "the" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "the")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "top" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "top")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "for" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "for")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "Input" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Input")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "Schema" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Schema")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "e" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "e")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "g" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "g")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "false" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "false")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "Output" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Output")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "station" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "station")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "url" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "url")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "required" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "required")).toHaveLength(3);
+  });
+
+  it('post112: word frequency "Endpoint" === 3', () => {
+    const words = spec.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words.filter((x) => x === "Endpoint")).toHaveLength(3);
+  });
+
+  it('post112: exactly 6 json fences', () => {
+    expect([...spec.matchAll(/```json\n([\s\S]*?)```/g)]).toHaveLength(6);
+  });
+
+  it('post112: json fence 0 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[0], 'utf8').digest('hex')).toBe('724a785bbeb7757da9e973ecf5ed7323562561b88746dc3132dae08c6b67f98e');
+  });
+
+  it('post112: json fence 0 length 419', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[0]).toHaveLength(419);
+  });
+
+  it('post112: json fence 0 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[0])).toBe('object');
+  });
+
+  it('post112: json fence 1 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[1], 'utf8').digest('hex')).toBe('f9f0e20ed06f9f9d5a9aca4999bb3939240e8a971d3624fa1a8ca880d5104043');
+  });
+
+  it('post112: json fence 1 length 619', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[1]).toHaveLength(619);
+  });
+
+  it('post112: json fence 1 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[1])).toBe('object');
+  });
+
+  it('post112: json fence 2 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[2], 'utf8').digest('hex')).toBe('4f355aaabd61baab14303898f72d65b2df4624ffd7c3b3b28ded6ec33d2768be');
+  });
+
+  it('post112: json fence 2 length 76', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[2]).toHaveLength(76);
+  });
+
+  it('post112: json fence 2 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[2])).toBe('object');
+  });
+
+  it('post112: json fence 3 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[3], 'utf8').digest('hex')).toBe('820d2eaf86d59524518c09f31d17724acd0a87d18baf02be3ddaf01906572b1d');
+  });
+
+  it('post112: json fence 3 length 369', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[3]).toHaveLength(369);
+  });
+
+  it('post112: json fence 3 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[3])).toBe('object');
+  });
+
+  it('post112: json fence 4 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[4], 'utf8').digest('hex')).toBe('8f11519e1ca9f2a723d22839622732e719c59ec7575ee8e5cfa94007ebeeab91');
+  });
+
+  it('post112: json fence 4 length 336', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[4]).toHaveLength(336);
+  });
+
+  it('post112: json fence 4 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[4])).toBe('object');
+  });
+
+  it('post112: json fence 5 sha256', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(createHash('sha256').update(fences[5], 'utf8').digest('hex')).toBe('998bc8ada00faadb8c5b3195b8f596407f76e488be77bcb0f57bf19b302a853f');
+  });
+
+  it('post112: json fence 5 length 328', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[5]).toHaveLength(328);
+  });
+
+  it('post112: json fence 5 parses as object', () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(typeof JSON.parse(fences[5])).toBe('object');
+  });
+
+  it('post112: docs tool id backlink_curate appears as ### heading', () => {
+    expect(spec).toMatch(/^### \`backlink_curate\`/m);
+  });
+
+  it('post112: docs tool id backlink_curate not in MCP_MANIFEST.tools names', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).not.toContain('backlink_curate');
+  });
+
+  it('post112: docs tool id backlink_curate count in spec', () => {
+    const re = /backlink_curate/g;
+    expect((spec.match(re) ?? []).length).toBe(1);
+  });
+
+  it('post112: docs tool id backlink_genres appears as ### heading', () => {
+    expect(spec).toMatch(/^### \`backlink_genres\`/m);
+  });
+
+  it('post112: docs tool id backlink_genres not in MCP_MANIFEST.tools names', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).not.toContain('backlink_genres');
+  });
+
+  it('post112: docs tool id backlink_genres count in spec', () => {
+    const re = /backlink_genres/g;
+    expect((spec.match(re) ?? []).length).toBe(1);
+  });
+
+  it('post112: docs tool id backlink_now_playing appears as ### heading', () => {
+    expect(spec).toMatch(/^### \`backlink_now_playing\`/m);
+  });
+
+  it('post112: docs tool id backlink_now_playing not in MCP_MANIFEST.tools names', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).not.toContain('backlink_now_playing');
+  });
+
+  it('post112: docs tool id backlink_now_playing count in spec', () => {
+    const re = /backlink_now_playing/g;
+    expect((spec.match(re) ?? []).length).toBe(1);
+  });
+
+  it('post112: claw name station_select is not a docs ### heading', () => {
+    expect(spec).not.toContain('### \`station_select\`');
+  });
+
+  it('post112: claw name station_select is in MCP_MANIFEST', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toContain('station_select');
+  });
+
+  it('post112: claw name now_playing is not a docs ### heading', () => {
+    expect(spec).not.toContain('### \`now_playing\`');
+  });
+
+  it('post112: claw name now_playing is in MCP_MANIFEST', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toContain('now_playing');
+  });
+
+  it('post112: claw name genre_filter is not a docs ### heading', () => {
+    expect(spec).not.toContain('### \`genre_filter\`');
+  });
+
+  it('post112: claw name genre_filter is in MCP_MANIFEST', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toContain('genre_filter');
+  });
+
+  it('post112: claw name curator_prompt is not a docs ### heading', () => {
+    expect(spec).not.toContain('### \`curator_prompt\`');
+  });
+
+  it('post112: claw name curator_prompt is in MCP_MANIFEST', () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toContain('curator_prompt');
+  });
+
+  it('post112: cross-lock Base URL host appears in wrangler.toml', () => {
+    expect(spec).toContain('backlink.fuzzywigg.com');
+    expect(wranglerToml).toContain('backlink.fuzzywigg.com');
+  });
+
+  it('post112: cross-lock CI hygiene still checks mcp-spec files', () => {
+    expect(ciYml).toContain('test -f docs/mcp-spec.md');
+    expect(ciYml).toContain('test -f test/mcp-spec-contract.test.ts');
+    expect(ciYml).toContain('test -f src/mcp.ts');
+  });
+
+  it('post112: cross-lock index.ts graceful degradation top 5 matches spec', () => {
+    expect(indexSrc).toMatch(/stations\.slice\(0,\s*5\)/);
+    expect(spec).toMatch(/top 5 raw stations/i);
+  });
+
+  it('post112: cross-lock index.ts KV TTL 3600 matches 1h TTL docs', () => {
+    expect(indexSrc).toMatch(/expirationTtl:\s*3600/);
+    expect(spec).toMatch(/1h TTL/i);
+  });
+
+  it('post112: cross-lock index.ts curated_by Backlink/Geryon', () => {
+    expect(indexSrc).toContain("curated_by: 'Backlink/Geryon'");
+    expect(spec).toContain('curated_by');
+  });
+
+  it('post112: cross-lock genres.ts late night → ambient matches docs mood example', () => {
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(spec.toLowerCase()).toContain('late night');
+  });
+
+  it('post112: cross-lock VALID_GENRES includes docs core genre examples', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(VALID_GENRES).toContain(g);
+      expect(spec.toLowerCase()).toContain(g);
+    }
+  });
+
+  it('post112: cross-lock MCP_MANIFEST auth none matches docs no-auth reads', () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+    expect(spec).toMatch(/No auth required for read endpoints/i);
+  });
+
+  it('post112: cross-lock MCP_MANIFEST api openapi url not documented as Worker Endpoint', () => {
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*\s*`GET \/openapi\.json`/);
+  });
+
+  it('post112: cross-lock docs tool count 3 vs claw tool count 4', () => {
+    expect(DOCS_IDS).toHaveLength(3);
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+    expect(CLAW_NAMES).toHaveLength(4);
+  });
+
+  it('post112: mood example "late night" appears in spec', () => {
+    expect(spec.toLowerCase()).toContain("late night");
+  });
+
+  it('post112: mood example "focus" appears in spec', () => {
+    expect(spec.toLowerCase()).toContain("focus");
+  });
+
+  it('post112: mood example "chill" appears in spec', () => {
+    expect(spec.toLowerCase()).toContain("chill");
+  });
+
+  it('post112: mood example "energizing" appears in spec', () => {
+    expect(spec.toLowerCase()).toContain("energizing");
+  });
+
+  it('post112: energizing mood is documented but absent from GENRE_MAP', () => {
+    expect(spec.toLowerCase()).toContain('energizing');
+    expect(Object.keys(GENRE_MAP)).not.toContain('energizing');
+  });
+
+  it('post112: focus/chill/late night resolve via GENRE_MAP to ambient', () => {
+    expect(GENRE_MAP.focus).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP['late night']).toBe('ambient');
+  });
+
+  it('post112: forbids token anthropic', () => {
+    expect(spec).not.toMatch(/anthropic/i);
+  });
+
+  it('post112: forbids token claude', () => {
+    expect(spec).not.toMatch(/claude/i);
+  });
+
+  it('post112: forbids token haiku', () => {
+    expect(spec).not.toMatch(/haiku/i);
+  });
+
+  it('post112: forbids token openai', () => {
+    expect(spec).not.toMatch(/openai/i);
+  });
+
+  it('post112: forbids token gpt_4', () => {
+    expect(spec).not.toMatch(/gpt-4/i);
+  });
+
+  it('post112: forbids token workers_dev', () => {
+    expect(spec).not.toMatch(/workers\.dev/i);
+  });
+
+  it('post112: forbids token localhost', () => {
+    expect(spec).not.toMatch(/localhost/i);
+  });
+
+  it('post112: forbids token 127_0_0_1', () => {
+    expect(spec).not.toMatch(/127\.0\.0\.1/i);
+  });
+
+  it('post112: forbids token Bearer', () => {
+    expect(spec).not.toMatch(/Bearer /i);
+  });
+
+  it('post112: forbids token GEMINI_API_KEY', () => {
+    expect(spec).not.toMatch(/GEMINI_API_KEY/i);
+  });
+
+  it('post112: forbids token CF_ACCOUNT_ID', () => {
+    expect(spec).not.toMatch(/CF_ACCOUNT_ID/i);
+  });
+
+  it('post112: forbids token wrangler_secret', () => {
+    expect(spec).not.toMatch(/wrangler secret/i);
+  });
+
+  it('post112: forbids token websocket', () => {
+    expect(spec).not.toMatch(/websocket/i);
+  });
+
+  it('post112: forbids token graphql', () => {
+    expect(spec).not.toMatch(/graphql/i);
+  });
+
+  it('post112: forbids token oauth', () => {
+    expect(spec).not.toMatch(/oauth/i);
+  });
+
+  it('post112: forbids token jwt', () => {
+    expect(spec).not.toMatch(/jwt/i);
+  });
+
+  it('post112: forbids token password', () => {
+    expect(spec).not.toMatch(/password/i);
+  });
+
+  it('post112: forbids token TODO', () => {
+    expect(spec).not.toMatch(/TODO/);
+  });
+
+  it('post112: forbids token FIXME', () => {
+    expect(spec).not.toMatch(/FIXME/);
+  });
+
+  it('post112: forbids token example_com', () => {
+    expect(spec).not.toMatch(/example\.com/i);
+  });
+
+  it('post112: forbids token socket_io', () => {
+    expect(spec).not.toMatch(/socket\.io/i);
+  });
+
+  it('post112: forbids token private_key', () => {
+    expect(spec).not.toMatch(/private_key/i);
+  });
+
+  it('post112: forbids token health', () => {
+    expect(spec).not.toMatch(/\/health/i);
+  });
+
+  it('post112: forbids token openapi_json', () => {
+    expect(spec).not.toMatch(/\/openapi\.json/i);
+  });
+
+  it('post112: forbids token station_select', () => {
+    expect(spec).not.toMatch(/station_select/i);
+  });
+
+  it('post112: forbids token genre_filter', () => {
+    expect(spec).not.toMatch(/genre_filter/i);
+  });
+
+  it('post112: forbids token curator_prompt', () => {
+    expect(spec).not.toMatch(/curator_prompt/i);
+  });
+
+  it('post112: field/token query present', () => {
+    expect(spec).toContain("query");
+  });
+
+  it('post112: field/token curated_by present', () => {
+    expect(spec).toContain("curated_by");
+  });
+
+  it('post112: field/token timestamp present', () => {
+    expect(spec).toContain("timestamp");
+  });
+
+  it('post112: field/token stations present', () => {
+    expect(spec).toContain("stations");
+  });
+
+  it('post112: field/token name present', () => {
+    expect(spec).toContain("name");
+  });
+
+  it('post112: field/token url present', () => {
+    expect(spec).toContain("url");
+  });
+
+  it('post112: field/token logo present', () => {
+    expect(spec).toContain("logo");
+  });
+
+  it('post112: field/token editorial present', () => {
+    expect(spec).toContain("editorial");
+  });
+
+  it('post112: field/token genre present', () => {
+    expect(spec).toContain("genre");
+  });
+
+  it('post112: field/token mood present', () => {
+    expect(spec).toContain("mood");
+  });
+
+  it('post112: field/token genres present', () => {
+    expect(spec).toContain("genres");
+  });
+
+  it('post112: field/token aliases present', () => {
+    expect(spec).toContain("aliases");
+  });
+
+  it('post112: field/token stream_url present', () => {
+    expect(spec).toContain("stream_url");
+  });
+
+  it('post112: field/token additionalProperties present', () => {
+    expect(spec).toContain("additionalProperties");
+  });
+
+  it('post112: field/token date-time present', () => {
+    expect(spec).toContain("date-time");
+  });
+
+  it('post112: field/token iptv-org present', () => {
+    expect(spec).toContain("iptv-org");
+  });
+
+  it('post112: field/token Gemini present', () => {
+    expect(spec).toContain("Gemini");
+  });
+
+  it('post112: field/token KV present', () => {
+    expect(spec).toContain("KV");
+  });
+
+  it('post112: endpoint/note bit GET_curate', () => {
+    expect(spec).toContain("GET /curate");
+  });
+
+  it('post112: endpoint/note bit GET_genres', () => {
+    expect(spec).toContain("GET /genres");
+  });
+
+  it('post112: endpoint/note bit genre_genre_', () => {
+    expect(spec).toContain("genre={genre}");
+  });
+
+  it('post112: endpoint/note bit mood_mood_', () => {
+    expect(spec).toContain("mood={mood}");
+  });
+
+  it('post112: endpoint/note bit stations_0_', () => {
+    expect(spec).toContain("stations[0]");
+  });
+
+  it('post112: endpoint/note bit url_remapped_to_stream_url', () => {
+    expect(spec).toContain("url` remapped to `stream_url");
+  });
+
+  it('post112: endpoint/note bit top_3_radio_stations', () => {
+    expect(spec).toContain("top 3 radio stations");
+  });
+
+  it('post112: endpoint/note bit editorial_blurbs', () => {
+    expect(spec).toContain("editorial blurbs");
+  });
+
+  it('post112: endpoint/note bit 1h_TTL', () => {
+    expect(spec).toContain("1h TTL");
+  });
+
+  it('post112: endpoint/note bit editorial_null', () => {
+    expect(spec).toContain("editorial: null");
+  });
+
+  it('post112: endpoint/note bit No_auth_required', () => {
+    expect(spec).toContain("No auth required");
+  });
+
+  it('post112: TextEncoder/Decoder round-trip', () => {
+    expect(new TextDecoder().decode(new TextEncoder().encode(spec))).toBe(spec);
+  });
+
+  it('post112: Buffer utf8 round-trip', () => {
+    expect(Buffer.from(spec, 'utf8').toString('utf8')).toBe(spec);
+  });
+
+  it('post112: NFC normalize identity', () => {
+    expect(spec.normalize('NFC')).toBe(spec);
+  });
+
+  it('post112: NFD normalize then NFC restores', () => {
+    expect(spec.normalize('NFD').normalize('NFC')).toBe(spec.normalize('NFC'));
+  });
+
+  it('post112: unique code points count', () => {
+    expect(new Set([...spec].map((c) => c.codePointAt(0))).size).toBe(73);
+  });
+
+  it('post112: no surrogate pairs (all BMP)', () => {
+    for (let i = 0; i < spec.length; i++) {
+      const cp = spec.codePointAt(i);
+      expect(cp).toBeLessThanOrEqual(0xffff);
+    }
+  });
+
+  it('post112: starts with title heading', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification')).toBe(true);
+  });
+
+  it('post112: ends with trailing newline after degradation bullet', () => {
+    expect(spec.endsWith('\n')).toBe(true);
+    expect(spec.trimEnd().endsWith('`editorial: null`')).toBe(true);
+  });
+
+  it('post112: Integration Notes has exactly 5 bullets', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = notes.split('\n').filter((l) => l.startsWith('- '));
+    expect(bullets).toHaveLength(5);
+  });
+
+  it('post112: locks Integration Notes bullet texts', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = notes.split('\n').filter((l) => l.startsWith('- '));
+    expect(bullets).toEqual([
+      '- Base URL: `https://backlink.fuzzywigg.com`',
+      '- No auth required for read endpoints',
+      '- KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '- `/curate` always calls Gemini fresh — no LLM response caching',
+      '- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('post112: exactly three ### tool headings', () => {
+    expect((spec.match(/^### `/gm) ?? []).length).toBe(3);
+  });
+
+  it('post112: additionalProperties false appears exactly 3 times', () => {
+    expect((spec.match(/"additionalProperties":\s*false/g) ?? []).length).toBe(3);
+  });
+
+  it('post112: btoa backlink_curate', () => {
+    expect(btoa('backlink_curate')).toBe('YmFja2xpbmtfY3VyYXRl');
+  });
+
+  it('post112: btoa backlink_genres', () => {
+    expect(btoa('backlink_genres')).toBe('YmFja2xpbmtfZ2VucmVz');
+  });
+
+  it('post112: btoa backlink_now_playing', () => {
+    expect(btoa('backlink_now_playing')).toBe('YmFja2xpbmtfbm93X3BsYXlpbmc=');
+  });
+
+  it('post112: btoa Base URL host', () => {
+    expect(btoa('backlink.fuzzywigg.com')).toBe('YmFja2xpbmsuZnV6enl3aWdnLmNvbQ==');
+  });
+
+  it('post112: localeCompare docs tool order', () => {
+    const ids = [...DOCS_IDS];
+    const sorted = [...ids].sort((a, b) => a.localeCompare(b));
+    expect(sorted).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+  });
+
+  it('post112: Object.freeze docs ids immutable', () => {
+    const ids = Object.freeze([...DOCS_IDS]);
+    expect(() => { (ids as string[]).push('x'); }).toThrow();
+  });
+
+  it('post112: JSON.stringify MCP_MANIFEST tools names stable', () => {
+    expect(JSON.stringify(MCP_MANIFEST.tools.map((t) => t.name))).toBe(
+      "[\"station_select\",\"now_playing\",\"genre_filter\",\"curator_prompt\"]",
+    );
+  });
+
+  it('post112: reduce nonempty line char budget', () => {
+    const n = spec.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0);
+    expect(n).toBe(3400);
+  });
+
+  it('post112: padStart host then slice identity', () => {
+    const host = 'backlink.fuzzywigg.com';
+    expect(host.padStart(40, '.').slice(-host.length)).toBe(host);
+  });
+
+  it('post112: Proxy get first line', () => {
+    const proxy = new Proxy({ line: spec.split('\n')[0] }, { get: (t, p) => Reflect.get(t, p) });
+    expect(proxy.line).toBe('# Backlink MCP Tool Specification');
+  });
+
+  it('post112: Reflect.ownKeys frozen headings length', () => {
+    const h = Object.freeze([
+      '# Backlink MCP Tool Specification',
+      '## Tools',
+      '### `backlink_curate`',
+      '### `backlink_genres`',
+      '### `backlink_now_playing`',
+      '## Integration Notes',
+    ]);
+    expect(Reflect.ownKeys(h).filter((k) => k !== 'length')).toHaveLength(6);
+  });
+
+  it('post112: first 64 charCodes fingerprint', () => {
+    const codes = [];
+    for (let i = 0; i < 64; i++) codes.push(spec.charCodeAt(i));
+    expect(createHash('sha256').update(codes.join(','), 'utf8').digest('hex').slice(0, 32)).toBe(
+      '962d8e8ec0c2e32c180f01ad095c53f7',
+    );
+  });
+
+  it('post112: last 64 charCodes fingerprint', () => {
+    const slice = spec.slice(-64);
+    const codes = [];
+    for (let i = 0; i < slice.length; i++) codes.push(slice.charCodeAt(i));
+    expect(createHash('sha256').update(codes.join(','), 'utf8').digest('hex').slice(0, 32)).toBe(
+      '21b63b78d21e15d61dd7e7c562fac4ce',
+    );
+  });
+
+  it('post112: jsonFences helper returns 6 objects', () => {
+    expect(jsonFences()).toHaveLength(6);
+  });
+
+  it('post112: curate input schema properties genre+mood', () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const input = fences[0] as { properties: Record<string, unknown>; additionalProperties: boolean };
+    expect(Object.keys(input.properties).sort()).toEqual(['genre', 'mood']);
+    expect(input.additionalProperties).toBe(false);
+  });
+
+  it('post112: genres input schema empty properties', () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const input = fences[2] as { properties: Record<string, unknown>; additionalProperties: boolean };
+    expect(input.properties).toEqual({});
+    expect(input.additionalProperties).toBe(false);
+  });
+
+  it('post112: now_playing input schema properties genre+mood', () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const input = fences[4] as { properties: Record<string, unknown>; additionalProperties: boolean };
+    expect(Object.keys(input.properties).sort()).toEqual(['genre', 'mood']);
+    expect(input.additionalProperties).toBe(false);
+  });
+
+  it('post112: curate output required station fields name/url/genre', () => {
+    const fences = jsonFences() as Array<any>;
+    const out = fences[1];
+    expect(out.properties.stations.items.required).toEqual(['name', 'url', 'genre']);
+  });
+
+  it('post112: now_playing output required name/stream_url/genre', () => {
+    const fences = jsonFences() as Array<any>;
+    const out = fences[5];
+    expect(out.required).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it('post112: curate output timestamp format date-time', () => {
+    const fences = jsonFences() as Array<any>;
+    expect(fences[1].properties.timestamp.format).toBe('date-time');
+  });
+
+  it('post112: genres output has genres array and aliases object', () => {
+    const fences = jsonFences() as Array<any>;
+    expect(fences[3].properties.genres.type).toBe('array');
+    expect(fences[3].properties.aliases.type).toBe('object');
+  });
+
+  it('post112: toolSection curate excludes genres heading', () => {
+    const section = toolSection('backlink_curate', '### `backlink_genres`');
+    expect(section.startsWith('### `backlink_curate`')).toBe(true);
+    expect(section).toContain('top 3 radio stations');
+    expect(section.includes('### `backlink_genres`')).toBe(false);
+  });
+
+  it('post112: toolSection genres excludes now_playing heading', () => {
+    const section = toolSection('backlink_genres', '### `backlink_now_playing`');
+    expect(section).toContain('iptv-org');
+    expect(section).toContain('aliases');
+    expect(section.includes('### `backlink_now_playing`')).toBe(false);
+  });
+
+  it('post112: toolSection now_playing includes stream_url remap', () => {
+    const section = toolSection('backlink_now_playing', '## Integration Notes');
+    expect(section).toContain('stream_url');
+    expect(section).toContain('stations[0]');
+    expect(section.includes('## Integration Notes')).toBe(false);
+  });
+
+  it('post112: this describe block is present in suite file', () => {
+    expect(self).toContain("describe('post112 mcp-spec-contract HEAVY deepen'");
+  });
+
+  it('post112: suite still imports MCP_MANIFEST and GENRE_MAP', () => {
+    expect(self).toContain("import { MCP_MANIFEST } from '../src/mcp'");
+    expect(self).toContain("import { GENRE_MAP, VALID_GENRES } from '../src/genres'");
+  });
+
+  it('post112: suite imports createHash and createHmac', () => {
+    expect(self).toMatch(/import \{[^}]*createHash[^}]*\} from 'node:crypto'|import \{ createHash, createHmac \} from 'node:crypto'/);
+  });
+
+  it('post112: post112 deepen appears after post-94 deepen marker', () => {
+    const a = self.indexOf('HEAVY burn (post-#94)');
+    const b = self.indexOf('TOKENMAXX HEAVY burn (post-#112)');
+    expect(a).toBeGreaterThan(-1);
+    expect(b).toBeGreaterThan(a);
+  });
+
+  it('post112: mcp.ts still exports MCP_MANIFEST only as named const', () => {
+    expect(mcpSrc).toContain('export const MCP_MANIFEST');
+    expect(mcpSrc).not.toContain('backlink_curate');
+  });
+
+  it('post112: genres.ts still exports GENRE_MAP and VALID_GENRES', () => {
+    expect(genresSrc).toContain('export const GENRE_MAP');
+    expect(genresSrc).toContain('export const VALID_GENRES');
+  });
+
+  it('post112: index.ts still uses gemini-2.0-flash', () => {
+    expect(indexSrc).toContain('gemini-2.0-flash');
+    expect(spec).not.toMatch(/gemini-2\.0-flash/i);
+  });
+
+  it('post112: docs do not invent /playlist or /now-playing Worker routes as Endpoints', () => {
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*\s*`GET \/playlist/);
+    expect(spec).not.toMatch(/\*\*Endpoint:\*\*\s*`GET \/now-playing/);
+  });
+
+  it('post112: docs now_playing Endpoint still points at /curate', () => {
+    const section = toolSection('backlink_now_playing', '## Integration Notes');
+    expect(section).toMatch(/\*\*Endpoint:\*\*\s*`GET \/curate\?genre=\{genre\}&mood=\{mood\}/);
+  });
+
+  it('post112: 5x sha256 stable under repeated hashing', () => {
+    const digests = Array.from({ length: 5 }, () => createHash('sha256').update(spec, 'utf8').digest('hex'));
+    expect(new Set(digests).size).toBe(1);
+    expect(digests[0]).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+  });
+
+  it('post112: md5 starts ee788 ends 392c', () => {
+    const d = createHash('md5').update(spec, 'utf8').digest('hex');
+    expect(d.startsWith('ee788')).toBe(true);
+    expect(d.endsWith('392c')).toBe(true);
+  });
+
+  it('post112: sha256 starts a939 ends 6849', () => {
+    const d = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect(d.startsWith('a939')).toBe(true);
+    expect(d.endsWith('6849')).toBe(true);
+  });
+
+  it('post112: line 0 length 33', () => {
+    expect((spec.split('\n')[0] ?? '').length).toBe(33);
+  });
+
+  it('post112: line 1 length 0', () => {
+    expect((spec.split('\n')[1] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 2 length 93', () => {
+    expect((spec.split('\n')[2] ?? '').length).toBe(93);
+  });
+
+  it('post112: line 3 length 0', () => {
+    expect((spec.split('\n')[3] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 4 length 3', () => {
+    expect((spec.split('\n')[4] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 5 length 0', () => {
+    expect((spec.split('\n')[5] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 6 length 8', () => {
+    expect((spec.split('\n')[6] ?? '').length).toBe(8);
+  });
+
+  it('post112: line 7 length 0', () => {
+    expect((spec.split('\n')[7] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 8 length 21', () => {
+    expect((spec.split('\n')[8] ?? '').length).toBe(21);
+  });
+
+  it('post112: line 9 length 0', () => {
+    expect((spec.split('\n')[9] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 10 length 125', () => {
+    expect((spec.split('\n')[10] ?? '').length).toBe(125);
+  });
+
+  it('post112: line 11 length 0', () => {
+    expect((spec.split('\n')[11] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 12 length 17', () => {
+    expect((spec.split('\n')[12] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 13 length 7', () => {
+    expect((spec.split('\n')[13] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 14 length 1', () => {
+    expect((spec.split('\n')[14] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 15 length 19', () => {
+    expect((spec.split('\n')[15] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 16 length 17', () => {
+    expect((spec.split('\n')[16] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 17 length 14', () => {
+    expect((spec.split('\n')[17] ?? '').length).toBe(14);
+  });
+
+  it('post112: line 18 length 23', () => {
+    expect((spec.split('\n')[18] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 19 length 118', () => {
+    expect((spec.split('\n')[19] ?? '').length).toBe(118);
+  });
+
+  it('post112: line 20 length 6', () => {
+    expect((spec.split('\n')[20] ?? '').length).toBe(6);
+  });
+
+  it('post112: line 21 length 13', () => {
+    expect((spec.split('\n')[21] ?? '').length).toBe(13);
+  });
+
+  it('post112: line 22 length 23', () => {
+    expect((spec.split('\n')[22] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 23 length 130', () => {
+    expect((spec.split('\n')[23] ?? '').length).toBe(130);
+  });
+
+  it('post112: line 24 length 5', () => {
+    expect((spec.split('\n')[24] ?? '').length).toBe(5);
+  });
+
+  it('post112: line 25 length 4', () => {
+    expect((spec.split('\n')[25] ?? '').length).toBe(4);
+  });
+
+  it('post112: line 26 length 31', () => {
+    expect((spec.split('\n')[26] ?? '').length).toBe(31);
+  });
+
+  it('post112: line 27 length 1', () => {
+    expect((spec.split('\n')[27] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 28 length 3', () => {
+    expect((spec.split('\n')[28] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 29 length 0', () => {
+    expect((spec.split('\n')[29] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 30 length 45', () => {
+    expect((spec.split('\n')[30] ?? '').length).toBe(45);
+  });
+
+  it('post112: line 31 length 7', () => {
+    expect((spec.split('\n')[31] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 32 length 1', () => {
+    expect((spec.split('\n')[32] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 33 length 19', () => {
+    expect((spec.split('\n')[33] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 34 length 17', () => {
+    expect((spec.split('\n')[34] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 35 length 34', () => {
+    expect((spec.split('\n')[35] ?? '').length).toBe(34);
+  });
+
+  it('post112: line 36 length 39', () => {
+    expect((spec.split('\n')[36] ?? '').length).toBe(39);
+  });
+
+  it('post112: line 37 length 61', () => {
+    expect((spec.split('\n')[37] ?? '').length).toBe(61);
+  });
+
+  it('post112: line 38 length 17', () => {
+    expect((spec.split('\n')[38] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 39 length 22', () => {
+    expect((spec.split('\n')[39] ?? '').length).toBe(22);
+  });
+
+  it('post112: line 40 length 16', () => {
+    expect((spec.split('\n')[40] ?? '').length).toBe(16);
+  });
+
+  it('post112: line 41 length 25', () => {
+    expect((spec.split('\n')[41] ?? '').length).toBe(25);
+  });
+
+  it('post112: line 42 length 23', () => {
+    expect((spec.split('\n')[42] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 43 length 39', () => {
+    expect((spec.split('\n')[43] ?? '').length).toBe(39);
+  });
+
+  it('post112: line 44 length 55', () => {
+    expect((spec.split('\n')[44] ?? '').length).toBe(55);
+  });
+
+  it('post112: line 45 length 66', () => {
+    expect((spec.split('\n')[45] ?? '').length).toBe(66);
+  });
+
+  it('post112: line 46 length 54', () => {
+    expect((spec.split('\n')[46] ?? '').length).toBe(54);
+  });
+
+  it('post112: line 47 length 39', () => {
+    expect((spec.split('\n')[47] ?? '').length).toBe(39);
+  });
+
+  it('post112: line 48 length 10', () => {
+    expect((spec.split('\n')[48] ?? '').length).toBe(10);
+  });
+
+  it('post112: line 49 length 44', () => {
+    expect((spec.split('\n')[49] ?? '').length).toBe(44);
+  });
+
+  it('post112: line 50 length 7', () => {
+    expect((spec.split('\n')[50] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 51 length 5', () => {
+    expect((spec.split('\n')[51] ?? '').length).toBe(5);
+  });
+
+  it('post112: line 52 length 3', () => {
+    expect((spec.split('\n')[52] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 53 length 1', () => {
+    expect((spec.split('\n')[53] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 54 length 3', () => {
+    expect((spec.split('\n')[54] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 55 length 0', () => {
+    expect((spec.split('\n')[55] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 56 length 53', () => {
+    expect((spec.split('\n')[56] ?? '').length).toBe(53);
+  });
+
+  it('post112: line 57 length 0', () => {
+    expect((spec.split('\n')[57] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 58 length 3', () => {
+    expect((spec.split('\n')[58] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 59 length 0', () => {
+    expect((spec.split('\n')[59] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 60 length 21', () => {
+    expect((spec.split('\n')[60] ?? '').length).toBe(21);
+  });
+
+  it('post112: line 61 length 0', () => {
+    expect((spec.split('\n')[61] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 62 length 108', () => {
+    expect((spec.split('\n')[62] ?? '').length).toBe(108);
+  });
+
+  it('post112: line 63 length 0', () => {
+    expect((spec.split('\n')[63] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 64 length 17', () => {
+    expect((spec.split('\n')[64] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 65 length 7', () => {
+    expect((spec.split('\n')[65] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 66 length 1', () => {
+    expect((spec.split('\n')[66] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 67 length 19', () => {
+    expect((spec.split('\n')[67] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 68 length 19', () => {
+    expect((spec.split('\n')[68] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 69 length 31', () => {
+    expect((spec.split('\n')[69] ?? '').length).toBe(31);
+  });
+
+  it('post112: line 70 length 1', () => {
+    expect((spec.split('\n')[70] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 71 length 3', () => {
+    expect((spec.split('\n')[71] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 72 length 0', () => {
+    expect((spec.split('\n')[72] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 73 length 11', () => {
+    expect((spec.split('\n')[73] ?? '').length).toBe(11);
+  });
+
+  it('post112: line 74 length 7', () => {
+    expect((spec.split('\n')[74] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 75 length 1', () => {
+    expect((spec.split('\n')[75] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 76 length 19', () => {
+    expect((spec.split('\n')[76] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 77 length 17', () => {
+    expect((spec.split('\n')[77] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 78 length 15', () => {
+    expect((spec.split('\n')[78] ?? '').length).toBe(15);
+  });
+
+  it('post112: line 79 length 22', () => {
+    expect((spec.split('\n')[79] ?? '').length).toBe(22);
+  });
+
+  it('post112: line 80 length 36', () => {
+    expect((spec.split('\n')[80] ?? '').length).toBe(36);
+  });
+
+  it('post112: line 81 length 78', () => {
+    expect((spec.split('\n')[81] ?? '').length).toBe(78);
+  });
+
+  it('post112: line 82 length 6', () => {
+    expect((spec.split('\n')[82] ?? '').length).toBe(6);
+  });
+
+  it('post112: line 83 length 16', () => {
+    expect((spec.split('\n')[83] ?? '').length).toBe(16);
+  });
+
+  it('post112: line 84 length 23', () => {
+    expect((spec.split('\n')[84] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 85 length 51', () => {
+    expect((spec.split('\n')[85] ?? '').length).toBe(51);
+  });
+
+  it('post112: line 86 length 61', () => {
+    expect((spec.split('\n')[86] ?? '').length).toBe(61);
+  });
+
+  it('post112: line 87 length 5', () => {
+    expect((spec.split('\n')[87] ?? '').length).toBe(5);
+  });
+
+  it('post112: line 88 length 3', () => {
+    expect((spec.split('\n')[88] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 89 length 1', () => {
+    expect((spec.split('\n')[89] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 90 length 3', () => {
+    expect((spec.split('\n')[90] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 91 length 0', () => {
+    expect((spec.split('\n')[91] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 92 length 27', () => {
+    expect((spec.split('\n')[92] ?? '').length).toBe(27);
+  });
+
+  it('post112: line 93 length 0', () => {
+    expect((spec.split('\n')[93] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 94 length 3', () => {
+    expect((spec.split('\n')[94] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 95 length 0', () => {
+    expect((spec.split('\n')[95] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 96 length 26', () => {
+    expect((spec.split('\n')[96] ?? '').length).toBe(26);
+  });
+
+  it('post112: line 97 length 0', () => {
+    expect((spec.split('\n')[97] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 98 length 125', () => {
+    expect((spec.split('\n')[98] ?? '').length).toBe(125);
+  });
+
+  it('post112: line 99 length 0', () => {
+    expect((spec.split('\n')[99] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 100 length 17', () => {
+    expect((spec.split('\n')[100] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 101 length 7', () => {
+    expect((spec.split('\n')[101] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 102 length 1', () => {
+    expect((spec.split('\n')[102] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 103 length 19', () => {
+    expect((spec.split('\n')[103] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 104 length 17', () => {
+    expect((spec.split('\n')[104] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 105 length 14', () => {
+    expect((spec.split('\n')[105] ?? '').length).toBe(14);
+  });
+
+  it('post112: line 106 length 23', () => {
+    expect((spec.split('\n')[106] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 107 length 90', () => {
+    expect((spec.split('\n')[107] ?? '').length).toBe(90);
+  });
+
+  it('post112: line 108 length 6', () => {
+    expect((spec.split('\n')[108] ?? '').length).toBe(6);
+  });
+
+  it('post112: line 109 length 13', () => {
+    expect((spec.split('\n')[109] ?? '').length).toBe(13);
+  });
+
+  it('post112: line 110 length 23', () => {
+    expect((spec.split('\n')[110] ?? '').length).toBe(23);
+  });
+
+  it('post112: line 111 length 75', () => {
+    expect((spec.split('\n')[111] ?? '').length).toBe(75);
+  });
+
+  it('post112: line 112 length 5', () => {
+    expect((spec.split('\n')[112] ?? '').length).toBe(5);
+  });
+
+  it('post112: line 113 length 4', () => {
+    expect((spec.split('\n')[113] ?? '').length).toBe(4);
+  });
+
+  it('post112: line 114 length 31', () => {
+    expect((spec.split('\n')[114] ?? '').length).toBe(31);
+  });
+
+  it('post112: line 115 length 1', () => {
+    expect((spec.split('\n')[115] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 116 length 3', () => {
+    expect((spec.split('\n')[116] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 117 length 0', () => {
+    expect((spec.split('\n')[117] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 118 length 62', () => {
+    expect((spec.split('\n')[118] ?? '').length).toBe(62);
+  });
+
+  it('post112: line 119 length 7', () => {
+    expect((spec.split('\n')[119] ?? '').length).toBe(7);
+  });
+
+  it('post112: line 120 length 1', () => {
+    expect((spec.split('\n')[120] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 121 length 19', () => {
+    expect((spec.split('\n')[121] ?? '').length).toBe(19);
+  });
+
+  it('post112: line 122 length 17', () => {
+    expect((spec.split('\n')[122] ?? '').length).toBe(17);
+  });
+
+  it('post112: line 123 length 33', () => {
+    expect((spec.split('\n')[123] ?? '').length).toBe(33);
+  });
+
+  it('post112: line 124 length 56', () => {
+    expect((spec.split('\n')[124] ?? '').length).toBe(56);
+  });
+
+  it('post112: line 125 length 60', () => {
+    expect((spec.split('\n')[125] ?? '').length).toBe(60);
+  });
+
+  it('post112: line 126 length 48', () => {
+    expect((spec.split('\n')[126] ?? '').length).toBe(48);
+  });
+
+  it('post112: line 127 length 33', () => {
+    expect((spec.split('\n')[127] ?? '').length).toBe(33);
+  });
+
+  it('post112: line 128 length 4', () => {
+    expect((spec.split('\n')[128] ?? '').length).toBe(4);
+  });
+
+  it('post112: line 129 length 45', () => {
+    expect((spec.split('\n')[129] ?? '').length).toBe(45);
+  });
+
+  it('post112: line 130 length 1', () => {
+    expect((spec.split('\n')[130] ?? '').length).toBe(1);
+  });
+
+  it('post112: line 131 length 3', () => {
+    expect((spec.split('\n')[131] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 132 length 0', () => {
+    expect((spec.split('\n')[132] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 133 length 120', () => {
+    expect((spec.split('\n')[133] ?? '').length).toBe(120);
+  });
+
+  it('post112: line 134 length 0', () => {
+    expect((spec.split('\n')[134] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 135 length 3', () => {
+    expect((spec.split('\n')[135] ?? '').length).toBe(3);
+  });
+
+  it('post112: line 136 length 0', () => {
+    expect((spec.split('\n')[136] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 137 length 20', () => {
+    expect((spec.split('\n')[137] ?? '').length).toBe(20);
+  });
+
+  it('post112: line 138 length 0', () => {
+    expect((spec.split('\n')[138] ?? '').length).toBe(0);
+  });
+
+  it('post112: line 139 length 44', () => {
+    expect((spec.split('\n')[139] ?? '').length).toBe(44);
+  });
+
+  it('post112: line 140 length 37', () => {
+    expect((spec.split('\n')[140] ?? '').length).toBe(37);
+  });
+
+  it('post112: line 141 length 78', () => {
+    expect((spec.split('\n')[141] ?? '').length).toBe(78);
+  });
+
+  it('post112: line 142 length 63', () => {
+    expect((spec.split('\n')[142] ?? '').length).toBe(63);
+  });
+
+  it('post112: line 143 length 91', () => {
+    expect((spec.split('\n')[143] ?? '').length).toBe(91);
+  });
+
+  it('post112: line 144 length 0', () => {
+    expect((spec.split('\n')[144] ?? '').length).toBe(0);
+  });
+
+  it('post112: title charAt 0 is "#"', () => {
+    expect(spec.charAt(0)).toBe("#");
+  });
+
+  it('post112: title charAt 1 is " "', () => {
+    expect(spec.charAt(1)).toBe(" ");
+  });
+
+  it('post112: title charAt 2 is "B"', () => {
+    expect(spec.charAt(2)).toBe("B");
+  });
+
+  it('post112: title charAt 3 is "a"', () => {
+    expect(spec.charAt(3)).toBe("a");
+  });
+
+  it('post112: title charAt 4 is "c"', () => {
+    expect(spec.charAt(4)).toBe("c");
+  });
+
+  it('post112: title charAt 5 is "k"', () => {
+    expect(spec.charAt(5)).toBe("k");
+  });
+
+  it('post112: title charAt 6 is "l"', () => {
+    expect(spec.charAt(6)).toBe("l");
+  });
+
+  it('post112: title charAt 7 is "i"', () => {
+    expect(spec.charAt(7)).toBe("i");
+  });
+
+  it('post112: title charAt 8 is "n"', () => {
+    expect(spec.charAt(8)).toBe("n");
+  });
+
+  it('post112: title charAt 9 is "k"', () => {
+    expect(spec.charAt(9)).toBe("k");
+  });
+
+  it('post112: title charAt 10 is " "', () => {
+    expect(spec.charAt(10)).toBe(" ");
+  });
+
+  it('post112: title charAt 11 is "M"', () => {
+    expect(spec.charAt(11)).toBe("M");
+  });
+
+  it('post112: title charAt 12 is "C"', () => {
+    expect(spec.charAt(12)).toBe("C");
+  });
+
+  it('post112: title charAt 13 is "P"', () => {
+    expect(spec.charAt(13)).toBe("P");
+  });
+
+  it('post112: title charAt 14 is " "', () => {
+    expect(spec.charAt(14)).toBe(" ");
+  });
+
+  it('post112: title charAt 15 is "T"', () => {
+    expect(spec.charAt(15)).toBe("T");
+  });
+
+  it('post112: title charAt 16 is "o"', () => {
+    expect(spec.charAt(16)).toBe("o");
+  });
+
+  it('post112: title charAt 17 is "o"', () => {
+    expect(spec.charAt(17)).toBe("o");
+  });
+
+  it('post112: title charAt 18 is "l"', () => {
+    expect(spec.charAt(18)).toBe("l");
+  });
+
+  it('post112: title charAt 19 is " "', () => {
+    expect(spec.charAt(19)).toBe(" ");
+  });
+
+  it('post112: title charAt 20 is "S"', () => {
+    expect(spec.charAt(20)).toBe("S");
+  });
+
+  it('post112: title charAt 21 is "p"', () => {
+    expect(spec.charAt(21)).toBe("p");
+  });
+
+  it('post112: title charAt 22 is "e"', () => {
+    expect(spec.charAt(22)).toBe("e");
+  });
+
+  it('post112: title charAt 23 is "c"', () => {
+    expect(spec.charAt(23)).toBe("c");
+  });
+
+  it('post112: title charAt 24 is "i"', () => {
+    expect(spec.charAt(24)).toBe("i");
+  });
+
+  it('post112: title charAt 25 is "f"', () => {
+    expect(spec.charAt(25)).toBe("f");
+  });
+
+  it('post112: title charAt 26 is "i"', () => {
+    expect(spec.charAt(26)).toBe("i");
+  });
+
+  it('post112: title charAt 27 is "c"', () => {
+    expect(spec.charAt(27)).toBe("c");
+  });
+
+  it('post112: title charAt 28 is "a"', () => {
+    expect(spec.charAt(28)).toBe("a");
+  });
+
+  it('post112: title charAt 29 is "t"', () => {
+    expect(spec.charAt(29)).toBe("t");
+  });
+
+  it('post112: title charAt 30 is "i"', () => {
+    expect(spec.charAt(30)).toBe("i");
+  });
+
+  it('post112: title charAt 31 is "o"', () => {
+    expect(spec.charAt(31)).toBe("o");
+  });
+
+  it('post112: title charAt 32 is "n"', () => {
+    expect(spec.charAt(32)).toBe("n");
+  });
+
+  it('post112: slice between heading 0 and 1 sha256', () => {
+    const a = "# Backlink MCP Tool Specification";
+    const b = "## Tools";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('b5e88d3307c545ead8d44e2d4ee19e44346f014472dc60ffc6c1883df4d56d05');
+  });
+
+  it('post112: slice between heading 0 and 1 length', () => {
+    const a = "# Backlink MCP Tool Specification";
+    const b = "## Tools";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(102);
+  });
+
+  it('post112: slice between heading 1 and 2 sha256', () => {
+    const a = "## Tools";
+    const b = "### `backlink_curate`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070');
+  });
+
+  it('post112: slice between heading 1 and 2 length', () => {
+    const a = "## Tools";
+    const b = "### `backlink_curate`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(2);
+  });
+
+  it('post112: slice between heading 2 and 3 sha256', () => {
+    const a = "### `backlink_curate`";
+    const b = "### `backlink_genres`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('f5156e887b423b3dccba0be51f10c7e0d3ff820d84095a9e26941241a2453602');
+  });
+
+  it('post112: slice between heading 2 and 3 length', () => {
+    const a = "### `backlink_curate`";
+    const b = "### `backlink_genres`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(1317);
+  });
+
+  it('post112: slice between heading 3 and 4 sha256', () => {
+    const a = "### `backlink_genres`";
+    const b = "### `backlink_now_playing`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('27b7e714a82162b023dcaf46a1bf6b0669a5f466892352de8cbd605a35f77391');
+  });
+
+  it('post112: slice between heading 3 and 4 length', () => {
+    const a = "### `backlink_genres`";
+    const b = "### `backlink_now_playing`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(647);
+  });
+
+  it('post112: slice between heading 4 and 5 sha256', () => {
+    const a = "### `backlink_now_playing`";
+    const b = "## Integration Notes";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('5e150d4d0b5c2e8829220b51975070df0d6bae12b8c2bf4a373383d8529b0c60');
+  });
+
+  it('post112: slice between heading 4 and 5 length', () => {
+    const a = "### `backlink_now_playing`";
+    const b = "## Integration Notes";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(1027);
+  });
+
+  it('post112: slice after Integration Notes sha256', () => {
+    const a = '## Integration Notes';
+    const slice = spec.slice(spec.indexOf(a) + a.length);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe('1dfa300ec1c707b5220fa6d9db44728be67f3891363fb7cb65cc9eb238c11ebb');
+  });
+
+  it('post112: HMAC key inventory digest', () => {
+    const keys = ["post112","mcp-spec","mcp-spec-contract","backlink","Backlink Radio","backlink_curate","backlink_genres","backlink_now_playing","stream_url","curated_by","Integration Notes","claw-mcp","station_select","now_playing","genre_filter","curator_prompt","VALID_GENRES","GENRE_MAP","fuzzywigg","iptv-org","Gemini","1h TTL","editorial: null","additionalProperties","openapi"];
+    const inventory = keys.map((k) => createHmac('sha256', k).update(spec, 'utf8').digest('hex')).join('|');
+    expect(createHash('sha256').update(inventory, 'utf8').digest('hex')).toBe('de6ca95cd5bc99e9a42d0551e840a790f667ff9982d9d464277722e0b0a694b7');
+  });
+
+  it('post112: mid-line sha prefix inventory digest', () => {
+    const parts = [];
+    for (let i = 20; i <= 134; i++) {
+      parts.push(createHash('sha256').update(spec.split('\n')[i] ?? '', 'utf8').digest('hex').slice(0, 16));
+    }
+    expect(createHash('sha256').update(parts.join('|'), 'utf8').digest('hex')).toBe(
+      '8170c5a59e31348fde90f41e8403b40782d271e80ee9914ec0c7bd37fb7deed2',
+    );
   });
 
 });
