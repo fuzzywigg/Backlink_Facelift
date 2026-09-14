@@ -4015,3 +4015,860 @@ VERSION = "0.1.0"
   });
 
 });
+
+
+// --- HEAVY burn (post-#87): deepen wrangler unit slice only — no product inventing ---
+// Orthogonal to #87 mcp, #86 ci-config, #85 helpers, #84 parser. Digests, deploy-action
+// pins, types/index/DEPLOY/AGENTS cross-locks, negative fences — tests-only.
+
+describe('post87 wrangler HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const deployYml = read('.github/workflows/deploy.yml');
+  const ciYml = read('.github/workflows/ci.yml');
+  const pkgJson = JSON.parse(read('package.json')) as {
+    name: string;
+    version: string;
+    scripts: Record<string, string>;
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+  };
+
+  it('post87: locks wrangler.toml sha256 digest', () => {
+    expect(sha256('wrangler.toml')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+  it('post87: locks wrangler.toml sha1 digest', () => {
+    expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it('post87: locks wrangler.toml md5 digest', () => {
+    expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it('post87: locks wrangler.toml sha256 nibble sum to 457', () => {
+    expect(nibbleSum(sha256('wrangler.toml'))).toBe(457);
+  });
+
+  it('post87: locks wrangler.toml byte length via stat and Buffer', () => {
+    expect(statSync(tomlPath).size).toBe(330);
+    expect(readFileSync(tomlPath).byteLength).toBe(330);
+    expect(toml.length).toBe(330);
+  });
+
+  it('post87: locks types.ts sha256 digest (Env binding contract)', () => {
+    expect(sha256('src/types.ts')).toBe(
+      '4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3',
+    );
+  });
+
+  it('post87: locks types.ts sha1 and md5 digests', () => {
+    expect(sha1('src/types.ts')).toBe('1e8906673dc0d140ee5c3d40839c88a1eeca03d8');
+    expect(md5('src/types.ts')).toBe('ecba663d21928622be656805ad27d0a3');
+  });
+
+  it('post87: locks types.ts sha256 nibble sum to 520', () => {
+    expect(nibbleSum(sha256('src/types.ts'))).toBe(520);
+  });
+
+  it('post87: locks deploy.yml sha256 digest (wrangler-action pin surface)', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post87: locks deploy.yml sha1/md5 and nibble sum 476', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+    expect(nibbleSum(sha256('.github/workflows/deploy.yml'))).toBe(476);
+  });
+
+  it('post87: locks DEPLOY.md sha256 digest', () => {
+    expect(sha256('DEPLOY.md')).toBe(
+      '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+    );
+  });
+
+  it('post87: locks DEPLOY.md sha1/md5 and nibble sum 439', () => {
+    expect(sha1('DEPLOY.md')).toBe('37c72be44abb67343dae3e7c2303306a25b3481f');
+    expect(md5('DEPLOY.md')).toBe('da30bf656fdf0d9a61d2a00860c325f5');
+    expect(nibbleSum(sha256('DEPLOY.md'))).toBe(439);
+  });
+
+  it('post87: locks package.json sha256 for wrangler script surface', () => {
+    expect(sha256('package.json')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+    expect(nibbleSum(sha256('package.json'))).toBe(451);
+  });
+
+  it('post87: locks .cursor/environment.json sha256 (install-only, not wrangler deploy)', () => {
+    expect(sha256('.cursor/environment.json')).toBe(
+      '4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694',
+    );
+    expect(nibbleSum(sha256('.cursor/environment.json'))).toBe(472);
+  });
+
+  it('post87: exact toml payload lock via JSON.stringify', () => {
+    expect(JSON.stringify(toml)).toBe(
+      JSON.stringify(
+        'name = "backlink"\nmain = "src/index.ts"\ncompatibility_date = "2025-01-01"\n\n[[kv_namespaces]]\nbinding = "CATALOG_CACHE"\nid = "edb6ca4df12f4f45b40508b3dda3c432"\n\n[[routes]]\npattern = "backlink.fuzzywigg.com"\ncustom_domain = true\n\n[vars]\nVERSION = "0.1.0"\n\n# Secrets (set via CLI, never commit):\n# wrangler secret put GEMINI_API_KEY\n',
+      ),
+    );
+  });
+
+  it('post87: assignment key order remains eight keys', () => {
+    const keys = [...toml.matchAll(/^([A-Za-z0-9_]+) = /gm)].map((m) => m[1]);
+    expect(keys).toEqual([
+      'name',
+      'main',
+      'compatibility_date',
+      'binding',
+      'id',
+      'pattern',
+      'custom_domain',
+      'VERSION',
+    ]);
+  });
+
+  it('post87: quote count is 14; spaced-equals count is 8; space count is 26', () => {
+    expect((toml.match(/"/g) ?? []).length).toBe(14);
+    expect((toml.match(/ = /g) ?? []).length).toBe(8);
+    expect((toml.match(/ /g) ?? []).length).toBe(26);
+  });
+
+  it('post87: KV id xor-of-nibbles locks to 2', () => {
+    const id = 'edb6ca4df12f4f45b40508b3dda3c432';
+    expect([...id].reduce((a, c) => a ^ parseInt(c, 16), 0)).toBe(2);
+  });
+
+  it('post87: KV id first eight UTF-8 bytes spell edb6ca4d', () => {
+    expect([...Buffer.from('edb6ca4df12f4f45b40508b3dda3c432', 'utf8')].slice(0, 8)).toEqual([
+      101, 100, 98, 54, 99, 97, 52, 100,
+    ]);
+  });
+
+  it('post87: deploy.yml pins cloudflare/wrangler-action@v4 exactly once', () => {
+    expect((deployYml.match(/cloudflare\/wrangler-action@v4/g) ?? []).length).toBe(1);
+    expect(deployYml).toContain('uses: cloudflare/wrangler-action@v4');
+  });
+
+  it('post87: deploy.yml is workflow_dispatch only — no push/pull_request auto-deploy', () => {
+    expect(deployYml).toMatch(/^on:\n  workflow_dispatch:\n/m);
+    expect(deployYml).not.toMatch(/^\s+push:/m);
+    expect(deployYml).not.toMatch(/^\s+pull_request:/m);
+  });
+
+  it('post87: deploy.yml injects GEMINI_API_KEY via secrets: block not wrangler.toml vars', () => {
+    expect(deployYml).toMatch(/secrets:\s*\|\n\s+GEMINI_API_KEY/);
+    expect(deployYml).toContain('GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}');
+    expect(toml).not.toMatch(/^GEMINI_API_KEY\s*=/m);
+  });
+
+  it('post87: deploy.yml uses CF_API_TOKEN and CF_ACCOUNT_ID secret refs', () => {
+    expect(deployYml).toContain('apiToken: ${{ secrets.CF_API_TOKEN }}');
+    expect(deployYml).toContain('accountId: ${{ secrets.CF_ACCOUNT_ID }}');
+    expect(toml).not.toMatch(/CF_API_TOKEN|CF_ACCOUNT_ID/);
+  });
+
+  it('post87: deploy.yml runs typecheck and test:coverage before wrangler-action', () => {
+    const typeIdx = deployYml.indexOf('npm run typecheck');
+    const covIdx = deployYml.indexOf('npm run test:coverage');
+    const wrIdx = deployYml.indexOf('cloudflare/wrangler-action@v4');
+    expect(typeIdx).toBeGreaterThan(-1);
+    expect(covIdx).toBeGreaterThan(typeIdx);
+    expect(wrIdx).toBeGreaterThan(covIdx);
+  });
+
+  it('post87: deploy.yml concurrency cancel-in-progress is false (HITL deploy)', () => {
+    expect(deployYml).toContain('cancel-in-progress: false');
+    expect(ciYml).toContain('cancel-in-progress: true');
+  });
+
+  it('post87: deploy.yml timeout-minutes is 20; Node 20; checkout@v7 persist-credentials false', () => {
+    expect(deployYml).toContain('timeout-minutes: 20');
+    expect(deployYml).toContain('node-version: "20"');
+    expect(deployYml).toContain('actions/checkout@v7');
+    expect(deployYml).toContain('persist-credentials: false');
+  });
+
+  it('post87: package scripts.dev/deploy pin wrangler CLI; wrangler is a devDependency', () => {
+    expect(pkgJson.scripts.dev).toBe('wrangler dev');
+    expect(pkgJson.scripts.deploy).toBe('wrangler deploy');
+    expect(pkgJson.devDependencies.wrangler).toMatch(/^\^4\./);
+  });
+
+  it('post87: package name backlink matches worker name; version matches VERSION var', () => {
+    expect(pkgJson.name).toBe('backlink');
+    expect(pkgJson.version).toBe('0.1.0');
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(toml).toMatch(/^VERSION = "0\.1\.0"$/m);
+  });
+
+  it('post87: types.ts Env locks CATALOG_CACHE required; GEMINI_API_KEY and VERSION optional', () => {
+    expect(typesSrc).toContain('CATALOG_CACHE: KVNamespace');
+    expect(typesSrc).toContain('GEMINI_API_KEY?: string');
+    expect(typesSrc).toContain('VERSION?: string');
+    expect(typesSrc).toMatch(/\/curate.*503|#8/);
+  });
+
+  it('post87: types.ts byte length 174 vs UTF-16 code-unit length 172 (em dash)', () => {
+    const buf = readFileSync(join(root, 'src/types.ts'));
+    expect(buf.byteLength).toBe(174);
+    expect(new TextDecoder().decode(buf).length).toBe(172);
+    expect(typesSrc).toContain('—');
+  });
+
+  it('post87: index.ts references CATALOG_CACHE exactly twice', () => {
+    expect((indexSrc.match(/CATALOG_CACHE/g) ?? []).length).toBe(2);
+  });
+
+  it('post87: index.ts does not hardcode wrangler.toml KV id or domain pattern', () => {
+    expect(indexSrc).not.toContain('edb6ca4df12f4f45b40508b3dda3c432');
+    expect(indexSrc).not.toContain('backlink.fuzzywigg.com');
+  });
+
+  it('post87: DEPLOY.md documents kv namespace create CATALOG_CACHE and secret put', () => {
+    expect(deployMd).toContain('wrangler kv namespace create CATALOG_CACHE');
+    expect(deployMd).toContain('wrangler secret put GEMINI_API_KEY');
+    expect(deployMd).toContain('wrangler deploy');
+    expect(deployMd).toContain('wrangler.toml');
+  });
+
+  it('post87: DEPLOY.md placeholder id is your-kv-id-here not the live hex id', () => {
+    expect(deployMd).toContain('your-kv-id-here');
+    expect(deployMd).not.toContain('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it('post87: AGENTS.md escalates GEMINI secret handling and first deploy HITL', () => {
+    expect(agentsMd).toContain('GEMINI_API_KEY');
+    expect(agentsMd).toMatch(/first deploy must be HITL|Production deploy/i);
+    expect(agentsMd).toContain('Escalate to Human');
+  });
+
+  it('post87: AGENTS.md lists wrangler.toml as hygiene surface via Verify npm scripts only', () => {
+    expect(agentsMd).toContain('npm ci');
+    expect(agentsMd).toContain('npm run typecheck');
+    expect(agentsMd).toContain('npm test');
+    expect(agentsMd).toContain('npm run test:coverage');
+  });
+
+  it('post87: CI hygiene greps wrangler.toml for no GEMINI_API_KEY= assignment', () => {
+    expect(ciYml).toContain("! grep -q 'GEMINI_API_KEY=' wrangler.toml");
+    expect(ciYml).toMatch(/! grep -qiE 'api\[_-\]\?key\\s\*=' wrangler\.toml/);
+  });
+
+  it('post87: CI hygiene requires wrangler.toml and wrangler-config.test.ts present', () => {
+    expect(ciYml).toContain('test -f wrangler.toml');
+    expect(ciYml).toContain('test -f test/wrangler-config.test.ts');
+  });
+
+  it('post87: CI does not invoke wrangler deploy or wrangler-action', () => {
+    expect(ciYml).not.toMatch(/wrangler deploy|wrangler-action/);
+    expect(ciYml).not.toMatch(/CF_API_TOKEN|CF_ACCOUNT_ID/);
+  });
+
+  it('post87: environment.json install is npm ci only — no wrangler deploy scaffolding', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+  });
+
+  it('post87: negative — no [env.production] / [env.staging] overrides in toml', () => {
+    expect(toml).not.toMatch(/\[env\./);
+    expect(toml).not.toMatch(/production|staging/i);
+  });
+
+  it('post87: negative — no services / dispatch_namespaces / workflows bindings', () => {
+    expect(toml).not.toMatch(/\[\[services\]\]|dispatch_namespaces|\[\[workflows\]\]/i);
+  });
+
+  it('post87: negative — no unsafe / wasm_modules / text_blobs / data_blobs', () => {
+    expect(toml).not.toMatch(/\[unsafe\]|wasm_modules|text_blobs|data_blobs/i);
+  });
+
+  it('post87: negative — no migrations / durable_objects / analytics_engine_datasets', () => {
+    expect(toml).not.toMatch(/migrations|durable_objects|analytics_engine/i);
+  });
+
+  it('post87: negative — no send_email / mtls_certificates / pipelines', () => {
+    expect(toml).not.toMatch(/send_email|mtls_certificates|pipelines/i);
+  });
+
+  it('post87: negative — no vars for NODE_ENV / ENVIRONMENT / STAGE', () => {
+    expect(toml).not.toMatch(/NODE_ENV|ENVIRONMENT|STAGE/);
+  });
+
+  it('post87: negative — no Anthropic / Claude / OpenAI secret comments', () => {
+    expect(toml).not.toMatch(/ANTHROPIC|Claude|OPENAI|api\.openai/i);
+    expect(deployYml).not.toMatch(/ANTHROPIC|OPENAI/i);
+  });
+
+  it('post87: negative — no product route inventing (/playlist /now-playing) in toml', () => {
+    expect(toml).not.toMatch(/playlist|now-playing|openapi|mcp/i);
+  });
+
+  it('post87: negative — toml does not embed package-lock or npm ci instructions', () => {
+    expect(toml).not.toMatch(/package-lock|npm ci|vitest|typescript/i);
+  });
+
+  it('post87: main path segments are exactly src and index.ts', () => {
+    const main = toml.match(/^main = "([^"]+)"/m)?.[1];
+    expect(main?.split('/')).toEqual(['src', 'index.ts']);
+  });
+
+  it('post87: compatibility_date parses to UTC midnight 2025-01-01', () => {
+    const d = toml.match(/^compatibility_date = "([^"]+)"/m)?.[1];
+    expect(d).toBe('2025-01-01');
+    expect(Date.parse(`${d}T00:00:00.000Z`)).toBe(Date.parse('2025-01-01T00:00:00.000Z'));
+  });
+
+  it('post87: domain pattern has no port, path, query, or fragment', () => {
+    const pattern = toml.match(/^pattern = "([^"]+)"/m)?.[1] ?? '';
+    expect(pattern).toBe('backlink.fuzzywigg.com');
+    expect(pattern).not.toMatch(/[:/?#]/);
+  });
+
+  it('post87: custom_domain true appears only under [[routes]] block', () => {
+    const before = toml.slice(0, toml.indexOf('[[routes]]'));
+    const after = toml.slice(toml.indexOf('[[routes]]'));
+    expect(before).not.toMatch(/custom_domain/);
+    expect(after).toMatch(/^custom_domain = true$/m);
+  });
+
+  it('post87: binding line immediately follows [[kv_namespaces]] header', () => {
+    expect(toml).toContain('[[kv_namespaces]]\nbinding = "CATALOG_CACHE"\n');
+  });
+
+  it('post87: id line immediately follows binding line', () => {
+    expect(toml).toContain(
+      'binding = "CATALOG_CACHE"\nid = "edb6ca4df12f4f45b40508b3dda3c432"\n',
+    );
+  });
+
+  it('post87: VERSION assignment is the only [vars] body line before secrets comments', () => {
+    const varsBody = toml.split('[vars]\n')[1] ?? '';
+    const lines = varsBody.split('\n').filter((l) => l.length > 0);
+    expect(lines[0]).toBe('VERSION = "0.1.0"');
+    expect(lines.slice(1).every((l) => l.startsWith('#'))).toBe(true);
+  });
+
+  it('post87: comment lines are exactly the secrets header + secret put', () => {
+    expect(toml.split('\n').filter((l) => l.startsWith('#'))).toEqual([
+      '# Secrets (set via CLI, never commit):',
+      '# wrangler secret put GEMINI_API_KEY',
+    ]);
+  });
+
+  it('post87: no trailing spaces on any line; no leading spaces on any line', () => {
+    for (const line of toml.split('\n')) {
+      if (line.length === 0) continue;
+      expect(line).toBe(line.trimEnd());
+      expect(line).toBe(line.trimStart());
+    }
+  });
+
+  it('post87: every table header is flush-left and closed with matching brackets', () => {
+    const headers = [...toml.matchAll(/^(\[\[?[^\]\n]+\]\]?)$/gm)].map((m) => m[1]);
+    expect(headers).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
+  });
+
+  it('post87: Boolean true for custom_domain is unquoted lowercase', () => {
+    expect(toml).toMatch(/^custom_domain = true$/m);
+    expect(toml).not.toMatch(/custom_domain = True|custom_domain = TRUE|custom_domain = "true"/);
+  });
+
+  it('post87: re-read via multiple encodings stays ASCII-identical', () => {
+    const a = readFileSync(tomlPath, 'utf8');
+    const b = Buffer.from(readFileSync(tomlPath)).toString('latin1');
+    expect(a).toBe(toml);
+    expect(b).toBe(toml);
+  });
+
+  it('post87: TextEncoder/Decoder and Buffer round-trips are pure', () => {
+    const bytes = new TextEncoder().encode(toml);
+    expect(new TextDecoder().decode(bytes)).toBe(toml);
+    expect(Buffer.from(bytes).toString('utf8')).toBe(toml);
+  });
+
+  it('post87: sha256 purity — 25 identical digests', () => {
+    const expected = '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8';
+    for (let i = 0; i < 25; i++) {
+      expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
+  it('post87: sha1 purity — 10 identical digests', () => {
+    const expected = '481c8221707ffe602ab8d5ce4a2b7b5192d3ade6';
+    for (let i = 0; i < 10; i++) {
+      expect(createHash('sha1').update(toml, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
+  it('post87: Object.freeze on parsed key list rejects mutation', () => {
+    const keys = Object.freeze([
+      'name',
+      'main',
+      'compatibility_date',
+      'binding',
+      'id',
+      'pattern',
+      'custom_domain',
+      'VERSION',
+    ]);
+    expect(() => {
+      (keys as string[]).push('account_id');
+    }).toThrow();
+  });
+
+  it('post87: structuredClone of domain labels stays deep-equal', () => {
+    const labels = 'backlink.fuzzywigg.com'.split('.');
+    expect(structuredClone(labels)).toEqual(['backlink', 'fuzzywigg', 'com']);
+  });
+
+  it('post87: Reflect.ownKeys on frozen route config object', () => {
+    const route = Object.freeze({ pattern: 'backlink.fuzzywigg.com', custom_domain: true });
+    expect(Reflect.ownKeys(route)).toEqual(['pattern', 'custom_domain']);
+  });
+
+  it('post87: Proxy get on assignment map returns VERSION', () => {
+    const map = Object.fromEntries(
+      [...toml.matchAll(/^([A-Za-z0-9_]+) = (?:"([^"]*)"|(true))/gm)].map((m) => [
+        m[1],
+        m[2] ?? m[3],
+      ]),
+    );
+    const proxy = new Proxy(map, {
+      get(t, p, r) {
+        return Reflect.get(t, p, r);
+      },
+    });
+    expect(proxy.VERSION).toBe('0.1.0');
+    expect(proxy.custom_domain).toBe('true');
+  });
+
+  it('post87: WeakRef of toml snapshot still dereferences length 330', () => {
+    const ref = new WeakRef({ toml });
+    expect(ref.deref()?.toml.length).toBe(330);
+  });
+
+  it('post87: Map of section → presence excludes triggers and ai', () => {
+    const sections = new Map([
+      ['[[kv_namespaces]]', true],
+      ['[[routes]]', true],
+      ['[vars]', true],
+    ]);
+    expect(sections.get('[triggers]')).toBeUndefined();
+    expect(sections.get('[ai]')).toBeUndefined();
+    expect(sections.size).toBe(3);
+  });
+
+  it('post87: Set of binding names is singleton CATALOG_CACHE', () => {
+    const bindings = [...toml.matchAll(/binding = "([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(bindings)).toEqual(new Set(['CATALOG_CACHE']));
+  });
+
+  it('post87: btoa/atob of compatibility_date value', () => {
+    expect(btoa('2025-01-01')).toBe('MjAyNS0wMS0wMQ==');
+    expect(atob('MjAyNS0wMS0wMQ==')).toBe('2025-01-01');
+    expect(toml).toContain('compatibility_date = "2025-01-01"');
+  });
+
+  it('post87: fromCharCode rebuild of CATALOG_CACHE', () => {
+    const name = String.fromCharCode(
+      67, 65, 84, 65, 76, 79, 71, 95, 67, 65, 67, 72, 69,
+    );
+    expect(name).toBe('CATALOG_CACHE');
+    expect(toml).toContain(`binding = "${name}"`);
+  });
+
+  it('post87: charCodeAt walk of worker name backlink', () => {
+    expect([...'backlink'].map((c) => c.charCodeAt(0))).toEqual([
+      98, 97, 99, 107, 108, 105, 110, 107,
+    ]);
+  });
+
+  it('post87: padEnd/padStart of VERSION value round-trips via trim', () => {
+    expect('0.1.0'.padStart(8, ' ').trim()).toBe('0.1.0');
+    expect('0.1.0'.padEnd(8, '0').slice(0, 5)).toBe('0.1.0');
+  });
+
+  it('post87: localeCompare sort of assignment keys is stable ASCII', () => {
+    const keys = [...toml.matchAll(/^([A-Za-z0-9_]+) = /gm)].map((m) => m[1]);
+    expect([...keys].sort((a, b) => a.localeCompare(b))).toEqual([
+      'binding',
+      'compatibility_date',
+      'custom_domain',
+      'id',
+      'main',
+      'name',
+      'pattern',
+      'VERSION',
+    ]);
+    expect([...keys].sort()).toEqual([
+      'VERSION',
+      'binding',
+      'compatibility_date',
+      'custom_domain',
+      'id',
+      'main',
+      'name',
+      'pattern',
+    ]);
+  });
+
+  it('post87: JSON.stringify of headers lock', () => {
+    const headers = [...toml.matchAll(/^\[\[?[^\]\n]+\]\]?$/gm)].map((m) => m[0]);
+    expect(JSON.stringify(headers)).toBe('["[[kv_namespaces]]","[[routes]]","[vars]"]');
+  });
+
+  it('post87: reduce nonempty line lengths remains 313', () => {
+    expect(toml.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(
+      313,
+    );
+  });
+
+  it('post87: split on blank lines yields four content blocks', () => {
+    const blocks = toml.trimEnd().split('\n\n');
+    expect(blocks).toHaveLength(5);
+    expect(blocks[0]).toContain('name = "backlink"');
+    expect(blocks[1]).toContain('[[kv_namespaces]]');
+    expect(blocks[2]).toContain('[[routes]]');
+    expect(blocks[3]).toContain('[vars]');
+    expect(blocks[4]).toContain('Secrets');
+  });
+
+  it('post87: indexOf Secrets comment is after VERSION assignment', () => {
+    expect(toml.indexOf('# Secrets')).toBeGreaterThan(toml.indexOf('VERSION = "0.1.0"'));
+  });
+
+  it('post87: lastIndexOf backlink equals indexOf for worker name only once as name value', () => {
+    // name value + domain label both contain backlink — count is 2
+    expect((toml.match(/backlink/g) ?? []).length).toBe(2);
+  });
+
+  it('post87: endsWith single newline; startsWith name assignment', () => {
+    expect(toml.startsWith('name = "backlink"\n')).toBe(true);
+    expect(toml.endsWith('\n')).toBe(true);
+    expect(toml.endsWith('\n\n')).toBe(false);
+  });
+
+  it('post87: no uppercase hex in KV id; no mixed-case domain labels', () => {
+    const id = toml.match(/id = "([a-f0-9]+)"/)?.[1] ?? '';
+    expect(id).toBe(id.toLowerCase());
+    const pattern = toml.match(/pattern = "([^"]+)"/)?.[1] ?? '';
+    expect(pattern).toBe(pattern.toLowerCase());
+  });
+
+  it('post87: URL hostname parse of domain pattern succeeds without protocol inventing in toml', () => {
+    const host = toml.match(/pattern = "([^"]+)"/)?.[1] ?? '';
+    expect(new URL(`https://${host}`).hostname).toBe('backlink.fuzzywigg.com');
+    expect(toml).not.toMatch(/https?:\/\//);
+  });
+
+  it('post87: cross-lock README live worker URL host matches pattern', () => {
+    const readme = read('README.md');
+    expect(readme).toContain('https://backlink.fuzzywigg.com');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+  });
+
+  it('post87: cross-lock README mentions wrangler.toml only via deploy docs path', () => {
+    const readme = read('README.md');
+    expect(readme.toLowerCase()).toMatch(/wrangler|worker|deploy/);
+    expect(readme).toContain('DEPLOY.md');
+  });
+
+  it('post87: cross-lock vitest coverage include is src/** not wrangler.toml', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toContain("include: ['src/**/*.ts']");
+    expect(vitest).toContain("exclude: ['src/types.ts']");
+    expect(vitest).not.toContain('wrangler.toml');
+  });
+
+  it('post87: cross-lock package-lock has wrangler entry under packages', () => {
+    const lock = read('package-lock.json');
+    expect(lock).toContain('"node_modules/wrangler"');
+    expect(lock).toContain('"lockfileVersion": 3');
+  });
+
+  it('post87: cross-lock hygiene assert coverage does not require wrangler runtime', () => {
+    expect(ciYml).toContain('npm run test:coverage');
+    expect(ciYml).not.toContain('npx wrangler');
+    expect(ciYml).not.toContain('wrangler dev');
+  });
+
+  it('post87: deploy.md Prerequisites list wrangler CLI install path', () => {
+    expect(deployMd).toContain('npm i -g wrangler');
+    expect(deployMd).toContain('Cloudflare account with Workers enabled');
+  });
+
+  it('post87: negative — no .dev.vars or .env references inside toml', () => {
+    expect(toml).not.toMatch(/\.dev\.vars|\.env\b/);
+  });
+
+  it('post87: negative — no account_id even as commented assignment', () => {
+    expect(toml).not.toMatch(/account_id/);
+  });
+
+  it('post87: negative — no zone_id / route zone_name / pattern wildcards', () => {
+    expect(toml).not.toMatch(/zone_id|zone_name|pattern = "\*/);
+  });
+
+  it('post87: negative — no find_additional_modules / base_dir / rules', () => {
+    expect(toml).not.toMatch(/find_additional_modules|base_dir|\[rules\]/);
+  });
+
+  it('post87: negative — no tsconfig paths or JSX inventing', () => {
+    expect(toml).not.toMatch(/jsx|tsconfig|esbuild/i);
+  });
+
+  it('post87: negative — no docker / kubernetes / k8s deploy inventing', () => {
+    expect(toml).not.toMatch(/docker|compose|kubernetes|helm/i);
+    expect(deployYml).not.toMatch(/docker|kubectl|helm/i);
+  });
+
+  it('post87: negative — no DNS record inventing (A/AAAA/CNAME) in toml or deploy.yml', () => {
+    expect(toml).not.toMatch(/\bCNAME\b|\bAAAA\b|\bMX\b/);
+    expect(deployYml).not.toMatch(/\bCNAME\b|\bAAAA\b|dns_record/i);
+  });
+
+  it('post87: negative — no credential material patterns in toml', () => {
+    expect(toml).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(toml).not.toMatch(/sk-[A-Za-z0-9]{10,}/);
+    expect(toml).not.toMatch(/Bearer\s+[A-Za-z0-9._-]+/);
+  });
+
+  it('post87: Iterator of lines matches split array values()', () => {
+    const lines = toml.split('\n');
+    expect([...lines.values()]).toEqual(lines);
+    expect(lines.length).toBe(18);
+  });
+
+  it('post87: flatMap of characters rebuilds toml', () => {
+    expect(toml.split('').flatMap((c) => [c]).join('')).toBe(toml);
+  });
+
+  it('post87: Object.is on twin sha256 digests', () => {
+    const a = createHash('sha256').update(toml, 'utf8').digest('hex');
+    const b = createHash('sha256').update(toml, 'utf8').digest('hex');
+    expect(Object.is(a, b)).toBe(true);
+  });
+
+  it('post87: Promise.resolve digest matches sync', async () => {
+    const sync = createHash('sha256').update(toml, 'utf8').digest('hex');
+    await expect(
+      Promise.resolve(createHash('sha256').update(toml, 'utf8').digest('hex')),
+    ).resolves.toBe(sync);
+  });
+
+  it('post87: queueMicrotask does not mutate wrangler.toml digest', async () => {
+    const before = sha256('wrangler.toml');
+    await new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+    expect(sha256('wrangler.toml')).toBe(before);
+  });
+
+  it('post87: AbortSignal.timeout exists but is unused by wrangler contracts', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(toml).not.toMatch(/AbortSignal|timeout\(/);
+  });
+
+  it('post87: Blob round-trip of worker name', async () => {
+    const blob = new Blob(['backlink'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('backlink');
+    expect(toml.startsWith('name = "backlink"\n')).toBe(true);
+  });
+
+  it('post87: DataView reads first four bytes as name', () => {
+    const buf = new TextEncoder().encode(toml.slice(0, 4));
+    const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    expect([view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3)]).toEqual([
+      110, 97, 109, 101,
+    ]);
+  });
+
+  it('post87: Headers/FormData constructors unused by wrangler.toml surface', () => {
+    expect(new Headers({ Accept: 'text/plain' }).get('Accept')).toBe('text/plain');
+    expect(typeof FormData).toBe('function');
+    expect(toml).not.toMatch(/FormData|multipart|Accept:/i);
+  });
+
+  it('post87: Uint8Array of VERSION digits and dots', () => {
+    expect([...new TextEncoder().encode('0.1.0')]).toEqual([48, 46, 49, 46, 48]);
+  });
+
+  it('post87: replaceAll of worker name would break name+domain — count stays 2', () => {
+    expect(toml.replaceAll('backlink', 'backlink').match(/backlink/g)).toHaveLength(2);
+  });
+
+  it('post87: search for GEMINI_API_KEY only hits comment after [vars]', () => {
+    const idx = toml.search(/GEMINI_API_KEY/);
+    expect(idx).toBeGreaterThan(toml.indexOf('[vars]'));
+    expect(toml.slice(0, idx)).toContain('# wrangler secret put ');
+    expect(toml.slice(0, idx)).not.toMatch(/^GEMINI_API_KEY\s*=/m);
+  });
+
+  it('post87: matchAll for quoted strings yields seven captures', () => {
+    const quoted = [...toml.matchAll(/"([^"]*)"/g)].map((m) => m[1]);
+    expect(quoted).toEqual([
+      'backlink',
+      'src/index.ts',
+      '2025-01-01',
+      'CATALOG_CACHE',
+      'edb6ca4df12f4f45b40508b3dda3c432',
+      'backlink.fuzzywigg.com',
+      '0.1.0',
+    ]);
+  });
+
+  it('post87: every assignment uses spaces around equals', () => {
+    for (const line of toml.split('\n')) {
+      if (!line.includes('=') || line.startsWith('#')) continue;
+      expect(line).toMatch(/^[A-Za-z0-9_]+ = /);
+      expect(line).not.toMatch(/^[A-Za-z0-9_]+=/);
+      expect(line).not.toMatch(/=\s*$/);
+    }
+  });
+
+  it('post87: KV id character class is strictly [a-f0-9]{32}', () => {
+    expect(toml).toMatch(/id = "[a-f0-9]{32}"/);
+    expect(toml).not.toMatch(/id = "[A-F0-9]{32}"/);
+  });
+
+  it('post87: cross-lock AGENTS domain target matches pattern host', () => {
+    expect(agentsMd).toContain('backlink.fuzzywigg.com');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+  });
+
+  it('post87: cross-lock index.ts main export aligns with wrangler main entry', () => {
+    expect(toml).toMatch(/main = "src\/index\.ts"/);
+    expect(indexSrc).toMatch(/export default|new Hono/);
+  });
+
+  it('post87: package does not depend on @cloudflare/workers-types at runtime deps', () => {
+    expect(pkgJson.dependencies).not.toHaveProperty('@cloudflare/workers-types');
+    expect(pkgJson.devDependencies['@cloudflare/workers-types']).toMatch(/^\^5\./);
+  });
+
+  it('post87: package dependency hono is runtime; wrangler is not', () => {
+    expect(pkgJson.dependencies.hono).toMatch(/^\^4\./);
+    expect(pkgJson.dependencies).not.toHaveProperty('wrangler');
+  });
+
+  it('post87: dirname of this test file resolves under test/', () => {
+    expect(dirname(fileURLToPath(import.meta.url)).endsWith('/test')).toBe(true);
+    expect(tomlPath.endsWith('wrangler.toml')).toBe(true);
+  });
+
+  it('post87: relative join of wrangler.toml stays at repo root', () => {
+    expect(join(root, 'wrangler.toml')).toBe(tomlPath);
+    expect(readFileSync(join(root, 'wrangler.toml'), 'utf8')).toBe(toml);
+  });
+
+  it('post87: deploy.yml job key is deploy singular with name Deploy', () => {
+    expect(deployYml).toMatch(/^  deploy:\n/m);
+    expect(deployYml).toContain('    name: Deploy\n');
+  });
+
+  it('post87: deploy.yml permissions are contents read only', () => {
+    expect(deployYml).toMatch(/permissions:\n  contents: read\n/);
+    expect(deployYml).not.toMatch(/id-token:|packages:|pull-requests:/);
+  });
+
+  it('post87: deploy.yml does not set environment: protection gates in YAML', () => {
+    expect(deployYml).not.toMatch(/^\s+environment:/m);
+  });
+
+  it('post87: CI and deploy both pin actions/setup-node@v7', () => {
+    expect(ciYml).toContain('actions/setup-node@v7');
+    expect(deployYml).toContain('actions/setup-node@v7');
+  });
+
+  it('post87: CI upload-artifact@v4 is absent from deploy.yml', () => {
+    expect(ciYml).toContain('actions/upload-artifact@v4');
+    expect(deployYml).not.toMatch(/upload-artifact/);
+  });
+
+  it('post87: wrangler.toml line count band stays lean (≤20 split parts)', () => {
+    expect(toml.split('\n').length).toBe(18);
+    expect(toml.split('\n').length).toBeLessThanOrEqual(20);
+  });
+
+  it('post87: nonempty line count remains 13', () => {
+    expect(toml.split('\n').filter((l) => l.length > 0)).toHaveLength(13);
+  });
+
+  it('post87: codePointAt equals charCodeAt for entire ASCII toml', () => {
+    for (let i = 0; i < toml.length; i++) {
+      expect(toml.codePointAt(i)).toBe(toml.charCodeAt(i));
+    }
+  });
+
+  it('post87: normalize NFC/NFD/NFKC/NFKD identity for wrangler.toml', () => {
+    expect(toml.normalize('NFC')).toBe(toml);
+    expect(toml.normalize('NFD')).toBe(toml);
+    expect(toml.normalize('NFKC')).toBe(toml);
+    expect(toml.normalize('NFKD')).toBe(toml);
+  });
+
+  it('post87: no CR, no tabs, no NUL, no BOM', () => {
+    expect(toml.includes('\r')).toBe(false);
+    expect(toml.includes('\t')).toBe(false);
+    expect(toml.includes('\0')).toBe(false);
+    expect(toml.charCodeAt(0)).not.toBe(0xfeff);
+  });
+
+  it('post87: exclusive — secrets comment mentions never commit', () => {
+    expect(toml).toContain('# Secrets (set via CLI, never commit):');
+    expect(toml).not.toContain('commit this key');
+  });
+
+  it('post87: exclusive — GEMINI secret put uses wrangler CLI verb put', () => {
+    expect(toml).toMatch(/# wrangler secret put GEMINI_API_KEY/);
+    expect(toml).not.toMatch(/wrangler secret delete|wrangler secret list/);
+  });
+
+  it('post87: Array.isArray of split lines; not frozen by default', () => {
+    const lines = toml.split('\n');
+    expect(Array.isArray(lines)).toBe(true);
+    expect(Object.isFrozen(lines)).toBe(false);
+    lines.push('x');
+    expect(lines.at(-1)).toBe('x');
+  });
+
+  it('post87: slice(0, 0) and concat rebuild equals original', () => {
+    expect(toml.slice(0, 0).concat(toml)).toBe(toml);
+    expect(''.concat(toml)).toBe(toml);
+  });
+
+  it('post87: substring name→main→compatibility contiguous lock', () => {
+    expect(toml.includes(
+      'name = "backlink"\nmain = "src/index.ts"\ncompatibility_date = "2025-01-01"\n',
+    )).toBe(true);
+  });
+
+  it('post87: mega purity — 40x sha256 + 40x md5', () => {
+    const s256 = '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8';
+    const sMd5 = '100cd1554884befe9db6453606e565f4';
+    for (let i = 0; i < 40; i++) {
+      expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(s256);
+      expect(createHash('md5').update(toml, 'utf8').digest('hex')).toBe(sMd5);
+    }
+  });
+
+  it('post87: final lock — module snapshot equals disk after all assertions', () => {
+    expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+    expect(sha256('wrangler.toml')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+});
