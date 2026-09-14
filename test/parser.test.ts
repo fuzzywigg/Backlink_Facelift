@@ -7906,22 +7906,23 @@ https://example.com/raw71.m3u8
     expect(parseM3U(SAMPLE_M3U).at(0)?.name).toBe('Alpha FM');
   });
 
-  it('post71: Array.prototype.with does not mutate live parse result', () => {
+  it('post71: immutable index replace via slice/spread does not mutate live parse result', () => {
     const stations = parseM3U(SAMPLE_M3U);
-    const next = stations.with(0, { ...stations[0], name: 'Replaced' });
+    const next = [{ ...stations[0], name: 'Replaced' }, ...stations.slice(1)];
     expect(stations[0].name).toBe('Alpha FM');
     expect(next[0].name).toBe('Replaced');
   });
 
-  it('post71: Array.prototype.toSorted names match localeCompare order', () => {
+  it('post71: copy-sorted names match localeCompare order without mutating', () => {
     const names = parseM3U(SAMPLE_M3U).map((s) => s.name);
-    expect(names.toSorted((a, b) => a.localeCompare(b))[0]).toBe('Alpha FM');
+    const sorted = [...names].sort((a, b) => a.localeCompare(b));
+    expect(sorted[0]).toBe('Alpha FM');
     expect(names[0]).toBe('Alpha FM'); // original insertion order intact
   });
 
-  it('post71: Array.prototype.toReversed reverses without mutating', () => {
+  it('post71: copy-reversed stations do not mutate live parse result', () => {
     const stations = parseM3U(SAMPLE_M3U);
-    const rev = stations.toReversed();
+    const rev = [...stations].reverse();
     expect(rev[0].name).toBe('Zeta FM');
     expect(stations[0].name).toBe('Alpha FM');
   });
@@ -7943,8 +7944,13 @@ https://example.com/raw71.m3u8
     expect([...stations.keys()]).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
-  it('post71: Object.groupBy SAMPLE stations by group yields Music bucket of 6', () => {
-    const grouped = Object.groupBy(parseM3U(SAMPLE_M3U), (s) => s.group ?? 'none');
+  it('post71: reduce-group SAMPLE stations by group yields Music bucket of 6', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    const grouped = stations.reduce<Record<string, typeof stations>>((acc, s) => {
+      const key = s.group ?? 'none';
+      (acc[key] ??= []).push(s);
+      return acc;
+    }, {});
     expect(grouped.Music).toHaveLength(6);
     expect(grouped.none).toBeUndefined();
   });
