@@ -4326,7 +4326,7 @@ VERSION = "0.1.0"
         },
       },
     );
-    expect((view as { nameLine: string }).nameLine).toBe('name = "backlink"');
+    expect((view as unknown as { nameLine: string }).nameLine).toBe('name = "backlink"');
     expect(toml.startsWith('name = "backlink"')).toBe(true);
   });
 
