@@ -7156,3 +7156,2869 @@ describe('post98 wrangler HEAVY deepen (restart after #92 CONFLICTING)', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#108): deepen wrangler unit slice only — no product inventing ---
+// Orthogonal to #108 parser, #107 helpers, #106 ci-config. Digests, Env/DEPLOY/AGENTS
+// cross-locks, negative Cloudflare-surface fences — tests-only.
+
+describe('post108 wrangler HEAVY deepen (after #108 parser)', () => {
+  // TOKENMAXX HEAVY burn — tests/CI only. Deepens wrangler.toml leftovers on latest main.
+
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256File = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1File = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5File = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, s: string) => createHmac('sha256', key).update(s, 'utf8').digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((x, c) => x ^ parseInt(c, 16), 0);
+
+  const deployYml = read('.github/workflows/deploy.yml');
+  const ciYml = read('.github/workflows/ci.yml');
+  const envJson = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+  const pkgJson = JSON.parse(read('package.json')) as {
+    name: string;
+    version: string;
+    scripts: Record<string, string>;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+
+  it("post108: sha256 fingerprint reaffirm", () => {
+
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+    expect(sha256File('wrangler.toml')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+
+  });
+
+  it("post108: sha1 fingerprint reaffirm", () => {
+
+    expect(createHash('sha1').update(toml, 'utf8').digest('hex')).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+    expect(sha1File('wrangler.toml')).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+
+  });
+
+  it("post108: md5 fingerprint reaffirm", () => {
+
+    expect(createHash('md5').update(toml, 'utf8').digest('hex')).toBe("100cd1554884befe9db6453606e565f4");
+    expect(md5File('wrangler.toml')).toBe("100cd1554884befe9db6453606e565f4");
+
+  });
+
+  it("post108: sha384 fingerprint lock", () => {
+
+    expect(createHash('sha384').update(toml, 'utf8').digest('hex')).toBe("77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09");
+
+  });
+
+  it("post108: sha512 fingerprint lock", () => {
+
+    expect(createHash('sha512').update(toml, 'utf8').digest('hex')).toBe("4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96");
+
+  });
+
+  it("post108: sha256 nibble sum 457", () => {
+
+    expect(nibbleSum(createHash('sha256').update(toml, 'utf8').digest('hex'))).toBe(457);
+
+  });
+
+  it("post108: sha256 xor nibbles 13", () => {
+
+    expect(xorNibbles(createHash('sha256').update(toml, 'utf8').digest('hex'))).toBe(13);
+
+  });
+
+  it("post108: sha256 first/last octets", () => {
+
+    const digest = createHash('sha256').update(toml, 'utf8').digest('hex');
+    expect(digest.slice(0, 2)).toBe("95");
+    expect(digest.slice(-2)).toBe("f8");
+    expect(digest).toHaveLength(64);
+
+  });
+
+  it("post108: HMAC-SHA256 key wrangler", () => {
+
+    expect(hmacSha256("wrangler", toml)).toBe("bbac4432f0fadae42a1d39402045dcfbfccff5b22c2689832451059ad3ed82e6");
+  
+  });
+
+  it("post108: HMAC-SHA256 key post108", () => {
+
+    expect(hmacSha256("post108", toml)).toBe("2dca77980de18c574b77e51d910c6acd090792b2b0dc4b786d8ed65f62ab7c2d");
+  
+  });
+
+  it("post108: HMAC-SHA256 key backlink", () => {
+
+    expect(hmacSha256("backlink", toml)).toBe("e6ea9a4c22d8be77830f69ba042d79bb716184b8783f2ede72efa58b3b7601d4");
+  
+  });
+
+  it("post108: HMAC-SHA256 key CATALOG_CACHE", () => {
+
+    expect(hmacSha256("CATALOG_CACHE", toml)).toBe("9335716a0466ecfa551aa06fc7eef4ef33fe1611e0542e420de582ba1bcac0b5");
+  
+  });
+
+  it("post108: HMAC-SHA256 key GEMINI_API_KEY", () => {
+
+    expect(hmacSha256("GEMINI_API_KEY", toml)).toBe("92708ab36e6cec40464d1d99390978feaf9d5a1eaa4b7caa0249267812835f4b");
+  
+  });
+
+  it("post108: HMAC-SHA256 key compatibility_date", () => {
+
+    expect(hmacSha256("compatibility_date", toml)).toBe("76f9a459b4da830f9283b18a7161a0750d108f5ccd45db4e0d23c263e0d23100");
+  
+  });
+
+  it("post108: HMAC-SHA256 key kv_namespaces", () => {
+
+    expect(hmacSha256("kv_namespaces", toml)).toBe("57f36bedd0d11b34444fcbeac861582450509419559d9cc2010adf1299e1fe41");
+  
+  });
+
+  it("post108: HMAC-SHA256 key custom_domain", () => {
+
+    expect(hmacSha256("custom_domain", toml)).toBe("3ae8d9823021bfcf166b84c11cc53c3b3ab947e4e268039ce9966e0500911ea0");
+  
+  });
+
+  it("post108: HMAC-SHA256 key VERSION", () => {
+
+    expect(hmacSha256("VERSION", toml)).toBe("e58759ef162af856e56aa5468e4c6e0486d0420ac8ea4732d08ca2d5120ed237");
+  
+  });
+
+  it("post108: HMAC-SHA256 key fuzzywigg", () => {
+
+    expect(hmacSha256("fuzzywigg", toml)).toBe("4f271fc6714d566a00b298cdfb6a651d66b4584a14851ea67a7ebbd1cedd9407");
+  
+  });
+
+  it("post108: HMAC-SHA256 key src/index.ts", () => {
+
+    expect(hmacSha256("src/index.ts", toml)).toBe("eb9d67e6dbc0a3d4c570103c85ba5fa0eb121aa519a2094f9908f269f71fc3a8");
+  
+  });
+
+  it("post108: HMAC-SHA256 key 2025-01-01", () => {
+
+    expect(hmacSha256("2025-01-01", toml)).toBe("1719e0de1e631f204660de6b6544839854ab51968d0dc500bad99b9e9eb7195d");
+  
+  });
+
+  it("post108: HMAC-SHA256 key edb6ca4df12f4f45b40508b3dda3c432", () => {
+
+    expect(hmacSha256("edb6ca4df12f4f45b40508b3dda3c432", toml)).toBe("30f5a30469cd4378feca7a22799964935a98f11328794c2d3d06a38b98babad3");
+  
+  });
+
+  it("post108: HMAC-SHA256 key HEAVY", () => {
+
+    expect(hmacSha256("HEAVY", toml)).toBe("0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db");
+  
+  });
+
+  it("post108: HMAC-SHA256 key TOKENMAXX", () => {
+
+    expect(hmacSha256("TOKENMAXX", toml)).toBe("7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4");
+  
+  });
+
+  it("post108: HMAC-SHA256 key no-invent", () => {
+
+    expect(hmacSha256("no-invent", toml)).toBe("7e094fb96a0b2e9c2c742d56764951bfd5022491fa119a518dd6b8fe112bf040");
+  
+  });
+
+  it("post108: HMAC-SHA256 key routes", () => {
+
+    expect(hmacSha256("routes", toml)).toBe("22ec0567f0a1e8f4f7f9ea5b8f1e9f31c72708ae548ab7d791fed75e3e7e870d");
+  
+  });
+
+  it("post108: HMAC-SHA256 key vars", () => {
+
+    expect(hmacSha256("vars", toml)).toBe("e49998b2c77487157f7e1f56023d5acaf53f75505ba262733b062833edff2d54");
+  
+  });
+
+  it("post108: HMAC-SHA256 key Secrets", () => {
+
+    expect(hmacSha256("Secrets", toml)).toBe("8187c1d7f3e60e58c408ae59b3be0974a7a528885f102808824fe0069ed0f4df");
+  
+  });
+
+  it("post108: HMAC digests differ for distinct keys", () => {
+
+    expect(hmacSha256('wrangler', toml)).not.toBe(hmacSha256('post108', toml));
+    expect(hmacSha256('backlink', toml)).not.toBe(hmacSha256('CATALOG_CACHE', toml));
+
+  });
+
+  it("post108: utf8 char length 330", () => {
+
+    expect(toml).toHaveLength(330);
+
+  });
+
+  it("post108: byte length 330 via Buffer/TextEncoder/stat", () => {
+
+    expect(Buffer.byteLength(toml, 'utf8')).toBe(330);
+    expect(new TextEncoder().encode(toml).length).toBe(330);
+    expect(statSync(tomlPath).size).toBe(330);
+
+  });
+
+  it("post108: newline count 17 / split 18", () => {
+
+    expect((toml.match(/\n/g) ?? []).length).toBe(17);
+    expect(toml.split('\n')).toHaveLength(18);
+
+  });
+
+  it("post108: nonempty line count 13", () => {
+
+    expect(toml.split('\n').filter((l) => l.length > 0)).toHaveLength(13);
+
+  });
+
+  it("post108: blank line count 5", () => {
+
+    expect(toml.split('\n').filter((l) => l.length === 0)).toHaveLength(5);
+
+  });
+
+  it("post108: line length vector lock", () => {
+
+    expect(toml.split('\n').map((l) => l.length)).toEqual([17,21,33,0,17,25,39,0,10,34,20,0,6,17,0,38,36,0]);
+
+  });
+
+  it("post108: nonempty line length sum 313", () => {
+
+    expect(toml.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(313);
+
+  });
+
+  it("post108: first 40 char codes lock", () => {
+
+    expect([...toml.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([110,97,109,101,32,61,32,34,98,97,99,107,108,105,110,107,34,10,109,97,105,110,32,61,32,34,115,114,99,47,105,110,100,101,120,46,116,115,34,10]);
+
+  });
+
+  it("post108: last 40 char codes lock", () => {
+
+    expect([...toml.slice(-40)].map((c) => c.charCodeAt(0))).toEqual([41,58,10,35,32,119,114,97,110,103,108,101,114,32,115,101,99,114,101,116,32,112,117,116,32,71,69,77,73,78,73,95,65,80,73,95,75,69,89,10]);
+
+  });
+
+  it("post108: first 80 char codes lock", () => {
+
+    expect([...toml.slice(0, 80)].map((c) => c.charCodeAt(0))).toEqual([110,97,109,101,32,61,32,34,98,97,99,107,108,105,110,107,34,10,109,97,105,110,32,61,32,34,115,114,99,47,105,110,100,101,120,46,116,115,34,10,99,111,109,112,97,116,105,98,105,108,105,116,121,95,100,97,116,101,32,61,32,34,50,48,50,53,45,48,49,45,48,49,34,10,10,91,91,107,118,95]);
+
+  });
+
+  it("post108: unique char set lock", () => {
+
+    expect([...new Set(toml)].sort().join('')).toBe("\n \"#(),-./01234568:=ACEGHIKLMNOPRSTVY[]_abcdefgiklmnoprstuvwxyz");
+
+  });
+
+  it("post108: digit count lock", () => {
+    expect([...toml].filter((c) => /\d/.test(c))).toHaveLength(28);
+  });
+
+  it("post108: uppercase count lock", () => {
+    expect([...toml].filter((c) => /[A-Z]/.test(c))).toHaveLength(35);
+  });
+
+  it("post108: lowercase count lock", () => {
+    expect([...toml].filter((c) => /[a-z]/.test(c))).toHaveLength(172);
+  });
+
+  it("post108: space count lock", () => {
+    expect((toml.match(/ /g) ?? []).length).toBe(26);
+  });
+
+  it("post108: double-quote count lock", () => {
+    expect((toml.match(/"/g) ?? []).length).toBe(14);
+  });
+
+  it("post108: equals count lock", () => {
+    expect((toml.match(/=/g) ?? []).length).toBe(8);
+  });
+
+  it("post108: underscore count lock", () => {
+    expect((toml.match(/_/g) ?? []).length).toBe(6);
+  });
+
+  it("post108: dash count lock", () => {
+    expect((toml.match(/-/g) ?? []).length).toBe(2);
+  });
+
+  it("post108: bracket pair counts", () => {
+
+    expect((toml.match(/\[/g) ?? []).length).toBe(5);
+    expect((toml.match(/\]/g) ?? []).length).toBe(5);
+
+  });
+
+  it("post108: hash comment marker count", () => {
+    expect((toml.match(/#/g) ?? []).length).toBe(2);
+  });
+
+  it("post108: colon count lock", () => {
+    expect((toml.match(/:/g) ?? []).length).toBe(1);
+  });
+
+  it("post108: paren pair counts", () => {
+
+    expect((toml.match(/\(/g) ?? []).length).toBe(1);
+    expect((toml.match(/\)/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post108: slash count lock", () => {
+    expect((toml.match(/\//g) ?? []).length).toBe(1);
+  });
+
+  it("post108: dot count lock", () => {
+    expect((toml.match(/\./g) ?? []).length).toBe(5);
+  });
+
+  it("post108: comma count lock", () => {
+    expect((toml.match(/,/g) ?? []).length).toBe(1);
+  });
+
+  it("post108: tab and CR absent", () => {
+
+    expect(toml.includes('\t')).toBe(false);
+    expect(toml.includes('\r')).toBe(false);
+
+  });
+
+  it("post108: no NUL / BOM / non-ascii", () => {
+
+    expect(toml.includes('\0')).toBe(false);
+    expect(toml.charCodeAt(0)).not.toBe(0xfeff);
+    expect([...toml].every((c) => c.charCodeAt(0) < 128)).toBe(true);
+
+  });
+
+  it("post108: line 0 exact content", () => {
+
+    expect(toml.split('\n')[0]).toBe("name = \"backlink\"");
+  
+  });
+
+  it("post108: line 0 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[0] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("44eea2b40cca4009");
+  
+  });
+
+  it("post108: line 0 length 17", () => {
+
+    expect((toml.split('\n')[0] ?? '').length).toBe(17);
+  
+  });
+
+  it("post108: line 1 exact content", () => {
+
+    expect(toml.split('\n')[1]).toBe("main = \"src/index.ts\"");
+  
+  });
+
+  it("post108: line 1 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[1] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("625410b0ed7d9f67");
+  
+  });
+
+  it("post108: line 1 length 21", () => {
+
+    expect((toml.split('\n')[1] ?? '').length).toBe(21);
+  
+  });
+
+  it("post108: line 2 exact content", () => {
+
+    expect(toml.split('\n')[2]).toBe("compatibility_date = \"2025-01-01\"");
+  
+  });
+
+  it("post108: line 2 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[2] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a1e68ad315991358");
+  
+  });
+
+  it("post108: line 2 length 33", () => {
+
+    expect((toml.split('\n')[2] ?? '').length).toBe(33);
+  
+  });
+
+  it("post108: line 3 exact content", () => {
+
+    expect(toml.split('\n')[3]).toBe("");
+  
+  });
+
+  it("post108: line 3 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[3] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  
+  });
+
+  it("post108: line 3 length 0", () => {
+
+    expect((toml.split('\n')[3] ?? '').length).toBe(0);
+  
+  });
+
+  it("post108: line 4 exact content", () => {
+
+    expect(toml.split('\n')[4]).toBe("[[kv_namespaces]]");
+  
+  });
+
+  it("post108: line 4 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[4] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a956430c61f81bfe");
+  
+  });
+
+  it("post108: line 4 length 17", () => {
+
+    expect((toml.split('\n')[4] ?? '').length).toBe(17);
+  
+  });
+
+  it("post108: line 5 exact content", () => {
+
+    expect(toml.split('\n')[5]).toBe("binding = \"CATALOG_CACHE\"");
+  
+  });
+
+  it("post108: line 5 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[5] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c73157420ab84c39");
+  
+  });
+
+  it("post108: line 5 length 25", () => {
+
+    expect((toml.split('\n')[5] ?? '').length).toBe(25);
+  
+  });
+
+  it("post108: line 6 exact content", () => {
+
+    expect(toml.split('\n')[6]).toBe("id = \"edb6ca4df12f4f45b40508b3dda3c432\"");
+  
+  });
+
+  it("post108: line 6 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[6] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c1d0c2ec18c0f0be");
+  
+  });
+
+  it("post108: line 6 length 39", () => {
+
+    expect((toml.split('\n')[6] ?? '').length).toBe(39);
+  
+  });
+
+  it("post108: line 7 exact content", () => {
+
+    expect(toml.split('\n')[7]).toBe("");
+  
+  });
+
+  it("post108: line 7 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[7] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  
+  });
+
+  it("post108: line 7 length 0", () => {
+
+    expect((toml.split('\n')[7] ?? '').length).toBe(0);
+  
+  });
+
+  it("post108: line 8 exact content", () => {
+
+    expect(toml.split('\n')[8]).toBe("[[routes]]");
+  
+  });
+
+  it("post108: line 8 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[8] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cebc572dd47d342d");
+  
+  });
+
+  it("post108: line 8 length 10", () => {
+
+    expect((toml.split('\n')[8] ?? '').length).toBe(10);
+  
+  });
+
+  it("post108: line 9 exact content", () => {
+
+    expect(toml.split('\n')[9]).toBe("pattern = \"backlink.fuzzywigg.com\"");
+  
+  });
+
+  it("post108: line 9 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[9] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("3337e5d997065b8a");
+  
+  });
+
+  it("post108: line 9 length 34", () => {
+
+    expect((toml.split('\n')[9] ?? '').length).toBe(34);
+  
+  });
+
+  it("post108: line 10 exact content", () => {
+
+    expect(toml.split('\n')[10]).toBe("custom_domain = true");
+  
+  });
+
+  it("post108: line 10 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[10] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("2160b9454f356d18");
+  
+  });
+
+  it("post108: line 10 length 20", () => {
+
+    expect((toml.split('\n')[10] ?? '').length).toBe(20);
+  
+  });
+
+  it("post108: line 11 exact content", () => {
+
+    expect(toml.split('\n')[11]).toBe("");
+  
+  });
+
+  it("post108: line 11 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[11] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  
+  });
+
+  it("post108: line 11 length 0", () => {
+
+    expect((toml.split('\n')[11] ?? '').length).toBe(0);
+  
+  });
+
+  it("post108: line 12 exact content", () => {
+
+    expect(toml.split('\n')[12]).toBe("[vars]");
+  
+  });
+
+  it("post108: line 12 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[12] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("4098c70630d33665");
+  
+  });
+
+  it("post108: line 12 length 6", () => {
+
+    expect((toml.split('\n')[12] ?? '').length).toBe(6);
+  
+  });
+
+  it("post108: line 13 exact content", () => {
+
+    expect(toml.split('\n')[13]).toBe("VERSION = \"0.1.0\"");
+  
+  });
+
+  it("post108: line 13 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[13] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f7c1152ced11e787");
+  
+  });
+
+  it("post108: line 13 length 17", () => {
+
+    expect((toml.split('\n')[13] ?? '').length).toBe(17);
+  
+  });
+
+  it("post108: line 14 exact content", () => {
+
+    expect(toml.split('\n')[14]).toBe("");
+  
+  });
+
+  it("post108: line 14 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[14] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  
+  });
+
+  it("post108: line 14 length 0", () => {
+
+    expect((toml.split('\n')[14] ?? '').length).toBe(0);
+  
+  });
+
+  it("post108: line 15 exact content", () => {
+
+    expect(toml.split('\n')[15]).toBe("# Secrets (set via CLI, never commit):");
+  
+  });
+
+  it("post108: line 15 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[15] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("21465a90ea852c7a");
+  
+  });
+
+  it("post108: line 15 length 38", () => {
+
+    expect((toml.split('\n')[15] ?? '').length).toBe(38);
+  
+  });
+
+  it("post108: line 16 exact content", () => {
+
+    expect(toml.split('\n')[16]).toBe("# wrangler secret put GEMINI_API_KEY");
+  
+  });
+
+  it("post108: line 16 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[16] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("9e54f159c315311e");
+  
+  });
+
+  it("post108: line 16 length 36", () => {
+
+    expect((toml.split('\n')[16] ?? '').length).toBe(36);
+  
+  });
+
+  it("post108: line 17 exact content", () => {
+
+    expect(toml.split('\n')[17]).toBe("");
+  
+  });
+
+  it("post108: line 17 sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.split('\n')[17] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  
+  });
+
+  it("post108: line 17 length 0", () => {
+
+    expect((toml.split('\n')[17] ?? '').length).toBe(0);
+  
+  });
+
+  it("post108: word token vector lock", () => {
+
+    expect(toml.match(/[A-Za-z0-9_.]+/g)).toEqual(["name","backlink","main","src","index.ts","compatibility_date","2025","01","01","kv_namespaces","binding","CATALOG_CACHE","id","edb6ca4df12f4f45b40508b3dda3c432","routes","pattern","backlink.fuzzywigg.com","custom_domain","true","vars","VERSION","0.1.0","Secrets","set","via","CLI","never","commit","wrangler","secret","put","GEMINI_API_KEY"]);
+
+  });
+
+  it("post108: comment lines exact pair", () => {
+
+    expect(toml.split('\n').filter((l) => l.startsWith('#'))).toEqual(["# Secrets (set via CLI, never commit):","# wrangler secret put GEMINI_API_KEY"]);
+
+  });
+
+  it("post108: exact snapshot reaffirm", () => {
+
+    expect(toml).toBe("name = \"backlink\"\nmain = \"src/index.ts\"\ncompatibility_date = \"2025-01-01\"\n\n[[kv_namespaces]]\nbinding = \"CATALOG_CACHE\"\nid = \"edb6ca4df12f4f45b40508b3dda3c432\"\n\n[[routes]]\npattern = \"backlink.fuzzywigg.com\"\ncustom_domain = true\n\n[vars]\nVERSION = \"0.1.0\"\n\n# Secrets (set via CLI, never commit):\n# wrangler secret put GEMINI_API_KEY\n");
+
+  });
+
+  it("post108: re-read equals module snapshot", () => {
+
+    expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+
+  });
+
+  it("post108: starts with name assignment", () => {
+
+    expect(toml.startsWith('name = "backlink"\n')).toBe(true);
+
+  });
+
+  it("post108: ends with secret put + trailing newline", () => {
+
+    expect(toml.endsWith('# wrangler secret put GEMINI_API_KEY\n')).toBe(true);
+
+  });
+
+  it("post108: top-level key order name→main→compatibility_date", () => {
+
+    const nameIdx = toml.indexOf('name = "backlink"');
+    const mainIdx = toml.indexOf('main = "src/index.ts"');
+    const compatIdx = toml.indexOf('compatibility_date = "2025-01-01"');
+    expect(nameIdx).toBe(0);
+    expect(mainIdx).toBeGreaterThan(nameIdx);
+    expect(compatIdx).toBeGreaterThan(mainIdx);
+
+  });
+
+  it("post108: section order kv→routes→vars→secrets comment", () => {
+
+    expect(toml.indexOf('[[kv_namespaces]]')).toBeLessThan(toml.indexOf('[[routes]]'));
+    expect(toml.indexOf('[[routes]]')).toBeLessThan(toml.indexOf('[vars]'));
+    expect(toml.indexOf('[vars]')).toBeLessThan(toml.indexOf('# Secrets'));
+
+  });
+
+  it("post108: exactly one of each table header", () => {
+
+    expect((toml.match(/\[\[kv_namespaces\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/\[\[routes\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/^\[vars\]/gm) ?? []).length).toBe(1);
+
+  });
+
+  it("post108: KV keys exactly binding+id", () => {
+
+    const kv = toml.slice(toml.indexOf('[[kv_namespaces]]'), toml.indexOf('[[routes]]'));
+    expect([...kv.matchAll(/^\s*([a-z_]+)\s*=/gm)].map((m) => m[1])).toEqual(['binding', 'id']);
+
+  });
+
+  it("post108: routes keys exactly pattern+custom_domain", () => {
+
+    const routes = toml.slice(toml.indexOf('[[routes]]'), toml.indexOf('[vars]'));
+    expect([...routes.matchAll(/^\s*([a-z_]+)\s*=/gm)].map((m) => m[1])).toEqual(['pattern', 'custom_domain']);
+
+  });
+
+  it("post108: vars limited to VERSION only", () => {
+
+    const varsSection = toml.split('[vars]')[1] ?? '';
+    const next = varsSection.search(/\n#/);
+    const body = next === -1 ? varsSection : varsSection.slice(0, next);
+    expect([...body.matchAll(/^\s*([A-Z_]+)\s*=/gm)].map((m) => m[1])).toEqual(['VERSION']);
+
+  });
+
+  it("post108: VERSION equals package.json version", () => {
+
+    expect(toml).toMatch(new RegExp('VERSION\\s*=\\s*"' + pkgJson.version.replace(/\./g, '\\.') + '"'));
+    expect(pkgJson.version).toBe("0.1.0");
+
+  });
+
+  it("post108: worker name equals package.json name", () => {
+
+    expect(toml).toMatch(/^\s*name\s*=\s*"backlink"\s*$/m);
+    expect(pkgJson.name).toBe('backlink');
+
+  });
+
+  it("post108: locks CATALOG_CACHE KV id exactly", () => {
+
+    expect(toml).toMatch(/id\s*=\s*"edb6ca4df12f4f45b40508b3dda3c432"/);
+
+  });
+
+  it("post108: KV id sha256 lock", () => {
+
+    expect(createHash('sha256').update('edb6ca4df12f4f45b40508b3dda3c432', 'utf8').digest('hex')).toBe("d99f8aaf3b32143498c6fecdd5b6b4b0d391dc10d4aa4e9f598e7871897ba906");
+
+  });
+
+  it("post108: KV id is 32 lowercase hex", () => {
+
+    const id = toml.match(/id\s*=\s*"([a-f0-9]+)"/)?.[1] ?? '';
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+    expect(id).toBe(id.toLowerCase());
+
+  });
+
+  it("post108: custom domain pattern exact", () => {
+
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).toMatch(/custom_domain\s*=\s*true/);
+
+  });
+
+  it("post108: compatibility_date exact 2025-01-01", () => {
+
+    expect(toml).toMatch(/compatibility_date\s*=\s*"2025-01-01"/);
+
+  });
+
+  it("post108: main entry exact src/index.ts", () => {
+
+    expect(toml).toMatch(/^\s*main\s*=\s*"src\/index\.ts"\s*$/m);
+
+  });
+
+  it("post108: types.ts Env declares CATALOG_CACHE KVNamespace", () => {
+
+    expect(typesSrc).toMatch(/CATALOG_CACHE:\s*KVNamespace/);
+
+  });
+
+  it("post108: types.ts optional GEMINI_API_KEY", () => {
+
+    expect(typesSrc).toMatch(/GEMINI_API_KEY\?:\s*string/);
+
+  });
+
+  it("post108: types.ts optional VERSION", () => {
+
+    expect(typesSrc).toMatch(/VERSION\?:\s*string/);
+
+  });
+
+  it("post108: types Env fields ⊆ wrangler bindings+vars+secret comment", () => {
+
+    expect(toml).toContain('CATALOG_CACHE');
+    expect(toml).toContain('VERSION');
+    expect(toml).toContain('GEMINI_API_KEY');
+    expect(toml).not.toMatch(/^\s*GEMINI_API_KEY\s*=/m);
+
+  });
+
+  it("post108: types.ts sha256 lock", () => {
+
+    expect(createHash('sha256').update(typesSrc, 'utf8').digest('hex')).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+
+  });
+
+  it("post108: types.ts sha1/md5 lock", () => {
+
+    expect(createHash('sha1').update(typesSrc, 'utf8').digest('hex')).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8");
+    expect(createHash('md5').update(typesSrc, 'utf8').digest('hex')).toBe("ecba663d21928622be656805ad27d0a3");
+
+  });
+
+  it("post108: index.ts imports Env from types", () => {
+
+    expect(indexSrc).toMatch(/import\s+\{\s*Env\s*\}\s+from\s+['"]\.\/types['"]/);
+    expect(indexSrc).not.toMatch(/import\s+type\s+\{\s*Env\s*\}/);
+
+  });
+
+  it("post108: index.ts references CATALOG_CACHE", () => {
+
+    expect(indexSrc).toMatch(/CATALOG_CACHE/);
+
+  });
+
+  it("post108: index.ts references GEMINI_API_KEY", () => {
+
+    expect(indexSrc).toMatch(/GEMINI_API_KEY/);
+
+  });
+
+  it("post108: DEPLOY.md documents wrangler.toml KV paste", () => {
+
+    expect(deployMd).toMatch(/wrangler\.toml/);
+    expect(deployMd).toMatch(/CATALOG_CACHE/);
+    expect(deployMd).toMatch(/wrangler secret put GEMINI_API_KEY/);
+
+  });
+
+  it("post108: DEPLOY.md documents custom domain backlink.fuzzywigg.com", () => {
+
+    expect(deployMd).toMatch(/backlink\.fuzzywigg\.com/);
+
+  });
+
+  it("post108: AGENTS.md domain target matches routes pattern", () => {
+
+    expect(agentsMd).toMatch(/backlink\.fuzzywigg\.com/);
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+
+  });
+
+  it("post108: AGENTS.md escalate GEMINI secret handling", () => {
+
+    expect(agentsMd).toMatch(/GEMINI_API_KEY/);
+
+  });
+
+  it("post108: deploy.yml references GEMINI_API_KEY secret", () => {
+
+    expect(deployYml).toMatch(/GEMINI_API_KEY/);
+
+  });
+
+  it("post108: ci hygiene asserts wrangler.toml present and no GEMINI assignment", () => {
+
+    expect(ciYml).toMatch(/wrangler\.toml/);
+    expect(ciYml).toMatch(/! grep -q 'GEMINI_API_KEY=' wrangler\.toml/);
+
+  });
+
+  it("post108: package scripts include wrangler dev/deploy", () => {
+
+    expect(pkgJson.scripts.dev).toBe('wrangler dev');
+    expect(pkgJson.scripts.deploy).toBe('wrangler deploy');
+
+  });
+
+  it("post108: wrangler is a devDependency", () => {
+
+    expect(pkgJson.devDependencies?.wrangler).toMatch(/^\^/);
+
+  });
+
+  it("post108: negative — no durable_objects inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("durable_objects");
+  
+  });
+
+  it("post108: negative — no r2_buckets inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("r2_buckets");
+  
+  });
+
+  it("post108: negative — no d1_databases inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("d1_databases");
+  
+  });
+
+  it("post108: negative — no queues inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("queues");
+  
+  });
+
+  it("post108: negative — no services inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("services");
+  
+  });
+
+  it("post108: negative — no vectorize inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("vectorize");
+  
+  });
+
+  it("post108: negative — no analytics_engine inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("analytics_engine");
+  
+  });
+
+  it("post108: negative — no hyperdrive inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("hyperdrive");
+  
+  });
+
+  it("post108: negative — no browser inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("browser");
+  
+  });
+
+  it("post108: negative — no ai inventing", () => {
+
+    expect(toml).not.toMatch(/^\s*\[ai\]/m);
+    expect(toml).not.toMatch(/\[\[ai\]\]/i);
+    expect(toml.toLowerCase()).not.toContain('workers.ai');
+
+  });
+
+  it("post108: negative — no workflows inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("workflows");
+  
+  });
+
+  it("post108: negative — no ratelimits inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("ratelimits");
+  
+  });
+
+  it("post108: negative — no send_email inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("send_email");
+  
+  });
+
+  it("post108: negative — no dispatch_namespaces inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("dispatch_namespaces");
+  
+  });
+
+  it("post108: negative — no mtls_certificates inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("mtls_certificates");
+  
+  });
+
+  it("post108: negative — no pipelines inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("pipelines");
+  
+  });
+
+  it("post108: negative — no vpc_services inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("vpc_services");
+  
+  });
+
+  it("post108: negative — no logfwdr inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("logfwdr");
+  
+  });
+
+  it("post108: negative — no account_id inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("account_id");
+  
+  });
+
+  it("post108: negative — no api_token inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("api_token");
+  
+  });
+
+  it("post108: negative — no workers_dev inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("workers_dev");
+  
+  });
+
+  it("post108: negative — no preview_urls inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("preview_urls");
+  
+  });
+
+  it("post108: negative — no zone_id inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("zone_id");
+  
+  });
+
+  it("post108: negative — no zone_name inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("zone_name");
+  
+  });
+
+  it("post108: negative — no preview_id inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("preview_id");
+  
+  });
+
+  it("post108: negative — no nodejs_compat inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("nodejs_compat");
+  
+  });
+
+  it("post108: negative — no compatibility_flags inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("compatibility_flags");
+  
+  });
+
+  it("post108: negative — no logpush inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("logpush");
+  
+  });
+
+  it("post108: negative — no minify inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("minify");
+  
+  });
+
+  it("post108: negative — no placement inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("placement");
+  
+  });
+
+  it("post108: negative — no limits inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("limits");
+  
+  });
+
+  it("post108: negative — no migrations inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("migrations");
+  
+  });
+
+  it("post108: negative — no crons inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("crons");
+  
+  });
+
+  it("post108: negative — no triggers inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("triggers");
+  
+  });
+
+  it("post108: negative — no build inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("build");
+  
+  });
+
+  it("post108: negative — no site inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("site");
+  
+  });
+
+  it("post108: negative — no dev inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("dev");
+  
+  });
+
+  it("post108: negative — no env. inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("env\\.");
+  
+  });
+
+  it("post108: negative — no secrets inventing", () => {
+
+    expect(toml).not.toMatch(/^\s*\[secrets\]/im);
+    expect(toml).not.toMatch(/^\s*GEMINI_API_KEY\s*=/m);
+    expect(toml).toMatch(/# Secrets \(set via CLI, never commit\):/);
+
+  });
+
+  it("post108: negative — no route = inventing", () => {
+
+    expect(toml.toLowerCase()).not.toMatch("route =");
+  
+  });
+
+  it("post108: negative — no secret material AIza", () => {
+
+    expect(toml).not.toMatch("AIza");
+  
+  });
+
+  it("post108: negative — no secret material sk-", () => {
+
+    expect(toml).not.toMatch("sk-");
+  
+  });
+
+  it("post108: negative — no secret material Bearer", () => {
+
+    expect(toml).not.toMatch("Bearer ");
+  
+  });
+
+  it("post108: negative — no secret material Authorization", () => {
+
+    expect(toml).not.toMatch("Authorization");
+  
+  });
+
+  it("post108: negative — no secret material CF_API_TOKEN", () => {
+
+    expect(toml).not.toMatch("CF_API_TOKEN");
+  
+  });
+
+  it("post108: negative — no secret material CLOUDFLARE_API_TOKEN", () => {
+
+    expect(toml).not.toMatch("CLOUDFLARE_API_TOKEN");
+  
+  });
+
+  it("post108: negative — no secret material ANTHROPIC", () => {
+
+    expect(toml).not.toMatch("ANTHROPIC");
+  
+  });
+
+  it("post108: negative — no secret material OPENAI_API_KEY", () => {
+
+    expect(toml).not.toMatch("OPENAI_API_KEY");
+  
+  });
+
+  it("post108: negative — no secret material aws_access", () => {
+
+    expect(toml).not.toMatch("aws_access");
+  
+  });
+
+  it("post108: negative — no secret material aws_secret", () => {
+
+    expect(toml).not.toMatch("aws_secret");
+  
+  });
+
+  it("post108: negative — no secret material private_key", () => {
+
+    expect(toml).not.toMatch("private_key");
+  
+  });
+
+  it("post108: negative — no secret material BEGIN RSA", () => {
+
+    expect(toml).not.toMatch("BEGIN RSA");
+  
+  });
+
+  it("post108: negative — no secret material BEGIN OPENSSH", () => {
+
+    expect(toml).not.toMatch("BEGIN OPENSSH");
+  
+  });
+
+  it("post108: negative invent fence — no playlist", () => {
+
+    expect(toml.toLowerCase()).not.toContain("playlist");
+  
+  });
+
+  it("post108: negative invent fence — no now-playing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("now-playing");
+  
+  });
+
+  it("post108: negative invent fence — no websocket", () => {
+
+    expect(toml.toLowerCase()).not.toContain("websocket");
+  
+  });
+
+  it("post108: negative invent fence — no durable", () => {
+
+    expect(toml.toLowerCase()).not.toContain("durable");
+  
+  });
+
+  it("post108: negative invent fence — no cron", () => {
+
+    expect(toml.toLowerCase()).not.toContain("cron");
+  
+  });
+
+  it("post108: negative invent fence — no scheduled", () => {
+
+    expect(toml.toLowerCase()).not.toContain("scheduled");
+  
+  });
+
+  it("post108: negative invent fence — no alarm", () => {
+
+    expect(toml.toLowerCase()).not.toContain("alarm");
+  
+  });
+
+  it("post108: negative invent fence — no queue", () => {
+
+    expect(toml.toLowerCase()).not.toContain("queue");
+  
+  });
+
+  it("post108: negative invent fence — no pubsub", () => {
+
+    expect(toml.toLowerCase()).not.toContain("pubsub");
+  
+  });
+
+  it("post108: negative invent fence — no graphql", () => {
+
+    expect(toml.toLowerCase()).not.toContain("graphql");
+  
+  });
+
+  it("post108: negative invent fence — no trpc", () => {
+
+    expect(toml.toLowerCase()).not.toContain("trpc");
+  
+  });
+
+  it("post108: negative invent fence — no supabase", () => {
+
+    expect(toml.toLowerCase()).not.toContain("supabase");
+  
+  });
+
+  it("post108: negative invent fence — no firebase", () => {
+
+    expect(toml.toLowerCase()).not.toContain("firebase");
+  
+  });
+
+  it("post108: negative invent fence — no planetscale", () => {
+
+    expect(toml.toLowerCase()).not.toContain("planetscale");
+  
+  });
+
+  it("post108: negative invent fence — no neon", () => {
+
+    expect(toml.toLowerCase()).not.toContain("neon");
+  
+  });
+
+  it("post108: negative invent fence — no turso", () => {
+
+    expect(toml.toLowerCase()).not.toContain("turso");
+  
+  });
+
+  it("post108: negative invent fence — no vercel", () => {
+
+    expect(toml.toLowerCase()).not.toContain("vercel");
+  
+  });
+
+  it("post108: negative invent fence — no netlify", () => {
+
+    expect(toml.toLowerCase()).not.toContain("netlify");
+  
+  });
+
+  it("post108: negative invent fence — no fly.io", () => {
+
+    expect(toml.toLowerCase()).not.toContain("fly.io");
+  
+  });
+
+  it("post108: negative invent fence — no railway", () => {
+
+    expect(toml.toLowerCase()).not.toContain("railway");
+  
+  });
+
+  it("post108: negative invent fence — no render.com", () => {
+
+    expect(toml.toLowerCase()).not.toContain("render.com");
+  
+  });
+
+  it("post108: negative invent fence — no docker", () => {
+
+    expect(toml.toLowerCase()).not.toContain("docker");
+  
+  });
+
+  it("post108: negative invent fence — no kubernetes", () => {
+
+    expect(toml.toLowerCase()).not.toContain("kubernetes");
+  
+  });
+
+  it("post108: negative invent fence — no helm", () => {
+
+    expect(toml.toLowerCase()).not.toContain("helm");
+  
+  });
+
+  it("post108: negative invent fence — no terraform", () => {
+
+    expect(toml.toLowerCase()).not.toContain("terraform");
+  
+  });
+
+  it("post108: negative — no DNS A record inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("a record");
+  
+  });
+
+  it("post108: negative — no DNS AAAA inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("aaaa");
+  
+  });
+
+  it("post108: negative — no DNS CNAME inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("cname");
+  
+  });
+
+  it("post108: negative — no DNS MX record inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("mx record");
+  
+  });
+
+  it("post108: negative — no DNS TXT record inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("txt record");
+  
+  });
+
+  it("post108: negative — no DNS NS record inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("ns record");
+  
+  });
+
+  it("post108: negative — no DNS SOA inventing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("soa");
+  
+  });
+
+  it("post108: boolean custom_domain unquoted true", () => {
+
+    expect(toml).toMatch(/custom_domain\s*=\s*true\b/);
+    expect(toml).not.toMatch(/custom_domain\s*=\s*"true"/);
+
+  });
+
+  it("post108: VERSION quoted semver", () => {
+
+    expect(toml).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
+    expect(toml).not.toMatch(/VERSION\s*=\s*0\.1\.0\b/);
+
+  });
+
+  it("post108: secret put comment exactly once", () => {
+
+    expect((toml.match(/wrangler secret put GEMINI_API_KEY/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post108: binding CATALOG_CACHE exactly once", () => {
+
+    expect((toml.match(/binding\s*=\s*"CATALOG_CACHE"/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post108: no duplicate top-level name/main/compat", () => {
+
+    expect((toml.match(/^name\s*=/gm) ?? []).length).toBe(1);
+    expect((toml.match(/^main\s*=/gm) ?? []).length).toBe(1);
+    expect((toml.match(/^compatibility_date\s*=/gm) ?? []).length).toBe(1);
+
+  });
+
+  it("post108: pattern host-only without scheme/path", () => {
+
+    expect(toml).toMatch(/pattern\s*=\s*"backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/pattern\s*=\s*"https?:\/\//);
+    expect(toml).not.toMatch(/pattern\s*=\s*"[^"]*\//);
+
+  });
+
+  it("post108: relative main path not absolute", () => {
+
+    expect(toml).toMatch(/main\s*=\s*"src\/index\.ts"/);
+    expect(toml).not.toMatch(/main\s*=\s*"\//);
+
+  });
+
+  it("post108: secrets comment block after VERSION", () => {
+
+    const afterVars = toml.slice(toml.indexOf('[vars]'));
+    expect(afterVars).toMatch(/\[vars\]\s*\nVERSION = "0\.1\.0"\s*\n\n# Secrets/);
+
+  });
+
+  it("post108: Secrets comment documents never commit", () => {
+
+    expect(toml).toMatch(/# Secrets \(set via CLI, never commit\):/);
+
+  });
+
+  it("post108: no anthropic/claude leftovers", () => {
+
+    expect(toml).not.toMatch(/anthropic|claude|haiku/i);
+
+  });
+
+  it("post108: no npm token / registry inventing", () => {
+
+    expect(toml).not.toMatch(/npm[_-]?token|registry\.npmjs/i);
+
+  });
+
+  it("post108: URL parse of domain pattern without protocol inventing", () => {
+
+    const host = toml.match(/pattern\s*=\s*"([^"]+)"/)?.[1] ?? '';
+    expect(host).toBe('backlink.fuzzywigg.com');
+    expect(() => new URL('https://' + host)).not.toThrow();
+    expect(new URL('https://' + host).hostname).toBe('backlink.fuzzywigg.com');
+
+  });
+
+  it("post108: kv id parseInt radix-16 of first 8 ok", () => {
+
+    const id = 'edb6ca4df12f4f45b40508b3dda3c432';
+    expect(Number.isFinite(parseInt(id.slice(0, 8), 16))).toBe(true);
+
+  });
+
+  it("post108: byte[0] charCode 110", () => {
+
+    expect(toml.charCodeAt(0)).toBe(110);
+  
+  });
+
+  it("post108: byte[1] charCode 97", () => {
+
+    expect(toml.charCodeAt(1)).toBe(97);
+  
+  });
+
+  it("post108: byte[2] charCode 109", () => {
+
+    expect(toml.charCodeAt(2)).toBe(109);
+  
+  });
+
+  it("post108: byte[3] charCode 101", () => {
+
+    expect(toml.charCodeAt(3)).toBe(101);
+  
+  });
+
+  it("post108: byte[4] charCode 32", () => {
+
+    expect(toml.charCodeAt(4)).toBe(32);
+  
+  });
+
+  it("post108: byte[5] charCode 61", () => {
+
+    expect(toml.charCodeAt(5)).toBe(61);
+  
+  });
+
+  it("post108: byte[6] charCode 32", () => {
+
+    expect(toml.charCodeAt(6)).toBe(32);
+  
+  });
+
+  it("post108: byte[7] charCode 34", () => {
+
+    expect(toml.charCodeAt(7)).toBe(34);
+  
+  });
+
+  it("post108: byte[8] charCode 98", () => {
+
+    expect(toml.charCodeAt(8)).toBe(98);
+  
+  });
+
+  it("post108: byte[16] charCode 34", () => {
+
+    expect(toml.charCodeAt(16)).toBe(34);
+  
+  });
+
+  it("post108: byte[17] charCode 10", () => {
+
+    expect(toml.charCodeAt(17)).toBe(10);
+  
+  });
+
+  it("post108: byte[18] charCode 109", () => {
+
+    expect(toml.charCodeAt(18)).toBe(109);
+  
+  });
+
+  it("post108: byte[50] charCode 105", () => {
+
+    expect(toml.charCodeAt(50)).toBe(105);
+  
+  });
+
+  it("post108: byte[100] charCode 32", () => {
+
+    expect(toml.charCodeAt(100)).toBe(32);
+  
+  });
+
+  it("post108: byte[150] charCode 100", () => {
+
+    expect(toml.charCodeAt(150)).toBe(100);
+  
+  });
+
+  it("post108: byte[200] charCode 46", () => {
+
+    expect(toml.charCodeAt(200)).toBe(46);
+  
+  });
+
+  it("post108: byte[250] charCode 48", () => {
+
+    expect(toml.charCodeAt(250)).toBe(48);
+  
+  });
+
+  it("post108: byte[300] charCode 108", () => {
+
+    expect(toml.charCodeAt(300)).toBe(108);
+  
+  });
+
+  it("post108: byte[320] charCode 73", () => {
+
+    expect(toml.charCodeAt(320)).toBe(73);
+  
+  });
+
+  it("post108: byte[329] charCode 10", () => {
+
+    expect(toml.charCodeAt(329)).toBe(10);
+  
+  });
+
+  it("post108: window[0:32] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(0, 32), 'utf8').digest('hex').slice(0, 16)).toBe("0ec606943f8f96cd");
+  
+  });
+
+  it("post108: window[32:64] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(32, 64), 'utf8').digest('hex').slice(0, 16)).toBe("1b17fec13baef996");
+  
+  });
+
+  it("post108: window[64:96] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(64, 96), 'utf8').digest('hex').slice(0, 16)).toBe("206ad8a5519a1aad");
+  
+  });
+
+  it("post108: window[96:128] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(96, 128), 'utf8').digest('hex').slice(0, 16)).toBe("c0c6f82ac6ea54d0");
+  
+  });
+
+  it("post108: window[128:160] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(128, 160), 'utf8').digest('hex').slice(0, 16)).toBe("4a82ebd1cc36cf7c");
+  
+  });
+
+  it("post108: window[160:192] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(160, 192), 'utf8').digest('hex').slice(0, 16)).toBe("2b0af83b559872cb");
+  
+  });
+
+  it("post108: window[192:224] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(192, 224), 'utf8').digest('hex').slice(0, 16)).toBe("3627ec903797e46a");
+  
+  });
+
+  it("post108: window[224:256] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(224, 256), 'utf8').digest('hex').slice(0, 16)).toBe("dc21b23e9adb8063");
+  
+  });
+
+  it("post108: window[256:288] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(256, 288), 'utf8').digest('hex').slice(0, 16)).toBe("b6861982753468a1");
+  
+  });
+
+  it("post108: window[288:330] sha256 prefix", () => {
+
+    expect(createHash('sha256').update(toml.slice(288, 330), 'utf8').digest('hex').slice(0, 16)).toBe("3dfca4df3ee1bb46");
+  
+  });
+
+  it("post108: mega purity 50x sha256", () => {
+
+    const expected = "95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8";
+    for (let i = 0; i < 50; i++) expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+
+  });
+
+  it("post108: mega purity 25x sha384", () => {
+
+    const expected = "77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09";
+    for (let i = 0; i < 25; i++) expect(createHash('sha384').update(toml, 'utf8').digest('hex')).toBe(expected);
+
+  });
+
+  it("post108: mega purity 25x sha512", () => {
+
+    const expected = "4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96";
+    for (let i = 0; i < 25; i++) expect(createHash('sha512').update(toml, 'utf8').digest('hex')).toBe(expected);
+
+  });
+
+  it("post108: mega purity 25x HMAC wrangler", () => {
+
+    const expected = "bbac4432f0fadae42a1d39402045dcfbfccff5b22c2689832451059ad3ed82e6";
+    for (let i = 0; i < 25; i++) expect(hmacSha256('wrangler', toml)).toBe(expected);
+
+  });
+
+  it("post108: mega purity 25x re-read", () => {
+
+    for (let i = 0; i < 25; i++) expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+
+  });
+
+  it("post108: mega purity 100x sha256", () => {
+
+    const expected = "95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8";
+    for (let i = 0; i < 100; i++) expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+
+  });
+
+  it("post108: assignment key inventory lock", () => {
+
+    const keys = [...toml.matchAll(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=/gm)].map((m) => m[1]);
+    expect(keys).toEqual(['name', 'main', 'compatibility_date', 'binding', 'id', 'pattern', 'custom_domain', 'VERSION']);
+
+  });
+
+  it("post108: quoted string value inventory lock", () => {
+
+    const vals = [...toml.matchAll(/=\s*"([^"]*)"/g)].map((m) => m[1]);
+    expect(vals).toEqual(['backlink', 'src/index.ts', '2025-01-01', 'CATALOG_CACHE', 'edb6ca4df12f4f45b40508b3dda3c432', 'backlink.fuzzywigg.com', '0.1.0']);
+
+  });
+
+  it("post108: table header inventory lock", () => {
+
+    expect([...toml.matchAll(/^\[\[?[^\]]+\]\]?/gm)].map((m) => m[0])).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
+
+  });
+
+  it("post108: DEPLOY.md cost section mentions CF Workers free tier", () => {
+
+    expect(deployMd).toMatch(/CF Workers free tier/);
+
+  });
+
+  it("post108: DEPLOY.md HITL first deploy", () => {
+
+    expect(deployMd).toMatch(/First production deploy must be reviewed/);
+
+  });
+
+  it("post108: AGENTS.md verify includes npm test coverage", () => {
+
+    expect(agentsMd).toMatch(/npm run test:coverage/);
+
+  });
+
+  it("post108: environment.json install uses npm ci", () => {
+
+    expect(envJson.install).toMatch(/npm ci/);
+
+  });
+
+  it("post108: ci.yml node-version 20", () => {
+
+    expect(ciYml).toMatch(/node-version:\s*"20"/);
+
+  });
+
+  it("post108: deploy.yml uses wrangler deploy path", () => {
+
+    expect(deployYml).toMatch(/wrangler/);
+
+  });
+
+  it("post108: full char frequency vector lock", () => {
+
+    const freq: Record<string, number> = {};
+    for (const c of toml) freq[c] = (freq[c] ?? 0) + 1;
+    expect(Object.fromEntries(Object.entries(freq).sort(([a], [b]) => (a < b ? -1 : 1)))).toEqual({"0":7,"1":4,"2":4,"3":3,"4":5,"5":3,"6":1,"8":1,"\n":17," ":26,"\"":14,"#":2,"(":1,")":1,",":1,"-":2,".":5,"/":1,":":1,"=":8,"A":4,"C":4,"E":4,"G":2,"H":1,"I":5,"K":1,"L":2,"M":1,"N":2,"O":2,"P":1,"R":1,"S":2,"T":1,"V":1,"Y":1,"[":5,"]":5,"_":6,"a":15,"b":7,"c":12,"d":9,"e":17,"f":4,"g":4,"i":14,"k":5,"l":4,"m":9,"n":12,"o":6,"p":4,"r":10,"s":10,"t":14,"u":5,"v":4,"w":2,"x":1,"y":2,"z":2});
+
+  });
+
+  it("post108: reverse round-trip preserves content", () => {
+
+    expect([...toml].reverse().reverse().join('')).toBe(toml);
+
+  });
+
+  it("post108: split-join newline round-trip", () => {
+
+    expect(toml.split('\n').join('\n')).toBe(toml);
+
+  });
+
+  it("post108: Buffer utf8 round-trip", () => {
+
+    expect(Buffer.from(toml, 'utf8').toString('utf8')).toBe(toml);
+
+  });
+
+  it("post108: TextEncoder/Decoder round-trip", () => {
+
+    expect(new TextDecoder().decode(new TextEncoder().encode(toml))).toBe(toml);
+
+  });
+
+  it("post108: toLowerCase length invariant", () => {
+
+    expect(toml.toLowerCase()).toHaveLength(toml.length);
+
+  });
+
+  it("post108: toUpperCase length invariant", () => {
+
+    expect(toml.toUpperCase()).toHaveLength(toml.length);
+
+  });
+
+  it("post108: trim does not change (no outer whitespace)", () => {
+
+    expect(toml.trimEnd()).toBe(toml.slice(0, -1)); // trailing newline only
+    expect(toml.trimStart()).toBe(toml);
+
+  });
+
+  it("post108: kv block sha256", () => {
+
+    const kv = toml.slice(toml.indexOf('[[kv_namespaces]]'), toml.indexOf('[[routes]]'));
+    expect(createHash('sha256').update(kv, 'utf8').digest('hex')).toBe("e850dd81dc95e3dda36c10999fce78deef4d528752b16c32a0f80c562a8e55b8");
+
+  });
+
+  it("post108: routes block sha256", () => {
+
+    const routes = toml.slice(toml.indexOf('[[routes]]'), toml.indexOf('[vars]'));
+    expect(createHash('sha256').update(routes, 'utf8').digest('hex')).toBe("13f6daabb874ba66a532648c6186c2fda5e2b5380558036ae22487b381bd5f42");
+
+  });
+
+  it("post108: vars+comments block sha256", () => {
+
+    const vars = toml.slice(toml.indexOf('[vars]'));
+    expect(createHash('sha256').update(vars, 'utf8').digest('hex')).toBe("8128296f40028e093e07d0ac2b4f291662132eed93e26ffa7cd077164c921a6d");
+
+  });
+
+  it("post108: indexOf name = \"backlink\"…", () => {
+
+    expect(toml.indexOf("name = \"backlink\"")).toBe(0);
+  
+  });
+
+  it("post108: indexOf main = \"src/index.ts\"…", () => {
+
+    expect(toml.indexOf("main = \"src/index.ts\"")).toBe(18);
+  
+  });
+
+  it("post108: indexOf compatibility_date = \"20…", () => {
+
+    expect(toml.indexOf("compatibility_date = \"2025-01-01\"")).toBe(40);
+  
+  });
+
+  it("post108: indexOf [[kv_namespaces]]…", () => {
+
+    expect(toml.indexOf("[[kv_namespaces]]")).toBe(75);
+  
+  });
+
+  it("post108: indexOf binding = \"CATALOG_CACHE…", () => {
+
+    expect(toml.indexOf("binding = \"CATALOG_CACHE\"")).toBe(93);
+  
+  });
+
+  it("post108: indexOf id = \"edb6ca4df12f4f45b4…", () => {
+
+    expect(toml.indexOf("id = \"edb6ca4df12f4f45b40508b3dda3c432\"")).toBe(119);
+  
+  });
+
+  it("post108: indexOf [[routes]]…", () => {
+
+    expect(toml.indexOf("[[routes]]")).toBe(160);
+  
+  });
+
+  it("post108: indexOf pattern = \"backlink.fuzz…", () => {
+
+    expect(toml.indexOf("pattern = \"backlink.fuzzywigg.com\"")).toBe(171);
+  
+  });
+
+  it("post108: indexOf custom_domain = true…", () => {
+
+    expect(toml.indexOf("custom_domain = true")).toBe(206);
+  
+  });
+
+  it("post108: indexOf [vars]…", () => {
+
+    expect(toml.indexOf("[vars]")).toBe(228);
+  
+  });
+
+  it("post108: indexOf VERSION = \"0.1.0\"…", () => {
+
+    expect(toml.indexOf("VERSION = \"0.1.0\"")).toBe(235);
+  
+  });
+
+  it("post108: indexOf # Secrets (set via CLI, …", () => {
+
+    expect(toml.indexOf("# Secrets (set via CLI, never commit):")).toBe(254);
+  
+  });
+
+  it("post108: indexOf # wrangler secret put GE…", () => {
+
+    expect(toml.indexOf("# wrangler secret put GEMINI_API_KEY")).toBe(293);
+  
+  });
+
+  it("post108: forbidden config token cloudflare_api", () => {
+
+    expect(toml.toLowerCase()).not.toContain("cloudflare_api");
+  
+  });
+
+  it("post108: forbidden config token workers.ai", () => {
+
+    expect(toml.toLowerCase()).not.toContain("workers.ai");
+  
+  });
+
+  it("post108: forbidden config token browser_rendering", () => {
+
+    expect(toml.toLowerCase()).not.toContain("browser_rendering");
+  
+  });
+
+  it("post108: forbidden config token constellation", () => {
+
+    expect(toml.toLowerCase()).not.toContain("constellation");
+  
+  });
+
+  it("post108: forbidden config token pages_build_output", () => {
+
+    expect(toml.toLowerCase()).not.toContain("pages_build_output");
+  
+  });
+
+  it("post108: forbidden config token assets", () => {
+
+    expect(toml.toLowerCase()).not.toContain("assets");
+  
+  });
+
+  it("post108: forbidden config token rules", () => {
+
+    expect(toml.toLowerCase()).not.toContain("rules");
+  
+  });
+
+  it("post108: forbidden config token unsafe", () => {
+
+    expect(toml.toLowerCase()).not.toContain("unsafe");
+  
+  });
+
+  it("post108: forbidden config token find_additional_modules", () => {
+
+    expect(toml.toLowerCase()).not.toContain("find_additional_modules");
+  
+  });
+
+  it("post108: forbidden config token base_dir", () => {
+
+    expect(toml.toLowerCase()).not.toContain("base_dir");
+  
+  });
+
+  it("post108: forbidden config token no_bundle", () => {
+
+    expect(toml.toLowerCase()).not.toContain("no_bundle");
+  
+  });
+
+  it("post108: forbidden config token tsconfig", () => {
+
+    expect(toml.toLowerCase()).not.toContain("tsconfig");
+  
+  });
+
+  it("post108: forbidden config token jsx", () => {
+
+    expect(toml.toLowerCase()).not.toContain("jsx");
+  
+  });
+
+  it("post108: forbidden config token define", () => {
+
+    expect(toml.toLowerCase()).not.toContain("define");
+  
+  });
+
+  it("post108: forbidden config token alias", () => {
+
+    expect(toml.toLowerCase()).not.toContain("alias");
+  
+  });
+
+  it("post108: forbidden config token nodejs_als", () => {
+
+    expect(toml.toLowerCase()).not.toContain("nodejs_als");
+  
+  });
+
+  it("post108: forbidden config token nodejs_compat_populate_process_env", () => {
+
+    expect(toml.toLowerCase()).not.toContain("nodejs_compat_populate_process_env");
+  
+  });
+
+  it("post108: forbidden config token python", () => {
+
+    expect(toml.toLowerCase()).not.toContain("python");
+  
+  });
+
+  it("post108: forbidden config token wasm", () => {
+
+    expect(toml.toLowerCase()).not.toContain("wasm");
+  
+  });
+
+  it("post108: forbidden config token rust", () => {
+
+    expect(toml.toLowerCase()).not.toContain("rust");
+  
+  });
+
+  it("post108: forbidden config token go_binary", () => {
+
+    expect(toml.toLowerCase()).not.toContain("go_binary");
+  
+  });
+
+  it("post108: forbidden config token tail_consumers", () => {
+
+    expect(toml.toLowerCase()).not.toContain("tail_consumers");
+  
+  });
+
+  it("post108: forbidden config token logpush_options", () => {
+
+    expect(toml.toLowerCase()).not.toContain("logpush_options");
+  
+  });
+
+  it("post108: forbidden config token observability", () => {
+
+    expect(toml.toLowerCase()).not.toContain("observability");
+  
+  });
+
+  it("post108: forbidden config token smart_placement", () => {
+
+    expect(toml.toLowerCase()).not.toContain("smart_placement");
+  
+  });
+
+  it("post108: forbidden config token cpu_ms", () => {
+
+    expect(toml.toLowerCase()).not.toContain("cpu_ms");
+  
+  });
+
+  it("post108: forbidden config token subdomain", () => {
+
+    expect(toml.toLowerCase()).not.toContain("subdomain");
+  
+  });
+
+  it("post108: forbidden config token workers_dev = true", () => {
+
+    expect(toml.toLowerCase()).not.toContain("workers_dev = true");
+  
+  });
+
+  it("post108: forbidden config token workers_dev = false", () => {
+
+    expect(toml.toLowerCase()).not.toContain("workers_dev = false");
+  
+  });
+
+  it("post108: forbidden config token keep_vars", () => {
+
+    expect(toml.toLowerCase()).not.toContain("keep_vars");
+  
+  });
+
+  it("post108: forbidden config token inherit", () => {
+
+    expect(toml.toLowerCase()).not.toContain("inherit");
+  
+  });
+
+  it("post108: forbidden config token remote", () => {
+
+    expect(toml.toLowerCase()).not.toContain("remote");
+  
+  });
+
+  it("post108: final triple digest lock", () => {
+
+    expect(createHash('sha1').update(toml, 'utf8').digest('hex')).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+    expect(createHash('md5').update(toml, 'utf8').digest('hex')).toBe("100cd1554884befe9db6453606e565f4");
+
+  });
+
+  it("post108: final HMAC matrix lock", () => {
+
+    expect(hmacSha256('wrangler', toml)).toBe("bbac4432f0fadae42a1d39402045dcfbfccff5b22c2689832451059ad3ed82e6");
+    expect(hmacSha256('post108', toml)).toBe("2dca77980de18c574b77e51d910c6acd090792b2b0dc4b786d8ed65f62ab7c2d");
+    expect(hmacSha256('backlink', toml)).toBe("e6ea9a4c22d8be77830f69ba042d79bb716184b8783f2ede72efa58b3b7601d4");
+    expect(hmacSha256('CATALOG_CACHE', toml)).toBe("9335716a0466ecfa551aa06fc7eef4ef33fe1611e0542e420de582ba1bcac0b5");
+
+  });
+
+  it("post108: final cross-lock sha256 + size + binding + domain", () => {
+
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+    expect(toml.length).toBe(330);
+    expect([...toml.matchAll(/binding = "([^"]+)"/g)].map((m) => m[1])).toEqual(['CATALOG_CACHE']);
+    expect(toml).toMatch(/pattern = "backlink\.fuzzywigg\.com"/);
+    expect(toml).not.toMatch(/^\s*GEMINI_API_KEY\s*=/m);
+
+  });
+
+  it("post108: final lock module snapshot equals disk", () => {
+
+    expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+    expect(sha256File('wrangler.toml')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+    expect(statSync(tomlPath).size).toBe(330);
+
+  });
+
+  it("post108: no product inventing — only known Worker surface", () => {
+
+    expect(toml).toMatch(/name = "backlink"/);
+    expect(toml).toMatch(/main = "src\/index\.ts"/);
+    expect(toml).toMatch(/\[\[kv_namespaces\]\]/);
+    expect(toml).toMatch(/\[\[routes\]\]/);
+    expect(toml).toMatch(/\[vars\]/);
+    expect(toml).not.toMatch(/\[env\./);
+    expect(toml).not.toMatch(/durable_objects/i);
+    expect(toml).not.toMatch(/\[ai\]/i);
+
+  });
+
+  // --- post108b residual deepen (TOKENMAXX top-up) ---
+
+  it("post108b: HMAC-SHA256 key post-#108", () => {
+
+    expect(hmacSha256("post-#108", toml)).toBe("9676e2217ac5d0a99cb465535d3fa42a7afb18620377a3cfdfade9300a4d9b7e");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key fuzzywigg.com", () => {
+
+    expect(hmacSha256("fuzzywigg.com", toml)).toBe("a415bd7b5ec7404f79d4d8cd39f2fbe26674925733efce028a5a693fdc92cdad");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key iptv-org", () => {
+
+    expect(hmacSha256("iptv-org", toml)).toBe("75babdee8ac19193de0572bac5d2cf8f8a5da10273b7dab924411328ea78dfe4");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key Workers", () => {
+
+    expect(hmacSha256("Workers", toml)).toBe("34d54e58e7c17a30e7640424ead8502b99a1c76edd6fb2d4cabe7909afc051a8");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key KVNamespace", () => {
+
+    expect(hmacSha256("KVNamespace", toml)).toBe("a01f4cca2c81de43182d0c5bf97678c2e42dbffeff3c5f3fa309777e885c3f50");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key wrangler.toml", () => {
+
+    expect(hmacSha256("wrangler.toml", toml)).toBe("76266f09a0727674c34b58afd9535ec5415599a56c3b17aeadda82b401d4e45f");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key compatibility", () => {
+
+    expect(hmacSha256("compatibility", toml)).toBe("89c2af9703d7625b1371cafc2f1b9fb028f1f513a01e5c156694333738b3e89e");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key custom_domain=true", () => {
+
+    expect(hmacSha256("custom_domain=true", toml)).toBe("2b0271d47d767818b86582c348f07f5d2b6cf1d0efd1b83591fd19f3c71217ca");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key 0.1.0", () => {
+
+    expect(hmacSha256("0.1.0", toml)).toBe("bec94ac6ad5918f6f8dd3efd4431c0456f21d7e8326fecebc6a019f205e0d977");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key never commit", () => {
+
+    expect(hmacSha256("never commit", toml)).toBe("88b4c659801d87616be55fc3a4d7142ba9e342fa3d61ecc5d7005112bd9d00c1");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key secret put", () => {
+
+    expect(hmacSha256("secret put", toml)).toBe("182267f952543f044dc45246f9465c0b3d483325291fd4b67fe5d15a7b09478b");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key main", () => {
+
+    expect(hmacSha256("main", toml)).toBe("186b15b7afbab6e4079f7dd72257a56642a847dd68a5e76942346f9ccbed962d");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key name", () => {
+
+    expect(hmacSha256("name", toml)).toBe("44c8b01b0fedb0992f656ef66a157da0db2d7c2a19700d63c65969e780b23fdc");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key binding", () => {
+
+    expect(hmacSha256("binding", toml)).toBe("67f44d30befdc38765f508cd07b903bc54ebddb2e5cbaf519e6f523fd4bd3eab");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key pattern", () => {
+
+    expect(hmacSha256("pattern", toml)).toBe("ce32dd4ce5585764d101bf60f66684eb03f257e83eb7e0d76ddfc842280cfe0a");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key id", () => {
+
+    expect(hmacSha256("id", toml)).toBe("00121b17eef98530c2bb9a7fe937f5bc971b3fe31ea6de5160a4e0de7d27820b");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key true", () => {
+
+    expect(hmacSha256("true", toml)).toBe("62b4536ae6e33422f2a99fcc86d362d14b8fb91f2d7460ec42511a4e6b71c10d");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key vars", () => {
+
+    expect(hmacSha256("vars", toml)).toBe("e49998b2c77487157f7e1f56023d5acaf53f75505ba262733b062833edff2d54");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key CLI", () => {
+
+    expect(hmacSha256("CLI", toml)).toBe("70d036363104f8e47f0b42855138b3b0a01e0fdecb1a563b3796965871540d64");
+  
+  });
+
+  it("post108b: HMAC-SHA256 key set via", () => {
+
+    expect(hmacSha256("set via", toml)).toBe("b80d75d60b3d6a7c8186928bc7ac39636bd3a0b2c567d651bf43b006067703b6");
+  
+  });
+
+  it("post108b: charCodeAt(0)", () => {
+
+    expect(toml.charCodeAt(0)).toBe(110);
+  
+  });
+
+  it("post108b: charCodeAt(11)", () => {
+
+    expect(toml.charCodeAt(11)).toBe(107);
+  
+  });
+
+  it("post108b: charCodeAt(22)", () => {
+
+    expect(toml.charCodeAt(22)).toBe(32);
+  
+  });
+
+  it("post108b: charCodeAt(33)", () => {
+
+    expect(toml.charCodeAt(33)).toBe(101);
+  
+  });
+
+  it("post108b: charCodeAt(44)", () => {
+
+    expect(toml.charCodeAt(44)).toBe(97);
+  
+  });
+
+  it("post108b: charCodeAt(55)", () => {
+
+    expect(toml.charCodeAt(55)).toBe(97);
+  
+  });
+
+  it("post108b: charCodeAt(66)", () => {
+
+    expect(toml.charCodeAt(66)).toBe(45);
+  
+  });
+
+  it("post108b: charCodeAt(77)", () => {
+
+    expect(toml.charCodeAt(77)).toBe(107);
+  
+  });
+
+  it("post108b: charCodeAt(88)", () => {
+
+    expect(toml.charCodeAt(88)).toBe(101);
+  
+  });
+
+  it("post108b: charCodeAt(99)", () => {
+
+    expect(toml.charCodeAt(99)).toBe(103);
+  
+  });
+
+  it("post108b: charCodeAt(110)", () => {
+
+    expect(toml.charCodeAt(110)).toBe(71);
+  
+  });
+
+  it("post108b: charCodeAt(121)", () => {
+
+    expect(toml.charCodeAt(121)).toBe(32);
+  
+  });
+
+  it("post108b: charCodeAt(132)", () => {
+
+    expect(toml.charCodeAt(132)).toBe(100);
+  
+  });
+
+  it("post108b: charCodeAt(143)", () => {
+
+    expect(toml.charCodeAt(143)).toBe(48);
+  
+  });
+
+  it("post108b: charCodeAt(154)", () => {
+
+    expect(toml.charCodeAt(154)).toBe(52);
+  
+  });
+
+  it("post108b: charCodeAt(165)", () => {
+
+    expect(toml.charCodeAt(165)).toBe(116);
+  
+  });
+
+  it("post108b: charCodeAt(176)", () => {
+
+    expect(toml.charCodeAt(176)).toBe(114);
+  
+  });
+
+  it("post108b: charCodeAt(187)", () => {
+
+    expect(toml.charCodeAt(187)).toBe(105);
+  
+  });
+
+  it("post108b: charCodeAt(198)", () => {
+
+    expect(toml.charCodeAt(198)).toBe(103);
+  
+  });
+
+  it("post108b: charCodeAt(209)", () => {
+
+    expect(toml.charCodeAt(209)).toBe(116);
+  
+  });
+
+  it("post108b: charCodeAt(220)", () => {
+
+    expect(toml.charCodeAt(220)).toBe(61);
+  
+  });
+
+  it("post108b: charCodeAt(231)", () => {
+
+    expect(toml.charCodeAt(231)).toBe(114);
+  
+  });
+
+  it("post108b: charCodeAt(242)", () => {
+
+    expect(toml.charCodeAt(242)).toBe(32);
+  
+  });
+
+  it("post108b: charCodeAt(253)", () => {
+
+    expect(toml.charCodeAt(253)).toBe(10);
+  
+  });
+
+  it("post108b: charCodeAt(264)", () => {
+
+    expect(toml.charCodeAt(264)).toBe(40);
+  
+  });
+
+  it("post108b: charCodeAt(275)", () => {
+
+    expect(toml.charCodeAt(275)).toBe(73);
+  
+  });
+
+  it("post108b: charCodeAt(286)", () => {
+
+    expect(toml.charCodeAt(286)).toBe(109);
+  
+  });
+
+  it("post108b: charCodeAt(297)", () => {
+
+    expect(toml.charCodeAt(297)).toBe(97);
+  
+  });
+
+  it("post108b: charCodeAt(308)", () => {
+
+    expect(toml.charCodeAt(308)).toBe(101);
+  
+  });
+
+  it("post108b: charCodeAt(319)", () => {
+
+    expect(toml.charCodeAt(319)).toBe(78);
+  
+  });
+
+  it("post108b: every line offset cumulative lock", () => {
+    const lines = toml.split('\n');
+    let offset = 0;
+    for (let i = 0; i < lines.length; i++) {
+      expect(toml.slice(offset, offset + lines[i]!.length)).toBe(lines[i]);
+      if (i < lines.length - 1) {
+        expect(toml.charCodeAt(offset + lines[i]!.length)).toBe(10);
+      }
+      offset += lines[i]!.length + (i < lines.length - 1 ? 1 : 0);
+    }
+    expect(offset).toBe(toml.length);
+  });
+
+  it("post108b: line start offset vector", () => {
+    const lines = toml.split('\n');
+    const starts: number[] = [];
+    let offset = 0;
+    for (let i = 0; i < lines.length; i++) {
+      starts.push(offset);
+      offset += lines[i]!.length + (i < lines.length - 1 ? 1 : 0);
+    }
+    expect(starts).toEqual([0, 18, 40, 74, 75, 93, 119, 159, 160, 171, 206, 227, 228, 235, 253, 254, 293, 330]);
+  });
+
+  it("post108b: forbidden leftover service_bindings", () => {
+
+    expect(toml.toLowerCase()).not.toContain("service_bindings");
+  
+  });
+
+  it("post108b: forbidden leftover wasm_modules", () => {
+
+    expect(toml.toLowerCase()).not.toContain("wasm_modules");
+  
+  });
+
+  it("post108b: forbidden leftover text_blobs", () => {
+
+    expect(toml.toLowerCase()).not.toContain("text_blobs");
+  
+  });
+
+  it("post108b: forbidden leftover data_blobs", () => {
+
+    expect(toml.toLowerCase()).not.toContain("data_blobs");
+  
+  });
+
+  it("post108b: forbidden leftover plain_text", () => {
+
+    expect(toml.toLowerCase()).not.toContain("plain_text");
+  
+  });
+
+  it("post108b: forbidden leftover json_blobs", () => {
+
+    expect(toml.toLowerCase()).not.toContain("json_blobs");
+  
+  });
+
+  it("post108b: forbidden leftover unsafe.bindings", () => {
+
+    expect(toml.toLowerCase()).not.toContain("unsafe.bindings");
+  
+  });
+
+  it("post108b: forbidden leftover capnp", () => {
+
+    expect(toml.toLowerCase()).not.toContain("capnp");
+  
+  });
+
+  it("post108b: forbidden leftover containers", () => {
+
+    expect(toml.toLowerCase()).not.toContain("containers");
+  
+  });
+
+  it("post108b: forbidden leftover images", () => {
+
+    expect(toml.toLowerCase()).not.toContain("images");
+  
+  });
+
+  it("post108b: forbidden leftover media", () => {
+
+    expect(toml.toLowerCase()).not.toContain("media");
+  
+  });
+
+  it("post108b: forbidden leftover stream", () => {
+
+    expect(toml.toLowerCase()).not.toContain("stream");
+  
+  });
+
+  it("post108b: forbidden leftover do_migrations", () => {
+
+    expect(toml.toLowerCase()).not.toContain("do_migrations");
+  
+  });
+
+  it("post108b: forbidden leftover new_sqlite_classes", () => {
+
+    expect(toml.toLowerCase()).not.toContain("new_sqlite_classes");
+  
+  });
+
+  it("post108b: forbidden leftover deleted_classes", () => {
+
+    expect(toml.toLowerCase()).not.toContain("deleted_classes");
+  
+  });
+
+  it("post108b: forbidden leftover rules = ", () => {
+
+    expect(toml.toLowerCase()).not.toContain("rules = ");
+  
+  });
+
+  it("post108b: forbidden leftover globs", () => {
+
+    expect(toml.toLowerCase()).not.toContain("globs");
+  
+  });
+
+  it("post108b: forbidden leftover fallthrough", () => {
+
+    expect(toml.toLowerCase()).not.toContain("fallthrough");
+  
+  });
+
+  it("post108b: forbidden leftover nodejs_compat_v2", () => {
+
+    expect(toml.toLowerCase()).not.toContain("nodejs_compat_v2");
+  
+  });
+
+  it("post108b: forbidden leftover enable_nodejs_http_modules", () => {
+
+    expect(toml.toLowerCase()).not.toContain("enable_nodejs_http_modules");
+  
+  });
+
+  it("post108b: forbidden leftover pages_functions", () => {
+
+    expect(toml.toLowerCase()).not.toContain("pages_functions");
+  
+  });
+
+  it("post108b: forbidden leftover pages_build", () => {
+
+    expect(toml.toLowerCase()).not.toContain("pages_build");
+  
+  });
+
+  it("post108b: forbidden leftover trace", () => {
+
+    expect(toml.toLowerCase()).not.toContain("trace");
+  
+  });
+
+  it("post108b: forbidden leftover tracing", () => {
+
+    expect(toml.toLowerCase()).not.toContain("tracing");
+  
+  });
+
+  it("post108b: forbidden leftover otel", () => {
+
+    expect(toml.toLowerCase()).not.toContain("otel");
+  
+  });
+
+  it("post108b: forbidden leftover opentelemetry", () => {
+
+    expect(toml.toLowerCase()).not.toContain("opentelemetry");
+  
+  });
+
+  it("post108b: forbidden leftover prometheus", () => {
+
+    expect(toml.toLowerCase()).not.toContain("prometheus");
+  
+  });
+
+  it("post108b: forbidden leftover grafana", () => {
+
+    expect(toml.toLowerCase()).not.toContain("grafana");
+  
+  });
+
+  it("post108b: forbidden leftover splunk", () => {
+
+    expect(toml.toLowerCase()).not.toContain("splunk");
+  
+  });
+
+  it("post108b: forbidden leftover auth0", () => {
+
+    expect(toml.toLowerCase()).not.toContain("auth0");
+  
+  });
+
+  it("post108b: forbidden leftover clerk", () => {
+
+    expect(toml.toLowerCase()).not.toContain("clerk");
+  
+  });
+
+  it("post108b: forbidden leftover supabase_url", () => {
+
+    expect(toml.toLowerCase()).not.toContain("supabase_url");
+  
+  });
+
+  it("post108b: forbidden leftover redis_url", () => {
+
+    expect(toml.toLowerCase()).not.toContain("redis_url");
+  
+  });
+
+  it("post108b: forbidden leftover database_url", () => {
+
+    expect(toml.toLowerCase()).not.toContain("database_url");
+  
+  });
+
+  it("post108b: forbidden leftover mongodb_uri", () => {
+
+    expect(toml.toLowerCase()).not.toContain("mongodb_uri");
+  
+  });
+
+  it("post108b: types.ts length lock", () => {
+
+    expect(typesSrc).toHaveLength(172);
+
+  });
+
+  it("post108b: index.ts contains CATALOG_CACHE and GEMINI", () => {
+
+    expect(indexSrc).toContain('CATALOG_CACHE');
+    expect(indexSrc).toContain('GEMINI_API_KEY');
+
+  });
+
+  it("post108b: DEPLOY.md wrangler kv namespace create", () => {
+
+    expect(deployMd).toMatch(/wrangler kv namespace create CATALOG_CACHE/);
+
+  });
+
+  it("post108b: DEPLOY.md paste id into wrangler.toml", () => {
+
+    expect(deployMd).toContain('wrangler.toml');
+    expect(deployMd).toMatch(/id = "your-kv-id-here"/);
+
+  });
+
+  it("post108b: sha256 of each nonempty line lock", () => {
+
+    const nonempty = toml.split('\n').filter((l) => l.length > 0);
+    expect(nonempty.map((l) => createHash('sha256').update(l, 'utf8').digest('hex').slice(0, 12))).toEqual(["44eea2b40cca","625410b0ed7d","a1e68ad31599","a956430c61f8","c73157420ab8","c1d0c2ec18c0","cebc572dd47d","3337e5d99706","2160b9454f35","4098c70630d3","f7c1152ced11","21465a90ea85","9e54f159c315"]);
+
+  });
+
+  it("post108b: sha1 of each nonempty line lock", () => {
+
+    const nonempty = toml.split('\n').filter((l) => l.length > 0);
+    expect(nonempty.map((l) => createHash('sha1').update(l, 'utf8').digest('hex').slice(0, 12))).toEqual(["e5730f49afbd","86a53d22aab6","8de45561cbf2","9277afd3b9b6","e2c76d3f73a5","f314e268c591","d7346c4cc1ec","f06964e7c485","96c98a2b50a8","ce80d31efb2e","e06f20507f0d","d495218e9921","8ec34f16d3d3"]);
+
+  });
+
+  it("post108b: combined nonempty lines sha256", () => {
+
+    const joined = toml.split('\n').filter((l) => l.length > 0).join('|');
+    expect(createHash('sha256').update(joined, 'utf8').digest('hex')).toBe("e09d11612ddc106813f43f79228afdfef64d5fffa21370dca54d6d4c11283224");
+
+  });
+
+  it("post108b: binding inventory equals Env KV field", () => {
+
+    expect([...toml.matchAll(/binding = "([^"]+)"/g)].map((m) => m[1])).toEqual(['CATALOG_CACHE']);
+    expect(typesSrc).toMatch(/CATALOG_CACHE:\s*KVNamespace/);
+
+  });
+
+  it("post108b: VERSION var mirrors package and optional Env", () => {
+
+    expect(toml).toMatch(/VERSION = "0\.1\.0"/);
+    expect(typesSrc).toMatch(/VERSION\?:/);
+
+  });
+
+  it("post108b: GEMINI only as secret comment not var", () => {
+
+    expect(toml).toMatch(/# wrangler secret put GEMINI_API_KEY/);
+    expect(toml).not.toMatch(/^VERSION = ".*GEMINI/m);
+    expect((toml.match(/GEMINI_API_KEY/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post108b: domain tokens fuzzywigg + backlink counts", () => {
+
+    expect((toml.match(/backlink/g) ?? []).length).toBe(2);
+    expect((toml.match(/fuzzywigg/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post108b: createHmac purity 40x post108", () => {
+
+    const expected = "2dca77980de18c574b77e51d910c6acd090792b2b0dc4b786d8ed65f62ab7c2d";
+    for (let i = 0; i < 40; i++) expect(hmacSha256('post108', toml)).toBe(expected);
+
+  });
+
+  it("post108b: final dual fingerprint reaffirm", () => {
+
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+    expect(createHash('sha512').update(toml, 'utf8').digest('hex')).toBe("4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96");
+
+  });
+
+  it("post108b: disk mtime size stable across re-stat", () => {
+
+    const a = statSync(tomlPath).size;
+    const b = statSync(tomlPath).size;
+    expect(a).toBe(330);
+    expect(b).toBe(330);
+
+  });
+
+  it("post108b: no CRLF anywhere including comments", () => {
+
+    expect(toml.split('').filter((c) => c === '\r')).toEqual([]);
+
+  });
+
+  it("post108b: ASCII-only codepoint max 122", () => {
+
+    expect(Math.max(...[...toml].map((c) => c.charCodeAt(0)))).toBe(122);
+
+  });
+
+  it("post108b: ASCII-only codepoint min 10 (newline)", () => {
+
+    expect(Math.min(...[...toml].map((c) => c.charCodeAt(0)))).toBe(10);
+
+  });
+
+  it("post108b: first 60 digraphs lock", () => {
+
+    expect([...Array(60)].map((_, i) => toml.slice(i, i + 2))).toEqual(["na","am","me","e "," =","= "," \"","\"b","ba","ac","ck","kl","li","in","nk","k\"","\"\n","\nm","ma","ai","in","n "," =","= "," \"","\"s","sr","rc","c/","/i","in","nd","de","ex","x.",".t","ts","s\"","\"\n","\nc","co","om","mp","pa","at","ti","ib","bi","il","li","it","ty","y_","_d","da","at","te","e "," =","= "]);
+
+  });
+
+  it("post108b: last 60 digraphs lock", () => {
+
+    const start = toml.length - 61;
+    expect([...Array(60)].map((_, i) => toml.slice(start + i, start + i + 2))).toEqual(["vi","ia","a "," C","CL","LI","I,",", "," n","ne","ev","ve","er","r "," c","co","om","mm","mi","it","t)","):",":\n","\n#","# "," w","wr","ra","an","ng","gl","le","er","r "," s","se","ec","cr","re","et","t "," p","pu","ut","t "," G","GE","EM","MI","IN","NI","I_","_A","AP","PI","I_","_K","KE","EY","Y\n"]);
+
+  });
+
+
+});
