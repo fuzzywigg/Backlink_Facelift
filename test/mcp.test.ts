@@ -4712,23 +4712,23 @@ describe('MCP_MANIFEST', () => {
   });
 
   it('post79: locks station_select property own-key order type then description', () => {
-    const prop = toolNamed('station_select').input_schema.properties.station_name;
+    const prop = toolNamed('station_select').input_schema.properties.station_name!;
     expect(Object.keys(prop)).toEqual(['type', 'description']);
     expect(prop.type).toBe('string');
   });
 
   it('post79: locks genre_filter property own-key order type then description', () => {
-    const prop = toolNamed('genre_filter').input_schema.properties.genre;
+    const prop = toolNamed('genre_filter').input_schema.properties.genre!;
     expect(Object.keys(prop)).toEqual(['type', 'description']);
   });
 
   it('post79: locks curator_prompt mood property own-key order type then description', () => {
-    const prop = toolNamed('curator_prompt').input_schema.properties.mood;
+    const prop = toolNamed('curator_prompt').input_schema.properties.mood!;
     expect(Object.keys(prop)).toEqual(['type', 'description']);
   });
 
   it('post79: locks curator_prompt genre property own-key order type then description', () => {
-    const prop = toolNamed('curator_prompt').input_schema.properties.genre;
+    const prop = toolNamed('curator_prompt').input_schema.properties.genre!;
     expect(Object.keys(prop)).toEqual(['type', 'description']);
   });
 
@@ -4957,7 +4957,7 @@ describe('MCP_MANIFEST', () => {
   });
 
   it('post79: locks curator_prompt mood description examples focus/late night/morning', () => {
-    const mood = toolNamed('curator_prompt').input_schema.properties.mood.description;
+    const mood = toolNamed('curator_prompt').input_schema.properties.mood!.description;
     expect(mood).toContain('focus work');
     expect(mood).toContain('late night jazz');
     expect(mood).toContain('morning energy');
@@ -5142,7 +5142,7 @@ describe('MCP_MANIFEST', () => {
 
   it('post79: locks Symbol.iterator on tools yields station_select first', () => {
     const iter = MCP_MANIFEST.tools[Symbol.iterator]();
-    expect(iter.next().value.name).toBe('station_select');
+    expect(iter.next().value!.name).toBe('station_select');
   });
 
   it('post79: locks Symbol.toStringTag on plain object tools entry is undefined', () => {
