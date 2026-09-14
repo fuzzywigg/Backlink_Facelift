@@ -5589,7 +5589,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
 
   it('post94: locks src/index.ts UTF-8 bytes 4738 and UTF-16 4724', () => {
     const buf = bytes('src/index.ts');
-    const t = buf.toString('utf8');
+    const t = text('src/index.ts');
     expect(buf.length).toBe(4738);
     expect(t.length).toBe(4724);
     expect((t.match(/\n/g) ?? []).length).toBe(153);
@@ -5597,7 +5597,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
 
   it('post94: locks src/parser.ts UTF-8 bytes 1955 and UTF-16 1953', () => {
     const buf = bytes('src/parser.ts');
-    const t = buf.toString('utf8');
+    const t = text('src/parser.ts');
     expect(buf.length).toBe(1955);
     expect(t.length).toBe(1953);
     expect((t.match(/\n/g) ?? []).length).toBe(66);
@@ -5605,7 +5605,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
 
   it('post94: locks src/genres.ts UTF-8 bytes 1027 and UTF-16 1025', () => {
     const buf = bytes('src/genres.ts');
-    const t = buf.toString('utf8');
+    const t = text('src/genres.ts');
     expect(buf.length).toBe(1027);
     expect(t.length).toBe(1025);
     expect((t.match(/\n/g) ?? []).length).toBe(47);
@@ -5613,7 +5613,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
 
   it('post94: locks src/mcp.ts UTF-8 bytes 2057 and UTF-16 2057', () => {
     const buf = bytes('src/mcp.ts');
-    const t = buf.toString('utf8');
+    const t = text('src/mcp.ts');
     expect(buf.length).toBe(2057);
     expect(t.length).toBe(2057);
     expect((t.match(/\n/g) ?? []).length).toBe(67);
@@ -5621,7 +5621,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
 
   it('post94: locks src/types.ts UTF-8 bytes 174 and UTF-16 172', () => {
     const buf = bytes('src/types.ts');
-    const t = buf.toString('utf8');
+    const t = text('src/types.ts');
     expect(buf.length).toBe(174);
     expect(t.length).toBe(172);
     expect((t.match(/\n/g) ?? []).length).toBe(6);
@@ -6135,7 +6135,7 @@ describe('post94 source-contracts HEAVY deepen', () => {
     for (const rel of ['src/mcp.ts', 'wrangler.toml', 'package.json', 'vitest.config.ts']) {
       const buf = bytes(rel);
       expect(buf.length).toBe(statSync(join(root, rel)).size);
-      expect(Buffer.byteLength(buf.toString('utf8'), 'utf8')).toBe(buf.length);
+      expect(Buffer.byteLength(text(rel), 'utf8')).toBe(buf.length);
     }
   });
 
