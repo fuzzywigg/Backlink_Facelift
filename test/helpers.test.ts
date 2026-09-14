@@ -14299,3 +14299,582 @@ describe('post141 helpers HEAVY deepen (after #141)', () => {
   });
 
 });
+describe('overnight link-audit-pipeline HEAVY deepen (helpers)', () => {
+  const helpersRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const read = (rel: string) => readFileSync(join(helpersRoot, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(helpersRoot, rel))).digest('hex');
+  const helpersSrc = () => read('test/helpers.ts');
+
+  it('overnight-link-audit: inventory — helpers expose stream URL counters + iptv stubs', () => {
+    expect(helpersSrc()).toContain('export function countHttpStreamLines');
+    expect(helpersSrc()).toContain("l.startsWith('http://') || l.startsWith('https://')");
+    expect(helpersSrc()).toContain('export function stubIptvAndGemini');
+    expect(helpersSrc()).toContain('export function buildSimpleM3U');
+    expect(helpersSrc()).not.toMatch(/auditWorker|redirectLoopFollower/i);
+  });
+
+  it('overnight-link-audit: locks test/helpers.ts digests', () => {
+    expect(sha256('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+    expect(sha1('test/helpers.ts')).toBe('aac5e2154aa8f0784db092ad4bb51304fce6e117');
+    expect(md5('test/helpers.ts')).toBe('004bbc8741017d8dd45bee28a29b46e1');
+    expect(sha384('test/helpers.ts')).toBe('1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167');
+    expect(sha512('test/helpers.ts')).toBe('153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91');
+    expect(sha3('test/helpers.ts')).toBe('8ffbb4baecd580e1f9f797a737d24af1f3e0fb48af208435dafe8afaa584b113');
+    expect(blake2b('test/helpers.ts')).toBe('9000b1e34f31a60c5b766398de6ce5657f7325d791b129e388e1312c47d8448070919d7711a2824b821a99661fbeb73f6e13dfa4b1de53d72aa0990f73f1061f');
+    expect(ripemd('test/helpers.ts')).toBe('24c482ba1ff1b74537b67a89b99058b6f2e500a4');
+  });
+
+  it('overnight-link-audit: locks test/helpers.ts size/lines', () => {
+    expect(statSync(join(helpersRoot, 'test/helpers.ts')).size).toBe(6078);
+    expect(helpersSrc().split('\n')).toHaveLength(164);
+  });
+
+  it('overnight-link-audit: locks test/helpers.ts HMAC overnight/link-audit/pipeline', () => {
+    expect(hmacSha256('overnight', 'test/helpers.ts')).toBe('693bcb8a40aedd80ecdbc898e9f2d3483937ef1791d2ced6b4c65dea5c3ac764');
+    expect(hmacSha256('link-audit', 'test/helpers.ts')).toBe('4885852816296971d2c6de7e6b1948f22022238d7c0cc5e32e3a3f41c9a9a73d');
+    expect(hmacSha256('pipeline', 'test/helpers.ts')).toBe('e57bc42f9791d58ace3710f791e506f78c389bbd860669622c8ac9c3947b2472');
+  });
+
+  it('overnight-link-audit: locks test/helpers.ts HMAC TOKENMAXX/HEAVY/redirect-loop/empty-batch', () => {
+    expect(hmacSha256('TOKENMAXX', 'test/helpers.ts')).toBe('8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391');
+    expect(hmacSha256('HEAVY', 'test/helpers.ts')).toBe('458cfb306ea3e2c9310b3e3840ecd5a5ca295e18c46146bad4c6111c4c3c1c24');
+    expect(hmacSha256('redirect-loop', 'test/helpers.ts')).toBe('f5db4a3b4f6a0e223583c91baa97598ea5b718f49f273eb5d5b39f72d115b95e');
+    expect(hmacSha256('empty-batch', 'test/helpers.ts')).toBe('639130959fc132d5c8424c9f1101ad307d8ed97d887aadca254e032dc53d0ef2');
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 0 → 0', () => {
+    expect(countHttpStreamLines('')).toBe(0);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 1 → 0', () => {
+    expect(countHttpStreamLines('#EXTM3U\n')).toBe(0);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 2 → 1', () => {
+    expect(countHttpStreamLines('https://a\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 3 → 2', () => {
+    expect(countHttpStreamLines('http://a\nhttps://b\n')).toBe(2);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 4 → 0', () => {
+    expect(countHttpStreamLines('HTTP://A\nHTTPS://B\n')).toBe(0);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 5 → 1', () => {
+    expect(countHttpStreamLines('  https://trim  \n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 6 → 0', () => {
+    expect(countHttpStreamLines('rtmp://x\nftp://y\n')).toBe(0);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 7 → 1', () => {
+    expect(countHttpStreamLines('data:text/plain,hi\nhttps://ok\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 8 → 1', () => {
+    expect(countHttpStreamLines('javascript:alert(1)\nhttp://ok\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 9 → 1', () => {
+    expect(countHttpStreamLines('//cdn.example/x\nhttps://ok\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 10 → 1', () => {
+    expect(countHttpStreamLines('/relative\nhttps://ok\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 11 → 2', () => {
+    expect(countHttpStreamLines('https://\nhttp://\n')).toBe(2);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 12 → 0', () => {
+    expect(countHttpStreamLines('Https://x\nHttp://y\n')).toBe(0);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines case 13 → 1', () => {
+    expect(countHttpStreamLines('# https://commented\nhttps://real\n')).toBe(1);
+  });
+
+  it('overnight-link-audit: empty audit batch via buildSimpleM3U([])', () => {
+    const m3u = buildSimpleM3U([]);
+    expect(m3u).toBe('#EXTM3U\n');
+    expect(countHttpStreamLines(m3u)).toBe(0);
+    expect(parseM3U(m3u)).toEqual([]);
+  });
+
+  it('overnight-link-audit: stubIptvAndGemini empty m3u body returns 200 empty batch', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '#EXTM3U\n' });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await fetch(iptvCategoryUrl('music'));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('#EXTM3U\n');
+    expect(countHttpStreamLines('#EXTM3U\n')).toBe(0);
+    vi.unstubAllGlobals();
+  });
+
+  it('overnight-link-audit: stubIptvAndGemini null m3u is down (catalog miss)', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 });
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await fetch(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(503);
+    vi.unstubAllGlobals();
+  });
+
+  it('overnight-link-audit: concurrent stub workers — 16 parallel iptv fetches', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
+    vi.stubGlobal('fetch', fetchMock);
+    const results = await Promise.all(
+      Array.from({ length: 16 }, () => fetch(iptvCategoryUrl('music')).then((r) => r.text())),
+    );
+    expect(results.every((t) => t === SAMPLE_M3U)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(16);
+    vi.unstubAllGlobals();
+  });
+
+  it('overnight-link-audit: concurrent stub workers — mixed iptv + gemini', async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U, gemini: curatedGeminiJson() });
+    vi.stubGlobal('fetch', fetchMock);
+    const [a, b, c] = await Promise.all([
+      fetch(iptvCategoryUrl('jazz')),
+      fetch('https://generativelanguage.googleapis.com/v1beta/models/x:generateContent?key=k'),
+      fetch(iptvCategoryUrl('news')),
+    ]);
+    expect(a.status).toBe(200);
+    expect(b.status).toBe(200);
+    expect(c.status).toBe(200);
+    vi.unstubAllGlobals();
+  });
+
+  it('overnight-link-audit: iptvByGenre empty batch for one genre', async () => {
+    const fetchMock = stubIptvAndGemini({
+      m3u: SAMPLE_M3U,
+      iptvByGenre: { jazz: '#EXTM3U\n' },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await (await fetch(iptvCategoryUrl('jazz'))).text()).toBe('#EXTM3U\n');
+    expect(await (await fetch(iptvCategoryUrl('music'))).text()).toBe(SAMPLE_M3U);
+    vi.unstubAllGlobals();
+  });
+
+  it('overnight-link-audit: seedStationsCache empty array batch', () => {
+    const bag = seedStationsCache('music', []);
+    expect(JSON.parse(bag['stations:music'])).toEqual([]);
+  });
+
+  it('overnight-link-audit: SAMPLE_M3U stream URL audit — all https + unique', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations).toHaveLength(6);
+    expect(stations.every((s) => s.url.startsWith('https://'))).toBe(true);
+    expect(new Set(stations.map((s) => s.url)).size).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 0 https=0 http=2 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m0.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m0.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk0.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 1 https=1 http=3 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m1.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m1.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk1.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 2 https=2 http=0 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m2.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m2.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk2.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 3 https=3 http=1 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m3.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m3.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk3.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 4 https=4 http=2 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m4.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m4.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk4.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 5 https=0 http=3 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m5.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m5.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk5.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 6 https=1 http=0 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m6.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m6.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk6.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(1);
+  });
+
+  it('overnight-link-audit: count matrix 7 https=2 http=1 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m7.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m7.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk7.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 8 https=3 http=2 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m8.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m8.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk8.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 9 https=4 http=3 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m9.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m9.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk9.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(7);
+  });
+
+  it('overnight-link-audit: count matrix 10 https=0 http=0 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m10.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m10.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk10.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(0);
+  });
+
+  it('overnight-link-audit: count matrix 11 https=1 http=1 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m11.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m11.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk11.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 12 https=2 http=2 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m12.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m12.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk12.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 13 https=3 http=3 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m13.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m13.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk13.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 14 https=4 http=0 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m14.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m14.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk14.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 15 https=0 http=1 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m15.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m15.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk15.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(1);
+  });
+
+  it('overnight-link-audit: count matrix 16 https=1 http=2 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m16.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m16.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk16.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 17 https=2 http=3 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m17.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m17.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk17.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 18 https=3 http=0 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m18.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m18.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk18.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 19 https=4 http=1 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m19.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m19.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk19.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 20 https=0 http=2 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m20.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m20.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk20.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 21 https=1 http=3 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m21.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m21.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk21.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 22 https=2 http=0 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m22.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m22.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk22.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 23 https=3 http=1 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m23.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m23.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk23.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 24 https=4 http=2 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m24.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m24.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk24.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 25 https=0 http=3 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m25.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m25.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk25.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 26 https=1 http=0 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m26.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m26.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk26.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(1);
+  });
+
+  it('overnight-link-audit: count matrix 27 https=2 http=1 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m27.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m27.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk27.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 28 https=3 http=2 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m28.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m28.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk28.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 29 https=4 http=3 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m29.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m29.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk29.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(7);
+  });
+
+  it('overnight-link-audit: count matrix 30 https=0 http=0 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m30.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m30.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk30.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(0);
+  });
+
+  it('overnight-link-audit: count matrix 31 https=1 http=1 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m31.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m31.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk31.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 32 https=2 http=2 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m32.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m32.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk32.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 33 https=3 http=3 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m33.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m33.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk33.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 34 https=4 http=0 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m34.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m34.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk34.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 35 https=0 http=1 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m35.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m35.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk35.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(1);
+  });
+
+  it('overnight-link-audit: count matrix 36 https=1 http=2 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m36.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m36.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk36.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 37 https=2 http=3 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m37.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m37.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk37.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 38 https=3 http=0 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m38.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m38.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk38.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 39 https=4 http=1 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m39.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m39.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk39.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(5);
+  });
+
+  it('overnight-link-audit: count matrix 40 https=0 http=2 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m40.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m40.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk40.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 41 https=1 http=3 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m41.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m41.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk41.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 42 https=2 http=0 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m42.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m42.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk42.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(2);
+  });
+
+  it('overnight-link-audit: count matrix 43 https=3 http=1 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 3; j++) lines.push('https://m43.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m43.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk43.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(4);
+  });
+
+  it('overnight-link-audit: count matrix 44 https=4 http=2 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 4; j++) lines.push('https://m44.' + j);
+    for (let j = 0; j < 2; j++) lines.push('http://m44.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk44.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(6);
+  });
+
+  it('overnight-link-audit: count matrix 45 https=0 http=3 junk=0', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 0; j++) lines.push('https://m45.' + j);
+    for (let j = 0; j < 3; j++) lines.push('http://m45.' + j);
+    for (let j = 0; j < 0; j++) lines.push('rtmp://junk45.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: count matrix 46 https=1 http=0 junk=1', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 1; j++) lines.push('https://m46.' + j);
+    for (let j = 0; j < 0; j++) lines.push('http://m46.' + j);
+    for (let j = 0; j < 1; j++) lines.push('rtmp://junk46.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(1);
+  });
+
+  it('overnight-link-audit: count matrix 47 https=2 http=1 junk=2', () => {
+    const lines = ['#EXTM3U'];
+    for (let j = 0; j < 2; j++) lines.push('https://m47.' + j);
+    for (let j = 0; j < 1; j++) lines.push('http://m47.' + j);
+    for (let j = 0; j < 2; j++) lines.push('rtmp://junk47.' + j);
+    expect(countHttpStreamLines(lines.join('\n'))).toBe(3);
+  });
+
+  it('overnight-link-audit: negative invent fence helpers', () => {
+    expect(helpersSrc()).not.toMatch(/\/playlist|\/now-playing|auditWorker/);
+  });
+
+  it('overnight-link-audit: mega purity 40x helpers.ts sha256', () => {
+    for (let i = 0; i < 40; i++) expect(sha256('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+
+  it('overnight-link-audit: final inventory markers', () => {
+    const body = read('test/helpers.test.ts');
+    expect(body).toContain("describe('overnight link-audit-pipeline HEAVY deepen (helpers)'");
+    expect((body.match(/it\('overnight-link-audit:/g) ?? []).length).toBeGreaterThan(60);
+  });
+});
