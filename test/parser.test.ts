@@ -6930,14 +6930,14 @@ https://example.com/pay-recover.m3u8
   });
 
   it('post-56: map to names is stable Alpha..Zeta', () => {
-        expect(parseM3U(SAMPLE_M3U).map((s) => s.name.join ? s.name : s.name)).toEqual([
-          'Alpha FM',
-          'Beta FM',
-          'Gamma FM',
-          'Delta FM',
-          'Epsilon FM',
-          'Zeta FM',
-        ]);
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.name)).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Zeta FM',
+    ]);
   });
 
   it('post-56: reduce concatenates urls with pipe separator', () => {
@@ -7275,25 +7275,30 @@ https://example.com/pay-recover.m3u8
   });
 
   it('post-56: with() replacement returns new array without mutating original', () => {
-        const stations = parseM3U(SAMPLE_M3U);
-        const replaced = stations.with(0, {
-          name: 'Replaced',
-          url: 'https://replaced',
-          logo: undefined,
-          group: undefined,
-          language: undefined,
-          country: undefined,
-        });
-        expect(stations[0].name).toBe('Alpha FM');
-        expect(replaced[0].name).toBe('Replaced');
-        expect(replaced).toHaveLength(6);
+    const stations = parseM3U(SAMPLE_M3U);
+    // ES2022-safe stand-in for Array.prototype.with
+    const replaced = stations.slice();
+    replaced[0] = {
+      name: 'Replaced',
+      url: 'https://replaced',
+      logo: undefined,
+      group: undefined,
+      language: undefined,
+      country: undefined,
+    };
+    expect(stations[0].name).toBe('Alpha FM');
+    expect(replaced[0].name).toBe('Replaced');
+    expect(replaced).toHaveLength(6);
   });
 
   it('post-56: toReversed and toSorted leave original Alpha-first', () => {
-        const stations = parseM3U(SAMPLE_M3U);
-        expect(stations.toReversed()[0].name).toBe('Zeta FM');
-        expect(stations.toSorted((a, b) => b.name.localeCompare(a.name))[0].name).toBe('Zeta FM');
-        expect(stations[0].name).toBe('Alpha FM');
+    const stations = parseM3U(SAMPLE_M3U);
+    // ES2022-safe stand-ins for toReversed / toSorted
+    expect(stations.slice().reverse()[0].name).toBe('Zeta FM');
+    expect(
+      stations.slice().sort((a, b) => b.name.localeCompare(a.name))[0].name,
+    ).toBe('Zeta FM');
+    expect(stations[0].name).toBe('Alpha FM');
   });
 
   it('post-56: join on mapped urls uses default comma', () => {
