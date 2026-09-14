@@ -15089,3 +15089,186 @@ describe('post144 source-contracts HEAVY deepen (after #144)', () => {
   });
 
 });
+describe('overnight link-audit-pipeline HEAVY deepen (source-contracts)', () => {
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+
+  it('overnight-link-audit: inventory — link-audit pipeline is parser URL gate + fetchStations !res.ok', () => {
+    const parser = read('src/parser.ts');
+    const index = read('src/index.ts');
+    const helpers = read('test/helpers.ts');
+    expect(parser).toContain("line.startsWith('http://') || line.startsWith('https://')");
+    expect(parser).toContain('if (current.name && !seen.has(line))');
+    expect(index).toContain('if (!res.ok)');
+    expect(index).toContain('Stream catalog unavailable');
+    expect(helpers).toContain('countHttpStreamLines');
+    expect(parser + index + helpers).not.toMatch(/auditWorker|linkAuditPipeline|followRedirects/i);
+  });
+
+  it('overnight-link-audit: locks parser http scheme filter source line', () => {
+    expect(read('src/parser.ts')).toContain("line.startsWith('http://') || line.startsWith('https://')");
+  });
+
+  it('overnight-link-audit: locks parser non-http reset comment', () => {
+    expect(read('src/parser.ts')).toContain('// Non-http URL (rtmp://, etc.) — skip but reset current');
+  });
+
+  it('overnight-link-audit: locks fetchStations fallback to music.m3u', () => {
+    expect(read('src/index.ts')).toContain('res = await fetch(`${IPTV_BASE}/music.m3u`)');
+  });
+
+  it('overnight-link-audit: locks helpers countHttpStreamLines http(s) filter', () => {
+    expect(read('test/helpers.ts')).toContain("l.startsWith('http://') || l.startsWith('https://')");
+  });
+
+  it('overnight-link-audit: negative — no dedicated audit modules under src/', () => {
+    const srcFiles = ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'];
+    for (const f of srcFiles) {
+      expect(read(f)).not.toMatch(/export (async )?function (audit|linkAudit|validateUrl)/i);
+    }
+  });
+
+  it('overnight-link-audit: sha256 lock src/parser.ts', () => {
+    expect(sha256('src/parser.ts')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+  });
+
+  it('overnight-link-audit: HMAC overnight src/parser.ts', () => {
+    expect(hmacSha256('overnight', 'src/parser.ts')).toBe('50d40a29dda2f8c87024a971ed95621093ce740bf96c84ef0f7aee69a5284044');
+  });
+
+  it('overnight-link-audit: HMAC link-audit src/parser.ts', () => {
+    expect(hmacSha256('link-audit', 'src/parser.ts')).toBe('a3d89a7d8b93aa11d0cd79e13102b830c7232881a18d609e5051e053c9a27623');
+  });
+
+  it('overnight-link-audit: HMAC pipeline src/parser.ts', () => {
+    expect(hmacSha256('pipeline', 'src/parser.ts')).toBe('35e23cc05a47834ab4ea256c0b7060d8daa58e2893a48f0d4ffc42c991e04b62');
+  });
+
+  it('overnight-link-audit: HMAC TOKENMAXX src/parser.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/parser.ts')).toBe('eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8');
+  });
+
+  it('overnight-link-audit: HMAC HEAVY src/parser.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/parser.ts')).toBe('fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70');
+  });
+
+  it('overnight-link-audit: HMAC redirect-loop src/parser.ts', () => {
+    expect(hmacSha256('redirect-loop', 'src/parser.ts')).toBe('8de83a0645aa0bd07e9e3f57bae325b7623206e0c286f5f5d5be6c2f4afe1ab0');
+  });
+
+  it('overnight-link-audit: HMAC empty-batch src/parser.ts', () => {
+    expect(hmacSha256('empty-batch', 'src/parser.ts')).toBe('1b2e110fa9a024939cbe944dd078374c295d437d7b8ee6a8c1140ccb145b7335');
+  });
+
+  it('overnight-link-audit: HMAC no-product-invent src/parser.ts', () => {
+    expect(hmacSha256('no-product-invent', 'src/parser.ts')).toBe('25b61b2dada026216640bb0a1e66ac0b6216c6f7aa182e6af20a1d43bb35446f');
+  });
+
+  it('overnight-link-audit: sha256 lock src/index.ts', () => {
+    expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72');
+  });
+
+  it('overnight-link-audit: HMAC overnight src/index.ts', () => {
+    expect(hmacSha256('overnight', 'src/index.ts')).toBe('b2f1ea0966b722346e6e83a36b274e9f9f55ea34998bcbe9789d8ea42c09bf85');
+  });
+
+  it('overnight-link-audit: HMAC link-audit src/index.ts', () => {
+    expect(hmacSha256('link-audit', 'src/index.ts')).toBe('46cbb3c5e7c38a33b9d712e92ff9e6314e64335034b8e9950d6eec280a223998');
+  });
+
+  it('overnight-link-audit: HMAC pipeline src/index.ts', () => {
+    expect(hmacSha256('pipeline', 'src/index.ts')).toBe('fdb34d92dccb908765aad75fe4667ff7b4cefba9d16257ce5be989303f0c257c');
+  });
+
+  it('overnight-link-audit: HMAC TOKENMAXX src/index.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/index.ts')).toBe('d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc');
+  });
+
+  it('overnight-link-audit: HMAC HEAVY src/index.ts', () => {
+    expect(hmacSha256('HEAVY', 'src/index.ts')).toBe('f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30');
+  });
+
+  it('overnight-link-audit: HMAC redirect-loop src/index.ts', () => {
+    expect(hmacSha256('redirect-loop', 'src/index.ts')).toBe('a726c967a585ac91b7ad8723c83e945e650ebec59b7d92f4eb7e6e3ab27d84a3');
+  });
+
+  it('overnight-link-audit: HMAC empty-batch src/index.ts', () => {
+    expect(hmacSha256('empty-batch', 'src/index.ts')).toBe('38fc36a8f5ea9dab403f091c602a015d0e748c617cc54b44b807bf1e40853f3d');
+  });
+
+  it('overnight-link-audit: HMAC no-product-invent src/index.ts', () => {
+    expect(hmacSha256('no-product-invent', 'src/index.ts')).toBe('49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a');
+  });
+
+  it('overnight-link-audit: sha256 lock test/helpers.ts', () => {
+    expect(sha256('test/helpers.ts')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+
+  it('overnight-link-audit: HMAC overnight test/helpers.ts', () => {
+    expect(hmacSha256('overnight', 'test/helpers.ts')).toBe('693bcb8a40aedd80ecdbc898e9f2d3483937ef1791d2ced6b4c65dea5c3ac764');
+  });
+
+  it('overnight-link-audit: HMAC link-audit test/helpers.ts', () => {
+    expect(hmacSha256('link-audit', 'test/helpers.ts')).toBe('4885852816296971d2c6de7e6b1948f22022238d7c0cc5e32e3a3f41c9a9a73d');
+  });
+
+  it('overnight-link-audit: HMAC pipeline test/helpers.ts', () => {
+    expect(hmacSha256('pipeline', 'test/helpers.ts')).toBe('e57bc42f9791d58ace3710f791e506f78c389bbd860669622c8ac9c3947b2472');
+  });
+
+  it('overnight-link-audit: HMAC TOKENMAXX test/helpers.ts', () => {
+    expect(hmacSha256('TOKENMAXX', 'test/helpers.ts')).toBe('8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391');
+  });
+
+  it('overnight-link-audit: HMAC HEAVY test/helpers.ts', () => {
+    expect(hmacSha256('HEAVY', 'test/helpers.ts')).toBe('458cfb306ea3e2c9310b3e3840ecd5a5ca295e18c46146bad4c6111c4c3c1c24');
+  });
+
+  it('overnight-link-audit: HMAC redirect-loop test/helpers.ts', () => {
+    expect(hmacSha256('redirect-loop', 'test/helpers.ts')).toBe('f5db4a3b4f6a0e223583c91baa97598ea5b718f49f273eb5d5b39f72d115b95e');
+  });
+
+  it('overnight-link-audit: HMAC empty-batch test/helpers.ts', () => {
+    expect(hmacSha256('empty-batch', 'test/helpers.ts')).toBe('639130959fc132d5c8424c9f1101ad307d8ed97d887aadca254e032dc53d0ef2');
+  });
+
+  it('overnight-link-audit: HMAC no-product-invent test/helpers.ts', () => {
+    expect(hmacSha256('no-product-invent', 'test/helpers.ts')).toBe('a6bca018ba16cafff8a3d108bbc4c96391d8da76ccdaf6927e095cbf2e763870');
+  });
+
+  it('overnight-link-audit: surface sha256 matrix (14 files)', () => {
+    const expected: Record<string, string> = {
+      'src/parser.ts': 'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368',
+      'src/index.ts': '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72',
+      'test/helpers.ts': '240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29',
+      'src/genres.ts': 'aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e',
+      'src/mcp.ts': '6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683',
+      'src/types.ts': '4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3',
+      'package.json': '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+      'wrangler.toml': '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+      'vitest.config.ts': 'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+      'AGENTS.md': '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+      'DEPLOY.md': '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+      'README.md': 'f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987',
+      '.github/workflows/ci.yml': 'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+      'docs/mcp-spec.md': 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    };
+    for (const [f, dig] of Object.entries(expected)) {
+      expect(sha256(f)).toBe(dig);
+    }
+  });
+
+  it('overnight-link-audit: invent fence — src has no /playlist or /now-playing handlers', () => {
+    expect(read('src/index.ts')).not.toContain("app.get('/playlist'");
+    expect(read('src/index.ts')).not.toContain("app.get('/now-playing'");
+  });
+
+  it('overnight-link-audit: final inventory markers', () => {
+    const body = read('test/source-contracts.test.ts');
+    expect(body).toContain("describe('overnight link-audit-pipeline HEAVY deepen (source-contracts)'");
+    expect((body.match(/it\('overnight-link-audit:/g) ?? []).length).toBeGreaterThan(30);
+  });
+});
