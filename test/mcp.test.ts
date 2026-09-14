@@ -31058,7 +31058,7 @@ describe('post220 mcp HEAVY deepen (after #220 tip leftover / genres-mcp-spec-on
 
   it('post220: residual — curator_prompt mood description keeps focus/late-night/morning examples', () => {
     const tool = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt')!;
-    const mood = tool.input_schema.properties.mood.description as string;
+    const mood = tool.input_schema.properties.mood!.description as string;
     expect(mood).toContain('focus work');
     expect(mood).toContain('late night jazz');
     expect(mood).toContain('morning energy');
@@ -31068,7 +31068,7 @@ describe('post220 mcp HEAVY deepen (after #220 tip leftover / genres-mcp-spec-on
     const select = MCP_MANIFEST.tools.find((t) => t.name === 'station_select')!;
     const filter = MCP_MANIFEST.tools.find((t) => t.name === 'genre_filter')!;
     expect(select.description).toBe('Set the currently playing station by name.');
-    expect(select.input_schema.properties.station_name.description).toContain('Partial or full name');
+    expect(select.input_schema.properties.station_name!.description).toContain('Partial or full name');
     expect(filter.description).toContain('jazz');
     expect(filter.description).toContain('news');
     expect(filter.description).toContain('classical');
