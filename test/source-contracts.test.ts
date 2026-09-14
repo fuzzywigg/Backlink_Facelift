@@ -27554,7 +27554,7 @@ describe('post201 source-contracts HEAVY deepen (after #201 tip leftover / helpe
   it('post201: source leftover — parseM3U seen-dedup + EXTINF fallback remain in parser source', () => {
     const parser = read('src/parser.ts');
     expect(parser).toContain('const seen = new Set<string>()');
-    expect(parser).toContain('line.lastIndexOf(',')');
+    expect(parser).toContain("line.lastIndexOf(',')");
     expect(parser).toContain('rtmp://');
     expect(parser).toContain('tvg-name=');
   });
