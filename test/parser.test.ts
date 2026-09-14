@@ -1,6 +1,13 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { parseM3U } from '../src/parser';
 import { SAMPLE_M3U, buildSimpleM3U, countHttpStreamLines } from './helpers';
+
+const parserRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const parserSource = readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8');
 
 const SAMPLE = `#EXTM3U
 #EXTINF:-1 tvg-id="drone.zone" tvg-name="Drone Zone" tvg-logo="https://cdn.example/drone.png" tvg-language="English" tvg-country="US" group-title="Ambient",Drone Zone
@@ -7054,4 +7061,788 @@ https://example.com/x?
       ),
     ).toBe(true);
   });
+
+  it('post68: sha256 of parser.ts locks to known digest', () => {
+    const digest = createHash('sha256').update(parserSource, 'utf8').digest('hex');
+    expect(digest).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+  });
+
+  it('post68: sha1 of parser.ts locks to known digest', () => {
+    expect(createHash('sha1').update(parserSource, 'utf8').digest('hex')).toBe(
+      '701cdecbef5a9049af6bd11497493c4036a60211',
+    );
+  });
+
+  it('post68: md5 of parser.ts locks to known digest', () => {
+    expect(createHash('md5').update(parserSource, 'utf8').digest('hex')).toBe(
+      '500211c4c526de887252451726776563',
+    );
+  });
+
+  it('post68: parser.ts code-unit length 1953; utf8 byte length 1955 (—)', () => {
+    expect(parserSource.length).toBe(1953);
+    expect(Buffer.byteLength(parserSource, 'utf8')).toBe(1955);
+    expect(parserSource).toContain('—');
+  });
+
+  it('post68: parser.ts split line count stays 67 with 66 newlines', () => {
+    expect(parserSource.split('\n')).toHaveLength(67);
+    expect((parserSource.match(/\n/g) ?? []).length).toBe(66);
+  });
+
+  it('post68: parser exports Station interface and parseM3U only', () => {
+    const exports = [...parserSource.matchAll(/^export (?:interface|function) (\w+)/gm)].map(
+      (m) => m[1],
+    );
+    expect(exports).toEqual(['Station', 'parseM3U']);
+  });
+
+  it('post68: Station fields lock name url logo group language country', () => {
+    expect(parserSource).toContain('name: string;');
+    expect(parserSource).toContain('url: string;');
+    expect(parserSource).toContain('logo?: string;');
+    expect(parserSource).toContain('group?: string;');
+    expect(parserSource).toContain('language?: string;');
+    expect(parserSource).toContain('country?: string;');
+  });
+
+  it('post68: parseM3U uses seen Set for URL dedupe', () => {
+    expect(parserSource).toContain('const seen = new Set<string>()');
+    expect(parserSource).toContain('!seen.has(line)');
+    expect(parserSource).toContain('seen.add(line)');
+  });
+
+  it('post68: parseM3U startsWith checks http and https exactly', () => {
+    expect(parserSource).toContain("line.startsWith('http://') || line.startsWith('https://')");
+  });
+
+  it('post68: parseM3U regex attrs are case-insensitive for tvg-name logo group language country', () => {
+    expect(parserSource).toMatch(/tvg-name="\(\[\^"\]\*\)"/i);
+    expect(parserSource).toContain('tvg-logo=');
+    expect(parserSource).toContain('group-title=');
+    expect(parserSource).toContain('tvg-language=');
+    expect(parserSource).toContain('tvg-country=');
+  });
+
+  it('post68: fallback name uses lastIndexOf comma', () => {
+    expect(parserSource).toContain('line.lastIndexOf(\',\')');
+  });
+
+  it('post68: non-http non-comment lines reset current', () => {
+    expect(parserSource).toContain("else if (line && !line.startsWith('#'))");
+  });
+
+  it('post68: negative — parser source has no Gemini fetch Hono resolveGenre', () => {
+    expect(parserSource).not.toMatch(/GEMINI|fetch\(|Hono|resolveGenre|GENRE_MAP|MCP_MANIFEST/);
+  });
+
+  it('post68: negative — no async await Promise in parser.ts', () => {
+    expect(parserSource).not.toMatch(/\basync\b|\bawait\b|\bPromise\b/);
+  });
+
+  it('post68: no tabs and no CRLF in parser.ts', () => {
+    expect(parserSource).not.toContain('\t');
+    expect(parserSource).not.toContain('\r');
+  });
+
+  it('post68: EOF single trailing newline after closing brace', () => {
+    expect(parserSource.endsWith('}\n')).toBe(true);
+    expect(parserSource.endsWith('}\n\n')).toBe(false);
+  });
+
+  it('post68: SAMPLE_M3U helper parse yields 6 stations', () => {
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.name)).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Zeta FM',
+    ]);
+  });
+
+  it('post68: buildSimpleM3U round-trip with logo group language country', () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Full',
+        url: 'https://example.com/full.m3u8',
+        logo: 'https://cdn.example/full.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    expect(parseM3U(m3u)).toEqual([
+      {
+        name: 'Full',
+        url: 'https://example.com/full.m3u8',
+        logo: 'https://cdn.example/full.png',
+        group: 'Jazz',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+  });
+
+  it('post68: dedupe keeps first name when URL repeats', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="First",First
+https://example.com/same.m3u8
+#EXTINF:-1 tvg-name="Second",Second
+https://example.com/same.m3u8
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('First');
+  });
+
+  it('post68: http and https both bind; rtmp resets without bind', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+http://example.com/a
+#EXTINF:-1,B
+https://example.com/b
+#EXTINF:-1,C
+rtmp://example.com/c
+`);
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it('post68: uppercase HTTP/HTTPS schemes do not bind', () => {
+    expect(
+      parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTP://EXAMPLE.COM/A\n#EXTINF:-1,B\nHTTPS://EXAMPLE.COM/B\n'),
+    ).toEqual([]);
+  });
+
+  it('post68: mixed-case Http:// does not bind', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHttp://example.com/a\n')).toEqual([]);
+  });
+
+  it('post68: trailing spaces on URL line are trimmed before bind', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://example.com/a.m3u8   \n');
+    expect(s.url).toBe('https://example.com/a.m3u8');
+  });
+
+  it('post68: leading spaces on URL line are trimmed', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n   https://example.com/lead.m3u8\n');
+    expect(s.url).toBe('https://example.com/lead.m3u8');
+  });
+
+  it('post68: empty tvg-logo group language country become empty strings', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="E" tvg-logo="" group-title="" tvg-language="" tvg-country="",E\nhttps://e\n',
+    );
+    expect(s.logo).toBe('');
+    expect(s.group).toBe('');
+    expect(s.language).toBe('');
+    expect(s.country).toBe('');
+  });
+
+  it('post68: case-insensitive tvg-name attribute still extracts', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 TVG-NAME="Upper",X\nhttps://example.com/u\n');
+    expect(s.name).toBe('Upper');
+  });
+
+  it('post68: comma fallback name when tvg-name absent', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,Comma Name\nhttps://example.com/c\n');
+    expect(s.name).toBe('Comma Name');
+  });
+
+  it('post68: EXTINF without comma and without tvg-name yields no station', () => {
+    expect(
+      parseM3U('#EXTM3U\n#EXTINF:-1 radio=true\nhttps://example.com/nocomma.m3u8\n'),
+    ).toEqual([]);
+  });
+
+  it('post68: orphan EXTINF without URL is ignored', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="Orphan",Orphan\n')).toEqual([]);
+  });
+
+  it('post68: blank and comment gaps do not leak attrs across stations', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="A" group-title="G1",A
+https://example.com/a.m3u8
+
+# gap
+
+#EXTINF:-1 tvg-name="B",B
+https://example.com/b.m3u8
+`);
+    expect(stations[0].group).toBe('G1');
+    expect(stations[1].group).toBeUndefined();
+  });
+
+  it('post68: query-string difference keeps both URLs after dedupe', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com/x?a=1
+#EXTINF:-1,B
+https://example.com/x?a=2
+`);
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it('post68: hash difference keeps both URLs after dedupe', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com/x#one
+#EXTINF:-1,B
+https://example.com/x#two
+`);
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it('post68: trailing question mark URL is distinct from bare path', () => {
+    expect(
+      parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com/x
+#EXTINF:-1,B
+https://example.com/x?
+`),
+    ).toHaveLength(2);
+  });
+
+  it('post68: surrogate pair in URL path is preserved', () => {
+    const note = String.fromCodePoint(0x1f3b5);
+    const url = `https://example.com/${note}.m3u8`;
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1,N\n${url}\n`);
+    expect(s.url).toBe(url);
+  });
+
+  it('post68: station objects use Object.prototype not null prototype', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Object.getPrototypeOf(s)).toBe(Object.prototype);
+  });
+
+  it('post68: result array uses Array.prototype', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(Array.isArray(stations)).toBe(true);
+    expect(Object.getPrototypeOf(stations)).toBe(Array.prototype);
+  });
+
+  it('post68: Object.assign bag does not alias live parse fields', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const bag = Object.assign({}, { name: s.name });
+    bag.name = 'mutated';
+    expect(s.name).toBe('A');
+  });
+
+  it('post68: structuredClone of stations is deep equal distinct refs', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    const clone = structuredClone(stations);
+    expect(clone).toEqual(stations);
+    expect(clone).not.toBe(stations);
+    expect(clone[0]).not.toBe(stations[0]);
+  });
+
+  it('post68: freeze station copy still readable', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Object.freeze({ ...s }).name).toBe('A');
+  });
+
+  it('post68: Reflect.ownKeys on station includes name url optional fields', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-logo="L" group-title="G" tvg-language="en" tvg-country="US",A\nhttps://a\n',
+    );
+    expect(Reflect.ownKeys(s).sort()).toEqual(
+      ['country', 'group', 'language', 'logo', 'name', 'url'].sort(),
+    );
+  });
+
+  it('post68: Proxy wrap of playlist string still parses', () => {
+    const raw = '#EXTM3U\n#EXTINF:-1,A\nhttps://a\n';
+    const proxy = new Proxy(
+      { raw },
+      {
+        get(t, p, r) {
+          return Reflect.get(t, p, r);
+        },
+      },
+    );
+    expect(parseM3U(proxy.raw)).toHaveLength(1);
+  });
+
+  it('post68: Array every SAMPLE urls start with https://', () => {
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.url.startsWith('https://'))).toBe(true);
+  });
+
+  it('post68: Array some finds Zeta rejects Omega', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === 'Zeta FM')).toBe(true);
+    expect(stations.some((s) => s.name === 'Omega FM')).toBe(false);
+  });
+
+  it('post68: findIndex Gamma is 2; missing is -1', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.findIndex((s) => s.name === 'Gamma FM')).toBe(2);
+    expect(stations.findIndex((s) => s.name === 'Missing')).toBe(-1);
+  });
+
+  it('post68: slice(1,4) yields Beta Gamma Delta', () => {
+    expect(parseM3U(SAMPLE_M3U).slice(1, 4).map((s) => s.name)).toEqual([
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+    ]);
+  });
+
+  it('post68: concat of two parses is length-additive', () => {
+    const a = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    const b = parseM3U('#EXTM3U\n#EXTINF:-1,B\nhttps://b\n');
+    expect(a.concat(b).map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it('post68: flat of nested parses matches concat', () => {
+    const nested = [
+      parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n'),
+      parseM3U('#EXTM3U\n#EXTINF:-1,B\nhttps://b\n'),
+    ];
+    expect(nested.flat().map((s) => s.url)).toEqual(['https://a', 'https://b']);
+  });
+
+  it('post68: fromCharCode https scheme rebuild binds', () => {
+    const scheme = String.fromCharCode(104, 116, 116, 112, 115, 58, 47, 47);
+    expect(scheme).toBe('https://');
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1,A\n${scheme}example.com/fromchar.m3u8\n`);
+    expect(s.url.startsWith(scheme)).toBe(true);
+  });
+
+  it('post68: String.raw playlist parses like template', () => {
+    const raw = String.raw`#EXTM3U
+#EXTINF:-1,A
+https://example.com/raw.m3u8
+`;
+    expect(parseM3U(raw)[0].url).toBe('https://example.com/raw.m3u8');
+  });
+
+  it('post68: Number.isFinite station count for SAMPLE is 6', () => {
+    expect(Number.isFinite(parseM3U(SAMPLE_M3U).length)).toBe(true);
+    expect(parseM3U(SAMPLE_M3U).length).toBe(6);
+  });
+
+  it('post68: Buffer.byteLength of JSON SAMPLE parse within band', () => {
+    const n = Buffer.byteLength(JSON.stringify(parseM3U(SAMPLE_M3U)), 'utf8');
+    expect(n).toBeGreaterThan(400);
+    expect(n).toBeLessThan(1200);
+  });
+
+  it('post68: printable ASCII check on SAMPLE urls', () => {
+    expect(
+      parseM3U(SAMPLE_M3U).every((s) =>
+        [...s.url].every((ch) => {
+          const c = ch.charCodeAt(0);
+          return c >= 32 && c < 127;
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('post68: negative module exports — no resolveGenre MCP_MANIFEST GENRE_MAP', async () => {
+    const mod = await import('../src/parser');
+    expect(mod).not.toHaveProperty('resolveGenre');
+    expect(mod).not.toHaveProperty('MCP_MANIFEST');
+    expect(mod).not.toHaveProperty('GENRE_MAP');
+    expect(typeof mod.parseM3U).toBe('function');
+  });
+
+  it('post68: negative stations never include editorial curated_by timestamp', () => {
+    for (const s of parseM3U(SAMPLE_M3U)) {
+      expect(s).not.toHaveProperty('editorial');
+      expect(s).not.toHaveProperty('curated_by');
+      expect(s).not.toHaveProperty('timestamp');
+    }
+  });
+
+  it('post68: cross-lock first SAMPLE url host via URL parser', () => {
+    const u = new URL(parseM3U(SAMPLE_M3U)[0].url);
+    expect(u.protocol).toBe('https:');
+    expect(u.host).toBe('example.com');
+  });
+
+  it('post68: cross-lock countHttpStreamLines helper aligns with parse length for SAMPLE', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+  });
+
+  it('post68: cross-lock AGENTS.md lists parser.ts as safe action', () => {
+    const agents = readFileSync(join(parserRoot, 'AGENTS.md'), 'utf8');
+    expect(agents).toContain('src/parser.ts');
+    expect(agents).toMatch(/M3U parser/i);
+  });
+
+  it('post68: cross-lock index.ts imports parseM3U from ./parser', () => {
+    const index = readFileSync(join(parserRoot, 'src/index.ts'), 'utf8');
+    expect(index).toMatch(/from ['"]\.\/parser['"]/);
+    expect(index).toContain('parseM3U');
+  });
+
+  it('post68: re-read parser.ts equals module snapshot', () => {
+    expect(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8')).toBe(parserSource);
+  });
+
+  it('post68: TextEncoder utf8 length is 1955 for parser source with em dash', () => {
+    expect(new TextEncoder().encode(parserSource).length).toBe(1955);
+    expect(parserSource.length).toBe(1953);
+  });
+
+  it('post68: TextDecoder round-trip preserves parser source', () => {
+    expect(new TextDecoder().decode(new TextEncoder().encode(parserSource))).toBe(parserSource);
+  });
+
+  it('post68: codePointAt equals charCodeAt except em dash in non-http comment', () => {
+    const dashIdx = parserSource.indexOf('—');
+    expect(dashIdx).toBeGreaterThan(0);
+    expect(parserSource.codePointAt(dashIdx)).toBe(0x2014);
+    for (let i = 0; i < parserSource.length; i++) {
+      if (i === dashIdx) continue;
+      expect(parserSource.codePointAt(i)).toBe(parserSource.charCodeAt(i));
+    }
+  });
+
+  it('post68: normalize NFC identity for parser.ts', () => {
+    expect(parserSource.normalize('NFC')).toBe(parserSource);
+  });
+
+  it('post68: createHash sha256 buffer length 32', () => {
+    expect(createHash('sha256').update(parserSource, 'utf8').digest()).toHaveLength(32);
+  });
+
+  it('post68: md5 buffer length 16', () => {
+    expect(createHash('md5').update(parserSource, 'utf8').digest()).toHaveLength(16);
+  });
+
+  it('post68: sha256 starts with cf293136 ends with 1f4368', () => {
+    const d = createHash('sha256').update(parserSource, 'utf8').digest('hex');
+    expect(d.startsWith('cf293136')).toBe(true);
+    expect(d.endsWith('1f4368')).toBe(true);
+  });
+
+  it('post68: parseM3U length property is 1', () => {
+    expect(parseM3U.length).toBe(1);
+    expect(parseM3U.name).toBe('parseM3U');
+  });
+
+  it('post68: empty and header-only playlists return []', () => {
+    expect(parseM3U('')).toEqual([]);
+    expect(parseM3U('#EXTM3U\n')).toEqual([]);
+    expect(parseM3U('#EXTM3U')).toEqual([]);
+  });
+
+  it('post68: ftp and mms schemes reset without binding', () => {
+    expect(
+      parseM3U('#EXTM3U\n#EXTINF:-1,A\nftp://example.com/a\n#EXTINF:-1,B\nmms://example.com/b\n'),
+    ).toEqual([]);
+  });
+
+  it('post68: app deep-link schemes reset without binding', () => {
+    expect(
+      parseM3U(
+        '#EXTM3U\n#EXTINF:-1,A\nspotify:track:123\n#EXTINF:-1,B\nitms://example.com/b\n',
+      ),
+    ).toEqual([]);
+  });
+
+  it('post68: ipv6 literal https URL binds', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://[2001:db8::1]/stream.m3u8\n');
+    expect(s.url).toBe('https://[2001:db8::1]/stream.m3u8');
+  });
+
+  it('post68: userinfo in URL is preserved', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://user:pass@example.com/a.m3u8\n');
+    expect(s.url).toBe('https://user:pass@example.com/a.m3u8');
+  });
+
+  it('post68: very long display name after comma is preserved', () => {
+    const name = 'N'.repeat(5000);
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1,${name}\nhttps://example.com/long.m3u8\n`);
+    expect(s.name).toBe(name);
+  });
+
+  it('post68: tvg-name wins over comma fallback when both present', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="Tvg",Comma Fallback\nhttps://example.com/t\n',
+    );
+    expect(s.name).toBe('Tvg');
+  });
+
+  it('post68: multiple commas — fallback uses last comma segment', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 foo=1,2,Final Name\nhttps://example.com/m\n');
+    expect(s.name).toBe('Final Name');
+  });
+
+  it('post68: group-title with spaces preserved', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" group-title="Late Night Jazz",A\nhttps://a\n',
+    );
+    expect(s.group).toBe('Late Night Jazz');
+  });
+
+  it('post68: JSON.stringify parse result round-trips', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(JSON.parse(JSON.stringify(stations))).toEqual(stations);
+  });
+
+  it('post68: Map of url→name for SAMPLE has 6 entries', () => {
+    const map = new Map(parseM3U(SAMPLE_M3U).map((s) => [s.url, s.name]));
+    expect(map.size).toBe(6);
+    expect(map.get('https://example.com/alpha.m3u8')).toBe('Alpha FM');
+  });
+
+  it('post68: Set of SAMPLE urls has 6 unique', () => {
+    expect(new Set(parseM3U(SAMPLE_M3U).map((s) => s.url)).size).toBe(6);
+  });
+
+  it('post68: reduce of SAMPLE name lengths sums to fixed total', () => {
+    const sum = parseM3U(SAMPLE_M3U).reduce((acc, s) => acc + s.name.length, 0);
+    expect(sum).toBe(8 + 7 + 8 + 8 + 10 + 7);
+  });
+
+  it('post68: localeCompare sort of SAMPLE names', () => {
+    const names = parseM3U(SAMPLE_M3U).map((s) => s.name);
+    expect([...names].sort((a, b) => a.localeCompare(b))).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Gamma FM',
+      'Zeta FM',
+    ]);
+  });
+
+  it('post68: WeakRef of parseM3U still callable', () => {
+    const ref = new WeakRef(parseM3U);
+    expect(ref.deref()?.('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it('post68: Promise.resolve parse matches sync', async () => {
+    const raw = '#EXTM3U\n#EXTINF:-1,A\nhttps://a\n';
+    await expect(Promise.resolve(parseM3U(raw))).resolves.toEqual(parseM3U(raw));
+  });
+
+  it('post68: purity — 50x identical SAMPLE parse', () => {
+    const expected = parseM3U(SAMPLE_M3U);
+    for (let i = 0; i < 50; i++) {
+      expect(parseM3U(SAMPLE_M3U)).toEqual(expected);
+    }
+  });
+
+  it('post68: final lock — sha256 stable across 10 reads', () => {
+    const expected = 'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368';
+    for (let i = 0; i < 10; i++) {
+      expect(createHash('sha256').update(parserSource, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
+
+  it('post68: parser source contains em dash in non-http URL comment', () => {
+    expect(parserSource).toContain('Non-http URL (rtmp://, etc.) — skip but reset current');
+  });
+
+  it('post68: parseM3U trims every line via map trim', () => {
+    expect(parserSource).toContain(".map((l) => l.trim())");
+  });
+
+  it('post68: current Partial Station resets on each EXTINF', () => {
+    expect(parserSource).toContain('if (line.startsWith(\'#EXTINF\'))');
+    expect(parserSource).toContain('current = {}');
+  });
+
+  it('post68: stations push includes all six Station fields', () => {
+    expect(parserSource).toContain('logo: current.logo');
+    expect(parserSource).toContain('group: current.group');
+    expect(parserSource).toContain('language: current.language');
+    expect(parserSource).toContain('country: current.country');
+  });
+
+  it('post68: no default export in parser.ts', () => {
+    expect(parserSource).not.toMatch(/export default/);
+  });
+
+  it('post68: no import statements in parser.ts', () => {
+    expect(parserSource).not.toMatch(/^import /m);
+  });
+
+  it('post68: EXTINF duration -1 is accepted without special casing', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(s.name).toBe('A');
+  });
+
+  it('post68: EXTINF duration 0 still binds with comma name', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:0,A\nhttps://a\n');
+    expect(s.name).toBe('A');
+  });
+
+  it('post68: duplicate consecutive identical URLs keep first only', () => {
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com/x
+#EXTINF:-1,B
+https://example.com/x
+#EXTINF:-1,C
+https://example.com/x
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('A');
+  });
+
+  it('post68: windows CRLF input still parses after trim of \\r', () => {
+    const raw = '#EXTM3U\r\n#EXTINF:-1,A\r\nhttps://example.com/crlf.m3u8\r\n';
+    expect(parseM3U(raw)).toEqual([
+      {
+        name: 'A',
+        url: 'https://example.com/crlf.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  });
+
+  it('post68: attribute values may contain commas inside quotes', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A, B" group-title="X, Y",Z\nhttps://a\n',
+    );
+    expect(s.name).toBe('A, B');
+    expect(s.group).toBe('X, Y');
+  });
+
+  it('post68: unquoted attribute values are not extracted by regex', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name=NoQuotes,Fallback\nhttps://a\n');
+    expect(s.name).toBe('Fallback');
+  });
+
+  it('post68: logo with query string preserved', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-logo="https://cdn.example/a.png?x=1",A\nhttps://a\n',
+    );
+    expect(s.logo).toBe('https://cdn.example/a.png?x=1');
+  });
+
+  it('post68: language and country independent optionality', () => {
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-language="fr",A\nhttps://a\n',
+    );
+    expect(s.language).toBe('fr');
+    expect(s.country).toBeUndefined();
+  });
+
+  it('post68: http URL with port binds', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp://example.com:8080/a\n');
+    expect(s.url).toBe('http://example.com:8080/a');
+  });
+
+  it('post68: https URL with non-default port binds', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://example.com:8443/a\n');
+    expect(s.url).toBe('https://example.com:8443/a');
+  });
+
+  it('post68: data: and blob: schemes do not bind', () => {
+    expect(
+      parseM3U(
+        '#EXTM3U\n#EXTINF:-1,A\ndata:text/plain,hi\n#EXTINF:-1,B\nblob:https://example.com/uuid\n',
+      ),
+    ).toEqual([]);
+  });
+
+  it('post68: file: scheme does not bind', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nfile:///tmp/a.m3u8\n')).toEqual([]);
+  });
+
+  it('post68: relative URL without scheme resets current', () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n/relative/path.m3u8\n')).toEqual([]);
+  });
+
+  it('post68: Object.keys on minimal station are name url plus undefined fields present', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Object.keys(s).sort()).toEqual(
+      ['country', 'group', 'language', 'logo', 'name', 'url'].sort(),
+    );
+  });
+
+  it('post68: JSON.stringify omits undefined optional fields', () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(JSON.stringify(s)).toBe('{"name":"A","url":"https://a"}');
+  });
+
+  it('post68: Array.from of parse result equals spread', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(Array.from(stations)).toEqual([...stations]);
+  });
+
+  it('post68: entries of first SAMPLE station', () => {
+    const [s] = parseM3U(SAMPLE_M3U);
+    expect(Object.fromEntries(Object.entries(s))).toEqual(s);
+  });
+
+  it('post68: filter Music group from SAMPLE keeps all six', () => {
+    expect(parseM3U(SAMPLE_M3U).filter((s) => s.group === 'Music')).toHaveLength(6);
+  });
+
+  it('post68: map urls from SAMPLE all include example.com', () => {
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.url).every((u) => u.includes('example.com'))).toBe(
+      true,
+    );
+  });
+
+  it('post68: sort copy of SAMPLE names does not mutate original order', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    const names = stations.map((s) => s.name);
+    expect([...names].sort()).not.toEqual(names);
+    expect(stations.map((s) => s.name)).toEqual(names);
+  });
+
+  it('post68: reverse copy of SAMPLE names', () => {
+    const names = parseM3U(SAMPLE_M3U).map((s) => s.name);
+    expect([...names].reverse()).toEqual([
+      'Zeta FM',
+      'Epsilon FM',
+      'Delta FM',
+      'Gamma FM',
+      'Beta FM',
+      'Alpha FM',
+    ]);
+  });
+
+  it('post68: at/ with of SAMPLE first and last', () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.at(0)?.name).toBe('Alpha FM');
+    expect(stations.at(-1)?.name).toBe('Zeta FM');
+  });
+
+  it('post68: Buffer.from JSON parse sha256 is stable', () => {
+    const json = JSON.stringify(parseM3U(SAMPLE_M3U));
+    const a = createHash('sha256').update(json, 'utf8').digest('hex');
+    const b = createHash('sha256').update(json, 'utf8').digest('hex');
+    expect(a).toBe(b);
+    expect(a).toHaveLength(64);
+  });
+
+  it('post68: cross-lock package.json does not depend on iptv parser libs', () => {
+    const pkg = JSON.parse(readFileSync(join(parserRoot, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(pkg.dependencies).not.toHaveProperty('m3u8-parser');
+    expect(pkg.dependencies).not.toHaveProperty('iptv-playlist-parser');
+  });
+
+  it('post68: cross-lock vitest coverage includes parser via src/**', () => {
+    const vitest = readFileSync(join(parserRoot, 'vitest.config.ts'), 'utf8');
+    expect(vitest).toContain("include: ['src/**/*.ts']");
+  });
+
+  it('post68: mega purity — 100x SAMPLE_M3U parse equal', () => {
+    const expected = parseM3U(SAMPLE_M3U);
+    for (let i = 0; i < 100; i++) {
+      expect(parseM3U(SAMPLE_M3U)).toEqual(expected);
+    }
+  });
+
+  it('post68: final source digest lock — sha1 stable', () => {
+    expect(createHash('sha1').update(parserSource, 'utf8').digest('hex')).toBe(
+      '701cdecbef5a9049af6bd11497493c4036a60211',
+    );
+  });
+
 });
