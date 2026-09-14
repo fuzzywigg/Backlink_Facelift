@@ -25601,7 +25601,8 @@ describe('post178 parser HEAVY deepen (after #178 / leftover after #175 mcp-spec
   it('post178: final inventory markers', () => {
     const body = read('test/parser.test.ts');
     expect(body).toContain("describe('post178 parser HEAVY deepen (after #178 / leftover after #175 mcp-spec+ci-config)'");
-    expect(body).not.toContain("describe('post178 ci-config");
+    // contiguous forbid built at runtime so this file does not self-match
+    expect(body.includes(['describe(', "'post178 ci-config"].join(''))).toBe(false);
   });
 });
 

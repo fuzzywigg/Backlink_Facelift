@@ -24453,7 +24453,8 @@ describe('post178 source-contracts HEAVY deepen (after #178 / leftover after #17
   it('post178: final inventory markers', () => {
     const body = read('test/source-contracts.test.ts');
     expect(body).toContain("describe('post178 source-contracts HEAVY deepen (after #178 / leftover after #175 mcp-spec+ci-config)'");
-    expect(body).not.toContain("describe('post178 ci-config");
+    // contiguous forbid built at runtime so this file does not self-match
+    expect(body.includes(['describe(', "'post178 ci-config"].join(''))).toBe(false);
   });
 });
 
