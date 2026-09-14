@@ -3631,7 +3631,7 @@ VERSION = "0.1.0"
   it('post70: MessageChannel structured clone keeps toml payload', async () => {
     const { port1, port2 } = new MessageChannel();
     const got = await new Promise<string>((resolve) => {
-      port2.onmessage = (ev) => resolve(String((ev as MessageEvent).data));
+      port2.onmessage = (ev: MessageEvent) => resolve(String(ev.data));
       port1.postMessage(toml);
     });
     port1.close();
@@ -3641,7 +3641,7 @@ VERSION = "0.1.0"
 
   it('post70: AbortController signal abort does not alter toml snapshot', () => {
     const ac = new AbortController();
-    ac.abort('test');
+    ac.abort();
     expect(ac.signal.aborted).toBe(true);
     expect(toml.startsWith('name = "backlink"')).toBe(true);
     expect(toml.length).toBe(330);
@@ -3658,7 +3658,7 @@ VERSION = "0.1.0"
   });
 
   it('post70: randomBytes length probe does not inject into config', () => {
-    const probe = randomBytes(16).toString('hex');
+    const probe = Buffer.from(randomBytes(16)).toString('hex');
     expect(probe).toHaveLength(32);
     expect(toml).not.toContain(probe);
     expect(toml).toContain('edb6ca4df12f4f45b40508b3dda3c432');
@@ -4003,10 +4003,10 @@ VERSION = "0.1.0"
     expect(again).toBe(toml);
   });
 
-  it('post70: Array.toSorted of section headers stays stable', () => {
+  it('post70: Array.sort of section headers stays stable', () => {
     const headers = ['[[kv_namespaces]]', '[[routes]]', '[vars]'];
-    expect(headers.toSorted()).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
-    expect(headers.toSorted((a, b) => b.localeCompare(a))).toEqual([
+    expect([...headers].sort()).toEqual(['[[kv_namespaces]]', '[[routes]]', '[vars]']);
+    expect([...headers].sort((a: string, b: string) => b.localeCompare(a))).toEqual([
       '[vars]',
       '[[routes]]',
       '[[kv_namespaces]]',
