@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { createHash, createHmac } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -5153,4 +5154,1482 @@ describe('source ↔ product contracts', () => {
     expect([...read("src/index.ts").matchAll(/^export /gm)]).toHaveLength(1);
     expect(read("src/index.ts")).toContain("export default app");
   });
+});
+
+// --- HEAVY burn (post-#94): deepen source ↔ product contracts — no product inventing ---
+// Orthogonal to genres #93/#94. Digests, HMAC, index↔docs↔parser↔mcp↔types↔CI cross-locks,
+// negative inventing fences — tests-only. Large OK.
+
+describe('post94 source-contracts HEAVY deepen', () => {
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const hmacSha = (rel: string, key: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const bytes = (rel: string) => readFileSync(join(root, rel));
+  const text = (rel: string) => read(rel);
+
+  it('post94: locks src/index.ts sha256 digest', () => {
+    expect(sha256('src/index.ts')).toBe(
+      '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72',
+    );
+  });
+
+  it('post94: locks src/index.ts sha1 digest', () => {
+    expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b');
+  });
+
+  it('post94: locks src/index.ts md5 digest', () => {
+    expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177');
+  });
+
+  it('post94: locks src/index.ts sha256 nibble sum to 470', () => {
+    expect(nibbleSum(sha256('src/index.ts'))).toBe(470);
+  });
+
+  it('post94: locks src/parser.ts sha256 digest', () => {
+    expect(sha256('src/parser.ts')).toBe(
+      'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368',
+    );
+  });
+
+  it('post94: locks src/parser.ts sha1 digest', () => {
+    expect(sha1('src/parser.ts')).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+  });
+
+  it('post94: locks src/parser.ts md5 digest', () => {
+    expect(md5('src/parser.ts')).toBe('500211c4c526de887252451726776563');
+  });
+
+  it('post94: locks src/parser.ts sha256 nibble sum to 477', () => {
+    expect(nibbleSum(sha256('src/parser.ts'))).toBe(477);
+  });
+
+  it('post94: locks src/genres.ts sha256 digest', () => {
+    expect(sha256('src/genres.ts')).toBe(
+      'aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e',
+    );
+  });
+
+  it('post94: locks src/genres.ts sha1 digest', () => {
+    expect(sha1('src/genres.ts')).toBe('3dd586bfd23c91e9719b56c90c8cbfe038aebc3e');
+  });
+
+  it('post94: locks src/genres.ts md5 digest', () => {
+    expect(md5('src/genres.ts')).toBe('ee8d34506f688c9e3097b89a35d48aa5');
+  });
+
+  it('post94: locks src/genres.ts sha256 nibble sum to 500', () => {
+    expect(nibbleSum(sha256('src/genres.ts'))).toBe(500);
+  });
+
+  it('post94: locks src/mcp.ts sha256 digest', () => {
+    expect(sha256('src/mcp.ts')).toBe(
+      '6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683',
+    );
+  });
+
+  it('post94: locks src/mcp.ts sha1 digest', () => {
+    expect(sha1('src/mcp.ts')).toBe('848b3977365809fda54fcb74a7d09affe685ea82');
+  });
+
+  it('post94: locks src/mcp.ts md5 digest', () => {
+    expect(md5('src/mcp.ts')).toBe('52e71c72e32e3d95b8b8d61ff4a2cf46');
+  });
+
+  it('post94: locks src/mcp.ts sha256 nibble sum to 551', () => {
+    expect(nibbleSum(sha256('src/mcp.ts'))).toBe(551);
+  });
+
+  it('post94: locks src/types.ts sha256 digest', () => {
+    expect(sha256('src/types.ts')).toBe(
+      '4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3',
+    );
+  });
+
+  it('post94: locks src/types.ts sha1 digest', () => {
+    expect(sha1('src/types.ts')).toBe('1e8906673dc0d140ee5c3d40839c88a1eeca03d8');
+  });
+
+  it('post94: locks src/types.ts md5 digest', () => {
+    expect(md5('src/types.ts')).toBe('ecba663d21928622be656805ad27d0a3');
+  });
+
+  it('post94: locks src/types.ts sha256 nibble sum to 520', () => {
+    expect(nibbleSum(sha256('src/types.ts'))).toBe(520);
+  });
+
+  it('post94: locks docs/mcp-spec.md sha256 digest', () => {
+    expect(sha256('docs/mcp-spec.md')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post94: locks docs/mcp-spec.md sha1 digest', () => {
+    expect(sha1('docs/mcp-spec.md')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+  });
+
+  it('post94: locks docs/mcp-spec.md md5 digest', () => {
+    expect(md5('docs/mcp-spec.md')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it('post94: locks docs/mcp-spec.md sha256 nibble sum to 514', () => {
+    expect(nibbleSum(sha256('docs/mcp-spec.md'))).toBe(514);
+  });
+
+  it('post94: locks README.md sha256 digest', () => {
+    expect(sha256('README.md')).toBe(
+      'f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987',
+    );
+  });
+
+  it('post94: locks README.md sha1 digest', () => {
+    expect(sha1('README.md')).toBe('4f560a473d5838f25eba3eae21a87f6c97ba3b8b');
+  });
+
+  it('post94: locks README.md md5 digest', () => {
+    expect(md5('README.md')).toBe('9b7aea4982a6d68b95f7f8ee3fdc5b31');
+  });
+
+  it('post94: locks README.md sha256 nibble sum to 429', () => {
+    expect(nibbleSum(sha256('README.md'))).toBe(429);
+  });
+
+  it('post94: locks DEPLOY.md sha256 digest', () => {
+    expect(sha256('DEPLOY.md')).toBe(
+      '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+    );
+  });
+
+  it('post94: locks DEPLOY.md sha1 digest', () => {
+    expect(sha1('DEPLOY.md')).toBe('37c72be44abb67343dae3e7c2303306a25b3481f');
+  });
+
+  it('post94: locks DEPLOY.md md5 digest', () => {
+    expect(md5('DEPLOY.md')).toBe('da30bf656fdf0d9a61d2a00860c325f5');
+  });
+
+  it('post94: locks DEPLOY.md sha256 nibble sum to 439', () => {
+    expect(nibbleSum(sha256('DEPLOY.md'))).toBe(439);
+  });
+
+  it('post94: locks AGENTS.md sha256 digest', () => {
+    expect(sha256('AGENTS.md')).toBe(
+      '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+    );
+  });
+
+  it('post94: locks AGENTS.md sha1 digest', () => {
+    expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c');
+  });
+
+  it('post94: locks AGENTS.md md5 digest', () => {
+    expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd');
+  });
+
+  it('post94: locks AGENTS.md sha256 nibble sum to 479', () => {
+    expect(nibbleSum(sha256('AGENTS.md'))).toBe(479);
+  });
+
+  it('post94: locks package.json sha256 digest', () => {
+    expect(sha256('package.json')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+  });
+
+  it('post94: locks package.json sha1 digest', () => {
+    expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5');
+  });
+
+  it('post94: locks package.json md5 digest', () => {
+    expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f');
+  });
+
+  it('post94: locks package.json sha256 nibble sum to 451', () => {
+    expect(nibbleSum(sha256('package.json'))).toBe(451);
+  });
+
+  it('post94: locks wrangler.toml sha256 digest', () => {
+    expect(sha256('wrangler.toml')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+  it('post94: locks wrangler.toml sha1 digest', () => {
+    expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it('post94: locks wrangler.toml md5 digest', () => {
+    expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it('post94: locks wrangler.toml sha256 nibble sum to 457', () => {
+    expect(nibbleSum(sha256('wrangler.toml'))).toBe(457);
+  });
+
+  it('post94: locks vitest.config.ts sha256 digest', () => {
+    expect(sha256('vitest.config.ts')).toBe(
+      'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+    );
+  });
+
+  it('post94: locks vitest.config.ts sha1 digest', () => {
+    expect(sha1('vitest.config.ts')).toBe('f8d49517ece92fc5e9781fbde021a948958aac37');
+  });
+
+  it('post94: locks vitest.config.ts md5 digest', () => {
+    expect(md5('vitest.config.ts')).toBe('f1176313255f5f064a946d458482d81a');
+  });
+
+  it('post94: locks vitest.config.ts sha256 nibble sum to 536', () => {
+    expect(nibbleSum(sha256('vitest.config.ts'))).toBe(536);
+  });
+
+  it('post94: locks tsconfig.json sha256 digest', () => {
+    expect(sha256('tsconfig.json')).toBe(
+      'ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792',
+    );
+  });
+
+  it('post94: locks tsconfig.json sha1 digest', () => {
+    expect(sha1('tsconfig.json')).toBe('68e3169249049539d687b6b3d81fc809079134f9');
+  });
+
+  it('post94: locks tsconfig.json md5 digest', () => {
+    expect(md5('tsconfig.json')).toBe('13f6687a50fe7c6ea7ef4eb3623b7457');
+  });
+
+  it('post94: locks tsconfig.json sha256 nibble sum to 506', () => {
+    expect(nibbleSum(sha256('tsconfig.json'))).toBe(506);
+  });
+
+  it('post94: locks .github/workflows/ci.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe(
+      'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+    );
+  });
+
+  it('post94: locks .github/workflows/ci.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa');
+  });
+
+  it('post94: locks .github/workflows/ci.yml md5 digest', () => {
+    expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605');
+  });
+
+  it('post94: locks .github/workflows/ci.yml sha256 nibble sum to 515', () => {
+    expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515);
+  });
+
+  it('post94: locks .github/workflows/deploy.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post94: locks .github/workflows/deploy.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+  });
+
+  it('post94: locks .github/workflows/deploy.yml md5 digest', () => {
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+  });
+
+  it('post94: locks .github/workflows/deploy.yml sha256 nibble sum to 476', () => {
+    expect(nibbleSum(sha256('.github/workflows/deploy.yml'))).toBe(476);
+  });
+
+  it('post94: locks .cursor/environment.json sha256 digest', () => {
+    expect(sha256('.cursor/environment.json')).toBe(
+      '4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694',
+    );
+  });
+
+  it('post94: locks .cursor/environment.json sha1 digest', () => {
+    expect(sha1('.cursor/environment.json')).toBe('b4f3dec322cd018ce5c1dea89897a469bd128685');
+  });
+
+  it('post94: locks .cursor/environment.json md5 digest', () => {
+    expect(md5('.cursor/environment.json')).toBe('956c8804543595a31d6a7051aecd6528');
+  });
+
+  it('post94: locks .cursor/environment.json sha256 nibble sum to 472', () => {
+    expect(nibbleSum(sha256('.cursor/environment.json'))).toBe(472);
+  });
+
+  it('post94: locks .gitattributes sha256 digest', () => {
+    expect(sha256('.gitattributes')).toBe(
+      '1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b',
+    );
+  });
+
+  it('post94: locks .gitattributes sha1 digest', () => {
+    expect(sha1('.gitattributes')).toBe('ba3dfe345280bdcc5e817bb02cf49b8b8d8e1c4c');
+  });
+
+  it('post94: locks .gitattributes md5 digest', () => {
+    expect(md5('.gitattributes')).toBe('05bdb783ee6514c8c072e47680af8ff7');
+  });
+
+  it('post94: locks .gitattributes sha256 nibble sum to 458', () => {
+    expect(nibbleSum(sha256('.gitattributes'))).toBe(458);
+  });
+
+  it('post94: locks .gitignore sha256 digest', () => {
+    expect(sha256('.gitignore')).toBe(
+      '474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698',
+    );
+  });
+
+  it('post94: locks .gitignore sha1 digest', () => {
+    expect(sha1('.gitignore')).toBe('432103230f4c49258e046fc945e8160007c23570');
+  });
+
+  it('post94: locks .gitignore md5 digest', () => {
+    expect(md5('.gitignore')).toBe('7d0728257f47875ec0120ca3cdbf7308');
+  });
+
+  it('post94: locks .gitignore sha256 nibble sum to 444', () => {
+    expect(nibbleSum(sha256('.gitignore'))).toBe(444);
+  });
+
+  it('post94: locks .github/dependabot.yml sha256 digest', () => {
+    expect(sha256('.github/dependabot.yml')).toBe(
+      'a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac',
+    );
+  });
+
+  it('post94: locks .github/dependabot.yml sha1 digest', () => {
+    expect(sha1('.github/dependabot.yml')).toBe('dfdb63975444874143105431e4cee95165932c7b');
+  });
+
+  it('post94: locks .github/dependabot.yml md5 digest', () => {
+    expect(md5('.github/dependabot.yml')).toBe('bd53b7cdf9bb7287532d96a32cbec9a4');
+  });
+
+  it('post94: locks .github/dependabot.yml sha256 nibble sum to 526', () => {
+    expect(nibbleSum(sha256('.github/dependabot.yml'))).toBe(526);
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of src/index.ts', () => {
+    expect(hmacSha('src/index.ts', "post94-source")).toBe('2fac130a70be4f56d1d76f00aec8afa7fcfa6d1735009ce156e6b400173a5ce9');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of src/index.ts', () => {
+    expect(hmacSha('src/index.ts', "backlink-contracts")).toBe('b3f18092b1001e8d2847ff291367954de54f0e4f235309aa6e3f92a3b46bfd5a');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of src/index.ts', () => {
+    expect(hmacSha('src/index.ts', "fuzzywigg")).toBe('8b7bac04a4152bc93cee647ecc20a2058cc35d05f01a7e86dafe04cb298ccfb5');
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of src/parser.ts', () => {
+    expect(hmacSha('src/parser.ts', "post94-source")).toBe('fbfa77d5c4c1150249b3953131db859c3b0d36cbf727af0253f3a194cf3a7144');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of src/parser.ts', () => {
+    expect(hmacSha('src/parser.ts', "backlink-contracts")).toBe('7f92e5d0b660796cb6c885e58966eb364e4f015caded3ced3390f9e50584981a');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of src/parser.ts', () => {
+    expect(hmacSha('src/parser.ts', "fuzzywigg")).toBe('84bba718304e8ae87e488eb7d34d91334a8a583de252f8bf8c7a1262af17f07a');
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of src/mcp.ts', () => {
+    expect(hmacSha('src/mcp.ts', "post94-source")).toBe('71d1578acd87fc6920aca659762bde814b1e58f50017e91f7a9fad92b1d72bf0');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of src/mcp.ts', () => {
+    expect(hmacSha('src/mcp.ts', "backlink-contracts")).toBe('bc4d454d16984f4ea36bcef8a3863eafb2397a3eac021da77932889f4334ed57');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of src/mcp.ts', () => {
+    expect(hmacSha('src/mcp.ts', "fuzzywigg")).toBe('93171a03382e2488888b170abdf10cc84dbd7ec7e77448b36c60d6758faac830');
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of docs/mcp-spec.md', () => {
+    expect(hmacSha('docs/mcp-spec.md', "post94-source")).toBe('31f94137506b192184401e21bf323cd1bfa7ff5cc2583056e86fa29301ae28d4');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of docs/mcp-spec.md', () => {
+    expect(hmacSha('docs/mcp-spec.md', "backlink-contracts")).toBe('e92ce10e853477ea214bb7afa546bf05e1b8e6282bd524593a5f9c80fef58094');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of docs/mcp-spec.md', () => {
+    expect(hmacSha('docs/mcp-spec.md', "fuzzywigg")).toBe('8e0caed7ef994c374b52d69005d69324d5af51ef97c49c876613cf9ed1b93d4d');
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of AGENTS.md', () => {
+    expect(hmacSha('AGENTS.md', "post94-source")).toBe('5c9f1b2540c8cecc69cb7fd380fbd03be77ca011a0f373029143181eb6ee5d52');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of AGENTS.md', () => {
+    expect(hmacSha('AGENTS.md', "backlink-contracts")).toBe('0b19340d41d9ad7eab79ac0c88fe3f906f50a11f1e13870860851007b762e029');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of AGENTS.md', () => {
+    expect(hmacSha('AGENTS.md', "fuzzywigg")).toBe('8eda2249f938456fded535468826738c7e146ca6574f36f3853700897f5d5163');
+  });
+
+  it('post94: HMAC-SHA256("post94-source") of README.md', () => {
+    expect(hmacSha('README.md', "post94-source")).toBe('98c1858f235b3e67baf775e1de58fd55926b22974bb49b323d0d4cac2f998225');
+  });
+
+  it('post94: HMAC-SHA256("backlink-contracts") of README.md', () => {
+    expect(hmacSha('README.md', "backlink-contracts")).toBe('24d55ed57f5864a6cf304515db96dff00dec79a6d94bdb7ce2c4838bd7957b08');
+  });
+
+  it('post94: HMAC-SHA256("fuzzywigg") of README.md', () => {
+    expect(hmacSha('README.md', "fuzzywigg")).toBe('c1bdcc6210881289dbd7cb0d1815379139a70c052a45bc84a455e263a1a29dfb');
+  });
+
+  it('post94: locks src/index.ts UTF-8 bytes 4738 and UTF-16 4724', () => {
+    const buf = bytes('src/index.ts');
+    const t = buf.toString('utf8');
+    expect(buf.length).toBe(4738);
+    expect(t.length).toBe(4724);
+    expect((t.match(/\n/g) ?? []).length).toBe(153);
+  });
+
+  it('post94: locks src/parser.ts UTF-8 bytes 1955 and UTF-16 1953', () => {
+    const buf = bytes('src/parser.ts');
+    const t = buf.toString('utf8');
+    expect(buf.length).toBe(1955);
+    expect(t.length).toBe(1953);
+    expect((t.match(/\n/g) ?? []).length).toBe(66);
+  });
+
+  it('post94: locks src/genres.ts UTF-8 bytes 1027 and UTF-16 1025', () => {
+    const buf = bytes('src/genres.ts');
+    const t = buf.toString('utf8');
+    expect(buf.length).toBe(1027);
+    expect(t.length).toBe(1025);
+    expect((t.match(/\n/g) ?? []).length).toBe(47);
+  });
+
+  it('post94: locks src/mcp.ts UTF-8 bytes 2057 and UTF-16 2057', () => {
+    const buf = bytes('src/mcp.ts');
+    const t = buf.toString('utf8');
+    expect(buf.length).toBe(2057);
+    expect(t.length).toBe(2057);
+    expect((t.match(/\n/g) ?? []).length).toBe(67);
+  });
+
+  it('post94: locks src/types.ts UTF-8 bytes 174 and UTF-16 172', () => {
+    const buf = bytes('src/types.ts');
+    const t = buf.toString('utf8');
+    expect(buf.length).toBe(174);
+    expect(t.length).toBe(172);
+    expect((t.match(/\n/g) ?? []).length).toBe(6);
+  });
+
+
+  it('post94: src/ directory lists exactly five TypeScript modules', () => {
+    const names = readdirSync(join(root, 'src')).filter((n) => n.endsWith('.ts')).sort();
+    expect(names).toEqual(['genres.ts', 'index.ts', 'mcp.ts', 'parser.ts', 'types.ts']);
+  });
+
+  it('post94: docs/ directory lists only mcp-spec.md', () => {
+    expect(readdirSync(join(root, 'docs')).sort()).toEqual(['mcp-spec.md']);
+  });
+
+  it('post94: test/ includes source-contracts and peer contract suites', () => {
+    const names = readdirSync(join(root, 'test')).filter((n) => n.endsWith('.test.ts')).sort();
+    expect(names).toContain('source-contracts.test.ts');
+    expect(names).toContain('parser.test.ts');
+    expect(names).toContain('ci-config.test.ts');
+    expect(names).toContain('mcp-spec-contract.test.ts');
+    expect(names).not.toContain('genres-invent.test.ts');
+  });
+
+  it('post94: index import graph is hono + genres + parser + types only', () => {
+    const index = text('src/index.ts');
+    const imports = [...index.matchAll(/^import .+ from ['"]([^'"]+)['"];?$/gm)].map((m) => m[1]);
+    expect(imports).toEqual(['hono', 'hono/cors', './genres', './parser', './types']);
+  });
+
+  it('post94: parser has zero imports', () => {
+    expect(text('src/parser.ts')).not.toMatch(/^import /m);
+  });
+
+  it('post94: types has zero imports', () => {
+    expect(text('src/types.ts')).not.toMatch(/^import /m);
+  });
+
+  it('post94: mcp has zero imports', () => {
+    expect(text('src/mcp.ts')).not.toMatch(/^import /m);
+  });
+
+  it('post94: genres has zero imports', () => {
+    expect(text('src/genres.ts')).not.toMatch(/^import /m);
+  });
+
+  it('post94: index does not import mcp', () => {
+    expect(text('src/index.ts')).not.toMatch(/from ['"]\.\/mcp['"]/);
+    expect(text('src/index.ts')).not.toContain('MCP_MANIFEST');
+  });
+
+  it('post94: cross-lock IPTV_BASE across index and README iptv-org link', () => {
+    expect(text('src/index.ts')).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'",
+    );
+    expect(text('README.md')).toContain('https://github.com/iptv-org/iptv');
+  });
+
+  it('post94: cross-lock Gemini model id across index README DEPLOY', () => {
+    for (const rel of ['src/index.ts', 'README.md', 'DEPLOY.md']) {
+      expect(text(rel)).toMatch(/Gemini 2\.0 Flash|gemini-2\.0-flash/);
+    }
+    expect(text('src/index.ts')).toContain('gemini-2.0-flash');
+  });
+
+  it('post94: cross-lock domain backlink.fuzzywigg.com across docs and wrangler', () => {
+    for (const rel of ['README.md', 'DEPLOY.md', 'AGENTS.md', 'docs/mcp-spec.md', 'wrangler.toml']) {
+      expect(text(rel)).toContain('backlink.fuzzywigg.com');
+    }
+  });
+
+  it('post94: cross-lock CATALOG_CACHE across types wrangler DEPLOY', () => {
+    expect(text('src/types.ts')).toContain('CATALOG_CACHE: KVNamespace');
+    expect(text('wrangler.toml')).toContain('binding = "CATALOG_CACHE"');
+    expect(text('DEPLOY.md')).toContain('wrangler kv namespace create CATALOG_CACHE');
+  });
+
+  it('post94: cross-lock GEMINI_API_KEY across types index DEPLOY deploy.yml AGENTS', () => {
+    for (const rel of [
+      'src/types.ts',
+      'src/index.ts',
+      'DEPLOY.md',
+      '.github/workflows/deploy.yml',
+      'AGENTS.md',
+    ]) {
+      expect(text(rel)).toContain('GEMINI_API_KEY');
+    }
+  });
+
+  it('post94: cross-lock VERSION 0.1.0 across package wrangler README health example', () => {
+    const pkg = JSON.parse(text('package.json')) as { version: string };
+    expect(pkg.version).toBe('0.1.0');
+    expect(text('wrangler.toml')).toContain('VERSION = "0.1.0"');
+    expect(text('README.md')).toContain('{ ok: true, version: "0.1.0" }');
+    expect(text('src/index.ts')).toContain("c.env.VERSION ?? '0.1.0'");
+  });
+
+  it('post94: cross-lock package description with root endpoint description', () => {
+    const pkg = JSON.parse(text('package.json')) as { description: string };
+    expect(text('src/index.ts')).toContain("description: '" + pkg.description + "'");
+  });
+
+  it('post94: cross-lock powered_by crab with README Geryon crab', () => {
+    expect(text('src/index.ts')).toContain("powered_by: 'Backlink/Geryon 🦀'");
+    expect(text('README.md')).toContain('Geryon 🦀');
+  });
+
+  it('post94: cross-lock curated_by without crab emoji', () => {
+    expect(text('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+    expect(text('README.md')).toContain('"curated_by": "Backlink/Geryon"');
+    expect(text('src/index.ts')).not.toContain("curated_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('post94: cross-lock docs mcp-spec tools with MCP_MANIFEST claw names distinct', () => {
+    const docs = text('docs/mcp-spec.md');
+    const mcp = text('src/mcp.ts');
+    expect(docs).toContain('### `backlink_curate`');
+    expect(docs).toContain('### `backlink_genres`');
+    expect(docs).toContain('### `backlink_now_playing`');
+    expect(mcp).toContain('"station_select"');
+    expect(mcp).toContain('"now_playing"');
+    expect(mcp).toContain('"genre_filter"');
+    expect(mcp).toContain('"curator_prompt"');
+    expect(mcp).not.toContain('backlink_curate');
+  });
+
+  it('post94: cross-lock graceful degradation top 5 docs ↔ Worker', () => {
+    expect(text('docs/mcp-spec.md')).toMatch(/top 5 raw stations with `editorial: null`/);
+    expect(text('src/index.ts')).toContain('stations.slice(0, 5)');
+    expect(text('src/index.ts')).toContain('editorial: null');
+  });
+
+  it('post94: cross-lock KV TTL 1h docs ↔ expirationTtl 3600', () => {
+    expect(text('docs/mcp-spec.md')).toMatch(/1h TTL/);
+    expect(text('README.md')).toMatch(/1h TTL/);
+    expect(text('src/index.ts')).toContain('expirationTtl: 3600');
+  });
+
+  it('post94: cross-lock /curate always calls Gemini fresh — no LLM response caching', () => {
+    expect(text('docs/mcp-spec.md')).toContain(
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+    );
+    const index = text('src/index.ts');
+    const curate = index.slice(index.indexOf("app.get('/curate'"));
+    expect(curate).toContain('callGemini');
+    expect(curate).not.toMatch(/kv\.get.*curat/i);
+  });
+
+  it('post94: locks Worker routes exactly five GETs', () => {
+    const index = text('src/index.ts');
+    const gets = [...index.matchAll(/app\.get\('(\/[^']*)'/g)].map((m) => m[1]);
+    expect(gets).toEqual(['/', '/health', '/genres', '/stations', '/curate']);
+  });
+
+  it('post94: locks fetchStations before callGemini before app const', () => {
+    const index = text('src/index.ts');
+    expect(index.indexOf('async function fetchStations')).toBeLessThan(
+      index.indexOf('async function callGemini'),
+    );
+    expect(index.indexOf('async function callGemini')).toBeLessThan(index.indexOf('const app'));
+  });
+
+  it('post94: locks cors before any app.get', () => {
+    const index = text('src/index.ts');
+    expect(index.indexOf("app.use('*', cors())")).toBeLessThan(index.indexOf("app.get('/'"));
+  });
+
+  it('post94: locks GEMINI guard before fetchStations on /curate', () => {
+    const index = text('src/index.ts');
+    const curate = index.slice(index.indexOf("app.get('/curate'"));
+    expect(curate.indexOf('if (!c.env.GEMINI_API_KEY)')).toBeLessThan(
+      curate.indexOf('stations = await fetchStations'),
+    );
+  });
+
+  it('post94: locks music fallback only inside fetchStations', () => {
+    const index = text('src/index.ts');
+    const fsBlock = index.slice(
+      index.indexOf('async function fetchStations'),
+      index.indexOf('async function callGemini'),
+    );
+    expect(fsBlock).toContain('music.m3u');
+    expect(index.slice(index.indexOf('const app'))).not.toContain('music.m3u');
+  });
+
+  it('post94: locks parseM3U Station interface field order', () => {
+    const parser = text('src/parser.ts');
+    const iface = parser.slice(parser.indexOf('export interface Station'), parser.indexOf('export function parseM3U'));
+    expect(iface.indexOf('name:')).toBeLessThan(iface.indexOf('url:'));
+    expect(iface.indexOf('url:')).toBeLessThan(iface.indexOf('logo?:'));
+    expect(iface.indexOf('logo?:')).toBeLessThan(iface.indexOf('group?:'));
+    expect(iface.indexOf('group?:')).toBeLessThan(iface.indexOf('language?:'));
+    expect(iface.indexOf('language?:')).toBeLessThan(iface.indexOf('country?:'));
+  });
+
+  it('post94: locks Env interface field order CATALOG then GEMINI then VERSION', () => {
+    const types = text('src/types.ts');
+    expect(types.indexOf('CATALOG_CACHE')).toBeLessThan(types.indexOf('GEMINI_API_KEY'));
+    expect(types.indexOf('GEMINI_API_KEY')).toBeLessThan(types.indexOf('VERSION'));
+  });
+
+  it('post94: locks MCP_MANIFEST tools name order', () => {
+    const mcp = text('src/mcp.ts');
+    const names = [...mcp.matchAll(/name:\s*"([^"]+)"/g)].map((m) => m[1]);
+    const toolNames = names.filter((n) =>
+      ['station_select', 'now_playing', 'genre_filter', 'curator_prompt'].includes(n),
+    );
+    expect(toolNames).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post94: locks callGemini generationConfig literals', () => {
+    expect(text('src/index.ts')).toContain(
+      'generationConfig: { maxOutputTokens: 512, temperature: 0.7 }',
+    );
+  });
+
+  it('post94: locks Gemini content-type application/json header', () => {
+    expect(text('src/index.ts')).toContain("headers: { 'content-type': 'application/json' }");
+  });
+
+  it('post94: locks Gemini JSON extract regex literal exactly', () => {
+    expect(text('src/index.ts')).toContain('text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+  });
+
+  it('post94: locks retry_after 60 on all three 503 paths', () => {
+    expect([...text('src/index.ts').matchAll(/retry_after:\s*60/g)]).toHaveLength(3);
+  });
+
+  it('post94: locks Stream catalog unavailable on stations and curate catch', () => {
+    expect([...text('src/index.ts').matchAll(/Stream catalog unavailable/g)]).toHaveLength(3);
+  });
+
+  it('post94: locks Curation service unavailable once', () => {
+    expect([...text('src/index.ts').matchAll(/Curation service unavailable/g)]).toHaveLength(1);
+  });
+
+  it('post94: locks Invalid JSON from Gemini once', () => {
+    expect(text('src/index.ts')).toContain("throw new Error('Invalid JSON from Gemini')");
+  });
+
+  it('post94: locks Gemini API error template once', () => {
+    expect(text('src/index.ts')).toContain('Gemini API error: ${resp.status}');
+  });
+
+  it('post94: locks stationList group/language fallbacks', () => {
+    expect(text('src/index.ts')).toContain('s.group ?? genre');
+    expect(text('src/index.ts')).toContain("s.language ?? 'en'");
+  });
+
+  it('post94: locks /stations response shape keys genre count stations', () => {
+    expect(text('src/index.ts')).toContain(
+      'return c.json({ genre, count: stations.length, stations });',
+    );
+  });
+
+  it('post94: locks /genres response spreads VALID_GENRES and GENRE_MAP ref', () => {
+    expect(text('src/index.ts')).toContain('genres: [...VALID_GENRES]');
+    expect(text('src/index.ts')).toContain('aliases: GENRE_MAP');
+  });
+
+  it('post94: locks /health ok true VERSION fallback', () => {
+    expect(text('src/index.ts')).toContain(
+      "return c.json({ ok: true, version: c.env.VERSION ?? '0.1.0' });",
+    );
+  });
+
+  it('post94: locks root endpoints object keys exactly', () => {
+    const index = text('src/index.ts');
+    const block = index.slice(index.indexOf('endpoints:'), index.indexOf('powered_by'));
+    expect(block).toContain("'/curate'");
+    expect(block).toContain("'/stations'");
+    expect(block).toContain("'/genres'");
+    expect(block).toContain("'/health'");
+    expect(block).not.toContain("'/playlist'");
+    expect(block).not.toContain("'/now-playing'");
+  });
+
+  it('post94: negative — no product invent of /playlist or /now-playing routes', () => {
+    const index = text('src/index.ts');
+    expect(index).not.toMatch(/app\.get\('\/playlist'/);
+    expect(index).not.toMatch(/app\.get\('\/now-playing'/);
+    expect(index).not.toMatch(/app\.get\('\/openapi\.json'/);
+  });
+
+  it('post94: negative — no Anthropic/OpenAI/Claude inventing in src', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(text(rel)).not.toMatch(/anthropic|claude|haiku|openai|gpt-4|chatgpt/i);
+    }
+  });
+
+  it('post94: negative — no second CDN inventing beyond iptv-org in index', () => {
+    const index = text('src/index.ts');
+    expect(index).not.toMatch(/radio-browser|shoutcast|icecast\.org|somafm/i);
+    expect(index).toContain('iptv-org.github.io');
+  });
+
+  it('post94: negative — no console logging inventing in Worker modules', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(text(rel)).not.toMatch(/console\.(log|warn|error|debug|info)/);
+    }
+  });
+
+  it('post94: negative — no process.env inventing in Worker modules', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(text(rel)).not.toContain('process.env');
+    }
+  });
+
+  it('post94: negative — wrangler.toml never commits GEMINI_API_KEY value', () => {
+    expect(text('wrangler.toml')).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(text('wrangler.toml')).toContain('# wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('post94: AGENTS Safe Actions lists /playlist and /now-playing as allowed additions only', () => {
+    const agents = text('AGENTS.md');
+    const safe = agents.slice(agents.indexOf('## Safe Agent Actions'), agents.indexOf('## Verify'));
+    expect(safe).toContain('/playlist');
+    expect(safe).toContain('/now-playing');
+    expect(text('src/index.ts')).not.toContain("app.get('/playlist'");
+  });
+
+  it('post94: AGENTS Verify fenced block matches package scripts', () => {
+    const agents = text('AGENTS.md');
+    const block = agents.slice(agents.indexOf('## Verify'), agents.indexOf('## Escalate'));
+    expect(block).toContain('```bash\nnpm ci\nnpm run typecheck\nnpm test\nnpm run test:coverage\n```');
+    const pkg = JSON.parse(text('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post94: DEPLOY HITL bullets lock Andrew + GEMINI + external sources', () => {
+    const deploy = text('DEPLOY.md');
+    const hitl = deploy.slice(deploy.indexOf('## HITL Required'));
+    expect(hitl).toContain('First production deploy must be reviewed by Andrew');
+    expect(hitl).toContain('GEMINI_API_KEY handling require approval');
+    expect(hitl).toContain('Adding new external data sources requires approval');
+  });
+
+  it('post94: README Available Genres middot list equals VALID_GENRES runtime', () => {
+    const line = text('README.md')
+      .split('\n')
+      .find((l) => l.includes('`music`') && l.includes('·') && l.includes('entertainment'));
+    expect(line).toBeDefined();
+    const slugs = [...line!.matchAll(/`([a-z]+)`/g)].map((m) => m[1]);
+    expect(slugs).toEqual([...VALID_GENRES]);
+  });
+
+  it('post94: README alias examples remain GENRE_MAP subset', () => {
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    expect(GENRE_MAP.lofi).toBe('ambient');
+    expect(GENRE_MAP.blues).toBe('jazz');
+    expect(text('README.md')).toContain('`late night` → ambient');
+    expect(text('README.md')).toContain('`chill` → ambient');
+    expect(text('README.md')).toContain('`lofi` → ambient');
+    expect(text('README.md')).toContain('`blues` → jazz');
+  });
+
+  it('post94: environment.json name and install lock', () => {
+    const env = JSON.parse(text('.cursor/environment.json')) as { name: string; install: string };
+    expect(env).toEqual({ name: 'Backlink_Facelift', install: 'npm ci' });
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+  });
+
+  it('post94: package.json name backlink type module', () => {
+    const pkg = JSON.parse(text('package.json')) as {
+      name: string;
+      type: string;
+      dependencies: Record<string, string>;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.type).toBe('module');
+    expect(pkg.dependencies.hono).toMatch(/^\^4\./);
+  });
+
+  it('post94: vitest thresholds all 100 and exclude types.ts', () => {
+    const vitest = text('vitest.config.ts');
+    expect(vitest).toMatch(/lines:\s*100/);
+    expect(vitest).toMatch(/functions:\s*100/);
+    expect(vitest).toMatch(/branches:\s*100/);
+    expect(vitest).toMatch(/statements:\s*100/);
+    expect(vitest).toContain("'src/types.ts'");
+  });
+
+  it('post94: CI hygiene lists source-contracts.test.ts', () => {
+    expect(text('.github/workflows/ci.yml')).toContain('test -f test/source-contracts.test.ts');
+  });
+
+  it('post94: CI concurrency cancel-in-progress true', () => {
+    expect(text('.github/workflows/ci.yml')).toContain('cancel-in-progress: true');
+  });
+
+  it('post94: CI permissions contents read only', () => {
+    const ci = text('.github/workflows/ci.yml');
+    expect(ci).toContain('contents: read');
+    expect(ci).not.toMatch(/contents:\s*write/);
+  });
+
+  it('post94: deploy workflow_dispatch only trigger shape', () => {
+    const deploy = text('.github/workflows/deploy.yml');
+    expect(deploy).toContain('workflow_dispatch');
+    expect(deploy).not.toMatch(/pull_request_target/);
+  });
+
+  it('post94: no BOM/CRLF on product source and docs', () => {
+    for (const rel of [
+      'src/index.ts',
+      'src/parser.ts',
+      'src/genres.ts',
+      'src/mcp.ts',
+      'src/types.ts',
+      'docs/mcp-spec.md',
+      'README.md',
+      'DEPLOY.md',
+      'AGENTS.md',
+    ]) {
+      const t = text(rel);
+      expect(t.charCodeAt(0)).not.toBe(0xfeff);
+      expect(t).not.toContain('\r');
+    }
+  });
+
+  it('post94: index fetch count exactly three (iptv primary, music fallback, gemini)', () => {
+    expect([...text('src/index.ts').matchAll(/\bawait fetch\(/g)]).toHaveLength(3);
+  });
+
+  it('post94: index JSON.parse sites exactly two (KV cache + Gemini)', () => {
+    expect([...text('src/index.ts').matchAll(/JSON\.parse\(/g)]).toHaveLength(2);
+  });
+
+  it('post94: index JSON.stringify sites exactly two (KV put + Gemini body)', () => {
+    expect([...text('src/index.ts').matchAll(/JSON\.stringify\(/g)]).toHaveLength(2);
+  });
+
+  it('post94: parser attribute regexes five case-insensitive double-quote captures', () => {
+    const parser = text('src/parser.ts');
+    expect([...parser.matchAll(/\.match\(\/[^\n]+\/i\)/g)]).toHaveLength(5);
+    expect(parser).toContain('tvg-name=');
+    expect(parser).toContain('tvg-logo=');
+    expect(parser).toContain('group-title=');
+    expect(parser).toContain('tvg-language=');
+    expect(parser).toContain('tvg-country=');
+  });
+
+  it('post94: parser seen Set is URL-keyed local', () => {
+    const parser = text('src/parser.ts');
+    expect(parser).toContain('const seen = new Set<string>()');
+    expect(parser).toContain('!seen.has(line)');
+    expect(parser).toContain('seen.add(line)');
+  });
+
+  it('post94: parser push object field order name url logo group language country', () => {
+    const parser = text('src/parser.ts');
+    const pushStart = parser.indexOf('stations.push');
+    const push = parser.slice(pushStart, parser.indexOf('current = {};', pushStart));
+    expect(push.indexOf('name:')).toBeLessThan(push.indexOf('url:'));
+    expect(push.indexOf('url:')).toBeLessThan(push.indexOf('logo:'));
+    expect(push.indexOf('logo:')).toBeLessThan(push.indexOf('group:'));
+    expect(push.indexOf('group:')).toBeLessThan(push.indexOf('language:'));
+    expect(push.indexOf('language:')).toBeLessThan(push.indexOf('country:'));
+  });
+
+  it('post94: docs Integration Notes Base URL https', () => {
+    expect(text('docs/mcp-spec.md')).toContain('Base URL: `https://backlink.fuzzywigg.com`');
+    expect(text('docs/mcp-spec.md')).toContain('No auth required for read endpoints');
+  });
+
+  it('post94: MCP auth none while Worker uses open cors', () => {
+    expect(text('src/mcp.ts')).toContain('auth: { type: "none" }');
+    expect(text('src/index.ts')).toContain("app.use('*', cors())");
+  });
+
+  it('post94: MCP api openapi url without Worker route', () => {
+    expect(text('src/mcp.ts')).toContain('url: "/openapi.json"');
+    expect(text('src/index.ts')).not.toContain("app.get('/openapi.json'");
+  });
+
+  it('post94: Hono Bindings Env generic on app', () => {
+    expect(text('src/index.ts')).toContain('const app = new Hono<{ Bindings: Env }>()');
+  });
+
+  it('post94: export default app is sole export in index', () => {
+    expect([...text('src/index.ts').matchAll(/^export /gm)]).toHaveLength(1);
+    expect(text('src/index.ts').trimEnd().endsWith('export default app;')).toBe(true);
+  });
+
+  it('post94: Object.is identity locks for critical string literals', () => {
+    expect(Object.is(JSON.parse(text('package.json')).name, 'backlink')).toBe(true);
+    expect(Object.is(JSON.parse(text('.cursor/environment.json')).install, 'npm ci')).toBe(true);
+  });
+
+  it('post94: TextEncoder round-trip of IPTV_BASE stays stable', () => {
+    const base = 'https://iptv-org.github.io/iptv/categories';
+    expect(new TextDecoder().decode(new TextEncoder().encode(base))).toBe(base);
+    expect(text('src/index.ts')).toContain(base);
+  });
+
+  it('post94: fromCharCode rebuild of Backlink product name', () => {
+    const rebuilt = String.fromCharCode(66, 97, 99, 107, 108, 105, 110, 107);
+    expect(rebuilt).toBe('Backlink');
+    expect(text('src/index.ts')).toContain("name: 'Backlink'");
+  });
+
+  it('post94: Buffer byteLength equals fs size for ASCII modules', () => {
+    for (const rel of ['src/mcp.ts', 'wrangler.toml', 'package.json', 'vitest.config.ts']) {
+      const buf = bytes(rel);
+      expect(buf.length).toBe(statSync(join(root, rel)).size);
+      expect(Buffer.byteLength(buf.toString('utf8'), 'utf8')).toBe(buf.length);
+    }
+  });
+
+  it('post94: index larger than parser+genres+types combined bytes', () => {
+    expect(bytes('src/index.ts').length).toBeGreaterThan(
+      bytes('src/parser.ts').length + bytes('src/genres.ts').length + bytes('src/types.ts').length,
+    );
+  });
+
+  it('post94: mcp.ts larger than genres.ts and types.ts', () => {
+    expect(bytes('src/mcp.ts').length).toBeGreaterThan(bytes('src/genres.ts').length);
+    expect(bytes('src/mcp.ts').length).toBeGreaterThan(bytes('src/types.ts').length);
+  });
+
+  it('post94: docs mcp-spec larger than README', () => {
+    expect(bytes('docs/mcp-spec.md').length).toBeGreaterThan(bytes('README.md').length);
+  });
+
+  it('post94: README larger than DEPLOY and AGENTS', () => {
+    expect(bytes('README.md').length).toBeGreaterThan(bytes('DEPLOY.md').length);
+    expect(bytes('DEPLOY.md').length).toBeGreaterThan(bytes('AGENTS.md').length);
+  });
+
+  it('post94: CI workflow larger than deploy workflow', () => {
+    expect(bytes('.github/workflows/ci.yml').length).toBeGreaterThan(
+      bytes('.github/workflows/deploy.yml').length,
+    );
+  });
+
+  it('post94: locks prompt You are Backlink AI radio curator once', () => {
+    expect([...text('src/index.ts').matchAll(/You are Backlink, an AI radio curator/g)]).toHaveLength(1);
+  });
+
+  it('post94: locks dual join separators prompt slash vs response space', () => {
+    const index = text('src/index.ts');
+    expect(index).toContain("[mood, genre].filter(Boolean).join(' / ')");
+    expect(index).toContain("[mood, genreParam].filter(Boolean).join(' ') || genre");
+  });
+
+  it('post94: locks resolveGenre genreParam ?? mood only on /curate', () => {
+    const index = text('src/index.ts');
+    const stations = index.slice(index.indexOf("app.get('/stations'"), index.indexOf("app.get('/curate'"));
+    const curate = index.slice(index.indexOf("app.get('/curate'"));
+    expect(stations).toContain('resolveGenre(genreParam)');
+    expect(stations).not.toContain('genreParam ?? mood');
+    expect(curate).toContain('resolveGenre(genreParam ?? mood)');
+  });
+
+  it('post94: locks Date.toISOString once on /curate', () => {
+    expect([...text('src/index.ts').matchAll(/toISOString\(\)/g)]).toHaveLength(1);
+  });
+
+  it('post94: locks cacheKey template stations:${genre}', () => {
+    expect(text('src/index.ts')).toContain('`stations:${genre}`');
+  });
+
+  it('post94: locks kv.get before network fetch in fetchStations', () => {
+    const index = text('src/index.ts');
+    const fn = index.slice(index.indexOf('async function fetchStations'), index.indexOf('async function callGemini'));
+    expect(fn.indexOf('kv.get(cacheKey)')).toBeLessThan(fn.indexOf('await fetch(url)'));
+  });
+
+  it('post94: locks parseM3U after res.text before kv.put', () => {
+    const index = text('src/index.ts');
+    const fn = index.slice(index.indexOf('async function fetchStations'), index.indexOf('async function callGemini'));
+    expect(fn.indexOf('await res.text()')).toBeLessThan(fn.indexOf('parseM3U(raw)'));
+    expect(fn.indexOf('parseM3U(raw)')).toBeLessThan(fn.indexOf('kv.put'));
+  });
+
+  it('post94: locks callGemini candidates optional chaining', () => {
+    expect(text('src/index.ts')).toContain(
+      "data.candidates[0]?.content?.parts[0]?.text ?? ''",
+    );
+  });
+
+  it('post94: locks no Authorization header in callGemini', () => {
+    const index = text('src/index.ts');
+    const cg = index.slice(index.indexOf('async function callGemini'), index.indexOf('const app'));
+    expect(cg).not.toMatch(/Authorization/i);
+    expect(cg).toContain('?key=');
+  });
+
+  it('post94: locks generateContent path v1beta models', () => {
+    expect(text('src/index.ts')).toContain(
+      'generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=',
+    );
+  });
+
+  it('post94: locks content-type header lowercase application/json', () => {
+    expect(text('src/index.ts')).toContain("'content-type': 'application/json'");
+    expect(text('src/index.ts')).not.toContain("'Content-Type'");
+  });
+
+  it('post94: locks types issue #8 comment on optional GEMINI', () => {
+    expect(text('src/types.ts')).toContain('Optional at runtime');
+    expect(text('src/types.ts')).toContain('(#8)');
+  });
+
+  it('post94: locks wrangler compatibility_date 2025-01-01', () => {
+    expect(text('wrangler.toml')).toContain('compatibility_date = "2025-01-01"');
+  });
+
+  it('post94: locks wrangler main src/index.ts and name backlink', () => {
+    expect(text('wrangler.toml')).toContain('name = "backlink"');
+    expect(text('wrangler.toml')).toContain('main = "src/index.ts"');
+  });
+
+  it('post94: locks wrangler custom_domain true for backlink route', () => {
+    expect(text('wrangler.toml')).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(text('wrangler.toml')).toContain('custom_domain = true');
+  });
+
+  it('post94: locks KV id placeholder shape 32 hex in wrangler', () => {
+    expect(text('wrangler.toml')).toMatch(/id = "[0-9a-f]{32}"/);
+  });
+
+  it('post94: package-lock lockfileVersion 3', () => {
+    expect(text('package-lock.json')).toContain('"lockfileVersion": 3');
+  });
+
+  it('post94: .gitattributes present and non-empty', () => {
+    expect(bytes('.gitattributes').length).toBeGreaterThan(0);
+    expect(text('.gitattributes').length).toBeGreaterThan(0);
+  });
+
+  it('post94: .gitignore excludes node_modules coverage .wrangler', () => {
+    const gi = text('.gitignore');
+    expect(gi).toMatch(/node_modules/);
+    expect(gi).toMatch(/coverage/);
+    expect(gi).toMatch(/\.wrangler/);
+  });
+
+  it('post94: dependabot npm ecosystem monthly', () => {
+    const dep = text('.github/dependabot.yml');
+    expect(dep).toContain('package-ecosystem: "npm"');
+    expect(dep).toContain('package-ecosystem: "github-actions"');
+    expect([...dep.matchAll(/interval:\s*"monthly"/g)]).toHaveLength(2);
+  });
+
+  it('post94: README CI badge points at ci.yml', () => {
+    expect(text('README.md')).toContain('actions/workflows/ci.yml/badge.svg');
+  });
+
+  it('post94: README live worker URL https', () => {
+    expect(text('README.md')).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('post94: README Cloud agents coverage floors 100%', () => {
+    expect(text('README.md')).toMatch(/Coverage floors stay at \*\*100%\*\*/);
+  });
+
+  it('post94: README Stack bullets Cloudflare Hono iptv-org Gemini KV', () => {
+    const readme = text('README.md');
+    const stack = readme.slice(readme.indexOf('## Stack'));
+    expect(stack).toContain('Cloudflare Workers');
+    expect(stack).toContain('Hono');
+    expect(stack).toContain('iptv-org');
+    expect(stack).toContain('Gemini 2.0 Flash');
+    expect(stack).toContain('CF KV');
+  });
+
+  it('post94: DEPLOY local dev localhost:8787', () => {
+    expect(text('DEPLOY.md')).toContain('http://localhost:8787');
+    expect(text('DEPLOY.md')).toContain('npm run dev');
+  });
+
+  it('post94: DEPLOY Cost Estimate Gemini pricing bullets', () => {
+    const deploy = text('DEPLOY.md');
+    const cost = deploy.slice(deploy.indexOf('## Cost Estimate'));
+    expect(cost).toContain('100,000 requests/day');
+    expect(cost).toContain('~$0.25/1M input tokens');
+    expect(cost).toContain('~$1.25/1M output tokens');
+  });
+
+  it('post94: AGENTS Classification Tier A Autonomy L2', () => {
+    expect(text('AGENTS.md')).toContain('Tier: A (Active Strategic — Andrew flagged HIGH PRIORITY)');
+    expect(text('AGENTS.md')).toContain('Autonomy: L2 (Standard — non-critical infra)');
+  });
+
+  it('post94: AGENTS parent_governance fuzzywigg/agents-governance', () => {
+    expect(text('AGENTS.md')).toContain(
+      'parent_governance: github.com/fuzzywigg/agents-governance',
+    );
+  });
+
+  it('post94: AGENTS Escalate billing and CF account', () => {
+    expect(text('AGENTS.md')).toContain('Any billing or CF account configuration');
+  });
+
+  it('post94: docs tool backlink_genres endpoint /genres', () => {
+    expect(text('docs/mcp-spec.md')).toContain('### `backlink_genres`');
+    expect(text('docs/mcp-spec.md')).toContain('**Endpoint:** `GET /genres`');
+  });
+
+  it('post94: docs backlink_now_playing remaps url to stream_url', () => {
+    expect(text('docs/mcp-spec.md')).toContain('url` remapped to `stream_url');
+    expect(text('docs/mcp-spec.md')).toContain('"stream_url"');
+  });
+
+  it('post94: cross-lock package description iptv-org catalog wording', () => {
+    const pkg = JSON.parse(text('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+  });
+
+  it('post94: index free of require CommonJS and dynamic import', () => {
+    expect(text('src/index.ts')).not.toMatch(/\brequire\s*\(/);
+    expect(text('src/index.ts')).not.toMatch(/import\(/);
+  });
+
+  it('post94: all src modules free of tabs', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(text(rel)).not.toContain('\t');
+    }
+  });
+
+  it('post94: mcp double-quote heavy zero single quotes', () => {
+    expect((text('src/mcp.ts').match(/'/g) ?? []).length).toBe(0);
+    expect((text('src/mcp.ts').match(/"/g) ?? []).length).toBe(62);
+  });
+
+  it('post94: genres single-quote heavy zero double quotes', () => {
+    expect((text('src/genres.ts').match(/"/g) ?? []).length).toBe(0);
+    expect((text('src/genres.ts').match(/'/g) ?? []).length).toBe(68);
+  });
+
+  it('post94: types.ts has no quotes', () => {
+    const types = text('src/types.ts');
+    expect(types).not.toContain("'");
+    expect(types).not.toContain('"');
+  });
+
+  it('post94: index crab emoji exactly once', () => {
+    expect([...text('src/index.ts').matchAll(/🦀/g)]).toHaveLength(1);
+  });
+
+  it('post94: index gemini-2.0-flash exactly once', () => {
+    expect([...text('src/index.ts').matchAll(/gemini-2\.0-flash/g)]).toHaveLength(1);
+  });
+
+  it('post94: index IPTV_BASE identifier three occurrences', () => {
+    expect([...text('src/index.ts').matchAll(/IPTV_BASE/g)]).toHaveLength(3);
+  });
+
+  it('post94: index c.json exactly eight call sites', () => {
+    expect([...text('src/index.ts').matchAll(/c\.json\(/g)]).toHaveLength(8);
+  });
+
+
+  it('post94: final mega purity — 25 digest+cross rounds', () => {
+    const expectedIndex = '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72';
+    const expectedParser = 'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368';
+    for (let i = 0; i < 25; i++) {
+      expect(sha256('src/index.ts')).toBe(expectedIndex);
+      expect(sha256('src/parser.ts')).toBe(expectedParser);
+      expect(text('src/index.ts')).toContain('gemini-2.0-flash');
+      expect(text('src/parser.ts')).toContain('export function parseM3U');
+      expect(JSON.parse(text('package.json')).name).toBe('backlink');
+    }
+  });
+
+
+  it('post94: sha256 of src/index.ts differs from src/parser.ts', () => {
+    expect(sha256('src/index.ts')).not.toBe(sha256('src/parser.ts'));
+  });
+
+  it('post94: sha256 of src/parser.ts differs from src/genres.ts', () => {
+    expect(sha256('src/parser.ts')).not.toBe(sha256('src/genres.ts'));
+  });
+
+  it('post94: sha256 of src/mcp.ts differs from src/types.ts', () => {
+    expect(sha256('src/mcp.ts')).not.toBe(sha256('src/types.ts'));
+  });
+
+  it('post94: sha256 of README.md differs from DEPLOY.md', () => {
+    expect(sha256('README.md')).not.toBe(sha256('DEPLOY.md'));
+  });
+
+  it('post94: sha256 of AGENTS.md differs from docs/mcp-spec.md', () => {
+    expect(sha256('AGENTS.md')).not.toBe(sha256('docs/mcp-spec.md'));
+  });
+
+  it('post94: sha256 of .github/workflows/ci.yml differs from .github/workflows/deploy.yml', () => {
+    expect(sha256('.github/workflows/ci.yml')).not.toBe(sha256('.github/workflows/deploy.yml'));
+  });
+
+  it('post94: locks src/index.ts starts with import { Hono }', () => {
+    expect(text('src/index.ts').startsWith("import { Hono }")).toBe(true);
+  });
+
+  it('post94: locks src/parser.ts starts with export interface Station', () => {
+    expect(text('src/parser.ts').startsWith("export interface Station")).toBe(true);
+  });
+
+  it('post94: locks src/mcp.ts starts with export const MCP_MANIFEST', () => {
+    expect(text('src/mcp.ts').startsWith("export const MCP_MANIFEST")).toBe(true);
+  });
+
+  it('post94: locks src/genres.ts starts with iptv-org category comment', () => {
+    expect(text('src/genres.ts').startsWith("/** iptv-org category")).toBe(true);
+  });
+
+  it('post94: locks src/types.ts starts with export interface Env', () => {
+    expect(text('src/types.ts').startsWith("export interface Env")).toBe(true);
+  });
+
+  it('post94: locks src/index.ts EOF suffix', () => {
+    expect(text('src/index.ts').endsWith("export default app;\n")).toBe(true);
+  });
+
+  it('post94: locks src/parser.ts EOF suffix', () => {
+    expect(text('src/parser.ts').endsWith("  return stations;\n}\n")).toBe(true);
+  });
+
+  it('post94: locks src/types.ts EOF suffix', () => {
+    expect(text('src/types.ts').endsWith("  VERSION?: string;\n}\n")).toBe(true);
+  });
+
+  it('post94: registers GET / exactly once (#0)', () => {
+    expect([...text('src/index.ts').matchAll(/app\.get\('\/'(?=,)/g)]).toHaveLength(1);
+  });
+
+  it('post94: registers GET /health exactly once (#1)', () => {
+    expect([...text('src/index.ts').matchAll(/app\.get\('\/health'/g)]).toHaveLength(1);
+  });
+
+  it('post94: registers GET /genres exactly once (#2)', () => {
+    expect([...text('src/index.ts').matchAll(/app\.get\('\/genres'/g)]).toHaveLength(1);
+  });
+
+  it('post94: registers GET /stations exactly once (#3)', () => {
+    expect([...text('src/index.ts').matchAll(/app\.get\('\/stations'/g)]).toHaveLength(1);
+  });
+
+  it('post94: registers GET /curate exactly once (#4)', () => {
+    expect([...text('src/index.ts').matchAll(/app\.get\('\/curate'/g)]).toHaveLength(1);
+  });
+
+  it('post94: index contains slice(0, 50)', () => {
+    expect(text('src/index.ts')).toContain("slice(0, 50)");
+  });
+
+  it('post94: index contains slice(0, 5)', () => {
+    expect(text('src/index.ts')).toContain("stations.slice(0, 5)");
+  });
+
+  it('post94: index contains maxOutputTokens 512', () => {
+    expect(text('src/index.ts')).toContain("maxOutputTokens: 512");
+  });
+
+  it('post94: index contains temperature 0.7', () => {
+    expect(text('src/index.ts')).toContain("temperature: 0.7");
+  });
+
+  it('post94: index contains expirationTtl 3600', () => {
+    expect(text('src/index.ts')).toContain("expirationTtl: 3600");
+  });
+
+  it('post94: index contains retry_after 60', () => {
+    expect(text('src/index.ts')).toContain("retry_after: 60");
+  });
+
+  it('post94: index contains editorial null', () => {
+    expect(text('src/index.ts')).toContain("editorial: null");
+  });
+
+  it('post94: index contains curated_by Backlink/Geryon', () => {
+    expect(text('src/index.ts')).toContain("curated_by: 'Backlink/Geryon'");
+  });
+
+  it('post94: index contains powered_by crab', () => {
+    expect(text('src/index.ts')).toContain("powered_by: 'Backlink/Geryon \ud83e\udd80'");
+  });
+
+  it('post94: index contains filter Boolean', () => {
+    expect(text('src/index.ts')).toContain("filter(Boolean)");
+  });
+
+  it('post94: negative — src/parser.ts free of fetch(', () => {
+    expect(text('src/parser.ts')).not.toContain("fetch(");
+  });
+
+  it('post94: negative — src/parser.ts free of Hono', () => {
+    expect(text('src/parser.ts')).not.toContain("Hono");
+  });
+
+  it('post94: negative — src/parser.ts free of Gemini', () => {
+    expect(text('src/parser.ts')).not.toContain("Gemini");
+  });
+
+  it('post94: negative — src/genres.ts free of fetch(', () => {
+    expect(text('src/genres.ts')).not.toContain("fetch(");
+  });
+
+  it('post94: negative — src/genres.ts free of Hono', () => {
+    expect(text('src/genres.ts')).not.toContain("Hono");
+  });
+
+  it('post94: negative — src/mcp.ts free of fetch(', () => {
+    expect(text('src/mcp.ts')).not.toContain("fetch(");
+  });
+
+  it('post94: negative — src/mcp.ts free of Hono', () => {
+    expect(text('src/mcp.ts')).not.toContain("Hono");
+  });
+
+  it('post94: negative — src/types.ts free of fetch(', () => {
+    expect(text('src/types.ts')).not.toContain("fetch(");
+  });
+
+  it('post94: negative — src/types.ts free of Station', () => {
+    expect(text('src/types.ts')).not.toContain("Station");
+  });
+
+  it('post94: docs defines ### `backlink_curate`', () => {
+    expect(text('docs/mcp-spec.md')).toContain('### `backlink_curate`');
+  });
+
+  it('post94: docs defines ### `backlink_genres`', () => {
+    expect(text('docs/mcp-spec.md')).toContain('### `backlink_genres`');
+  });
+
+  it('post94: docs defines exactly three ### backlink_* tool headers', () => {
+    const docs = text('docs/mcp-spec.md');
+    expect([...docs.matchAll(/^### `backlink_[a-z_]+`$/gm)].map((m) => m[0])).toEqual([
+      '### `backlink_curate`',
+      '### `backlink_genres`',
+      '### `backlink_now_playing`',
+    ]);
+  });
+
+  it('post94: docs defines ### `backlink_now_playing`', () => {
+    expect(text('docs/mcp-spec.md')).toContain('### `backlink_now_playing`');
+  });
+
+  it('post94: AGENTS Safe Action — Update station genre mappings in `src/ge', () => {
+    expect(text('AGENTS.md')).toContain("Update station genre mappings in `src/genres.ts`");
+  });
+
+  it('post94: AGENTS Safe Action — Improve M3U parser in `src/parser.ts`', () => {
+    expect(text('AGENTS.md')).toContain("Improve M3U parser in `src/parser.ts`");
+  });
+
+  it('post94: AGENTS Safe Action — Add / extend unit tests under `test/`', () => {
+    expect(text('AGENTS.md')).toContain("Add / extend unit tests under `test/`");
+  });
+
+  it('post94: AGENTS Safe Action — Add new endpoints (e.g., `/playlist`, `/', () => {
+    expect(text('AGENTS.md')).toContain("Add new endpoints (e.g., `/playlist`, `/now-playing`)");
+  });
+
+  it('post94: AGENTS Safe Action — Update docs and deploy guides', () => {
+    expect(text('AGENTS.md')).toContain("Update docs and deploy guides");
+  });
+
+  it('post94: AGENTS Safe Action — Bump dependency versions', () => {
+    expect(text('AGENTS.md')).toContain("Bump dependency versions");
+  });
+
+  it('post94: AGENTS Escalate — Changes to GEMINI_API_KEY handling or an', () => {
+    expect(text('AGENTS.md')).toContain("Changes to GEMINI_API_KEY handling or any secret management");
+  });
+
+  it('post94: AGENTS Escalate — Production deploy (first deploy must be ', () => {
+    expect(text('AGENTS.md')).toContain("Production deploy (first deploy must be HITL)");
+  });
+
+  it('post94: AGENTS Escalate — Adding new external data sources beyond ', () => {
+    expect(text('AGENTS.md')).toContain("Adding new external data sources beyond iptv-org");
+  });
+
+  it('post94: AGENTS Escalate — Changes to CORS or authentication logic', () => {
+    expect(text('AGENTS.md')).toContain("Changes to CORS or authentication logic");
+  });
+
+  it('post94: AGENTS Escalate — Any billing or CF account configuration', () => {
+    expect(text('AGENTS.md')).toContain("Any billing or CF account configuration");
+  });
+
+  it('post94: README caveat — Catalog is IPTV *video* channels, no', () => {
+    expect(text('README.md')).toContain("Catalog is IPTV *video* channels, not internet radio");
+  });
+
+  it('post94: README caveat — fall back to `music.m3u`', () => {
+    expect(text('README.md')).toContain("fall back to `music.m3u`");
+  });
+
+  it('post94: README caveat — editorial: null', () => {
+    expect(text('README.md')).toContain("editorial: null");
+  });
+
+  it('post94: README caveat — Real matching categories today: `mus', () => {
+    expect(text('README.md')).toContain("Real matching categories today: `music`, `news`, `sports`, `entertainment`");
+  });
+
 });
