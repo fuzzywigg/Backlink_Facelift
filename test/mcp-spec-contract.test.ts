@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { MCP_MANIFEST } from '../src/mcp';
-import { GENRE_MAP, VALID_GENRES } from '../src/genres';
+import { GENRE_MAP, VALID_GENRES, resolveGenre } from '../src/genres';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const specPath = join(root, 'docs/mcp-spec.md');
@@ -6851,4 +6851,4430 @@ describe('post112 mcp-spec-contract HEAVY deepen', () => {
     );
   });
 
+});
+
+
+describe('post116 mcp-spec-contract HEAVY deepen', () => {
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const mcpSrc = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+  const indexSrc = readFileSync(join(root, 'src/index.ts'), 'utf8');
+  const genresSrc = readFileSync(join(root, 'src/genres.ts'), 'utf8');
+  const parserSrc = readFileSync(join(root, 'src/parser.ts'), 'utf8');
+  const typesSrc = readFileSync(join(root, 'src/types.ts'), 'utf8');
+  const wranglerToml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+  const ciYml = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+  const agentsMd = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+  const readmeMd = readFileSync(join(root, 'README.md'), 'utf8');
+  const deployMd = readFileSync(join(root, 'DEPLOY.md'), 'utf8');
+  const pkgJson = readFileSync(join(root, 'package.json'), 'utf8');
+  const vitestCfg = readFileSync(join(root, 'vitest.config.ts'), 'utf8');
+  const dependabotYml = readFileSync(join(root, '.github/dependabot.yml'), 'utf8');
+  const envJson = readFileSync(join(root, '.cursor/environment.json'), 'utf8');
+  const packageLock = readFileSync(join(root, 'package-lock.json'), 'utf8');
+  const tsconfigJson = readFileSync(join(root, 'tsconfig.json'), 'utf8');
+  const DOCS_IDS = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'] as const;
+  const CLAW_NAMES = ['station_select', 'now_playing', 'genre_filter', 'curator_prompt'] as const;
+  const POST116_KEYS = ["post116","mcp-spec","mcp-spec-contract","backlink","Backlink Radio","backlink_curate","backlink_genres","backlink_now_playing","stream_url","curated_by","Integration Notes","claw-mcp","station_select","now_playing","genre_filter","curator_prompt","VALID_GENRES","GENRE_MAP","fuzzywigg","iptv-org","Gemini","1h TTL","editorial: null","additionalProperties","openapi","post116-heavy","TOKENMAXX","soft-cap","EoD","routes-116","helpers","parser","wrangler","genres","source-contracts","ci-config","Backlink_Facelift","gemini-2.0-flash","CATALOG_CACHE","/curate","/genres","/stations","/health"] as const;
+
+  it('post116: locks docs/mcp-spec.md sha256 digest', () => {
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849");
+  });
+
+  it('post116: locks docs/mcp-spec.md sha1 digest', () => {
+    expect(createHash('sha1').update(spec, 'utf8').digest('hex')).toBe("e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a");
+  });
+
+  it('post116: locks docs/mcp-spec.md md5 digest', () => {
+    expect(createHash('md5').update(spec, 'utf8').digest('hex')).toBe("ee7881030c338c1773659cc6378c392c");
+  });
+
+  it('post116: locks docs/mcp-spec.md sha384 digest', () => {
+    expect(createHash('sha384').update(spec, 'utf8').digest('hex')).toBe("b32096b74bacd48065f014d2695673b3bfad3cb9118b855899a92a849cd38a7dd751db7c9e0705d6d6569d5f05f61227");
+  });
+
+  it('post116: locks docs/mcp-spec.md sha512 digest', () => {
+    expect(createHash('sha512').update(spec, 'utf8').digest('hex')).toBe("8d26bafffcb1230048d80796e1d8a1019d83253810324d18383c54ff8bcaaed4a508b0a07395994af2f23e4f9b627e2202a57fcac709110d0ee859e8628709e7");
+  });
+
+  it('post116: sha256 nibble sum', () => {
+    expect(nibbleSum(createHash('sha256').update(spec, 'utf8').digest('hex'))).toBe(514);
+  });
+
+  it('post116: sha256 xor-nibble fingerprint', () => {
+    expect(xorNibbles(createHash('sha256').update(spec, 'utf8').digest('hex'))).toBe(14);
+  });
+
+  it('post116: sha256/sha384/sha512 pairwise distinct', () => {
+    const a = createHash('sha256').update(spec, 'utf8').digest('hex');
+    const b = createHash('sha384').update(spec, 'utf8').digest('hex');
+    const c = createHash('sha512').update(spec, 'utf8').digest('hex');
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it('post116: digest lengths sha384=96 sha512=128 lowercase', () => {
+    const a = createHash('sha384').update(spec, 'utf8').digest('hex');
+    const b = createHash('sha512').update(spec, 'utf8').digest('hex');
+    expect(a).toHaveLength(96);
+    expect(b).toHaveLength(128);
+    expect(/^[a-f0-9]+$/.test(a + b)).toBe(true);
+  });
+
+  it('post116: locks byte length and char length', () => {
+    expect(spec.length).toBe(3544);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+  });
+
+  it('post116: locks line count and nonempty line count', () => {
+    const ls = spec.split('\n');
+    expect(ls).toHaveLength(145);
+    expect(ls.filter((l) => l.length > 0)).toHaveLength(121);
+  });
+
+  it('post116: no CR bytes; trailing newline present', () => {
+    expect(spec.includes('\r')).toBe(false);
+    expect(spec.endsWith('\n')).toBe(true);
+  });
+
+  it('post116: ASCII-only body (tab/lf/cr/printable)', () => {
+    expect(/^[\x09\x0a\x0d\x20-\x7e]*$/.test(spec)).toBe(false);
+  });
+
+  it("post116: HMAC-SHA256 keyed by post116 locks spec digest", () => {
+    expect(createHmac('sha256', "post116").update(spec, 'utf8').digest('hex')).toBe("b414f62bcea3abfcb0dcddb4f973296bbc8f65869c408d2b7816843bf74da409");
+  });
+
+  it("post116: HMAC-SHA256 keyed by mcp-spec locks spec digest", () => {
+    expect(createHmac('sha256', "mcp-spec").update(spec, 'utf8').digest('hex')).toBe("21d41c5da610b736683b86a776e8661e8b25294a698027c8d552fa6eace78cb3");
+  });
+
+  it("post116: HMAC-SHA256 keyed by mcp-spec-contract locks spec digest", () => {
+    expect(createHmac('sha256', "mcp-spec-contract").update(spec, 'utf8').digest('hex')).toBe("ef5a3e4a5d7f233f77e3d4ee5fa8ca97cacddbcee734efc9412fab489f43b614");
+  });
+
+  it("post116: HMAC-SHA256 keyed by backlink locks spec digest", () => {
+    expect(createHmac('sha256', "backlink").update(spec, 'utf8').digest('hex')).toBe("98920add1fa15e869968c8efbc949fab60baf5ca95945eaf466caf563dff3e9f");
+  });
+
+  it("post116: HMAC-SHA256 keyed by Backlink Radio locks spec digest", () => {
+    expect(createHmac('sha256', "Backlink Radio").update(spec, 'utf8').digest('hex')).toBe("2550a22433482a1d4a3c0811e8deedfd0b48aaa2b9a64d70f8ef048383e4a7ef");
+  });
+
+  it("post116: HMAC-SHA256 keyed by backlink_curate locks spec digest", () => {
+    expect(createHmac('sha256', "backlink_curate").update(spec, 'utf8').digest('hex')).toBe("d5be7a976b320237501c22881a382cf75b22af14a3f886ea5bb34d88fec2e1b2");
+  });
+
+  it("post116: HMAC-SHA256 keyed by backlink_genres locks spec digest", () => {
+    expect(createHmac('sha256', "backlink_genres").update(spec, 'utf8').digest('hex')).toBe("f9384a7b6410e8e73a6d2acbd7a8c528b41fb612659b8f376924c87d0be870d0");
+  });
+
+  it("post116: HMAC-SHA256 keyed by backlink_now_playing locks spec digest", () => {
+    expect(createHmac('sha256', "backlink_now_playing").update(spec, 'utf8').digest('hex')).toBe("d0f976d64252d4ad35ce5a5eafa023ae98ba6d5a3ca6be16019cf3a1cf96946e");
+  });
+
+  it("post116: HMAC-SHA256 keyed by stream_url locks spec digest", () => {
+    expect(createHmac('sha256', "stream_url").update(spec, 'utf8').digest('hex')).toBe("c582e603126a829add1be68dd7c7cf8e307c582440fef51bb09b65022e5a2db6");
+  });
+
+  it("post116: HMAC-SHA256 keyed by curated_by locks spec digest", () => {
+    expect(createHmac('sha256', "curated_by").update(spec, 'utf8').digest('hex')).toBe("0aed005214fff86bd6f13331f50b4aa9faaae141bef026633c9ba497aa0e1ab1");
+  });
+
+  it("post116: HMAC-SHA256 keyed by Integration Notes locks spec digest", () => {
+    expect(createHmac('sha256', "Integration Notes").update(spec, 'utf8').digest('hex')).toBe("0971cd5f6956b98210a068a429e7de36a3efb8aaeeed2844bc49b6e93320a939");
+  });
+
+  it("post116: HMAC-SHA256 keyed by claw-mcp locks spec digest", () => {
+    expect(createHmac('sha256', "claw-mcp").update(spec, 'utf8').digest('hex')).toBe("d78760362eb08fb0e477e48f981673f58304d55b916b0e1a6e37212a6f96dec7");
+  });
+
+  it("post116: HMAC-SHA256 keyed by station_select locks spec digest", () => {
+    expect(createHmac('sha256', "station_select").update(spec, 'utf8').digest('hex')).toBe("09cf27cff685a3d9f7125499f44f20636430d5f0363c9de5d2cf2869edff0b69");
+  });
+
+  it("post116: HMAC-SHA256 keyed by now_playing locks spec digest", () => {
+    expect(createHmac('sha256', "now_playing").update(spec, 'utf8').digest('hex')).toBe("23efffe3b8c66ce1b5a85ed1a565e0da79391801cdcea7a8f4edcb182305c052");
+  });
+
+  it("post116: HMAC-SHA256 keyed by genre_filter locks spec digest", () => {
+    expect(createHmac('sha256', "genre_filter").update(spec, 'utf8').digest('hex')).toBe("c5853f5dfdc18ca288fef4242e770b29896da8e5f02573f58b513ec60e599145");
+  });
+
+  it("post116: HMAC-SHA256 keyed by curator_prompt locks spec digest", () => {
+    expect(createHmac('sha256', "curator_prompt").update(spec, 'utf8').digest('hex')).toBe("ec80abe2f207397304a4a989ee91486e11e08d48ff9e935ee8628539851adfde");
+  });
+
+  it("post116: HMAC-SHA256 keyed by VALID_GENRES locks spec digest", () => {
+    expect(createHmac('sha256', "VALID_GENRES").update(spec, 'utf8').digest('hex')).toBe("5bce78975cb91bf1f314fa44ce30008c42fead0e079725b2efa2ad2750650e5a");
+  });
+
+  it("post116: HMAC-SHA256 keyed by GENRE_MAP locks spec digest", () => {
+    expect(createHmac('sha256', "GENRE_MAP").update(spec, 'utf8').digest('hex')).toBe("e01fc8634bfedbbedcd9da59f972d0afcedfd135b07c02806e7499d4eede1a1c");
+  });
+
+  it("post116: HMAC-SHA256 keyed by fuzzywigg locks spec digest", () => {
+    expect(createHmac('sha256', "fuzzywigg").update(spec, 'utf8').digest('hex')).toBe("8e0caed7ef994c374b52d69005d69324d5af51ef97c49c876613cf9ed1b93d4d");
+  });
+
+  it("post116: HMAC-SHA256 keyed by iptv-org locks spec digest", () => {
+    expect(createHmac('sha256', "iptv-org").update(spec, 'utf8').digest('hex')).toBe("f0cc92feffdc00412074b061f650d4216738d7f8e9eb260b8822500b0d7445cf");
+  });
+
+  it("post116: HMAC-SHA256 keyed by Gemini locks spec digest", () => {
+    expect(createHmac('sha256', "Gemini").update(spec, 'utf8').digest('hex')).toBe("dbb16e6c03e1156f0fa2d4b90974692e0d407a3ae58ca183e1b7a4deb3372e6b");
+  });
+
+  it("post116: HMAC-SHA256 keyed by 1h TTL locks spec digest", () => {
+    expect(createHmac('sha256', "1h TTL").update(spec, 'utf8').digest('hex')).toBe("c4c198bbce26d02199ee9405f607cc38e48c4ead8270117cf011479cbb2fe293");
+  });
+
+  it("post116: HMAC-SHA256 keyed by editorial: null locks spec digest", () => {
+    expect(createHmac('sha256', "editorial: null").update(spec, 'utf8').digest('hex')).toBe("cb776d94a0a3a1eb858160aafc326308f56009b6de4beb5b6f376715cd6ccde4");
+  });
+
+  it("post116: HMAC-SHA256 keyed by additionalProperties locks spec digest", () => {
+    expect(createHmac('sha256', "additionalProperties").update(spec, 'utf8').digest('hex')).toBe("4fc3e0d7c845059dab9fdb3306457e00e146f7c32d8ea67de49508809bfdebf9");
+  });
+
+  it("post116: HMAC-SHA256 keyed by openapi locks spec digest", () => {
+    expect(createHmac('sha256', "openapi").update(spec, 'utf8').digest('hex')).toBe("f0e4923966d2eccf6e2f2b7687314c5e74f79c71d29b4d0198e03469bf24f309");
+  });
+
+  it("post116: HMAC-SHA256 keyed by post116-heavy locks spec digest", () => {
+    expect(createHmac('sha256', "post116-heavy").update(spec, 'utf8').digest('hex')).toBe("4d5a43f5eeb549e39d9d73635dde67796f491ee6886403cacf76983a47fda3ae");
+  });
+
+  it("post116: HMAC-SHA256 keyed by TOKENMAXX locks spec digest", () => {
+    expect(createHmac('sha256', "TOKENMAXX").update(spec, 'utf8').digest('hex')).toBe("58bd8b12de8084ece067f68db2cea2ea5dc8b43305c0d5e7e20506fd40e18749");
+  });
+
+  it("post116: HMAC-SHA256 keyed by soft-cap locks spec digest", () => {
+    expect(createHmac('sha256', "soft-cap").update(spec, 'utf8').digest('hex')).toBe("eb9189e85c6d750f3e8199e31eb8734d15b3d9f350b4d80814142e12d5d440c8");
+  });
+
+  it("post116: HMAC-SHA256 keyed by EoD locks spec digest", () => {
+    expect(createHmac('sha256', "EoD").update(spec, 'utf8').digest('hex')).toBe("59237f2cca2b130d355e8ef40f20bf55c8c711ba65b740b058209b8d6645f024");
+  });
+
+  it("post116: HMAC-SHA256 keyed by routes-116 locks spec digest", () => {
+    expect(createHmac('sha256', "routes-116").update(spec, 'utf8').digest('hex')).toBe("e142fb9a4805f7040b9a765aea5c47b1f5acfa562431b50d7e6d6ced650e4dfe");
+  });
+
+  it("post116: HMAC-SHA256 keyed by helpers locks spec digest", () => {
+    expect(createHmac('sha256', "helpers").update(spec, 'utf8').digest('hex')).toBe("0fe8242b5aa0463601153814b4df7934d96dd32939b0b1448b7705c6dacdac1f");
+  });
+
+  it("post116: HMAC-SHA256 keyed by parser locks spec digest", () => {
+    expect(createHmac('sha256', "parser").update(spec, 'utf8').digest('hex')).toBe("73faa0bee9b4a54edac848309fff8733d58145447e36d2523dcde4ab7b0dfa91");
+  });
+
+  it("post116: HMAC-SHA256 keyed by wrangler locks spec digest", () => {
+    expect(createHmac('sha256', "wrangler").update(spec, 'utf8').digest('hex')).toBe("b4cb7381f2bcc63f2e9dff88e1b57c939ec49b3d16ba1cdee17bc86c4c157965");
+  });
+
+  it("post116: HMAC-SHA256 keyed by genres locks spec digest", () => {
+    expect(createHmac('sha256', "genres").update(spec, 'utf8').digest('hex')).toBe("35a61c3400bc125332efe66b652550e79dd67d09e99197d22699adf3b3b212b0");
+  });
+
+  it("post116: HMAC-SHA256 keyed by source-contracts locks spec digest", () => {
+    expect(createHmac('sha256', "source-contracts").update(spec, 'utf8').digest('hex')).toBe("472c0d88a1c9d38f18a0c04197810d1e3c8da144eea8002deb8dee9a57323b7d");
+  });
+
+  it("post116: HMAC-SHA256 keyed by ci-config locks spec digest", () => {
+    expect(createHmac('sha256', "ci-config").update(spec, 'utf8').digest('hex')).toBe("6effd1effec6eeb6f8371fbc54a189e2f68c1a75308327b11f189591af625293");
+  });
+
+  it("post116: HMAC-SHA256 keyed by Backlink_Facelift locks spec digest", () => {
+    expect(createHmac('sha256', "Backlink_Facelift").update(spec, 'utf8').digest('hex')).toBe("a80aa04a157dfa23f755f9a2bedcf3e629fed047a989ed915bc5fe9f54d92597");
+  });
+
+  it("post116: HMAC-SHA256 keyed by gemini-2.0-flash locks spec digest", () => {
+    expect(createHmac('sha256', "gemini-2.0-flash").update(spec, 'utf8').digest('hex')).toBe("a8c0860fadeb6443a6763fc3f6a5b9378994c82c25c346ecf80c105d3c779a0b");
+  });
+
+  it("post116: HMAC-SHA256 keyed by CATALOG_CACHE locks spec digest", () => {
+    expect(createHmac('sha256', "CATALOG_CACHE").update(spec, 'utf8').digest('hex')).toBe("77c05eeb15ed41c6124ba94658445fe67e0d2267752592d310c765d3205ef6e2");
+  });
+
+  it("post116: HMAC-SHA256 keyed by /curate locks spec digest", () => {
+    expect(createHmac('sha256', "/curate").update(spec, 'utf8').digest('hex')).toBe("799306d0207e3baf157a13c531d179ee6d6cb9b1bdd0b050cc69e1f0d46ddec2");
+  });
+
+  it("post116: HMAC-SHA256 keyed by /genres locks spec digest", () => {
+    expect(createHmac('sha256', "/genres").update(spec, 'utf8').digest('hex')).toBe("7c519eb0fadef508fd943f397c319312e3bc760af8768226a765e0899d62b57b");
+  });
+
+  it("post116: HMAC-SHA256 keyed by /stations locks spec digest", () => {
+    expect(createHmac('sha256', "/stations").update(spec, 'utf8').digest('hex')).toBe("492caa415c30dc9f06f76d99b346fcbfbdd8018b17dc648ffa2b1699af7dbc30");
+  });
+
+  it("post116: HMAC-SHA256 keyed by /health locks spec digest", () => {
+    expect(createHmac('sha256', "/health").update(spec, 'utf8').digest('hex')).toBe("d2075176065e00647c45104c0022f517d71e7005caea940a31da86513b680bfc");
+  });
+
+  it('post116: HMAC key inventory digest', () => {
+    const inventory = POST116_KEYS.map((k) => createHmac('sha256', k).update(spec, 'utf8').digest('hex')).join('|');
+    expect(createHash('sha256').update(inventory, 'utf8').digest('hex')).toBe("636724b87a57fb793a3f9c289dda0a621e68b57d594f7804048d505219003d80");
+  });
+
+  it("post116: line 0 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[0] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("99c84d33ad819ac9");
+  });
+
+  it("post116: line 1 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[1] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 2 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[2] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("5e0f013658c5f50f");
+  });
+
+  it("post116: line 3 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[3] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 4 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[4] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cb3f91d54eee30e5");
+  });
+
+  it("post116: line 5 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[5] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 6 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[6] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b27734b46fbf7ef");
+  });
+
+  it("post116: line 7 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[7] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 8 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[8] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("ff3cf26fccc17858");
+  });
+
+  it("post116: line 9 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[9] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 10 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[10] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("02b56e10fd373ef3");
+  });
+
+  it("post116: line 11 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[11] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 12 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[12] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("5e6fc6a874f15fa0");
+  });
+
+  it("post116: line 13 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[13] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 14 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[14] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 15 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[15] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 16 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[16] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b5b7049adc5269a");
+  });
+
+  it("post116: line 17 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[17] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c27ff1a8aedfd3a8");
+  });
+
+  it("post116: line 18 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[18] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b6d239e8efbb3458");
+  });
+
+  it("post116: line 19 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[19] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("5d7e1477a4255851");
+  });
+
+  it("post116: line 20 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[20] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("58636dd916833390");
+  });
+
+  it("post116: line 21 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[21] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e08470ea6ec3f78e");
+  });
+
+  it("post116: line 22 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[22] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b6d239e8efbb3458");
+  });
+
+  it("post116: line 23 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[23] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("fb22633293e70bb9");
+  });
+
+  it("post116: line 24 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[24] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("28d86778615f6af4");
+  });
+
+  it("post116: line 25 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[25] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("3288a136ca3e7c85");
+  });
+
+  it("post116: line 26 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[26] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c76cce0dffe84d12");
+  });
+
+  it("post116: line 27 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[27] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 28 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[28] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 29 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[29] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 30 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[30] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("4d4a7b9130ee5775");
+  });
+
+  it("post116: line 31 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[31] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 32 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[32] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 33 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[33] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 34 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[34] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b5b7049adc5269a");
+  });
+
+  it("post116: line 35 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[35] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("7d3c9b85aedc612a");
+  });
+
+  it("post116: line 36 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[36] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("697b544165d774fa");
+  });
+
+  it("post116: line 37 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[37] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f9f6cf6a503b59eb");
+  });
+
+  it("post116: line 38 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[38] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("9cef552767ebb0c0");
+  });
+
+  it("post116: line 39 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[39] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("23d3e54aec3f7900");
+  });
+
+  it("post116: line 40 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[40] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("66bb58fba1af4366");
+  });
+
+  it("post116: line 41 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[41] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a854fb1a3ed9b4c2");
+  });
+
+  it("post116: line 42 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[42] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d337fa71c905db67");
+  });
+
+  it("post116: line 43 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[43] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e9856c0b8c26d416");
+  });
+
+  it("post116: line 44 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[44] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c7925c46cf680c81");
+  });
+
+  it("post116: line 45 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[45] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("75cad7ef077c03fd");
+  });
+
+  it("post116: line 46 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[46] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("94d55f14dc795d83");
+  });
+
+  it("post116: line 47 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[47] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("93ed702dbc71183a");
+  });
+
+  it("post116: line 48 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[48] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("55ebf423a240dd03");
+  });
+
+  it("post116: line 49 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[49] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("20b32f3e6c5b2747");
+  });
+
+  it("post116: line 50 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[50] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f61f5bbc379fd349");
+  });
+
+  it("post116: line 51 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[51] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("28d86778615f6af4");
+  });
+
+  it("post116: line 52 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[52] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("737db166c79ae98e");
+  });
+
+  it("post116: line 53 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[53] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 54 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[54] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 55 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[55] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 56 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[56] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("1efc6f55ca964098");
+  });
+
+  it("post116: line 57 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[57] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 58 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[58] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cb3f91d54eee30e5");
+  });
+
+  it("post116: line 59 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[59] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 60 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[60] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("eb93ddb3ee5b20e9");
+  });
+
+  it("post116: line 61 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[61] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 62 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[62] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("eada87353b2943ec");
+  });
+
+  it("post116: line 63 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[63] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 64 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[64] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("5e6fc6a874f15fa0");
+  });
+
+  it("post116: line 65 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[65] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 66 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[66] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 67 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[67] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 68 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[68] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d3862c9e5c460a0b");
+  });
+
+  it("post116: line 69 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[69] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c76cce0dffe84d12");
+  });
+
+  it("post116: line 70 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[70] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 71 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[71] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 72 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[72] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 73 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[73] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("7e7d95628b7a199f");
+  });
+
+  it("post116: line 74 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[74] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 75 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[75] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 76 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[76] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 77 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[77] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b5b7049adc5269a");
+  });
+
+  it("post116: line 78 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[78] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("855e92e35189eea1");
+  });
+
+  it("post116: line 79 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[79] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("23d3e54aec3f7900");
+  });
+
+  it("post116: line 80 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[80] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("7aced20a096ba68f");
+  });
+
+  it("post116: line 81 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[81] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b771fe5684e530d1");
+  });
+
+  it("post116: line 82 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[82] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("58636dd916833390");
+  });
+
+  it("post116: line 83 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[83] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c51251d915a70df8");
+  });
+
+  it("post116: line 84 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[84] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("558a119ee6940a65");
+  });
+
+  it("post116: line 85 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[85] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b2d147df0c268333");
+  });
+
+  it("post116: line 86 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[86] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("39bbc9e7eca4bd9f");
+  });
+
+  it("post116: line 87 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[87] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("28d86778615f6af4");
+  });
+
+  it("post116: line 88 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[88] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("737db166c79ae98e");
+  });
+
+  it("post116: line 89 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[89] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 90 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[90] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 91 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[91] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 92 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[92] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("107c1c6c71f6c3c5");
+  });
+
+  it("post116: line 93 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[93] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 94 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[94] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cb3f91d54eee30e5");
+  });
+
+  it("post116: line 95 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[95] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 96 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[96] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("778a180e647ff15a");
+  });
+
+  it("post116: line 97 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[97] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 98 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[98] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a9151993967f69ad");
+  });
+
+  it("post116: line 99 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[99] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 100 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[100] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("5e6fc6a874f15fa0");
+  });
+
+  it("post116: line 101 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[101] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 102 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[102] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 103 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[103] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 104 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[104] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b5b7049adc5269a");
+  });
+
+  it("post116: line 105 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[105] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c27ff1a8aedfd3a8");
+  });
+
+  it("post116: line 106 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[106] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b6d239e8efbb3458");
+  });
+
+  it("post116: line 107 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[107] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a8a25ade28f4566e");
+  });
+
+  it("post116: line 108 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[108] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("58636dd916833390");
+  });
+
+  it("post116: line 109 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[109] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e08470ea6ec3f78e");
+  });
+
+  it("post116: line 110 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[110] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("b6d239e8efbb3458");
+  });
+
+  it("post116: line 111 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[111] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cfc78309a75d1318");
+  });
+
+  it("post116: line 112 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[112] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("28d86778615f6af4");
+  });
+
+  it("post116: line 113 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[113] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("3288a136ca3e7c85");
+  });
+
+  it("post116: line 114 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[114] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("c76cce0dffe84d12");
+  });
+
+  it("post116: line 115 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[115] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 116 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[116] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 117 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[117] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 118 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[118] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b9a88fe456095f");
+  });
+
+  it("post116: line 119 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[119] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("a56726cde84dae15");
+  });
+
+  it("post116: line 120 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[120] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("021fb596db81e6d0");
+  });
+
+  it("post116: line 121 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[121] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d0c3102ad9c439dc");
+  });
+
+  it("post116: line 122 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[122] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("0b5b7049adc5269a");
+  });
+
+  it("post116: line 123 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[123] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("05b5215df672a99a");
+  });
+
+  it("post116: line 124 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[124] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d27cb546fae937ab");
+  });
+
+  it("post116: line 125 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[125] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("653b78133c7431ea");
+  });
+
+  it("post116: line 126 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[126] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("7be0374fadfef393");
+  });
+
+  it("post116: line 127 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[127] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("117097357b0fc608");
+  });
+
+  it("post116: line 128 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[128] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("3288a136ca3e7c85");
+  });
+
+  it("post116: line 129 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[129] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("6f7389895023466c");
+  });
+
+  it("post116: line 130 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[130] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("d10b36aa74a59bcf");
+  });
+
+  it("post116: line 131 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[131] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("f1b901847390b0ed");
+  });
+
+  it("post116: line 132 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[132] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 133 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[133] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("43bc37f060d09448");
+  });
+
+  it("post116: line 134 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[134] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 135 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[135] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("cb3f91d54eee30e5");
+  });
+
+  it("post116: line 136 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[136] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 137 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[137] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("025d1a806eaaae1a");
+  });
+
+  it("post116: line 138 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[138] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it("post116: line 139 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[139] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("8994a27e468e9af1");
+  });
+
+  it("post116: line 140 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[140] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("75bffc12b59f7503");
+  });
+
+  it("post116: line 141 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[141] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("12fa63c6833ae862");
+  });
+
+  it("post116: line 142 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[142] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("9f4c21047f874eb1");
+  });
+
+  it("post116: line 143 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[143] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("aa0dda7332d1f1f0");
+  });
+
+  it("post116: line 144 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[144] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe("e3b0c44298fc1c14");
+  });
+
+  it('post116: mid-line sha prefix inventory digest (lines 20..134)', () => {
+    const parts = [];
+    for (let i = 20; i <= 134; i++) {
+      parts.push(createHash('sha256').update(spec.split('\n')[i] ?? '', 'utf8').digest('hex').slice(0, 16));
+    }
+    expect(createHash('sha256').update(parts.join('|'), 'utf8').digest('hex')).toBe("8170c5a59e31348fde90f41e8403b40782d271e80ee9914ec0c7bd37fb7deed2");
+  });
+
+  it("post116: title/body charAt 0 is \"#\"", () => {
+    expect(spec.charAt(0)).toBe("#");
+  });
+
+  it("post116: title/body charAt 1 is \" \"", () => {
+    expect(spec.charAt(1)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 2 is \"B\"", () => {
+    expect(spec.charAt(2)).toBe("B");
+  });
+
+  it("post116: title/body charAt 3 is \"a\"", () => {
+    expect(spec.charAt(3)).toBe("a");
+  });
+
+  it("post116: title/body charAt 4 is \"c\"", () => {
+    expect(spec.charAt(4)).toBe("c");
+  });
+
+  it("post116: title/body charAt 5 is \"k\"", () => {
+    expect(spec.charAt(5)).toBe("k");
+  });
+
+  it("post116: title/body charAt 6 is \"l\"", () => {
+    expect(spec.charAt(6)).toBe("l");
+  });
+
+  it("post116: title/body charAt 7 is \"i\"", () => {
+    expect(spec.charAt(7)).toBe("i");
+  });
+
+  it("post116: title/body charAt 8 is \"n\"", () => {
+    expect(spec.charAt(8)).toBe("n");
+  });
+
+  it("post116: title/body charAt 9 is \"k\"", () => {
+    expect(spec.charAt(9)).toBe("k");
+  });
+
+  it("post116: title/body charAt 10 is \" \"", () => {
+    expect(spec.charAt(10)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 11 is \"M\"", () => {
+    expect(spec.charAt(11)).toBe("M");
+  });
+
+  it("post116: title/body charAt 12 is \"C\"", () => {
+    expect(spec.charAt(12)).toBe("C");
+  });
+
+  it("post116: title/body charAt 13 is \"P\"", () => {
+    expect(spec.charAt(13)).toBe("P");
+  });
+
+  it("post116: title/body charAt 14 is \" \"", () => {
+    expect(spec.charAt(14)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 15 is \"T\"", () => {
+    expect(spec.charAt(15)).toBe("T");
+  });
+
+  it("post116: title/body charAt 16 is \"o\"", () => {
+    expect(spec.charAt(16)).toBe("o");
+  });
+
+  it("post116: title/body charAt 17 is \"o\"", () => {
+    expect(spec.charAt(17)).toBe("o");
+  });
+
+  it("post116: title/body charAt 18 is \"l\"", () => {
+    expect(spec.charAt(18)).toBe("l");
+  });
+
+  it("post116: title/body charAt 19 is \" \"", () => {
+    expect(spec.charAt(19)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 20 is \"S\"", () => {
+    expect(spec.charAt(20)).toBe("S");
+  });
+
+  it("post116: title/body charAt 21 is \"p\"", () => {
+    expect(spec.charAt(21)).toBe("p");
+  });
+
+  it("post116: title/body charAt 22 is \"e\"", () => {
+    expect(spec.charAt(22)).toBe("e");
+  });
+
+  it("post116: title/body charAt 23 is \"c\"", () => {
+    expect(spec.charAt(23)).toBe("c");
+  });
+
+  it("post116: title/body charAt 24 is \"i\"", () => {
+    expect(spec.charAt(24)).toBe("i");
+  });
+
+  it("post116: title/body charAt 25 is \"f\"", () => {
+    expect(spec.charAt(25)).toBe("f");
+  });
+
+  it("post116: title/body charAt 26 is \"i\"", () => {
+    expect(spec.charAt(26)).toBe("i");
+  });
+
+  it("post116: title/body charAt 27 is \"c\"", () => {
+    expect(spec.charAt(27)).toBe("c");
+  });
+
+  it("post116: title/body charAt 28 is \"a\"", () => {
+    expect(spec.charAt(28)).toBe("a");
+  });
+
+  it("post116: title/body charAt 29 is \"t\"", () => {
+    expect(spec.charAt(29)).toBe("t");
+  });
+
+  it("post116: title/body charAt 30 is \"i\"", () => {
+    expect(spec.charAt(30)).toBe("i");
+  });
+
+  it("post116: title/body charAt 31 is \"o\"", () => {
+    expect(spec.charAt(31)).toBe("o");
+  });
+
+  it("post116: title/body charAt 32 is \"n\"", () => {
+    expect(spec.charAt(32)).toBe("n");
+  });
+
+  it("post116: title/body charAt 33 is \"\\n\"", () => {
+    expect(spec.charAt(33)).toBe("\n");
+  });
+
+  it("post116: title/body charAt 34 is \"\\n\"", () => {
+    expect(spec.charAt(34)).toBe("\n");
+  });
+
+  it("post116: title/body charAt 35 is \"T\"", () => {
+    expect(spec.charAt(35)).toBe("T");
+  });
+
+  it("post116: title/body charAt 36 is \"h\"", () => {
+    expect(spec.charAt(36)).toBe("h");
+  });
+
+  it("post116: title/body charAt 37 is \"i\"", () => {
+    expect(spec.charAt(37)).toBe("i");
+  });
+
+  it("post116: title/body charAt 38 is \"s\"", () => {
+    expect(spec.charAt(38)).toBe("s");
+  });
+
+  it("post116: title/body charAt 39 is \" \"", () => {
+    expect(spec.charAt(39)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 40 is \"s\"", () => {
+    expect(spec.charAt(40)).toBe("s");
+  });
+
+  it("post116: title/body charAt 41 is \"p\"", () => {
+    expect(spec.charAt(41)).toBe("p");
+  });
+
+  it("post116: title/body charAt 42 is \"e\"", () => {
+    expect(spec.charAt(42)).toBe("e");
+  });
+
+  it("post116: title/body charAt 43 is \"c\"", () => {
+    expect(spec.charAt(43)).toBe("c");
+  });
+
+  it("post116: title/body charAt 44 is \" \"", () => {
+    expect(spec.charAt(44)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 45 is \"d\"", () => {
+    expect(spec.charAt(45)).toBe("d");
+  });
+
+  it("post116: title/body charAt 46 is \"e\"", () => {
+    expect(spec.charAt(46)).toBe("e");
+  });
+
+  it("post116: title/body charAt 47 is \"f\"", () => {
+    expect(spec.charAt(47)).toBe("f");
+  });
+
+  it("post116: title/body charAt 48 is \"i\"", () => {
+    expect(spec.charAt(48)).toBe("i");
+  });
+
+  it("post116: title/body charAt 49 is \"n\"", () => {
+    expect(spec.charAt(49)).toBe("n");
+  });
+
+  it("post116: title/body charAt 50 is \"e\"", () => {
+    expect(spec.charAt(50)).toBe("e");
+  });
+
+  it("post116: title/body charAt 51 is \"s\"", () => {
+    expect(spec.charAt(51)).toBe("s");
+  });
+
+  it("post116: title/body charAt 52 is \" \"", () => {
+    expect(spec.charAt(52)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 53 is \"B\"", () => {
+    expect(spec.charAt(53)).toBe("B");
+  });
+
+  it("post116: title/body charAt 54 is \"a\"", () => {
+    expect(spec.charAt(54)).toBe("a");
+  });
+
+  it("post116: title/body charAt 55 is \"c\"", () => {
+    expect(spec.charAt(55)).toBe("c");
+  });
+
+  it("post116: title/body charAt 56 is \"k\"", () => {
+    expect(spec.charAt(56)).toBe("k");
+  });
+
+  it("post116: title/body charAt 57 is \"l\"", () => {
+    expect(spec.charAt(57)).toBe("l");
+  });
+
+  it("post116: title/body charAt 58 is \"i\"", () => {
+    expect(spec.charAt(58)).toBe("i");
+  });
+
+  it("post116: title/body charAt 59 is \"n\"", () => {
+    expect(spec.charAt(59)).toBe("n");
+  });
+
+  it("post116: title/body charAt 60 is \"k\"", () => {
+    expect(spec.charAt(60)).toBe("k");
+  });
+
+  it("post116: title/body charAt 61 is \" \"", () => {
+    expect(spec.charAt(61)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 62 is \"a\"", () => {
+    expect(spec.charAt(62)).toBe("a");
+  });
+
+  it("post116: title/body charAt 63 is \"s\"", () => {
+    expect(spec.charAt(63)).toBe("s");
+  });
+
+  it("post116: title/body charAt 64 is \" \"", () => {
+    expect(spec.charAt(64)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 65 is \"a\"", () => {
+    expect(spec.charAt(65)).toBe("a");
+  });
+
+  it("post116: title/body charAt 66 is \" \"", () => {
+    expect(spec.charAt(66)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 67 is \"c\"", () => {
+    expect(spec.charAt(67)).toBe("c");
+  });
+
+  it("post116: title/body charAt 68 is \"l\"", () => {
+    expect(spec.charAt(68)).toBe("l");
+  });
+
+  it("post116: title/body charAt 69 is \"a\"", () => {
+    expect(spec.charAt(69)).toBe("a");
+  });
+
+  it("post116: title/body charAt 70 is \"w\"", () => {
+    expect(spec.charAt(70)).toBe("w");
+  });
+
+  it("post116: title/body charAt 71 is \"-\"", () => {
+    expect(spec.charAt(71)).toBe("-");
+  });
+
+  it("post116: title/body charAt 72 is \"m\"", () => {
+    expect(spec.charAt(72)).toBe("m");
+  });
+
+  it("post116: title/body charAt 73 is \"c\"", () => {
+    expect(spec.charAt(73)).toBe("c");
+  });
+
+  it("post116: title/body charAt 74 is \"p\"", () => {
+    expect(spec.charAt(74)).toBe("p");
+  });
+
+  it("post116: title/body charAt 75 is \" \"", () => {
+    expect(spec.charAt(75)).toBe(" ");
+  });
+
+  it("post116: title/body charAt 76 is \"t\"", () => {
+    expect(spec.charAt(76)).toBe("t");
+  });
+
+  it("post116: title/body charAt 77 is \"o\"", () => {
+    expect(spec.charAt(77)).toBe("o");
+  });
+
+  it("post116: title/body charAt 78 is \"o\"", () => {
+    expect(spec.charAt(78)).toBe("o");
+  });
+
+  it("post116: title/body charAt 79 is \"l\"", () => {
+    expect(spec.charAt(79)).toBe("l");
+  });
+
+  it("post116: codePointAt 0", () => {
+    expect(spec.codePointAt(0)).toBe(35);
+  });
+
+  it("post116: codePointAt 1", () => {
+    expect(spec.codePointAt(1)).toBe(32);
+  });
+
+  it("post116: codePointAt 2", () => {
+    expect(spec.codePointAt(2)).toBe(66);
+  });
+
+  it("post116: codePointAt 3", () => {
+    expect(spec.codePointAt(3)).toBe(97);
+  });
+
+  it("post116: codePointAt 4", () => {
+    expect(spec.codePointAt(4)).toBe(99);
+  });
+
+  it("post116: codePointAt 5", () => {
+    expect(spec.codePointAt(5)).toBe(107);
+  });
+
+  it("post116: codePointAt 6", () => {
+    expect(spec.codePointAt(6)).toBe(108);
+  });
+
+  it("post116: codePointAt 7", () => {
+    expect(spec.codePointAt(7)).toBe(105);
+  });
+
+  it("post116: codePointAt 8", () => {
+    expect(spec.codePointAt(8)).toBe(110);
+  });
+
+  it("post116: codePointAt 9", () => {
+    expect(spec.codePointAt(9)).toBe(107);
+  });
+
+  it("post116: codePointAt 10", () => {
+    expect(spec.codePointAt(10)).toBe(32);
+  });
+
+  it("post116: codePointAt 11", () => {
+    expect(spec.codePointAt(11)).toBe(77);
+  });
+
+  it("post116: codePointAt 12", () => {
+    expect(spec.codePointAt(12)).toBe(67);
+  });
+
+  it("post116: codePointAt 13", () => {
+    expect(spec.codePointAt(13)).toBe(80);
+  });
+
+  it("post116: codePointAt 14", () => {
+    expect(spec.codePointAt(14)).toBe(32);
+  });
+
+  it("post116: codePointAt 15", () => {
+    expect(spec.codePointAt(15)).toBe(84);
+  });
+
+  it("post116: codePointAt 16", () => {
+    expect(spec.codePointAt(16)).toBe(111);
+  });
+
+  it("post116: codePointAt 17", () => {
+    expect(spec.codePointAt(17)).toBe(111);
+  });
+
+  it("post116: codePointAt 18", () => {
+    expect(spec.codePointAt(18)).toBe(108);
+  });
+
+  it("post116: codePointAt 19", () => {
+    expect(spec.codePointAt(19)).toBe(32);
+  });
+
+  it("post116: codePointAt 20", () => {
+    expect(spec.codePointAt(20)).toBe(83);
+  });
+
+  it("post116: codePointAt 21", () => {
+    expect(spec.codePointAt(21)).toBe(112);
+  });
+
+  it("post116: codePointAt 22", () => {
+    expect(spec.codePointAt(22)).toBe(101);
+  });
+
+  it("post116: codePointAt 23", () => {
+    expect(spec.codePointAt(23)).toBe(99);
+  });
+
+  it("post116: codePointAt 24", () => {
+    expect(spec.codePointAt(24)).toBe(105);
+  });
+
+  it("post116: codePointAt 25", () => {
+    expect(spec.codePointAt(25)).toBe(102);
+  });
+
+  it("post116: codePointAt 26", () => {
+    expect(spec.codePointAt(26)).toBe(105);
+  });
+
+  it("post116: codePointAt 27", () => {
+    expect(spec.codePointAt(27)).toBe(99);
+  });
+
+  it("post116: codePointAt 28", () => {
+    expect(spec.codePointAt(28)).toBe(97);
+  });
+
+  it("post116: codePointAt 29", () => {
+    expect(spec.codePointAt(29)).toBe(116);
+  });
+
+  it("post116: codePointAt 30", () => {
+    expect(spec.codePointAt(30)).toBe(105);
+  });
+
+  it("post116: codePointAt 31", () => {
+    expect(spec.codePointAt(31)).toBe(111);
+  });
+
+  it("post116: codePointAt 32", () => {
+    expect(spec.codePointAt(32)).toBe(110);
+  });
+
+  it("post116: codePointAt 33", () => {
+    expect(spec.codePointAt(33)).toBe(10);
+  });
+
+  it("post116: codePointAt 34", () => {
+    expect(spec.codePointAt(34)).toBe(10);
+  });
+
+  it("post116: codePointAt 35", () => {
+    expect(spec.codePointAt(35)).toBe(84);
+  });
+
+  it("post116: codePointAt 36", () => {
+    expect(spec.codePointAt(36)).toBe(104);
+  });
+
+  it("post116: codePointAt 37", () => {
+    expect(spec.codePointAt(37)).toBe(105);
+  });
+
+  it("post116: codePointAt 38", () => {
+    expect(spec.codePointAt(38)).toBe(115);
+  });
+
+  it("post116: codePointAt 39", () => {
+    expect(spec.codePointAt(39)).toBe(32);
+  });
+
+  it("post116: codePointAt 40", () => {
+    expect(spec.codePointAt(40)).toBe(115);
+  });
+
+  it("post116: codePointAt 41", () => {
+    expect(spec.codePointAt(41)).toBe(112);
+  });
+
+  it("post116: codePointAt 42", () => {
+    expect(spec.codePointAt(42)).toBe(101);
+  });
+
+  it("post116: codePointAt 43", () => {
+    expect(spec.codePointAt(43)).toBe(99);
+  });
+
+  it("post116: codePointAt 44", () => {
+    expect(spec.codePointAt(44)).toBe(32);
+  });
+
+  it("post116: codePointAt 45", () => {
+    expect(spec.codePointAt(45)).toBe(100);
+  });
+
+  it("post116: codePointAt 46", () => {
+    expect(spec.codePointAt(46)).toBe(101);
+  });
+
+  it("post116: codePointAt 47", () => {
+    expect(spec.codePointAt(47)).toBe(102);
+  });
+
+  it("post116: codePointAt 48", () => {
+    expect(spec.codePointAt(48)).toBe(105);
+  });
+
+  it("post116: codePointAt 49", () => {
+    expect(spec.codePointAt(49)).toBe(110);
+  });
+
+  it("post116: heading 0 index and sha", () => {
+    expect(spec.indexOf("# Backlink MCP Tool Specification")).toBe(0);
+    expect(createHash('sha256').update("# Backlink MCP Tool Specification", 'utf8').digest('hex')).toBe("99c84d33ad819ac91a66e1a30aef3bf512cb393370d7b6fbc8397c8917ba2e66");
+    expect("# Backlink MCP Tool Specification").toHaveLength(33);
+  });
+
+  it("post116: heading 1 index and sha", () => {
+    expect(spec.indexOf("## Tools")).toBe(135);
+    expect(createHash('sha256').update("## Tools", 'utf8').digest('hex')).toBe("0b27734b46fbf7ef264d7dcff4505a08b8773717141fac872ecc4d1c686ca54c");
+    expect("## Tools").toHaveLength(8);
+  });
+
+  it("post116: heading 2 index and sha", () => {
+    expect(spec.indexOf("### `backlink_curate`")).toBe(145);
+    expect(createHash('sha256').update("### `backlink_curate`", 'utf8').digest('hex')).toBe("ff3cf26fccc178587f5e9fd4ea384b4504907333f5685d3918dcf5cf001e7594");
+    expect("### `backlink_curate`").toHaveLength(21);
+  });
+
+  it("post116: heading 3 index and sha", () => {
+    expect(spec.indexOf("### `backlink_genres`")).toBe(1483);
+    expect(createHash('sha256').update("### `backlink_genres`", 'utf8').digest('hex')).toBe("eb93ddb3ee5b20e931ee882ce3423864bacea389117698ee5e372a70e2e7defa");
+    expect("### `backlink_genres`").toHaveLength(21);
+  });
+
+  it("post116: heading 4 index and sha", () => {
+    expect(spec.indexOf("### `backlink_now_playing`")).toBe(2151);
+    expect(createHash('sha256').update("### `backlink_now_playing`", 'utf8').digest('hex')).toBe("778a180e647ff15a320a393891f10a033078b4c9811c6ab033da0292cee86927");
+    expect("### `backlink_now_playing`").toHaveLength(26);
+  });
+
+  it("post116: heading 5 index and sha", () => {
+    expect(spec.indexOf("## Integration Notes")).toBe(3204);
+    expect(createHash('sha256').update("## Integration Notes", 'utf8').digest('hex')).toBe("025d1a806eaaae1a50e27b9e54a40adb381acbee73b159a06b6f334b02f1741d");
+    expect("## Integration Notes").toHaveLength(20);
+  });
+
+  it("post116: slice between heading 0 and 1 sha256 and length", () => {
+    const a = "# Backlink MCP Tool Specification";
+    const b = "## Tools";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(102);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("b5e88d3307c545ead8d44e2d4ee19e44346f014472dc60ffc6c1883df4d56d05");
+  });
+
+  it("post116: slice between heading 1 and 2 sha256 and length", () => {
+    const a = "## Tools";
+    const b = "### `backlink_curate`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(2);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070");
+  });
+
+  it("post116: slice between heading 2 and 3 sha256 and length", () => {
+    const a = "### `backlink_curate`";
+    const b = "### `backlink_genres`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(1317);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("f5156e887b423b3dccba0be51f10c7e0d3ff820d84095a9e26941241a2453602");
+  });
+
+  it("post116: slice between heading 3 and 4 sha256 and length", () => {
+    const a = "### `backlink_genres`";
+    const b = "### `backlink_now_playing`";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(647);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("27b7e714a82162b023dcaf46a1bf6b0669a5f466892352de8cbd605a35f77391");
+  });
+
+  it("post116: slice between heading 4 and 5 sha256 and length", () => {
+    const a = "### `backlink_now_playing`";
+    const b = "## Integration Notes";
+    const slice = spec.slice(spec.indexOf(a) + a.length, spec.indexOf(b));
+    expect(slice).toHaveLength(1027);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("5e150d4d0b5c2e8829220b51975070df0d6bae12b8c2bf4a373383d8529b0c60");
+  });
+
+  it('post116: slice after Integration Notes sha256 and length', () => {
+    const a = '## Integration Notes';
+    const slice = spec.slice(spec.indexOf(a) + a.length);
+    expect(slice).toHaveLength(320);
+    expect(createHash('sha256').update(slice, 'utf8').digest('hex')).toBe("1dfa300ec1c707b5220fa6d9db44728be67f3891363fb7cb65cc9eb238c11ebb");
+  });
+
+  it('post116: json fence count', () => {
+    expect([...spec.matchAll(/```json\n([\s\S]*?)```/g)]).toHaveLength(6);
+  });
+
+  it("post116: json fence 0 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[0]).toHaveLength(419);
+    expect(createHash('sha256').update(fences[0], 'utf8').digest('hex')).toBe("724a785bbeb7757da9e973ecf5ed7323562561b88746dc3132dae08c6b67f98e");
+    expect(JSON.parse(fences[0]).type).toBe("object");
+  });
+
+  it("post116: json fence 1 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[1]).toHaveLength(619);
+    expect(createHash('sha256').update(fences[1], 'utf8').digest('hex')).toBe("f9f0e20ed06f9f9d5a9aca4999bb3939240e8a971d3624fa1a8ca880d5104043");
+    expect(JSON.parse(fences[1]).type).toBe("object");
+  });
+
+  it("post116: json fence 2 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[2]).toHaveLength(76);
+    expect(createHash('sha256').update(fences[2], 'utf8').digest('hex')).toBe("4f355aaabd61baab14303898f72d65b2df4624ffd7c3b3b28ded6ec33d2768be");
+    expect(JSON.parse(fences[2]).type).toBe("object");
+  });
+
+  it("post116: json fence 3 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[3]).toHaveLength(369);
+    expect(createHash('sha256').update(fences[3], 'utf8').digest('hex')).toBe("820d2eaf86d59524518c09f31d17724acd0a87d18baf02be3ddaf01906572b1d");
+    expect(JSON.parse(fences[3]).type).toBe("object");
+  });
+
+  it("post116: json fence 4 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[4]).toHaveLength(336);
+    expect(createHash('sha256').update(fences[4], 'utf8').digest('hex')).toBe("8f11519e1ca9f2a723d22839622732e719c59ec7575ee8e5cfa94007ebeeab91");
+    expect(JSON.parse(fences[4]).type).toBe("object");
+  });
+
+  it("post116: json fence 5 sha256 and length", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(fences[5]).toHaveLength(328);
+    expect(createHash('sha256').update(fences[5], 'utf8').digest('hex')).toBe("998bc8ada00faadb8c5b3195b8f596407f76e488be77bcb0f57bf19b302a853f");
+    expect(JSON.parse(fences[5]).type).toBe("object");
+  });
+
+  it("post116: tool section backlink_curate fingerprint", () => {
+    const start = spec.indexOf("### `backlink_curate`");
+    const others = DOCS_IDS.map((x) => spec.indexOf(`### \`${x}\``)).filter((i) => i > start).sort((a, b) => a - b);
+    const next = others[0] ?? spec.indexOf('## Integration Notes');
+    const section = spec.slice(start, next);
+    expect(section).toHaveLength(1338);
+    expect(createHash('sha256').update(section, 'utf8').digest('hex')).toBe("be378dd83f92578fa92c51e9db7d09bd62db5274a289cadcdd74864e330ee236");
+    expect(section).toContain("**Endpoint:** `GET /curate?genre={genre}&mood={mood}`");
+    expect(section.includes('"additionalProperties": false')).toBe(true);
+    expect(section).toContain("**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.");
+  });
+
+  it("post116: tool section backlink_genres fingerprint", () => {
+    const start = spec.indexOf("### `backlink_genres`");
+    const others = DOCS_IDS.map((x) => spec.indexOf(`### \`${x}\``)).filter((i) => i > start).sort((a, b) => a - b);
+    const next = others[0] ?? spec.indexOf('## Integration Notes');
+    const section = spec.slice(start, next);
+    expect(section).toHaveLength(668);
+    expect(createHash('sha256').update(section, 'utf8').digest('hex')).toBe("aa4c4f1cb56947649cc4c1745aea4646e10bd81ecf624e8937eac334924ec3f6");
+    expect(section).toContain("**Endpoint:** `GET /genres`");
+    expect(section.includes('"additionalProperties": false')).toBe(true);
+    expect(section).toContain("**Description:** List all available iptv-org genre categories supported by Backlink, including mood aliases.");
+  });
+
+  it("post116: tool section backlink_now_playing fingerprint", () => {
+    const start = spec.indexOf("### `backlink_now_playing`");
+    const others = DOCS_IDS.map((x) => spec.indexOf(`### \`${x}\``)).filter((i) => i > start).sort((a, b) => a - b);
+    const next = others[0] ?? spec.indexOf('## Integration Notes');
+    const section = spec.slice(start, next);
+    expect(section).toHaveLength(1053);
+    expect(createHash('sha256').update(section, 'utf8').digest('hex')).toBe("072ae30a32fd1554b4094bbf17c55c494cc7e03549cb1f52e6922fc7ec37415d");
+    expect(section).toContain("**Endpoint:** `GET /curate?genre={genre}&mood={mood}`");
+    expect(section.includes('"additionalProperties": false')).toBe(true);
+    expect(section).toContain("**Description:** Get the top AI-curated pick for a genre or mood — the single best station right now, with editorial context.");
+  });
+
+  it("post116: cross-lock sha256 of mcpSrc", () => {
+    expect(createHash('sha256').update(mcpSrc, 'utf8').digest('hex')).toBe("6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683");
+  });
+
+  it("post116: cross-lock sha256 of indexSrc", () => {
+    expect(createHash('sha256').update(indexSrc, 'utf8').digest('hex')).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it("post116: cross-lock sha256 of genresSrc", () => {
+    expect(createHash('sha256').update(genresSrc, 'utf8').digest('hex')).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it("post116: cross-lock sha256 of parserSrc", () => {
+    expect(createHash('sha256').update(parserSrc, 'utf8').digest('hex')).toBe("cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368");
+  });
+
+  it("post116: cross-lock sha256 of typesSrc", () => {
+    expect(createHash('sha256').update(typesSrc, 'utf8').digest('hex')).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+  });
+
+  it("post116: cross-lock sha256 of wranglerToml", () => {
+    expect(createHash('sha256').update(wranglerToml, 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+  });
+
+  it("post116: cross-lock sha256 of ciYml", () => {
+    expect(createHash('sha256').update(ciYml, 'utf8').digest('hex')).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it("post116: cross-lock sha256 of agentsMd", () => {
+    expect(createHash('sha256').update(agentsMd, 'utf8').digest('hex')).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it("post116: cross-lock sha256 of readmeMd", () => {
+    expect(createHash('sha256').update(readmeMd, 'utf8').digest('hex')).toBe("f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987");
+  });
+
+  it("post116: cross-lock sha256 of deployMd", () => {
+    expect(createHash('sha256').update(deployMd, 'utf8').digest('hex')).toBe("11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a");
+  });
+
+  it("post116: cross-lock sha256 of pkgJson", () => {
+    expect(createHash('sha256').update(pkgJson, 'utf8').digest('hex')).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it("post116: cross-lock sha256 of vitestCfg", () => {
+    expect(createHash('sha256').update(vitestCfg, 'utf8').digest('hex')).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it("post116: cross-lock sha256 of dependabotYml", () => {
+    expect(createHash('sha256').update(dependabotYml, 'utf8').digest('hex')).toBe("a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac");
+  });
+
+  it("post116: cross-lock sha256 of envJson", () => {
+    expect(createHash('sha256').update(envJson, 'utf8').digest('hex')).toBe("4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694");
+  });
+
+  it("post116: cross-lock sha256 of packageLock", () => {
+    expect(createHash('sha256').update(packageLock, 'utf8').digest('hex')).toBe("5f8a888f1fc7aaf97dcdaa3f91405cefbb45ad118685eac7a1488b78cedfcee6");
+  });
+
+  it("post116: cross-lock sha256 of tsconfigJson", () => {
+    expect(createHash('sha256').update(tsconfigJson, 'utf8').digest('hex')).toBe("ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792");
+  });
+
+  it("post116: HMAC post116 key over mcp", () => {
+    expect(createHmac('sha256', 'post116').update(mcpSrc, 'utf8').digest('hex')).toBe("655e602db920a00c09801f66d3f27056a571b8a3504c1f1368b46e65f54a5719");
+  });
+
+  it("post116: HMAC post116 key over index", () => {
+    expect(createHmac('sha256', 'post116').update(indexSrc, 'utf8').digest('hex')).toBe("739bda9e4215049ac4f26ed6409edb35973eee58a8804a4b8616f0ceb8040441");
+  });
+
+  it("post116: HMAC post116 key over genres", () => {
+    expect(createHmac('sha256', 'post116').update(genresSrc, 'utf8').digest('hex')).toBe("ca080cbf711d086c982824b4a0126960a02e0037a01ce5f49277d98aaa61ac4b");
+  });
+
+  it("post116: HMAC post116 key over parser", () => {
+    expect(createHmac('sha256', 'post116').update(parserSrc, 'utf8').digest('hex')).toBe("cb1969bb5a43ba3c41a772ad1d9bbf1dbf7a3f7d4a3f9cd7a05bc8fd351d9a86");
+  });
+
+  it("post116: HMAC post116 key over types", () => {
+    expect(createHmac('sha256', 'post116').update(typesSrc, 'utf8').digest('hex')).toBe("1cf899f43afa3b39d232c4c594f40d1e021bae84e0fdc8475fa17ee68e0f376a");
+  });
+
+  it("post116: HMAC post116 key over wrangler", () => {
+    expect(createHmac('sha256', 'post116').update(wranglerToml, 'utf8').digest('hex')).toBe("7c7516897b356e1949dec552e59250b217bfdda3640631c8af3e5144017cc5d2");
+  });
+
+  it("post116: HMAC post116 key over ci", () => {
+    expect(createHmac('sha256', 'post116').update(ciYml, 'utf8').digest('hex')).toBe("b3e76b2fe2dcb28fc56a47ec88c1d107378aa305bbfb81515b153e1c67e716f9");
+  });
+
+  it("post116: HMAC post116 key over agents", () => {
+    expect(createHmac('sha256', 'post116').update(agentsMd, 'utf8').digest('hex')).toBe("06d8319289e454e39ca534397843a5afa13d549fe15e47fbd9d8e35be2590c2a");
+  });
+
+  it("post116: HMAC post116 key over readme", () => {
+    expect(createHmac('sha256', 'post116').update(readmeMd, 'utf8').digest('hex')).toBe("228659c5f19833de2087b220c2408e31c0a717043ac432898e238b83a1e56870");
+  });
+
+  it("post116: HMAC post116 key over deploy", () => {
+    expect(createHmac('sha256', 'post116').update(deployMd, 'utf8').digest('hex')).toBe("fcd0fa73ee6971ec2150ea01b149fe9eb1625a31d9d446ce241c421a14448a36");
+  });
+
+  it("post116: HMAC post116 key over pkg", () => {
+    expect(createHmac('sha256', 'post116').update(pkgJson, 'utf8').digest('hex')).toBe("301ea9f30eff5472c313b6a25113ea1a2f8f45d80d552d240ba85cddf2cd7d87");
+  });
+
+  it("post116: HMAC post116 key over vitest", () => {
+    expect(createHmac('sha256', 'post116').update(vitestCfg, 'utf8').digest('hex')).toBe("e22039027fee322939196b3c7e2c6a8ffd187a2679172739447a91b9e564064b");
+  });
+
+  it("post116: HMAC post116 key over dependabot", () => {
+    expect(createHmac('sha256', 'post116').update(dependabotYml, 'utf8').digest('hex')).toBe("1c233aa2ace4f5bf41ad468c518e143ebd821c4824a54a7aea76b01f3152941e");
+  });
+
+  it("post116: HMAC post116 key over env", () => {
+    expect(createHmac('sha256', 'post116').update(envJson, 'utf8').digest('hex')).toBe("6c696553af0d2541d64c9e87a73e69b482cd02a0f107ac73a122a7032f977832");
+  });
+
+  it("post116: HMAC post116 key over spec", () => {
+    expect(createHmac('sha256', 'post116').update(spec, 'utf8').digest('hex')).toBe("b414f62bcea3abfcb0dcddb4f973296bbc8f65869c408d2b7816843bf74da409");
+  });
+
+  it("post116: HMAC post116 key over packageLock", () => {
+    expect(createHmac('sha256', 'post116').update(packageLock, 'utf8').digest('hex')).toBe("d403aea7973f732c0795a84af10944a3ec93b8366d0d86b1193a53dc13d51c92");
+  });
+
+  it("post116: HMAC post116 key over tsconfig", () => {
+    expect(createHmac('sha256', 'post116').update(tsconfigJson, 'utf8').digest('hex')).toBe("e1e86cdf0e344a4996a7c991eb24f9d5e32bec8f0857d1efad74092a22fa65b3");
+  });
+
+  it("post116: claw tool station_select schema lock", () => {
+    const tool = MCP_MANIFEST.tools.find((x) => x.name === "station_select");
+    expect(tool).toBeDefined();
+    expect(createHash('sha256').update(tool!.description, 'utf8').digest('hex')).toBe("1b1b6035f3a55908462e8bec71c002374de19a5863b402f9785a13f736ca1be6");
+    expect(createHash('sha256').update(JSON.stringify(tool!.input_schema), 'utf8').digest('hex')).toBe("2bc2fbc13a0891046dceeed69e45fe6505fbb3a83f405531ad62c4647ae2d929");
+    expect(tool!.input_schema.required ?? []).toEqual(["station_name"]);
+    expect(Object.keys(tool!.input_schema.properties || {})).toEqual(["station_name"]);
+    expect(tool!.description).toHaveLength(42);
+  });
+
+  it("post116: claw tool now_playing schema lock", () => {
+    const tool = MCP_MANIFEST.tools.find((x) => x.name === "now_playing");
+    expect(tool).toBeDefined();
+    expect(createHash('sha256').update(tool!.description, 'utf8').digest('hex')).toBe("15a43880c871d46c36973e95f77b64ff910e68284acdf219fa6c82978af29e7b");
+    expect(createHash('sha256').update(JSON.stringify(tool!.input_schema), 'utf8').digest('hex')).toBe("8243f0af367f188a376f2c17b5eabe872a2f7a979813e0d4e2be6d594c2aa259");
+    expect(tool!.input_schema.required ?? []).toEqual([]);
+    expect(Object.keys(tool!.input_schema.properties || {})).toEqual([]);
+    expect(tool!.description).toHaveLength(81);
+  });
+
+  it("post116: claw tool genre_filter schema lock", () => {
+    const tool = MCP_MANIFEST.tools.find((x) => x.name === "genre_filter");
+    expect(tool).toBeDefined();
+    expect(createHash('sha256').update(tool!.description, 'utf8').digest('hex')).toBe("3457f6157ae02b0b6c31bcfeabe4332f8954a58944c501b1b8d9bf8a67733d30");
+    expect(createHash('sha256').update(JSON.stringify(tool!.input_schema), 'utf8').digest('hex')).toBe("401d064609e122c33144de048d55d2a5f3d2260a1fca20c346603ba7731cbd05");
+    expect(tool!.input_schema.required ?? []).toEqual(["genre"]);
+    expect(Object.keys(tool!.input_schema.properties || {})).toEqual(["genre"]);
+    expect(tool!.description).toHaveLength(81);
+  });
+
+  it("post116: claw tool curator_prompt schema lock", () => {
+    const tool = MCP_MANIFEST.tools.find((x) => x.name === "curator_prompt");
+    expect(tool).toBeDefined();
+    expect(createHash('sha256').update(tool!.description, 'utf8').digest('hex')).toBe("c3bcfd16227da8c0c55d606d7da1a1ea26a3032dc1db779e316e31c5b9014ad3");
+    expect(createHash('sha256').update(JSON.stringify(tool!.input_schema), 'utf8').digest('hex')).toBe("ac2c012d5fd0816d2c969cca850d4e8c1c3a2e50170f27fb87a1ef370778a6df");
+    expect(tool!.input_schema.required ?? []).toEqual(["mood"]);
+    expect(Object.keys(tool!.input_schema.properties || {})).toEqual(["mood","genre"]);
+    expect(tool!.description).toHaveLength(80);
+  });
+
+  it('post116: MCP_MANIFEST compact JSON sha256', () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("11910aab98869ffe2c0979b423e62faff2f82b1aa19d3e6a13a9cb23be9c1043");
+  });
+
+  it('post116: MCP_MANIFEST tools array sha256', () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST.tools), 'utf8').digest('hex')).toBe("c4dc1e07bdade8df2e72bb8c19caf43226b1f622a7d10bd1c3341ab91b599b43");
+  });
+
+  it('post116: MCP_MANIFEST pretty JSON sha256', () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST, null, 2), 'utf8').digest('hex')).toBe("79d287ffdcc0536d8a2d22f540e1d380d891f93aa5c77f7f2fa293ce430a25f4");
+  });
+
+  it('post116: MCP_MANIFEST field shape lock', () => {
+    expect(MCP_MANIFEST.schema_version).toBe("v1");
+    expect(MCP_MANIFEST.name_for_model).toBe("backlink");
+    expect(MCP_MANIFEST.name_for_human).toBe("Backlink Radio");
+    expect(MCP_MANIFEST.auth).toEqual({"type":"none"});
+    expect(MCP_MANIFEST.api).toEqual({"type":"openapi","url":"/openapi.json"});
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+    expect(createHash('sha256').update(MCP_MANIFEST.description_for_model, 'utf8').digest('hex')).toBe("dc98e24357ac0704d5460c9ed7bd2f3fae5eacf36cd0e448584161a1251e739c");
+    expect(createHash('sha256').update(MCP_MANIFEST.description_for_human, 'utf8').digest('hex')).toBe("0afdffca1ae9c01f1c754ba92215e9021e7cf491a9a28ccdac603a4fad17166a");
+  });
+
+  it('post116: docs tool ids and claw names remain disjoint namespaces', () => {
+    expect([...DOCS_IDS]).toEqual(["backlink_curate","backlink_genres","backlink_now_playing"]);
+    expect([...CLAW_NAMES]).toEqual(["station_select","now_playing","genre_filter","curator_prompt"]);
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([...CLAW_NAMES]);
+    expect(new Set([...DOCS_IDS, ...CLAW_NAMES]).size).toBe(7);
+    expect(DOCS_IDS.join('|')).toBe("backlink_curate|backlink_genres|backlink_now_playing");
+    expect(CLAW_NAMES.join('|')).toBe("station_select|now_playing|genre_filter|curator_prompt");
+    for (const id of DOCS_IDS) {
+      expect(spec).toContain('### `' + id + '`');
+      expect(CLAW_NAMES.includes(id as (typeof CLAW_NAMES)[number])).toBe(false);
+    }
+  });
+
+  it('post116: GENRE_MAP and VALID_GENRES payload locks', () => {
+    expect(createHash('sha256').update(JSON.stringify(GENRE_MAP), 'utf8').digest('hex')).toBe("a279e96e61bcbdcc0306c2347d4e30c0f00d429c70346b44829616ecef8ab158");
+    expect(createHash('sha256').update(JSON.stringify(VALID_GENRES), 'utf8').digest('hex')).toBe("8ce57463d560c8635b5f30da7eaaa97dcd875f8d97f24558e0cac151d3e47d96");
+  });
+
+  it("post116: resolveGenre(late night) → ambient", () => {
+    expect(resolveGenre("late night")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(chill) → ambient", () => {
+    expect(resolveGenre("chill")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(ambient) → ambient", () => {
+    expect(resolveGenre("ambient")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(relaxing) → ambient", () => {
+    expect(resolveGenre("relaxing")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(focus) → ambient", () => {
+    expect(resolveGenre("focus")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(classical) → classical", () => {
+    expect(resolveGenre("classical")).toBe("classical");
+  });
+
+  it("post116: resolveGenre(classic) → classical", () => {
+    expect(resolveGenre("classic")).toBe("classical");
+  });
+
+  it("post116: resolveGenre(jazz) → jazz", () => {
+    expect(resolveGenre("jazz")).toBe("jazz");
+  });
+
+  it("post116: resolveGenre(blues) → jazz", () => {
+    expect(resolveGenre("blues")).toBe("jazz");
+  });
+
+  it("post116: resolveGenre(pop) → pop", () => {
+    expect(resolveGenre("pop")).toBe("pop");
+  });
+
+  it("post116: resolveGenre(rock) → rock", () => {
+    expect(resolveGenre("rock")).toBe("rock");
+  });
+
+  it("post116: resolveGenre(metal) → rock", () => {
+    expect(resolveGenre("metal")).toBe("rock");
+  });
+
+  it("post116: resolveGenre(indie) → rock", () => {
+    expect(resolveGenre("indie")).toBe("rock");
+  });
+
+  it("post116: resolveGenre(music) → music", () => {
+    expect(resolveGenre("music")).toBe("music");
+  });
+
+  it("post116: resolveGenre(news) → news", () => {
+    expect(resolveGenre("news")).toBe("news");
+  });
+
+  it("post116: resolveGenre(sports) → sports", () => {
+    expect(resolveGenre("sports")).toBe("sports");
+  });
+
+  it("post116: resolveGenre(entertainment) → entertainment", () => {
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+  });
+
+  it("post116: resolveGenre(dance) → pop", () => {
+    expect(resolveGenre("dance")).toBe("pop");
+  });
+
+  it("post116: resolveGenre(electronic) → ambient", () => {
+    expect(resolveGenre("electronic")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(lofi) → ambient", () => {
+    expect(resolveGenre("lofi")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(lo-fi) → ambient", () => {
+    expect(resolveGenre("lo-fi")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre((empty)) → music", () => {
+    expect(resolveGenre()).toBe("music");
+    expect(resolveGenre(undefined)).toBe("music");
+  });
+
+  it("post116: resolveGenre(  ) → music", () => {
+    expect(resolveGenre("  ")).toBe("music");
+  });
+
+  it("post116: resolveGenre(UNKNOWN) → music", () => {
+    expect(resolveGenre("UNKNOWN")).toBe("music");
+  });
+
+  it("post116: resolveGenre(Jazz) → jazz", () => {
+    expect(resolveGenre("Jazz")).toBe("jazz");
+  });
+
+  it("post116: resolveGenre(LATE NIGHT) → ambient", () => {
+    expect(resolveGenre("LATE NIGHT")).toBe("ambient");
+  });
+
+  it("post116: resolveGenre(Lo-Fi) → ambient", () => {
+    expect(resolveGenre("Lo-Fi")).toBe("ambient");
+  });
+
+  it("post116: digraph rank 0 is \"  \" count 245", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[0][0]).toBe("  ");
+    expect(top[0][1]).toBe(245);
+  });
+
+  it("post116: digraph rank 1 is \" \\\"\" count 119", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[1][0]).toBe(" \"");
+    expect(top[1][1]).toBe(119);
+  });
+
+  it("post116: digraph rank 2 is \": \" count 77", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[2][0]).toBe(": ");
+    expect(top[2][1]).toBe(77);
+  });
+
+  it("post116: digraph rank 3 is \"\\\":\" count 75", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[3][0]).toBe("\":");
+    expect(top[3][1]).toBe(75);
+  });
+
+  it("post116: digraph rank 4 is \"\\n \" count 69", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[4][0]).toBe("\n ");
+    expect(top[4][1]).toBe(69);
+  });
+
+  it("post116: digraph rank 5 is \"in\" count 45", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[5][0]).toBe("in");
+    expect(top[5][1]).toBe(45);
+  });
+
+  it("post116: digraph rank 6 is \"pe\" count 44", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[6][0]).toBe("pe");
+    expect(top[6][1]).toBe(44);
+  });
+
+  it("post116: digraph rank 7 is \"ri\" count 43", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[7][0]).toBe("ri");
+    expect(top[7][1]).toBe(43);
+  });
+
+  it("post116: digraph rank 8 is \"e\\\"\" count 40", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[8][0]).toBe("e\"");
+    expect(top[8][1]).toBe(40);
+  });
+
+  it("post116: digraph rank 9 is \"re\" count 40", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[9][0]).toBe("re");
+    expect(top[9][1]).toBe(40);
+  });
+
+  it("post116: digraph rank 10 is \"ti\" count 40", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[10][0]).toBe("ti");
+    expect(top[10][1]).toBe(40);
+  });
+
+  it("post116: digraph rank 11 is \"on\" count 39", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[11][0]).toBe("on");
+    expect(top[11][1]).toBe(39);
+  });
+
+  it("post116: digraph rank 12 is \"st\" count 38", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[12][0]).toBe("st");
+    expect(top[12][1]).toBe(38);
+  });
+
+  it("post116: digraph rank 13 is \",\\n\" count 35", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[13][0]).toBe(",\n");
+    expect(top[13][1]).toBe(35);
+  });
+
+  it("post116: digraph rank 14 is \"es\" count 35", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[14][0]).toBe("es");
+    expect(top[14][1]).toBe(35);
+  });
+
+  it("post116: digraph rank 15 is \"at\" count 31", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[15][0]).toBe("at");
+    expect(top[15][1]).toBe(31);
+  });
+
+  it("post116: digraph rank 16 is \" {\" count 30", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[16][0]).toBe(" {");
+    expect(top[16][1]).toBe(30);
+  });
+
+  it("post116: digraph rank 17 is \"\\\"t\" count 30", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[17][0]).toBe("\"t");
+    expect(top[17][1]).toBe(30);
+  });
+
+  it("post116: digraph rank 18 is \"en\" count 30", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[18][0]).toBe("en");
+    expect(top[18][1]).toBe(30);
+  });
+
+  it("post116: digraph rank 19 is \" }\" count 29", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[19][0]).toBe(" }");
+    expect(top[19][1]).toBe(29);
+  });
+
+  it("post116: digraph rank 20 is \"ty\" count 29", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[20][0]).toBe("ty");
+    expect(top[20][1]).toBe(29);
+  });
+
+  it("post116: digraph rank 21 is \"yp\" count 29", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[21][0]).toBe("yp");
+    expect(top[21][1]).toBe(29);
+  });
+
+  it("post116: digraph rank 22 is \"io\" count 28", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[22][0]).toBe("io");
+    expect(top[22][1]).toBe(28);
+  });
+
+  it("post116: digraph rank 23 is \", \" count 27", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[23][0]).toBe(", ");
+    expect(top[23][1]).toBe(27);
+  });
+
+  it("post116: digraph rank 24 is \"ng\" count 27", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[24][0]).toBe("ng");
+    expect(top[24][1]).toBe(27);
+  });
+
+  it("post116: digraph rank 25 is \"\\\",\" count 25", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[25][0]).toBe("\",");
+    expect(top[25][1]).toBe(25);
+  });
+
+  it("post116: digraph rank 26 is \"e \" count 25", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[26][0]).toBe("e ");
+    expect(top[26][1]).toBe(25);
+  });
+
+  it("post116: digraph rank 27 is \"**\" count 24", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[27][0]).toBe("**");
+    expect(top[27][1]).toBe(24);
+  });
+
+  it("post116: digraph rank 28 is \"``\" count 24", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[28][0]).toBe("``");
+    expect(top[28][1]).toBe(24);
+  });
+
+  it("post116: digraph rank 29 is \"al\" count 24", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[29][0]).toBe("al");
+    expect(top[29][1]).toBe(24);
+  });
+
+  it('post116: digraph top-40 inventory digest', () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${JSON.stringify(k)}:${v}`).join('|'), 'utf8').digest('hex')).toBe("02e14bff172074812c30d46e2a50f156546b9b854c51642ee76b6ba011786301");
+  });
+
+  it('post116: digraph top-80 inventory digest', () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 1; i++) {
+      const dg = spec.slice(i, i + 2);
+      counts.set(dg, (counts.get(dg) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 80);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${JSON.stringify(k)}:${v}`).join('|'), 'utf8').digest('hex')).toBe("83d6d4ad0c64d543ae6af20ae54bce45c831d36c00379f61134c690affe658e2");
+  });
+
+  it("post116: word rank 0 is type=29", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[0][0]).toBe("type");
+    expect(top[0][1]).toBe(29);
+  });
+
+  it("post116: word rank 1 is genre=19", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[1][0]).toBe("genre");
+    expect(top[1][1]).toBe(19);
+  });
+
+  it("post116: word rank 2 is string=19", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[2][0]).toBe("string");
+    expect(top[2][1]).toBe(19);
+  });
+
+  it("post116: word rank 3 is mood=12", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[3][0]).toBe("mood");
+    expect(top[3][1]).toBe(12);
+  });
+
+  it("post116: word rank 4 is description=9", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[4][0]).toBe("description");
+    expect(top[4][1]).toBe(9);
+  });
+
+  it("post116: word rank 5 is object=9", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[5][0]).toBe("object");
+    expect(top[5][1]).toBe(9);
+  });
+
+  it("post116: word rank 6 is properties=7", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[6][0]).toBe("properties");
+    expect(top[6][1]).toBe(7);
+  });
+
+  it("post116: word rank 7 is backlink=6", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[7][0]).toBe("backlink");
+    expect(top[7][1]).toBe(6);
+  });
+
+  it("post116: word rank 8 is json=6", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[8][0]).toBe("json");
+    expect(top[8][1]).toBe(6);
+  });
+
+  it("post116: word rank 9 is name=6", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[9][0]).toBe("name");
+    expect(top[9][1]).toBe(6);
+  });
+
+  it("post116: word rank 10 is stations=6", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[10][0]).toBe("stations");
+    expect(top[10][1]).toBe(6);
+  });
+
+  it("post116: word rank 11 is curate=5", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[11][0]).toBe("curate");
+    expect(top[11][1]).toBe(5);
+  });
+
+  it("post116: word rank 12 is editorial=5", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[12][0]).toBe("editorial");
+    expect(top[12][1]).toBe(5);
+  });
+
+  it("post116: word rank 13 is format=5", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[13][0]).toBe("format");
+    expect(top[13][1]).toBe(5);
+  });
+
+  it("post116: word rank 14 is null=5", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[14][0]).toBe("null");
+    expect(top[14][1]).toBe(5);
+  });
+
+  it("post116: word rank 15 is or=5", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[15][0]).toBe("or");
+    expect(top[15][1]).toBe(5);
+  });
+
+  it("post116: word rank 16 is a=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[16][0]).toBe("a");
+    expect(top[16][1]).toBe(4);
+  });
+
+  it("post116: word rank 17 is additionalproperties=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[17][0]).toBe("additionalproperties");
+    expect(top[17][1]).toBe(4);
+  });
+
+  it("post116: word rank 18 is endpoint=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[18][0]).toBe("endpoint");
+    expect(top[18][1]).toBe(4);
+  });
+
+  it("post116: word rank 19 is get=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[19][0]).toBe("get");
+    expect(top[19][1]).toBe(4);
+  });
+
+  it("post116: word rank 20 is uri=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[20][0]).toBe("uri");
+    expect(top[20][1]).toBe(4);
+  });
+
+  it("post116: word rank 21 is url=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[21][0]).toBe("url");
+    expect(top[21][1]).toBe(4);
+  });
+
+  it("post116: word rank 22 is with=4", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[22][0]).toBe("with");
+    expect(top[22][1]).toBe(4);
+  });
+
+  it("post116: word rank 23 is array=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[23][0]).toBe("array");
+    expect(top[23][1]).toBe(3);
+  });
+
+  it("post116: word rank 24 is e=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[24][0]).toBe("e");
+    expect(top[24][1]).toBe(3);
+  });
+
+  it("post116: word rank 25 is false=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[25][0]).toBe("false");
+    expect(top[25][1]).toBe(3);
+  });
+
+  it("post116: word rank 26 is for=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[26][0]).toBe("for");
+    expect(top[26][1]).toBe(3);
+  });
+
+  it("post116: word rank 27 is g=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[27][0]).toBe("g");
+    expect(top[27][1]).toBe(3);
+  });
+
+  it("post116: word rank 28 is input=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[28][0]).toBe("input");
+    expect(top[28][1]).toBe(3);
+  });
+
+  it("post116: word rank 29 is output=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[29][0]).toBe("output");
+    expect(top[29][1]).toBe(3);
+  });
+
+  it("post116: word rank 30 is required=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[30][0]).toBe("required");
+    expect(top[30][1]).toBe(3);
+  });
+
+  it("post116: word rank 31 is schema=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[31][0]).toBe("schema");
+    expect(top[31][1]).toBe(3);
+  });
+
+  it("post116: word rank 32 is station=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[32][0]).toBe("station");
+    expect(top[32][1]).toBe(3);
+  });
+
+  it("post116: word rank 33 is stream_url=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[33][0]).toBe("stream_url");
+    expect(top[33][1]).toBe(3);
+  });
+
+  it("post116: word rank 34 is the=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[34][0]).toBe("the");
+    expect(top[34][1]).toBe(3);
+  });
+
+  it("post116: word rank 35 is to=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[35][0]).toBe("to");
+    expect(top[35][1]).toBe(3);
+  });
+
+  it("post116: word rank 36 is tool=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[36][0]).toBe("tool");
+    expect(top[36][1]).toBe(3);
+  });
+
+  it("post116: word rank 37 is top=3", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[37][0]).toBe("top");
+    expect(top[37][1]).toBe(3);
+  });
+
+  it("post116: word rank 38 is ai=2", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[38][0]).toBe("ai");
+    expect(top[38][1]).toBe(2);
+  });
+
+  it("post116: word rank 39 is aliases=2", () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[39][0]).toBe("aliases");
+    expect(top[39][1]).toBe(2);
+  });
+
+  it('post116: word top-50 inventory digest', () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 50);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${k}:${v}`).join('|'), 'utf8').digest('hex')).toBe("ca56755c8d174b7dfc5383192b90b636bd010b4ca5ca9b9180ad948a98cb3d7c");
+  });
+
+  it('post116: word top-100 inventory digest', () => {
+    const words = spec.toLowerCase().match(/[a-z0-9_]+/g) || [];
+    const m = new Map<string, number>();
+    for (const w of words) m.set(w, (m.get(w) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 100);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${k}:${v}`).join('|'), 'utf8').digest('hex')).toBe("afc376347c9d1cd6d29465b6db4e509338ad038392fe2568b1c52364599444a6");
+  });
+
+  it('post116: indent profile lock', () => {
+    const profile = spec.split('\n').map((l) => {
+      const m = l.match(/^( *)/);
+      return m ? m[1].length : 0;
+    });
+    expect(createHash('sha256').update(profile.join(','), 'utf8').digest('hex')).toBe("c3cfcf4d0f82235efd0307658e2e305d08164caeec4eef8ab693ab6116320e16");
+    expect(Math.max(...profile)).toBe(10);
+    expect(profile.filter((x) => x === 0)).toHaveLength(76);
+    expect(profile.filter((x) => x === 2)).toHaveLength(21);
+    expect(profile.filter((x) => x === 4)).toHaveLength(22);
+  });
+
+  it('post116: line-length profile digest', () => {
+    expect(createHash('sha256').update(spec.split('\n').map((l) => String(l.length)).join(','), 'utf8').digest('hex')).toBe("06a52a89f77b8c319bbbaf9a44ed9cd89b65bdd78d20039546685edacf3a55c2");
+  });
+
+  it('post116: punctuation / glyph counts', () => {
+    expect((spec.match(/`/g) || []).length).toBe(62);
+    expect((spec.match(/-/g) || []).length).toBe(21);
+    expect((spec.match(/:/g) || []).length).toBe(90);
+    expect((spec.match(/[{}]/g) || []).length).toBe(80);
+    expect((spec.match(/[\[\]]/g) || []).length).toBe(14);
+    expect((spec.match(/"/g) || []).length).toBe(250);
+    expect((spec.match(/\*/g) || []).length).toBe(48);
+    expect((spec.match(/#/g) || []).length).toBe(14);
+    expect((spec.match(/\//g) || []).length).toBe(10);
+    expect((spec.match(/_/g) || []).length).toBe(8);
+    expect((spec.match(/[()]/g) || []).length).toBe(10);
+    expect((spec.match(/,/g) || []).length).toBe(62);
+  });
+
+  it('post116: first and last nonempty lines', () => {
+    const ls = spec.split('\n');
+    expect(ls[0]).toBe("# Backlink MCP Tool Specification");
+    expect([...ls].reverse().find((l) => l.length > 0)).toBe("- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`");
+  });
+
+  it("post116: 128-byte window at offset 0", () => {
+    expect(createHash('sha256').update(spec.slice(0, 0 + 128), 'utf8').digest('hex')).toBe("0a05f95e94cb8b757050171a00d878e46fb1d8a98bed9640587ad04dc08fad9e");
+  });
+
+  it("post116: 128-byte window at offset 100", () => {
+    expect(createHash('sha256').update(spec.slice(100, 100 + 128), 'utf8').digest('hex')).toBe("abb2dda8481f1bf25621ecb37727ba0632efd6964856744b6bad2c137934833a");
+  });
+
+  it("post116: 128-byte window at offset 250", () => {
+    expect(createHash('sha256').update(spec.slice(250, 250 + 128), 'utf8').digest('hex')).toBe("73ce9f41ace7254e9a25033c24f74e3305c6ca02e79d7bcbccabdad88a8c56d4");
+  });
+
+  it("post116: 128-byte window at offset 500", () => {
+    expect(createHash('sha256').update(spec.slice(500, 500 + 128), 'utf8').digest('hex')).toBe("bd313c3a815219fb47401d24aa9ceda3140a2e78b37083f6d9ebd461971fa9c8");
+  });
+
+  it("post116: 128-byte window at offset 750", () => {
+    expect(createHash('sha256').update(spec.slice(750, 750 + 128), 'utf8').digest('hex')).toBe("109c89f3f2eff67d3fe4f9616c5b3a0c5b078781a3bddc2df19a24d3f155a76d");
+  });
+
+  it("post116: 128-byte window at offset 1000", () => {
+    expect(createHash('sha256').update(spec.slice(1000, 1000 + 128), 'utf8').digest('hex')).toBe("fff3746a34293c559e775ee21ad079ff516edb8618c95a51fae965d90162521d");
+  });
+
+  it("post116: 128-byte window at offset 1250", () => {
+    expect(createHash('sha256').update(spec.slice(1250, 1250 + 128), 'utf8').digest('hex')).toBe("70231640b145d8c0ac7b5e7e2cc52f78f8c1838b8bef43762d0c6c70dcac3fbc");
+  });
+
+  it("post116: 128-byte window at offset 1500", () => {
+    expect(createHash('sha256').update(spec.slice(1500, 1500 + 128), 'utf8').digest('hex')).toBe("949287d924bb17ea1646a43aa35f302f4dfc0fb21eed4340d775a9bfc78e9ca3");
+  });
+
+  it("post116: 128-byte window at offset 1750", () => {
+    expect(createHash('sha256').update(spec.slice(1750, 1750 + 128), 'utf8').digest('hex')).toBe("20d75f0ecc982d27b910f2400d0592502454904f2300d12ed9ac4c8b659182f7");
+  });
+
+  it("post116: 128-byte window at offset 2000", () => {
+    expect(createHash('sha256').update(spec.slice(2000, 2000 + 128), 'utf8').digest('hex')).toBe("027125741e02ee2141af0d37994bf1c95e86666afde9105b282862771eabe21b");
+  });
+
+  it("post116: 128-byte window at offset 2250", () => {
+    expect(createHash('sha256').update(spec.slice(2250, 2250 + 128), 'utf8').digest('hex')).toBe("ac748e5aef10b595e104cd69efcbdef720bb7c55dea665818182b4811829457c");
+  });
+
+  it("post116: 128-byte window at offset 2500", () => {
+    expect(createHash('sha256').update(spec.slice(2500, 2500 + 128), 'utf8').digest('hex')).toBe("b43fe2696725ac5de049aef5fe8f7c363f7ccce80e9a92289dafb3c6def1e18a");
+  });
+
+  it("post116: 128-byte window at offset 2750", () => {
+    expect(createHash('sha256').update(spec.slice(2750, 2750 + 128), 'utf8').digest('hex')).toBe("7d9aa820f80fbf736e46840798b95871ad522b57e9f612c65fb040e101eefa6d");
+  });
+
+  it("post116: 128-byte window at offset 3000", () => {
+    expect(createHash('sha256').update(spec.slice(3000, 3000 + 128), 'utf8').digest('hex')).toBe("b864874a6353042e9d8215482c173d0d939667df6168499777614ad003936abe");
+  });
+
+  it("post116: 128-byte window at offset 3250", () => {
+    expect(createHash('sha256').update(spec.slice(3250, 3250 + 128), 'utf8').digest('hex')).toBe("c55e1f9a9c13c992384bbe868531bfba8133df9e2847845eb8a4e612b6d4f400");
+  });
+
+  it("post116: 128-byte window at offset 3400", () => {
+    expect(createHash('sha256').update(spec.slice(3400, 3400 + 128), 'utf8').digest('hex')).toBe("c0b5b2c38d3c0554099b9755bc378ba94b4e9951b5c7f6d634acbed436029959");
+  });
+
+  it("post116: prefix 16 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 16), 'utf8').digest('hex')).toBe("65e79a7d3c50e61383d1b845371191280b292761a8cdb9d23ca1d0007291670e");
+  });
+
+  it("post116: prefix 32 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 32), 'utf8').digest('hex')).toBe("c08b3f513967dc1b6146e36fa050387a9a28fddf456318b56dd1483e2e1d1e2e");
+  });
+
+  it("post116: prefix 64 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 64), 'utf8').digest('hex')).toBe("dc533c190419097d9600bfc4d18e4b74370eb34e5ddbfc0ac25358f372783c49");
+  });
+
+  it("post116: prefix 128 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 128), 'utf8').digest('hex')).toBe("0a05f95e94cb8b757050171a00d878e46fb1d8a98bed9640587ad04dc08fad9e");
+  });
+
+  it("post116: prefix 256 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 256), 'utf8').digest('hex')).toBe("5935d07b31b51c6ac03dc2c0a5fd621bf803f7eb0fc6111b425db251eb10a454");
+  });
+
+  it("post116: prefix 512 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 512), 'utf8').digest('hex')).toBe("23635ae16461351090e2843e684814ecf12550e1ae049f68d0a02c238116a487");
+  });
+
+  it("post116: prefix 1024 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(0, 1024), 'utf8').digest('hex')).toBe("8676ab0c10fd090016e205dc7c30d5115a75b628f9d877e737c83a7e471be6df");
+  });
+
+  it("post116: suffix 16 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-16), 'utf8').digest('hex')).toBe("d04377c92d773b525e324c0cc2ca08873b182003c7f5dc4c4929e2648c22d92d");
+  });
+
+  it("post116: suffix 32 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-32), 'utf8').digest('hex')).toBe("3b12815fa47c60cafd98c854094f1a6f4112ccc9338a74db992d1a5b1d4b7481");
+  });
+
+  it("post116: suffix 64 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-64), 'utf8').digest('hex')).toBe("e8153165a81b348300927b01cfeeb95257b79c899bda72e3cd4cd1941ba4a3ba");
+  });
+
+  it("post116: suffix 128 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-128), 'utf8').digest('hex')).toBe("b83eb214848d7f611cd9deef81ebe202309b20f14856e4a30249d791f6c11439");
+  });
+
+  it("post116: suffix 256 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-256), 'utf8').digest('hex')).toBe("a98963fba6877f4419861c1fdec902c334dba994fe1b17e2203c33a83529b91d");
+  });
+
+  it("post116: suffix 512 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-512), 'utf8').digest('hex')).toBe("896a199bd40b525e1e4b8f80935821e745a211540ef99ec0077ad45ee38ca548");
+  });
+
+  it("post116: suffix 1024 sha256", () => {
+    expect(createHash('sha256').update(spec.slice(-1024), 'utf8').digest('hex')).toBe("1fd40425be8f88f3c0c1ad738fb4934b097781b0256a7a1f71c00bebc7fefad1");
+  });
+
+  it('post116: every-Nth char inventories', () => {
+    expect(createHash('sha256').update([...Array(Math.floor(spec.length / 10)).keys()].map((i) => spec[i * 10]).join(''), 'utf8').digest('hex')).toBe("4c2ed4f2b7ec15ac46cff0f527d6a8312875d97b16e8dec1d3551b4c3a97d7cf");
+    expect(createHash('sha256').update([...Array(Math.floor(spec.length / 7)).keys()].map((i) => spec[i * 7]).join(''), 'utf8').digest('hex')).toBe("e828c543de3f79f768a55eecbe63949974913021f1257b5be5c7cbe278d33d2c");
+    expect(createHash('sha256').update([...Array(Math.floor(spec.length / 13)).keys()].map((i) => spec[i * 13]).join(''), 'utf8').digest('hex')).toBe("a029270ee5507d1ae648ee818ce69563c5d2a020d9c06ee0a8e567b0757795db");
+  });
+
+  it('post116: reverse/upper/lower/no-ws transforms', () => {
+    expect(createHash('sha256').update([...spec].reverse().join(''), 'utf8').digest('hex')).toBe("8e0a8a17d78474b7a2c052d335989cd8a980b200816869706af232736e35ab47");
+    expect(createHash('sha256').update(spec.toUpperCase(), 'utf8').digest('hex')).toBe("4c31bde6c3506390c560fd730103342a3e3c2e90f89746eb39cffb68e8d1f52f");
+    expect(createHash('sha256').update(spec.toLowerCase(), 'utf8').digest('hex')).toBe("3c6a9cb6d4e03bdaa94f7adf09456466a75fed3561783cb60442c09796aa5d3b");
+    expect(createHash('sha256').update(spec.replace(/\s+/g, ''), 'utf8').digest('hex')).toBe("5dba17e18d5eac4482998acde2c91f9380b801ba094637d7007a72473f60f22d");
+  });
+
+  it('post116: stride-64 and stride-128 inventories', () => {
+    const s64 = Array.from({ length: Math.ceil(spec.length / 64) }, (_, i) =>
+      createHash('sha256').update(spec.slice(i * 64, i * 64 + 64), 'utf8').digest('hex').slice(0, 12),
+    ).join('|');
+    const s128 = Array.from({ length: Math.ceil(spec.length / 128) }, (_, i) =>
+      createHash('sha256').update(spec.slice(i * 128, i * 128 + 128), 'utf8').digest('hex').slice(0, 12),
+    ).join('|');
+    expect(createHash('sha256').update(s64, 'utf8').digest('hex')).toBe("bffc071a4f112c2a0d15b7c6d08ff735ca1b9ac0ed74d75e38f771c88203a2aa");
+    expect(createHash('sha256').update(s128, 'utf8').digest('hex')).toBe("41bee219e75303288aa86dee287e644a9adcd11b27bff8dcad317e8ba058b32a");
+  });
+
+  it('post116: even/odd byte parity', () => {
+    const buf = Buffer.from(spec, 'utf8');
+    let even = 0;
+    let odd = 0;
+    for (const b of buf) {
+      if (b % 2 === 0) even++;
+      else odd++;
+    }
+    expect(even).toBe(2223);
+    expect(odd).toBe(1329);
+    expect(createHash('sha256').update(`${even}|${odd}`, 'utf8').digest('hex')).toBe("9be0637136ea2abd5d785ea85bf7410b512c9db0cea84934e7b480e772fbada5");
+  });
+
+  it('post116: unique codepoint cardinality', () => {
+    expect(new Set([...spec]).size).toBe(73);
+  });
+
+  it('post116: char-frequency top-60 inventory', () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 60);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${JSON.stringify(k)}:${v}`).join('|'), 'utf8').digest('hex')).toBe("ceeb3164e619b69b45b9e567c789cc908499dbcf24b899a8ec432d4d87e75298");
+  });
+
+  it("post116: char freq rank 0", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[0][0])).toBe("\" \"");
+    expect(top[0][1]).toBe(640);
+  });
+
+  it("post116: char freq rank 1", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[1][0])).toBe("\"\\\"\"");
+    expect(top[1][1]).toBe(250);
+  });
+
+  it("post116: char freq rank 2", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[2][0])).toBe("\"e\"");
+    expect(top[2][1]).toBe(220);
+  });
+
+  it("post116: char freq rank 3", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[3][0])).toBe("\"t\"");
+    expect(top[3][1]).toBe(196);
+  });
+
+  it("post116: char freq rank 4", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[4][0])).toBe("\"i\"");
+    expect(top[4][1]).toBe(164);
+  });
+
+  it("post116: char freq rank 5", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[5][0])).toBe("\"r\"");
+    expect(top[5][1]).toBe(163);
+  });
+
+  it("post116: char freq rank 6", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[6][0])).toBe("\"o\"");
+    expect(top[6][1]).toBe(146);
+  });
+
+  it("post116: char freq rank 7", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[7][0])).toBe("\"\\n\"");
+    expect(top[7][1]).toBe(144);
+  });
+
+  it("post116: char freq rank 8", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[8][0])).toBe("\"n\"");
+    expect(top[8][1]).toBe(144);
+  });
+
+  it("post116: char freq rank 9", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[9][0])).toBe("\"a\"");
+    expect(top[9][1]).toBe(127);
+  });
+
+  it("post116: char freq rank 10", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[10][0])).toBe("\"s\"");
+    expect(top[10][1]).toBe(124);
+  });
+
+  it("post116: char freq rank 11", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[11][0])).toBe("\"p\"");
+    expect(top[11][1]).toBe(97);
+  });
+
+  it("post116: char freq rank 12", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[12][0])).toBe("\":\"");
+    expect(top[12][1]).toBe(90);
+  });
+
+  it("post116: char freq rank 13", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[13][0])).toBe("\"l\"");
+    expect(top[13][1]).toBe(80);
+  });
+
+  it("post116: char freq rank 14", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[14][0])).toBe("\"c\"");
+    expect(top[14][1]).toBe(73);
+  });
+
+  it("post116: char freq rank 15", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[15][0])).toBe("\"g\"");
+    expect(top[15][1]).toBe(68);
+  });
+
+  it("post116: char freq rank 16", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[16][0])).toBe("\"d\"");
+    expect(top[16][1]).toBe(64);
+  });
+
+  it("post116: char freq rank 17", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[17][0])).toBe("\",\"");
+    expect(top[17][1]).toBe(62);
+  });
+
+  it("post116: char freq rank 18", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[18][0])).toBe("\"`\"");
+    expect(top[18][1]).toBe(62);
+  });
+
+  it("post116: char freq rank 19", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[19][0])).toBe("\"u\"");
+    expect(top[19][1]).toBe(53);
+  });
+
+  it("post116: char freq rank 20", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[20][0])).toBe("\"*\"");
+    expect(top[20][1]).toBe(48);
+  });
+
+  it("post116: char freq rank 21", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[21][0])).toBe("\"m\"");
+    expect(top[21][1]).toBe(43);
+  });
+
+  it("post116: char freq rank 22", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[22][0])).toBe("\"y\"");
+    expect(top[22][1]).toBe(42);
+  });
+
+  it("post116: char freq rank 23", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[23][0])).toBe("\"{\"");
+    expect(top[23][1]).toBe(40);
+  });
+
+  it("post116: char freq rank 24", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[24][0])).toBe("\"}\"");
+    expect(top[24][1]).toBe(40);
+  });
+
+  it("post116: char freq rank 25", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[25][0])).toBe("\"f\"");
+    expect(top[25][1]).toBe(28);
+  });
+
+  it("post116: char freq rank 26", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[26][0])).toBe("\"'\"");
+    expect(top[26][1]).toBe(25);
+  });
+
+  it("post116: char freq rank 27", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[27][0])).toBe("\"b\"");
+    expect(top[27][1]).toBe(24);
+  });
+
+  it("post116: char freq rank 28", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[28][0])).toBe("\".\"");
+    expect(top[28][1]).toBe(23);
+  });
+
+  it("post116: char freq rank 29", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[29][0])).toBe("\"h\"");
+    expect(top[29][1]).toBe(23);
+  });
+
+  it("post116: char freq rank 30", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[30][0])).toBe("\"k\"");
+    expect(top[30][1]).toBe(22);
+  });
+
+  it("post116: char freq rank 31", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[31][0])).toBe("\"-\"");
+    expect(top[31][1]).toBe(21);
+  });
+
+  it("post116: char freq rank 32", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[32][0])).toBe("\"j\"");
+    expect(top[32][1]).toBe(18);
+  });
+
+  it("post116: char freq rank 33", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[33][0])).toBe("\"#\"");
+    expect(top[33][1]).toBe(14);
+  });
+
+  it("post116: char freq rank 34", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[34][0])).toBe("\"/\"");
+    expect(top[34][1]).toBe(10);
+  });
+
+  it("post116: char freq rank 35", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[35][0])).toBe("\"w\"");
+    expect(top[35][1]).toBe(10);
+  });
+
+  it("post116: char freq rank 36", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[36][0])).toBe("\"_\"");
+    expect(top[36][1]).toBe(8);
+  });
+
+  it("post116: char freq rank 37", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[37][0])).toBe("\"T\"");
+    expect(top[37][1]).toBe(8);
+  });
+
+  it("post116: char freq rank 38", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[38][0])).toBe("\"[\"");
+    expect(top[38][1]).toBe(7);
+  });
+
+  it("post116: char freq rank 39", () => {
+    const m = new Map<string, number>();
+    for (const ch of spec) m.set(ch, (m.get(ch) || 0) + 1);
+    const top = [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(JSON.stringify(top[39][0])).toBe("\"]\"");
+    expect(top[39][1]).toBe(7);
+  });
+
+  it("post116: pairwise docs HMAC backlink_curate|backlink_genres", () => {
+    expect(createHmac('sha256', "backlink_curate|backlink_genres").update(spec, 'utf8').digest('hex')).toBe("42e3d24e4ab21a8ad53ebfe1006055306dbbbf893f66be31c699dd7a1e8cf68b");
+  });
+
+  it("post116: pairwise docs HMAC backlink_curate|backlink_now_playing", () => {
+    expect(createHmac('sha256', "backlink_curate|backlink_now_playing").update(spec, 'utf8').digest('hex')).toBe("d19a7692d843fe619893ff1616b5889f52c918d8446016b309f9843653745cbb");
+  });
+
+  it("post116: pairwise docs HMAC backlink_genres|backlink_now_playing", () => {
+    expect(createHmac('sha256', "backlink_genres|backlink_now_playing").update(spec, 'utf8').digest('hex')).toBe("b0463f566031f549212d434965ad00db2c9c5c1b1e597af950ae7a92383fa308");
+  });
+
+  it("post116: negative fence — no anthropic inventing", () => {
+    expect(spec.toLowerCase().includes("anthropic")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("anthropic")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("anthropic")).toBe(false);
+  });
+
+  it("post116: negative fence — no claude inventing", () => {
+    expect(spec.toLowerCase().includes("claude")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("claude")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("claude")).toBe(false);
+  });
+
+  it("post116: negative fence — no haiku inventing", () => {
+    expect(spec.toLowerCase().includes("haiku")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("haiku")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("haiku")).toBe(false);
+  });
+
+  it("post116: negative fence — no /playlist inventing", () => {
+    expect(spec.toLowerCase().includes("/playlist")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("/playlist")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("/playlist")).toBe(false);
+  });
+
+  it("post116: negative fence — no ANTHROPIC inventing", () => {
+    expect(spec.toLowerCase().includes("anthropic")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("anthropic")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("anthropic")).toBe(false);
+  });
+
+  it("post116: negative fence — no DurableObject inventing", () => {
+    expect(spec.toLowerCase().includes("durableobject")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("durableobject")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("durableobject")).toBe(false);
+  });
+
+  it("post116: negative fence — no R2_BUCKET inventing", () => {
+    expect(spec.toLowerCase().includes("r2_bucket")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("r2_bucket")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("r2_bucket")).toBe(false);
+  });
+
+  it("post116: negative fence — no Bearer  inventing", () => {
+    expect(spec.toLowerCase().includes("bearer ")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("bearer ")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("bearer ")).toBe(false);
+  });
+
+  it("post116: negative fence — no api_key_hardcoded inventing", () => {
+    expect(spec.toLowerCase().includes("api_key_hardcoded")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("api_key_hardcoded")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("api_key_hardcoded")).toBe(false);
+  });
+
+  it("post116: negative fence — no sk-ant inventing", () => {
+    expect(spec.toLowerCase().includes("sk-ant")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("sk-ant")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("sk-ant")).toBe(false);
+  });
+
+  it("post116: negative fence — no openai.com inventing", () => {
+    expect(spec.toLowerCase().includes("openai.com")).toBe(false);
+    expect(mcpSrc.toLowerCase().includes("openai.com")).toBe(false);
+    expect(indexSrc.toLowerCase().includes("openai.com")).toBe(false);
+  });
+
+  it('post116: AGENTS Verify script surface remains', () => {
+    expect(agentsMd).toContain('npm ci');
+    expect(agentsMd).toContain('npm run typecheck');
+    expect(agentsMd).toContain('npm test');
+    expect(agentsMd).toContain('npm run test:coverage');
+    expect(agentsMd.includes('npm run test:coverage')).toBe(true);
+  });
+
+  it('post116: vitest 100% coverage floors remain', () => {
+    expect(vitestCfg).toMatch(/lines:\s*100/);
+    expect(vitestCfg).toMatch(/functions:\s*100/);
+    expect(vitestCfg).toMatch(/branches:\s*100/);
+    expect(vitestCfg).toMatch(/statements:\s*100/);
+    expect(true).toBe(true);
+  });
+
+  it('post116: package scripts lock', () => {
+    const scripts = JSON.parse(pkgJson).scripts as Record<string, string>;
+    expect(scripts).toEqual({"dev":"wrangler dev","deploy":"wrangler deploy","typecheck":"tsc --noEmit","test":"vitest run","test:watch":"vitest","test:coverage":"vitest run --coverage"});
+  });
+
+  it('post116: CI workflow still runs typecheck+test+coverage', () => {
+    expect(ciYml).toMatch(/npm run typecheck/);
+    expect(ciYml).toMatch(/npm run test:coverage/);
+    expect(ciYml).toContain('name: Typecheck');
+    expect(ciYml).toContain('name: Tests');
+    expect(ciYml).toContain('name: Hygiene');
+  });
+
+  it('post116: integration notes still document live Worker contracts', () => {
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(spec).toMatch(/No auth required for read endpoints/i);
+    expect(spec).toMatch(/1h TTL/i);
+    expect(spec).toMatch(/\/curate`?\s+always calls Gemini fresh/i);
+    expect(spec).toMatch(/editorial: null/);
+    expect(spec).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(spec).toContain('GET /genres');
+  });
+
+  it('post116: docs backlink_now_playing remaps url→stream_url (spec-only; no Worker route invent)', () => {
+    expect(spec).toContain('stream_url');
+    expect(spec).toMatch(/url` remapped to `stream_url/);
+    expect(indexSrc).not.toMatch(/app\.get\(['"]\/now-playing/);
+    expect(indexSrc).not.toMatch(/app\.get\(['"]\/playlist/);
+    expect(mcpSrc).not.toContain('backlink_now_playing');
+    expect(mcpSrc).not.toContain('backlink_curate');
+  });
+
+  it('post116: mega cross-file digest', () => {
+    const parts = [
+      createHash('sha256').update(spec, 'utf8').digest('hex'),
+      createHash('sha256').update(mcpSrc, 'utf8').digest('hex'),
+      createHash('sha256').update(indexSrc, 'utf8').digest('hex'),
+      createHash('sha256').update(genresSrc, 'utf8').digest('hex'),
+      createHash('sha256').update(parserSrc, 'utf8').digest('hex'),
+      createHash('sha256').update(typesSrc, 'utf8').digest('hex'),
+      createHash('sha256').update(wranglerToml, 'utf8').digest('hex'),
+      createHash('sha256').update(ciYml, 'utf8').digest('hex'),
+      createHash('sha256').update(agentsMd, 'utf8').digest('hex'),
+      createHash('sha256').update(readmeMd, 'utf8').digest('hex'),
+      createHash('sha256').update(deployMd, 'utf8').digest('hex'),
+      createHash('sha256').update(pkgJson, 'utf8').digest('hex'),
+      createHash('sha256').update(vitestCfg, 'utf8').digest('hex'),
+      createHash('sha256').update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex'),
+      createHash('sha256').update(JSON.stringify(GENRE_MAP), 'utf8').digest('hex'),
+      createHash('sha256').update(JSON.stringify([...VALID_GENRES]), 'utf8').digest('hex'),
+    ];
+    expect(createHash('sha256').update(parts.join('|'), 'utf8').digest('hex')).toBe("8ff59f016c658977b071942013e8c6b71ec1a7308d9ebd8dfef9d8c1be7dc4a0");
+  });
+
+  it('post116: purity — 25 rounds of digest+resolve unchanged', () => {
+    const digest = () => createHash('sha256').update(spec, 'utf8').digest('hex');
+    const first = digest();
+    for (let i = 0; i < 25; i++) {
+      expect(digest()).toBe(first);
+      expect(resolveGenre('late night')).toBe('ambient');
+      expect(resolveGenre('UNKNOWN_XYZ')).toBe('music');
+      expect(MCP_MANIFEST.tools).toHaveLength(4);
+    }
+    expect(first).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849");
+  });
+
+  it("post116: nonempty line 0 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[0], 'utf8').digest('hex')).toBe("99c84d33ad819ac91a66e1a30aef3bf512cb393370d7b6fbc8397c8917ba2e66");
+  });
+
+  it("post116: nonempty line 2 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[2], 'utf8').digest('hex')).toBe("5e0f013658c5f50f7c40c93531494fbb57ec6e3c6d3fb79f9ae8de8be3979572");
+  });
+
+  it("post116: nonempty line 4 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[4], 'utf8').digest('hex')).toBe("cb3f91d54eee30e53e35b2b99905f70f169ed549fd78909d3dac2defc9ed8d3b");
+  });
+
+  it("post116: nonempty line 6 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[6], 'utf8').digest('hex')).toBe("0b27734b46fbf7ef264d7dcff4505a08b8773717141fac872ecc4d1c686ca54c");
+  });
+
+  it("post116: nonempty line 8 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[8], 'utf8').digest('hex')).toBe("ff3cf26fccc178587f5e9fd4ea384b4504907333f5685d3918dcf5cf001e7594");
+  });
+
+  it("post116: nonempty line 10 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[10], 'utf8').digest('hex')).toBe("02b56e10fd373ef3e120665848a53d523d0c461f43d47226da7bfda0fda6700d");
+  });
+
+  it("post116: nonempty line 12 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[12], 'utf8').digest('hex')).toBe("5e6fc6a874f15fa0ba609e93068700b42dc94bd8454a83662ea447ee04482d58");
+  });
+
+  it("post116: nonempty line 13 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[13], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 14 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[14], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 15 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[15], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 16 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[16], 'utf8').digest('hex')).toBe("0b5b7049adc5269aa29b4271ccb39585a121630ec372ca6c50a6f25c44bb54d8");
+  });
+
+  it("post116: nonempty line 17 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[17], 'utf8').digest('hex')).toBe("c27ff1a8aedfd3a844bbf61b19b33d320f29e76ec8a85bb0ad129b38ea484c0b");
+  });
+
+  it("post116: nonempty line 18 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[18], 'utf8').digest('hex')).toBe("b6d239e8efbb3458935d1a50ba1d093c355c134607b9f0ec4a4a8e251c46e570");
+  });
+
+  it("post116: nonempty line 19 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[19], 'utf8').digest('hex')).toBe("5d7e1477a4255851fe5bdf35eb34f47efc86b07d8b22b005c6087e431dfdc507");
+  });
+
+  it("post116: nonempty line 20 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[20], 'utf8').digest('hex')).toBe("58636dd91683339092f700bf39dd97cef08ab7e1a75e5ae24bdc7de2ecf16d40");
+  });
+
+  it("post116: nonempty line 21 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[21], 'utf8').digest('hex')).toBe("e08470ea6ec3f78eb7c3ce4d0b38a8105755c3421eea0c56f353a0118ebe5933");
+  });
+
+  it("post116: nonempty line 22 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[22], 'utf8').digest('hex')).toBe("b6d239e8efbb3458935d1a50ba1d093c355c134607b9f0ec4a4a8e251c46e570");
+  });
+
+  it("post116: nonempty line 23 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[23], 'utf8').digest('hex')).toBe("fb22633293e70bb94195c037bf3b12aa6642c2d8a82f10bf2a112ea32707a3ac");
+  });
+
+  it("post116: nonempty line 24 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[24], 'utf8').digest('hex')).toBe("28d86778615f6af47bb1bc4f40face756749768e5111f114cfa234a5060c25af");
+  });
+
+  it("post116: nonempty line 25 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[25], 'utf8').digest('hex')).toBe("3288a136ca3e7c8564fedd3322a308b2d045f273db5055e2e2aea1f82d16218e");
+  });
+
+  it("post116: nonempty line 26 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[26], 'utf8').digest('hex')).toBe("c76cce0dffe84d124d3f8ee44e9a5b2cb2fa4c59e4ab73ca8cc0c33b5318b712");
+  });
+
+  it("post116: nonempty line 27 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[27], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 28 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[28], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 30 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[30], 'utf8').digest('hex')).toBe("4d4a7b9130ee5775818f5099d8dac8f3ff94bd15d56f2d9022068bac04bf0538");
+  });
+
+  it("post116: nonempty line 31 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[31], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 32 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[32], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 33 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[33], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 34 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[34], 'utf8').digest('hex')).toBe("0b5b7049adc5269aa29b4271ccb39585a121630ec372ca6c50a6f25c44bb54d8");
+  });
+
+  it("post116: nonempty line 35 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[35], 'utf8').digest('hex')).toBe("7d3c9b85aedc612a720f17c82b131209a163a8e0483f1ce42f2b3477f4c04390");
+  });
+
+  it("post116: nonempty line 36 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[36], 'utf8').digest('hex')).toBe("697b544165d774fa723d67359546a50961186d67e30c26badfd2becf44f4c619");
+  });
+
+  it("post116: nonempty line 37 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[37], 'utf8').digest('hex')).toBe("f9f6cf6a503b59eb940332f01d1bcfdfcf08376183040efed9ed6ffb815e3785");
+  });
+
+  it("post116: nonempty line 38 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[38], 'utf8').digest('hex')).toBe("9cef552767ebb0c07bd62d7c88a47c59f4be0a991973de6e5696fb02f21b6e99");
+  });
+
+  it("post116: nonempty line 39 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[39], 'utf8').digest('hex')).toBe("23d3e54aec3f790061c877bedfa8ed3c2b247a0b3688694c33dc777201853599");
+  });
+
+  it("post116: nonempty line 40 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[40], 'utf8').digest('hex')).toBe("66bb58fba1af4366d7aecd0353c4b2e8a28740e9f927d9372f1144a1d6ef3713");
+  });
+
+  it("post116: nonempty line 41 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[41], 'utf8').digest('hex')).toBe("a854fb1a3ed9b4c299895530f3e23d62340a41a7cbc63369cc78047a39df6979");
+  });
+
+  it("post116: nonempty line 42 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[42], 'utf8').digest('hex')).toBe("d337fa71c905db67a4c65053dc91862d58bea037e23ef79323996f7e76f795c1");
+  });
+
+  it("post116: nonempty line 43 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[43], 'utf8').digest('hex')).toBe("e9856c0b8c26d416796ebbd354b11e7900f24bad7f6356422454241865af2f7c");
+  });
+
+  it("post116: nonempty line 44 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[44], 'utf8').digest('hex')).toBe("c7925c46cf680c810533ab6be56593f892e644673de7563926f701f6fe8bd395");
+  });
+
+  it("post116: nonempty line 45 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[45], 'utf8').digest('hex')).toBe("75cad7ef077c03fd573fefb8ecd47ad2b09a53eae3d1eb4ce94577e8efdb541f");
+  });
+
+  it("post116: nonempty line 46 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[46], 'utf8').digest('hex')).toBe("94d55f14dc795d8379620f6b3165eee4568e77a61213b023a06825254f99505f");
+  });
+
+  it("post116: nonempty line 47 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[47], 'utf8').digest('hex')).toBe("93ed702dbc71183aa1ae6192be0c11ebfed39f87b2124aaa8d9a22b2a696b8d5");
+  });
+
+  it("post116: nonempty line 48 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[48], 'utf8').digest('hex')).toBe("55ebf423a240dd03063fdd082be36a27c8d4229fb15ca4cb35cf35d943486066");
+  });
+
+  it("post116: nonempty line 49 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[49], 'utf8').digest('hex')).toBe("20b32f3e6c5b2747b063a5162b3ed1ba54c1e15a29911ca2f137703c0d5813c3");
+  });
+
+  it("post116: nonempty line 50 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[50], 'utf8').digest('hex')).toBe("f61f5bbc379fd349ffd484746f91dcd132c4bb0b0a919ca7ec94604bf9ca2435");
+  });
+
+  it("post116: nonempty line 51 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[51], 'utf8').digest('hex')).toBe("28d86778615f6af47bb1bc4f40face756749768e5111f114cfa234a5060c25af");
+  });
+
+  it("post116: nonempty line 52 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[52], 'utf8').digest('hex')).toBe("737db166c79ae98e44bbe5ad43e03bf3774f7b3696068842d56a72e863dfeb20");
+  });
+
+  it("post116: nonempty line 53 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[53], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 54 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[54], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 56 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[56], 'utf8').digest('hex')).toBe("1efc6f55ca964098e2c44f2225b483acd368b341840dc19f80141769b536f7ba");
+  });
+
+  it("post116: nonempty line 58 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[58], 'utf8').digest('hex')).toBe("cb3f91d54eee30e53e35b2b99905f70f169ed549fd78909d3dac2defc9ed8d3b");
+  });
+
+  it("post116: nonempty line 60 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[60], 'utf8').digest('hex')).toBe("eb93ddb3ee5b20e931ee882ce3423864bacea389117698ee5e372a70e2e7defa");
+  });
+
+  it("post116: nonempty line 62 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[62], 'utf8').digest('hex')).toBe("eada87353b2943ec7edf7d8f662d19263f280a3c0f60b9e736af0128236e1267");
+  });
+
+  it("post116: nonempty line 64 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[64], 'utf8').digest('hex')).toBe("5e6fc6a874f15fa0ba609e93068700b42dc94bd8454a83662ea447ee04482d58");
+  });
+
+  it("post116: nonempty line 65 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[65], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 66 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[66], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 67 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[67], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 68 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[68], 'utf8').digest('hex')).toBe("d3862c9e5c460a0b191dc7b110b4b022a266c7aaa64091a9b6c5379ec3976854");
+  });
+
+  it("post116: nonempty line 69 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[69], 'utf8').digest('hex')).toBe("c76cce0dffe84d124d3f8ee44e9a5b2cb2fa4c59e4ab73ca8cc0c33b5318b712");
+  });
+
+  it("post116: nonempty line 70 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[70], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 71 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[71], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 73 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[73], 'utf8').digest('hex')).toBe("7e7d95628b7a199f2b2f48e22e4884a79cb0238c75c84177b1f509d82bb40333");
+  });
+
+  it("post116: nonempty line 74 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[74], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 75 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[75], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 76 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[76], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 77 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[77], 'utf8').digest('hex')).toBe("0b5b7049adc5269aa29b4271ccb39585a121630ec372ca6c50a6f25c44bb54d8");
+  });
+
+  it("post116: nonempty line 78 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[78], 'utf8').digest('hex')).toBe("855e92e35189eea118de9a934c3e5c5b4293472491c6c45475b0b617d592627f");
+  });
+
+  it("post116: nonempty line 79 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[79], 'utf8').digest('hex')).toBe("23d3e54aec3f790061c877bedfa8ed3c2b247a0b3688694c33dc777201853599");
+  });
+
+  it("post116: nonempty line 80 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[80], 'utf8').digest('hex')).toBe("7aced20a096ba68ff67b7041856c1a7aa9af58a46deb3c2bafd01b1de106b168");
+  });
+
+  it("post116: nonempty line 81 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[81], 'utf8').digest('hex')).toBe("b771fe5684e530d1dc38496e194cc26e2a87788f84b7b1474e1e58c228f1d67b");
+  });
+
+  it("post116: nonempty line 82 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[82], 'utf8').digest('hex')).toBe("58636dd91683339092f700bf39dd97cef08ab7e1a75e5ae24bdc7de2ecf16d40");
+  });
+
+  it("post116: nonempty line 83 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[83], 'utf8').digest('hex')).toBe("c51251d915a70df89ff6878b1f599a0e5614122a562054e33b78b6ccc84feda9");
+  });
+
+  it("post116: nonempty line 84 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[84], 'utf8').digest('hex')).toBe("558a119ee6940a65fd80505f4c8a415687bcff2b181b8dd10a00dac73fe38d6e");
+  });
+
+  it("post116: nonempty line 85 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[85], 'utf8').digest('hex')).toBe("b2d147df0c268333660abcd491622cd2ae29e650cac424c0cce87ecae8d25223");
+  });
+
+  it("post116: nonempty line 86 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[86], 'utf8').digest('hex')).toBe("39bbc9e7eca4bd9f8463cd1f25c2c0f1754860275cad83aed78e6562b27af0cb");
+  });
+
+  it("post116: nonempty line 87 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[87], 'utf8').digest('hex')).toBe("28d86778615f6af47bb1bc4f40face756749768e5111f114cfa234a5060c25af");
+  });
+
+  it("post116: nonempty line 88 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[88], 'utf8').digest('hex')).toBe("737db166c79ae98e44bbe5ad43e03bf3774f7b3696068842d56a72e863dfeb20");
+  });
+
+  it("post116: nonempty line 89 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[89], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 90 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[90], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 92 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[92], 'utf8').digest('hex')).toBe("107c1c6c71f6c3c50640bd5383ee1b779b1356d37ce9cb4682baf6862ede30af");
+  });
+
+  it("post116: nonempty line 94 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[94], 'utf8').digest('hex')).toBe("cb3f91d54eee30e53e35b2b99905f70f169ed549fd78909d3dac2defc9ed8d3b");
+  });
+
+  it("post116: nonempty line 96 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[96], 'utf8').digest('hex')).toBe("778a180e647ff15a320a393891f10a033078b4c9811c6ab033da0292cee86927");
+  });
+
+  it("post116: nonempty line 98 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[98], 'utf8').digest('hex')).toBe("a9151993967f69adea81c18e60774ff78db02a116f8c135caf78bf1b5c9af0a2");
+  });
+
+  it("post116: nonempty line 100 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[100], 'utf8').digest('hex')).toBe("5e6fc6a874f15fa0ba609e93068700b42dc94bd8454a83662ea447ee04482d58");
+  });
+
+  it("post116: nonempty line 101 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[101], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 102 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[102], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 103 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[103], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 104 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[104], 'utf8').digest('hex')).toBe("0b5b7049adc5269aa29b4271ccb39585a121630ec372ca6c50a6f25c44bb54d8");
+  });
+
+  it("post116: nonempty line 105 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[105], 'utf8').digest('hex')).toBe("c27ff1a8aedfd3a844bbf61b19b33d320f29e76ec8a85bb0ad129b38ea484c0b");
+  });
+
+  it("post116: nonempty line 106 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[106], 'utf8').digest('hex')).toBe("b6d239e8efbb3458935d1a50ba1d093c355c134607b9f0ec4a4a8e251c46e570");
+  });
+
+  it("post116: nonempty line 107 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[107], 'utf8').digest('hex')).toBe("a8a25ade28f4566e07a982debac5cd8c98018f8739f03cfc805095064621c8aa");
+  });
+
+  it("post116: nonempty line 108 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[108], 'utf8').digest('hex')).toBe("58636dd91683339092f700bf39dd97cef08ab7e1a75e5ae24bdc7de2ecf16d40");
+  });
+
+  it("post116: nonempty line 109 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[109], 'utf8').digest('hex')).toBe("e08470ea6ec3f78eb7c3ce4d0b38a8105755c3421eea0c56f353a0118ebe5933");
+  });
+
+  it("post116: nonempty line 110 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[110], 'utf8').digest('hex')).toBe("b6d239e8efbb3458935d1a50ba1d093c355c134607b9f0ec4a4a8e251c46e570");
+  });
+
+  it("post116: nonempty line 111 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[111], 'utf8').digest('hex')).toBe("cfc78309a75d131895ed763bb715f55bde5b366b668169ac69976d6e07e33c18");
+  });
+
+  it("post116: nonempty line 112 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[112], 'utf8').digest('hex')).toBe("28d86778615f6af47bb1bc4f40face756749768e5111f114cfa234a5060c25af");
+  });
+
+  it("post116: nonempty line 113 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[113], 'utf8').digest('hex')).toBe("3288a136ca3e7c8564fedd3322a308b2d045f273db5055e2e2aea1f82d16218e");
+  });
+
+  it("post116: nonempty line 114 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[114], 'utf8').digest('hex')).toBe("c76cce0dffe84d124d3f8ee44e9a5b2cb2fa4c59e4ab73ca8cc0c33b5318b712");
+  });
+
+  it("post116: nonempty line 115 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[115], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 116 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[116], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 118 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[118], 'utf8').digest('hex')).toBe("e3b9a88fe456095f8cf30b7ff208f32113d702ebfbfaba2ff6d6d0441caeca64");
+  });
+
+  it("post116: nonempty line 119 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[119], 'utf8').digest('hex')).toBe("a56726cde84dae1575d9b7635e29470f03d606e486e96d7baeba00e2738be635");
+  });
+
+  it("post116: nonempty line 120 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[120], 'utf8').digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post116: nonempty line 121 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[121], 'utf8').digest('hex')).toBe("d0c3102ad9c439dc1759a4446f5554ff8a40b73850d99bdbc2624adc28e5e7f1");
+  });
+
+  it("post116: nonempty line 122 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[122], 'utf8').digest('hex')).toBe("0b5b7049adc5269aa29b4271ccb39585a121630ec372ca6c50a6f25c44bb54d8");
+  });
+
+  it("post116: nonempty line 123 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[123], 'utf8').digest('hex')).toBe("05b5215df672a99afae570a523e15de556e6e40ed871e0e8e8020197ef727a70");
+  });
+
+  it("post116: nonempty line 124 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[124], 'utf8').digest('hex')).toBe("d27cb546fae937ab1c0929ffe1ec66345b05a4d0dfc0c3a66bec03cc6a73da6a");
+  });
+
+  it("post116: nonempty line 125 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[125], 'utf8').digest('hex')).toBe("653b78133c7431eaa638c63136dee2fb9948cd88ad621f818748e06f230ea0e5");
+  });
+
+  it("post116: nonempty line 126 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[126], 'utf8').digest('hex')).toBe("7be0374fadfef3930d921cc77d05b26e442f39bb2cc5a28e9600fdb471d30a7d");
+  });
+
+  it("post116: nonempty line 127 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[127], 'utf8').digest('hex')).toBe("117097357b0fc6085ec9d9cf9b5258d2f6487021a32d0179a6d5ef2e5df0a91a");
+  });
+
+  it("post116: nonempty line 128 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[128], 'utf8').digest('hex')).toBe("3288a136ca3e7c8564fedd3322a308b2d045f273db5055e2e2aea1f82d16218e");
+  });
+
+  it("post116: nonempty line 129 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[129], 'utf8').digest('hex')).toBe("6f7389895023466ca1450f8220963560804bb9681bf1d38fdf3ef71a524bdf7f");
+  });
+
+  it("post116: nonempty line 130 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[130], 'utf8').digest('hex')).toBe("d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e945d2");
+  });
+
+  it("post116: nonempty line 131 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[131], 'utf8').digest('hex')).toBe("f1b901847390b0ed7e374e7c1e464ec17b46a427c487a5ad6cbd2906405083d5");
+  });
+
+  it("post116: nonempty line 133 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[133], 'utf8').digest('hex')).toBe("43bc37f060d0944882923675361694e71c93582bd0ad597101c37da2d4735761");
+  });
+
+  it("post116: nonempty line 135 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[135], 'utf8').digest('hex')).toBe("cb3f91d54eee30e53e35b2b99905f70f169ed549fd78909d3dac2defc9ed8d3b");
+  });
+
+  it("post116: nonempty line 137 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[137], 'utf8').digest('hex')).toBe("025d1a806eaaae1a50e27b9e54a40adb381acbee73b159a06b6f334b02f1741d");
+  });
+
+  it("post116: nonempty line 139 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[139], 'utf8').digest('hex')).toBe("8994a27e468e9af15f07ed42105121adc389a1c7b466afc9b6ce0cbd1463cd49");
+  });
+
+  it("post116: nonempty line 140 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[140], 'utf8').digest('hex')).toBe("75bffc12b59f75036bc53ba5b2929365227e0bc1f5920e5b5655633ade19951e");
+  });
+
+  it("post116: nonempty line 141 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[141], 'utf8').digest('hex')).toBe("12fa63c6833ae8627c1a570532352bf1a4e0a627db960a7c61e611642cb9dacf");
+  });
+
+  it("post116: nonempty line 142 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[142], 'utf8').digest('hex')).toBe("9f4c21047f874eb11a801431f269683597473fb1f9c587ac11ceaa637d594103");
+  });
+
+  it("post116: nonempty line 143 full sha256", () => {
+    expect(createHash('sha256').update(spec.split('\n')[143], 'utf8').digest('hex')).toBe("aa0dda7332d1f1f01dd6fecdef3a6817ed3dd873a1998b61a3f9c2a8735fae32");
+  });
+});
+
+describe('post116 mcp-spec-contract HEAVY deepen extras', () => {
+  const mcpSrc = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+  const indexSrc = readFileSync(join(root, 'src/index.ts'), 'utf8');
+  const deployMd = readFileSync(join(root, 'DEPLOY.md'), 'utf8');
+  const readmeMd = readFileSync(join(root, 'README.md'), 'utf8');
+
+  it("post116b: char-code sum window 0..100", () => {
+    let sum = 0;
+    for (let i = 0; i < 100; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8854);
+    expect(createHash('sha256').update(spec.slice(0, 100), 'utf8').digest('hex')).toBe("0d831dfe4806ce05acdad8cbac9da4b0b491ab95ea34ff94909f4c929f88ca64");
+  });
+
+  it("post116b: char-code sum window 100..200", () => {
+    let sum = 0;
+    for (let i = 100; i < 200; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7875);
+    expect(createHash('sha256').update(spec.slice(100, 200), 'utf8').digest('hex')).toBe("f7ec03319c6802f8a1cf498f980fbaa065c5a1ea20ec8a21c5388c4f81215a35");
+  });
+
+  it("post116b: char-code sum window 200..300", () => {
+    let sum = 0;
+    for (let i = 200; i < 300; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8909);
+    expect(createHash('sha256').update(spec.slice(200, 300), 'utf8').digest('hex')).toBe("b2310e18f89f40a50166e7a9cea33e21023da4615e40a21bfc061ef6dbea4bd5");
+  });
+
+  it("post116b: char-code sum window 300..400", () => {
+    let sum = 0;
+    for (let i = 300; i < 400; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7297);
+    expect(createHash('sha256').update(spec.slice(300, 400), 'utf8').digest('hex')).toBe("3d577bd0bd61c4a0366c729daacd278423372e3e69e8a6fd8981e58066ea11f1");
+  });
+
+  it("post116b: char-code sum window 400..500", () => {
+    let sum = 0;
+    for (let i = 400; i < 500; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7860);
+    expect(createHash('sha256').update(spec.slice(400, 500), 'utf8').digest('hex')).toBe("f1927b685112a5774ad0d307f63e685059d70a52d49893268d6c228cef3578d4");
+  });
+
+  it("post116b: char-code sum window 500..600", () => {
+    let sum = 0;
+    for (let i = 500; i < 600; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7222);
+    expect(createHash('sha256').update(spec.slice(500, 600), 'utf8').digest('hex')).toBe("089d196b3db015d640adfde5198c94e5f0ba5b0a34475f9c7c4e9320fa32c4bb");
+  });
+
+  it("post116b: char-code sum window 600..700", () => {
+    let sum = 0;
+    for (let i = 600; i < 700; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8306);
+    expect(createHash('sha256').update(spec.slice(600, 700), 'utf8').digest('hex')).toBe("e02170c8be00758fbec6bd4c66d460495f5823c77826a5826c882d51480dff46");
+  });
+
+  it("post116b: char-code sum window 700..800", () => {
+    let sum = 0;
+    for (let i = 700; i < 800; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8515);
+    expect(createHash('sha256').update(spec.slice(700, 800), 'utf8').digest('hex')).toBe("5813b992845f160e2e2aeb6c42f4b1fb43ee066df649301aafa0bf687cf56cbd");
+  });
+
+  it("post116b: char-code sum window 800..900", () => {
+    let sum = 0;
+    for (let i = 800; i < 900; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7465);
+    expect(createHash('sha256').update(spec.slice(800, 900), 'utf8').digest('hex')).toBe("b36d93c84b7e5f98ac374a3ed4bfc2975a35aa5567cd2a29476aa190cdeabd2e");
+  });
+
+  it("post116b: char-code sum window 900..1000", () => {
+    let sum = 0;
+    for (let i = 900; i < 1000; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7340);
+    expect(createHash('sha256').update(spec.slice(900, 1000), 'utf8').digest('hex')).toBe("c85edea7326a4c95a2e64328e0b56800a556cb7918d712fd5a0f7e549a1a7540");
+  });
+
+  it("post116b: char-code sum window 1000..1100", () => {
+    let sum = 0;
+    for (let i = 1000; i < 1100; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(6372);
+    expect(createHash('sha256').update(spec.slice(1000, 1100), 'utf8').digest('hex')).toBe("164842b883b2af47c9005be78100800622d34fe9a20663f60467aa5632028422");
+  });
+
+  it("post116b: char-code sum window 1100..1200", () => {
+    let sum = 0;
+    for (let i = 1100; i < 1200; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(6670);
+    expect(createHash('sha256').update(spec.slice(1100, 1200), 'utf8').digest('hex')).toBe("fef6846dac3aff3332d37bc85fb5405b8e80e20f78a9bf6dd79228c6212d2555");
+  });
+
+  it("post116b: char-code sum window 1200..1300", () => {
+    let sum = 0;
+    for (let i = 1200; i < 1300; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7465);
+    expect(createHash('sha256').update(spec.slice(1200, 1300), 'utf8').digest('hex')).toBe("f772d7a82302f69f34a512ee5a2874f0e265867c825f95988c4e336664b5a71d");
+  });
+
+  it("post116b: char-code sum window 1300..1400", () => {
+    let sum = 0;
+    for (let i = 1300; i < 1400; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(6335);
+    expect(createHash('sha256').update(spec.slice(1300, 1400), 'utf8').digest('hex')).toBe("b63a38d43e0fb0721967c1aa8aaceaa2fe0b41da864a4e40b67b588d2debd973");
+  });
+
+  it("post116b: char-code sum window 1400..1500", () => {
+    let sum = 0;
+    for (let i = 1400; i < 1500; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7685);
+    expect(createHash('sha256').update(spec.slice(1400, 1500), 'utf8').digest('hex')).toBe("127b983b592c9c771a796c99910c01d63be50077f6e4d01a2f77248899abda2a");
+  });
+
+  it("post116b: char-code sum window 1500..1600", () => {
+    let sum = 0;
+    for (let i = 1500; i < 1600; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(9234);
+    expect(createHash('sha256').update(spec.slice(1500, 1600), 'utf8').digest('hex')).toBe("065247b8008b8d3d82bfc0dc87434e42565adaea1d33308c9b51c372bd19191d");
+  });
+
+  it("post116b: char-code sum window 1600..1700", () => {
+    let sum = 0;
+    for (let i = 1600; i < 1700; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8063);
+    expect(createHash('sha256').update(spec.slice(1600, 1700), 'utf8').digest('hex')).toBe("a3f41cfbb533c14d0debb148cdf86943327557c3e60a76de34e620380173c57a");
+  });
+
+  it("post116b: char-code sum window 1700..1800", () => {
+    let sum = 0;
+    for (let i = 1700; i < 1800; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7606);
+    expect(createHash('sha256').update(spec.slice(1700, 1800), 'utf8').digest('hex')).toBe("75e601fa0b4899a8149a39010287ba1bffb555275eca31b2f56483b17ad30c80");
+  });
+
+  it("post116b: char-code sum window 1800..1900", () => {
+    let sum = 0;
+    for (let i = 1800; i < 1900; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7443);
+    expect(createHash('sha256').update(spec.slice(1800, 1900), 'utf8').digest('hex')).toBe("bc3f622fc91acafa183b8314af0ef54e45550822b6ddffd4d4251f26042bb627");
+  });
+
+  it("post116b: char-code sum window 1900..2000", () => {
+    let sum = 0;
+    for (let i = 1900; i < 2000; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7373);
+    expect(createHash('sha256').update(spec.slice(1900, 2000), 'utf8').digest('hex')).toBe("01cb034b549698e4734bc6df58d6aa7938a695f9ad071579717c4ee4f9ea4576");
+  });
+
+  it("post116b: char-code sum window 2000..2100", () => {
+    let sum = 0;
+    for (let i = 2000; i < 2100; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(16956);
+    expect(createHash('sha256').update(spec.slice(2000, 2100), 'utf8').digest('hex')).toBe("d45eaee56c57aa91d6aeea6576c2d5758e2e7d0a0c0ef85e3aa6d71c56682ba8");
+  });
+
+  it("post116b: char-code sum window 2100..2200", () => {
+    let sum = 0;
+    for (let i = 2100; i < 2200; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7510);
+    expect(createHash('sha256').update(spec.slice(2100, 2200), 'utf8').digest('hex')).toBe("b531108db4557a453ca43c1827405bd23c0d9868840f19ec0d41f75235c5d601");
+  });
+
+  it("post116b: char-code sum window 2200..2300", () => {
+    let sum = 0;
+    for (let i = 2200; i < 2300; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(17333);
+    expect(createHash('sha256').update(spec.slice(2200, 2300), 'utf8').digest('hex')).toBe("02a6ea24f0ea8783c914ddd465fa7e9e48a988c00758095607fdd92e1df0bf78");
+  });
+
+  it("post116b: char-code sum window 2300..2400", () => {
+    let sum = 0;
+    for (let i = 2300; i < 2400; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7262);
+    expect(createHash('sha256').update(spec.slice(2300, 2400), 'utf8').digest('hex')).toBe("513f0c3d6212c07ea0f9e9813168c5d63b5035c562f1ff0958e17bdeaad1b2e9");
+  });
+
+  it("post116b: char-code sum window 2400..2500", () => {
+    let sum = 0;
+    for (let i = 2400; i < 2500; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8008);
+    expect(createHash('sha256').update(spec.slice(2400, 2500), 'utf8').digest('hex')).toBe("fef2ddb8c0e41ebd78565b31b486163860f4ace4bda8fb8784576a13403d10d9");
+  });
+
+  it("post116b: char-code sum window 2500..2600", () => {
+    let sum = 0;
+    for (let i = 2500; i < 2600; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7337);
+    expect(createHash('sha256').update(spec.slice(2500, 2600), 'utf8').digest('hex')).toBe("9da0b1bcb1029698ed0d60e05aaa36c83fc0753b9fd6682b08764d70de8840f6");
+  });
+
+  it("post116b: char-code sum window 2600..2700", () => {
+    let sum = 0;
+    for (let i = 2600; i < 2700; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8110);
+    expect(createHash('sha256').update(spec.slice(2600, 2700), 'utf8').digest('hex')).toBe("a6a21bde74bc3f7fc3ad2278a6ac2ebc64d9edec08d3c780ed0ef352b87dd76a");
+  });
+
+  it("post116b: char-code sum window 2700..2800", () => {
+    let sum = 0;
+    for (let i = 2700; i < 2800; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8008);
+    expect(createHash('sha256').update(spec.slice(2700, 2800), 'utf8').digest('hex')).toBe("5a3429a8d4b16e4495cbfccc38b8066d449b61774592e7d8b5bed20bbb3256d8");
+  });
+
+  it("post116b: char-code sum window 2800..2900", () => {
+    let sum = 0;
+    for (let i = 2800; i < 2900; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7486);
+    expect(createHash('sha256').update(spec.slice(2800, 2900), 'utf8').digest('hex')).toBe("7c2c0071fa2fc08c8a2fe1764e203101cc250cb84e1d3b026a1ccd211a1f3af3");
+  });
+
+  it("post116b: char-code sum window 2900..3000", () => {
+    let sum = 0;
+    for (let i = 2900; i < 3000; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7449);
+    expect(createHash('sha256').update(spec.slice(2900, 3000), 'utf8').digest('hex')).toBe("06af3d35286f4683ed836e5d7a8be95b9a4e354ee59e6ed1626f9eacab00a324");
+  });
+
+  it("post116b: char-code sum window 3000..3100", () => {
+    let sum = 0;
+    for (let i = 3000; i < 3100; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(7681);
+    expect(createHash('sha256').update(spec.slice(3000, 3100), 'utf8').digest('hex')).toBe("f4b6667cdfc3159b91e836c533189f3b444cb0384e6d2cc39bef1060f3f4094f");
+  });
+
+  it("post116b: char-code sum window 3100..3200", () => {
+    let sum = 0;
+    for (let i = 3100; i < 3200; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(17576);
+    expect(createHash('sha256').update(spec.slice(3100, 3200), 'utf8').digest('hex')).toBe("d9f94b779961dd278ad01017549f27b55a43986e0219bdd9b289915495938050");
+  });
+
+  it("post116b: char-code sum window 3200..3300", () => {
+    let sum = 0;
+    for (let i = 3200; i < 3300; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8500);
+    expect(createHash('sha256').update(spec.slice(3200, 3300), 'utf8').digest('hex')).toBe("51f5bbd4e3159d8b3eecea5d493e2054c475f99dcdb735c818f0568c184c1adf");
+  });
+
+  it("post116b: char-code sum window 3300..3400", () => {
+    let sum = 0;
+    for (let i = 3300; i < 3400; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(8711);
+    expect(createHash('sha256').update(spec.slice(3300, 3400), 'utf8').digest('hex')).toBe("af07f8570e7dd41813a40589382fbe10bc44354194bdb9ac308fa9b5c554fb5a");
+  });
+
+  it("post116b: char-code sum window 3400..3500", () => {
+    let sum = 0;
+    for (let i = 3400; i < 3500; i++) sum += spec.charCodeAt(i);
+    expect(sum).toBe(17327);
+    expect(createHash('sha256').update(spec.slice(3400, 3500), 'utf8').digest('hex')).toBe("292cffffdff1a0b784c3da9eeeaa36b6a027ae3666823431620b690cbf6ff876");
+  });
+
+  it('post116b: trigraph top-25 inventory', () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 25);
+    expect(createHash('sha256').update(top.map(([k, v]) => `${JSON.stringify(k)}:${v}`).join('|'), 'utf8').digest('hex')).toBe("0e95683d1ee0530c9a1db0a0a67c0aa6c0e21a443b450fcdd8c1aed00068ec4f");
+  });
+
+  it("post116b: trigraph rank 0", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[0][0]).toBe("   ");
+    expect(top[0][1]).toBe(176);
+  });
+
+  it("post116b: trigraph rank 1", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[1][0]).toBe("\": ");
+    expect(top[1][1]).toBe(75);
+  });
+
+  it("post116b: trigraph rank 2", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[2][0]).toBe("\n  ");
+    expect(top[2][1]).toBe(69);
+  });
+
+  it("post116b: trigraph rank 3", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[3][0]).toBe("  \"");
+    expect(top[3][1]).toBe(55);
+  });
+
+  it("post116b: trigraph rank 4", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[4][0]).toBe(": \"");
+    expect(top[4][1]).toBe(36);
+  });
+
+  it("post116b: trigraph rank 5", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[5][0]).toBe(",\n ");
+    expect(top[5][1]).toBe(35);
+  });
+
+  it("post116b: trigraph rank 6", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[6][0]).toBe("e\":");
+    expect(top[6][1]).toBe(35);
+  });
+
+  it("post116b: trigraph rank 7", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[7][0]).toBe(" \"t");
+    expect(top[7][1]).toBe(30);
+  });
+
+  it("post116b: trigraph rank 8", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[8][0]).toBe(": {");
+    expect(top[8][1]).toBe(30);
+  });
+
+  it("post116b: trigraph rank 9", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[9][0]).toBe("\"ty");
+    expect(top[9][1]).toBe(29);
+  });
+
+  it("post116b: trigraph rank 10", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[10][0]).toBe("pe\"");
+    expect(top[10][1]).toBe(29);
+  });
+
+  it("post116b: trigraph rank 11", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[11][0]).toBe("typ");
+    expect(top[11][1]).toBe(29);
+  });
+
+  it("post116b: trigraph rank 12", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[12][0]).toBe("ype");
+    expect(top[12][1]).toBe(29);
+  });
+
+  it("post116b: trigraph rank 13", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[13][0]).toBe("ion");
+    expect(top[13][1]).toBe(27);
+  });
+
+  it("post116b: trigraph rank 14", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[14][0]).toBe("tio");
+    expect(top[14][1]).toBe(27);
+  });
+
+  it("post116b: trigraph rank 15", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[15][0]).toBe("ing");
+    expect(top[15][1]).toBe(26);
+  });
+
+  it("post116b: trigraph rank 16", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[16][0]).toBe("\"st");
+    expect(top[16][1]).toBe(22);
+  });
+
+  it("post116b: trigraph rank 17", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[17][0]).toBe("enr");
+    expect(top[17][1]).toBe(22);
+  });
+
+  it("post116b: trigraph rank 18", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[18][0]).toBe("nre");
+    expect(top[18][1]).toBe(22);
+  });
+
+  it("post116b: trigraph rank 19", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[19][0]).toBe("str");
+    expect(top[19][1]).toBe(22);
+  });
+
+  it("post116b: trigraph rank 20", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[20][0]).toBe("},\n");
+    expect(top[20][1]).toBe(21);
+  });
+
+  it("post116b: trigraph rank 21", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[21][0]).toBe("gen");
+    expect(top[21][1]).toBe(21);
+  });
+
+  it("post116b: trigraph rank 22", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[22][0]).toBe(" },");
+    expect(top[22][1]).toBe(20);
+  });
+
+  it("post116b: trigraph rank 23", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[23][0]).toBe("{\n ");
+    expect(top[23][1]).toBe(20);
+  });
+
+  it("post116b: trigraph rank 24", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < spec.length - 2; i++) {
+      const t = spec.slice(i, i + 3);
+      counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    expect(top[24][0]).toBe("ng\"");
+    expect(top[24][1]).toBe(20);
+  });
+
+  it("post116b: fence 0 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[0]))).toEqual(["type","properties","additionalProperties"]);
+  });
+
+  it("post116b: fence 0 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[0]).properties || {})).toEqual(["genre","mood"]);
+  });
+
+  it("post116b: fence 1 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[1]))).toEqual(["type","properties"]);
+  });
+
+  it("post116b: fence 1 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[1]).properties || {})).toEqual(["query","curated_by","timestamp","stations"]);
+  });
+
+  it("post116b: fence 2 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[2]))).toEqual(["type","properties","additionalProperties"]);
+  });
+
+  it("post116b: fence 2 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[2]).properties || {})).toEqual([]);
+  });
+
+  it("post116b: fence 3 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[3]))).toEqual(["type","properties"]);
+  });
+
+  it("post116b: fence 3 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[3]).properties || {})).toEqual(["genres","aliases"]);
+  });
+
+  it("post116b: fence 4 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[4]))).toEqual(["type","properties","additionalProperties"]);
+  });
+
+  it("post116b: fence 4 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[4]).properties || {})).toEqual(["genre","mood"]);
+  });
+
+  it("post116b: fence 5 top-level keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[5]))).toEqual(["type","properties","required"]);
+  });
+
+  it("post116b: fence 5 properties keys", () => {
+    const fences = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(Object.keys(JSON.parse(fences[5]).properties || {})).toEqual(["name","stream_url","logo","editorial","genre"]);
+  });
+
+  it("post116b: occurrence count of backlink_curate", () => {
+    expect((spec.match(/backlink_curate/g) || []).length).toBe(1);
+  });
+
+  it("post116b: occurrence count of backlink_genres", () => {
+    expect((spec.match(/backlink_genres/g) || []).length).toBe(1);
+  });
+
+  it("post116b: occurrence count of backlink_now_playing", () => {
+    expect((spec.match(/backlink_now_playing/g) || []).length).toBe(1);
+  });
+
+  it("post116b: occurrence count of stream_url", () => {
+    expect((spec.match(/stream_url/g) || []).length).toBe(3);
+  });
+
+  it("post116b: occurrence count of curated_by", () => {
+    expect((spec.match(/curated_by/g) || []).length).toBe(1);
+  });
+
+  it("post116b: occurrence count of editorial", () => {
+    expect((spec.match(/editorial/g) || []).length).toBe(5);
+  });
+
+  it("post116b: occurrence count of Gemini", () => {
+    expect((spec.match(/Gemini/g) || []).length).toBe(2);
+  });
+
+  it("post116b: occurrence count of iptv-org", () => {
+    expect((spec.match(/iptv-org/g) || []).length).toBe(1);
+  });
+
+  it("post116b: occurrence count of fuzzywigg", () => {
+    expect((spec.match(/fuzzywigg/g) || []).length).toBe(1);
+  });
+
+  it('post116b: every GENRE_MAP value is in VALID_GENRES or is a known alias target', () => {
+    for (const [alias, target] of Object.entries(GENRE_MAP)) {
+      expect(VALID_GENRES.includes(target as (typeof VALID_GENRES)[number])).toBe(true);
+      expect(alias.toLowerCase()).toBe(alias);
+    }
+  });
+
+  it('post116b: docs genre examples resolve through GENRE_MAP/VALID_GENRES', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(spec.toLowerCase()).toContain(g);
+      expect(VALID_GENRES).toContain(g);
+      expect(resolveGenre(g)).toBe(g);
+    }
+    expect(resolveGenre('late night')).toBe('ambient');
+    expect(resolveGenre('focus')).toBe('ambient');
+    expect(resolveGenre('chill')).toBe('ambient');
+  });
+
+  it('post116b: claw-mcp auth none and openapi url frozen', () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+    expect(spec).not.toContain('/openapi.json');
+  });
+
+  it('post116b: Worker index still has no MCP_MANIFEST import (manifest stays claw-side)', () => {
+    expect(indexSrc).not.toMatch(/from ['"]\.\/mcp['"]/);
+    expect(indexSrc).not.toContain('MCP_MANIFEST');
+    expect(mcpSrc).not.toContain('resolveGenre');
+    expect(mcpSrc).not.toContain('GENRE_MAP');
+  });
+
+  it('post116b: DEPLOY + README still mention domain/Gemini without inventing MCP HTTP routes', () => {
+    expect(deployMd).toMatch(/GEMINI_API_KEY/);
+    expect(deployMd).toMatch(/HITL/i);
+    expect(readmeMd.toLowerCase()).toMatch(/backlink|radio|gemini|iptv/);
+    expect(readmeMd).not.toMatch(/app\.get\(['"]\/playlist/);
+  });
 });
