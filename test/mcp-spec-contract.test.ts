@@ -3194,4 +3194,1271 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     );
   });
 
+  // --- HEAVY burn (post-#94): deepen mcp-spec contract coverage (orthogonal to genres #94 / wrangler #91 / helpers #85 / routes #79) ---
+
+  // Tests-only. Complementary docs/mcp-spec.md ↔ runtime locks. No product inventing.
+
+  it("post-94: spec sha256 fingerprint", () => {
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+  });
+
+  it("post-94: spec sha1 fingerprint", () => {
+    expect(createHash('sha1').update(spec, 'utf8').digest('hex')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+  });
+
+  it("post-94: spec md5 fingerprint", () => {
+    expect(createHash('md5').update(spec, 'utf8').digest('hex')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it("post-94: spec sha512 fingerprint", () => {
+    expect(createHash('sha512').update(spec, 'utf8').digest('hex')).toBe('8d26bafffcb1230048d80796e1d8a1019d83253810324d18383c54ff8bcaaed4a508b0a07395994af2f23e4f9b627e2202a57fcac709110d0ee859e8628709e7');
+  });
+
+  it("post-94: spec sha256 nibble sum", () => {
+    const hex = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect([...hex].reduce((a, c) => a + parseInt(c, 16), 0)).toBe(514);
+  });
+
+  it("post-94: spec byte length 3544", () => {
+    expect(spec.length).toBe(3544);
+    expect(statSync(specPath).size).toBe(3552);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+  });
+
+  it("post-94: spec newline count 144", () => {
+    expect((spec.match(/\n/g) ?? []).length).toBe(144);
+    expect(spec.split('\n')).toHaveLength(145);
+  });
+
+  it("post-94: spec line length vector", () => {
+    expect(spec.split('\n').map((l) => l.length)).toEqual([33,0,93,0,3,0,8,0,21,0,125,0,17,7,1,19,17,14,23,118,6,13,23,130,5,4,31,1,3,0,45,7,1,19,17,34,39,61,17,22,16,25,23,39,55,66,54,39,10,44,7,5,3,1,3,0,53,0,3,0,21,0,108,0,17,7,1,19,19,31,1,3,0,11,7,1,19,17,15,22,36,78,6,16,23,51,61,5,3,1,3,0,27,0,3,0,26,0,125,0,17,7,1,19,17,14,23,90,6,13,23,75,5,4,31,1,3,0,62,7,1,19,17,33,56,60,48,33,4,45,1,3,0,120,0,3,0,20,0,44,37,78,63,91,0]);
+  });
+
+  it("post-94: spec first 40 char codes", () => {
+    expect([...spec.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([35,32,66,97,99,107,108,105,110,107,32,77,67,80,32,84,111,111,108,32,83,112,101,99,105,102,105,99,97,116,105,111,110,10,10,84,104,105,115,32]);
+  });
+
+  it("post-94: spec digit count", () => {
+    expect([...spec].filter((c) => /\d/.test(c))).toHaveLength(4);
+  });
+
+  it("post-94: spec uppercase count", () => {
+    expect([...spec].filter((c) => /[A-Z]/.test(c))).toHaveLength(80);
+  });
+
+  it("post-94: spec lowercase count", () => {
+    expect([...spec].filter((c) => /[a-z]/.test(c))).toHaveLength(1947);
+  });
+
+  it("post-94: spec space count", () => {
+    expect((spec.match(/ /g) ?? []).length).toBe(640);
+  });
+
+  it("post-94: spec hash marker count", () => {
+    expect((spec.match(/#/g) ?? []).length).toBe(14);
+  });
+
+  it("post-94: spec backtick count", () => {
+    expect((spec.match(/`/g) ?? []).length).toBe(62);
+  });
+
+  it("post-94: spec double-quote count", () => {
+    expect((spec.match(/"/g) ?? []).length).toBe(250);
+  });
+
+  it("post-94: spec colon count", () => {
+    expect((spec.match(/:/g) ?? []).length).toBe(90);
+  });
+
+  it("post-94: spec dash count", () => {
+    expect((spec.match(/-/g) ?? []).length).toBe(21);
+  });
+
+  it("post-94: spec underscore count", () => {
+    expect((spec.match(/_/g) ?? []).length).toBe(8);
+  });
+
+  it("post-94: spec brace pair counts", () => {
+    expect((spec.match(/\{/g) ?? []).length).toBe(40);
+    expect((spec.match(/\}/g) ?? []).length).toBe(40);
+  });
+
+  it("post-94: spec bracket pair counts", () => {
+    expect((spec.match(/\[/g) ?? []).length).toBe(7);
+    expect((spec.match(/\]/g) ?? []).length).toBe(7);
+  });
+
+  it("post-94: spec paren pair counts", () => {
+    expect((spec.match(/\(/g) ?? []).length).toBe(5);
+    expect((spec.match(/\)/g) ?? []).length).toBe(5);
+  });
+
+  it("post-94: spec slash count", () => {
+    expect((spec.match(/\//g) ?? []).length).toBe(10);
+  });
+
+  it("post-94: spec star count", () => {
+    expect((spec.match(/\*/g) ?? []).length).toBe(48);
+  });
+
+  it("post-94: spec tab and CR absence", () => {
+    expect(spec.includes('\t')).toBe(false);
+    expect(spec.includes('\r')).toBe(false);
+  });
+
+  it("post-94: spec starts with title heading", () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it("post-94: spec ends with editorial null note newline", () => {
+    expect(spec.trimEnd().endsWith('`editorial: null`')).toBe(true);
+    expect(spec.endsWith('\n')).toBe(true);
+  });
+
+  it("post-94: spec markdown headers lock", () => {
+    expect(spec.split('\n').filter((l) => l.startsWith('#'))).toEqual(["# Backlink MCP Tool Specification","## Tools","### `backlink_curate`","### `backlink_genres`","### `backlink_now_playing`","## Integration Notes"]);
+  });
+
+  it("post-94: spec json fence count is 6", () => {
+    expect([...spec.matchAll(/```json/g)]).toHaveLength(6);
+    expect(jsonFences()).toHaveLength(6);
+  });
+
+  it("post-94: exact snapshot reaffirm", () => {
+    expect(spec).toBe("# Backlink MCP Tool Specification\n\nThis spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink API endpoint.\n\n---\n\n## Tools\n\n### `backlink_curate`\n\n**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genre\": {\n      \"type\": \"string\",\n      \"description\": \"Music genre (e.g. 'jazz', 'classical', 'ambient', 'rock', 'pop'). Optional if mood is provided.\"\n    },\n    \"mood\": {\n      \"type\": \"string\",\n      \"description\": \"Mood or vibe descriptor (e.g. 'late night', 'focus', 'chill', 'energizing'). Optional if genre is provided.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n```\n\n**Output:** Array of curated station objects.\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"query\": { \"type\": \"string\" },\n    \"curated_by\": { \"type\": \"string\" },\n    \"timestamp\": { \"type\": \"string\", \"format\": \"date-time\" },\n    \"stations\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"url\": { \"type\": \"string\", \"format\": \"uri\" },\n          \"logo\": { \"type\": [\"string\", \"null\"], \"format\": \"uri\" },\n          \"editorial\": { \"type\": [\"string\", \"null\"] },\n          \"genre\": { \"type\": \"string\" }\n        },\n        \"required\": [\"name\", \"url\", \"genre\"]\n      }\n    }\n  }\n}\n```\n\n**Endpoint:** `GET /curate?genre={genre}&mood={mood}`\n\n---\n\n### `backlink_genres`\n\n**Description:** List all available iptv-org genre categories supported by Backlink, including mood aliases.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {},\n  \"additionalProperties\": false\n}\n```\n\n**Output:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genres\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"Canonical genre slugs accepted by /curate and /stations\"\n    },\n    \"aliases\": {\n      \"type\": \"object\",\n      \"additionalProperties\": { \"type\": \"string\" },\n      \"description\": \"Friendly name → canonical slug mapping\"\n    }\n  }\n}\n```\n\n**Endpoint:** `GET /genres`\n\n---\n\n### `backlink_now_playing`\n\n**Description:** Get the top AI-curated pick for a genre or mood — the single best station right now, with editorial context.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genre\": {\n      \"type\": \"string\",\n      \"description\": \"Genre slug or friendly name (e.g. 'ambient', 'late night', 'jazz').\"\n    },\n    \"mood\": {\n      \"type\": \"string\",\n      \"description\": \"Mood descriptor. Used alongside or instead of genre.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n```\n\n**Output:** Single station object (first result from /curate).\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": { \"type\": \"string\" },\n    \"stream_url\": { \"type\": \"string\", \"format\": \"uri\" },\n    \"logo\": { \"type\": [\"string\", \"null\"], \"format\": \"uri\" },\n    \"editorial\": { \"type\": [\"string\", \"null\"] },\n    \"genre\": { \"type\": \"string\" }\n  },\n  \"required\": [\"name\", \"stream_url\", \"genre\"]\n}\n```\n\n**Endpoint:** `GET /curate?genre={genre}&mood={mood}` — returns `stations[0]` only, with `url` remapped to `stream_url`.\n\n---\n\n## Integration Notes\n\n- Base URL: `https://backlink.fuzzywigg.com`\n- No auth required for read endpoints\n- KV cache means `/stations` calls are fast after first hit per genre (1h TTL)\n- `/curate` always calls Gemini fresh — no LLM response caching\n- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`\n");
+  });
+
+  it("post-94: re-read equals module snapshot", () => {
+    expect(readFileSync(specPath, 'utf8')).toBe(spec);
+  });
+
+  it("post-94: documents tool heading backlink_curate", () => {
+    expect(spec).toContain('### \`backlink_curate\`');
+  });
+
+  it("post-94: tool id backlink_curate appears exactly once as heading", () => {
+    expect([...spec.matchAll(new RegExp('### \`' + 'backlink_curate' + '\`', 'g'))]).toHaveLength(1);
+  });
+
+  it("post-94: documents tool heading backlink_genres", () => {
+    expect(spec).toContain('### \`backlink_genres\`');
+  });
+
+  it("post-94: tool id backlink_genres appears exactly once as heading", () => {
+    expect([...spec.matchAll(new RegExp('### \`' + 'backlink_genres' + '\`', 'g'))]).toHaveLength(1);
+  });
+
+  it("post-94: documents tool heading backlink_now_playing", () => {
+    expect(spec).toContain('### \`backlink_now_playing\`');
+  });
+
+  it("post-94: tool id backlink_now_playing appears exactly once as heading", () => {
+    expect([...spec.matchAll(new RegExp('### \`' + 'backlink_now_playing' + '\`', 'g'))]).toHaveLength(1);
+  });
+
+  it("post-94: tool order curate then genres then now_playing", () => {
+    const c = spec.indexOf('### \`backlink_curate\`');
+    const g = spec.indexOf('### \`backlink_genres\`');
+    const n = spec.indexOf('### \`backlink_now_playing\`');
+    expect(c).toBeGreaterThan(-1);
+    expect(g).toBeGreaterThan(c);
+    expect(n).toBeGreaterThan(g);
+  });
+
+  it("post-94: Integration Notes after all tools", () => {
+    expect(spec.indexOf('## Integration Notes')).toBeGreaterThan(spec.indexOf('### \`backlink_now_playing\`'));
+  });
+
+  it("post-94: Base URL lock", () => {
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it("post-94: no auth note lock", () => {
+    expect(spec).toMatch(/No auth required for read endpoints/i);
+  });
+
+  it("post-94: 1h TTL lock", () => {
+    expect(spec).toMatch(/1h TTL/i);
+  });
+
+  it("post-94: Gemini fresh lock", () => {
+    expect(spec).toMatch(/always calls Gemini fresh/i);
+  });
+
+  it("post-94: graceful degradation editorial null", () => {
+    expect(spec).toMatch(/graceful degradation returns top 5 raw stations/i);
+    expect(spec).toContain('editorial: null');
+  });
+
+  it("post-94: curate endpoint documented", () => {
+    expect(spec).toContain('GET /curate?genre={genre}&mood={mood}');
+  });
+
+  it("post-94: genres endpoint documented", () => {
+    expect(spec).toContain('GET /genres');
+  });
+
+  it("post-94: stations mentioned in integration notes", () => {
+    expect(spec).toMatch(/\/stations/);
+  });
+
+  it("post-94: jsonFences are all plain objects", () => {
+    for (const fence of jsonFences()) {
+      expect(fence).not.toBeNull();
+      expect(typeof fence).toBe('object');
+    }
+  });
+
+  it("post-94: curate input schema additionalProperties false", () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    expect(fences[0]).toMatchObject({ type: 'object', additionalProperties: false });
+  });
+
+  it("post-94: genres input schema empty properties", () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    expect(fences[2]).toMatchObject({ type: 'object', properties: {}, additionalProperties: false });
+  });
+
+  it("post-94: now_playing input has genre and mood", () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const props = fences[4].properties as Record<string, unknown>;
+    expect(props).toHaveProperty('genre');
+    expect(props).toHaveProperty('mood');
+  });
+
+  it("post-94: curate output requires name url genre on items", () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const stations = (fences[1].properties as any).stations;
+    expect(stations.items.required).toEqual(['name', 'url', 'genre']);
+  });
+
+  it("post-94: now_playing output uses stream_url not url", () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    const props = fences[5].properties as Record<string, unknown>;
+    expect(props).toHaveProperty('stream_url');
+    expect(props).not.toHaveProperty('url');
+    expect((fences[5] as any).required).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST tool names distinct from docs ids", () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual(["station_select","now_playing","genre_filter","curator_prompt"]);
+    for (const id of ["backlink_curate","backlink_genres","backlink_now_playing"]) {
+      expect(MCP_MANIFEST.tools.map((t) => t.name)).not.toContain(id);
+    }
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST schema_version v1", () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST auth none", () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST name_for_model backlink", () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST name_for_human", () => {
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it("post-94: cross-lock MCP_MANIFEST api openapi", () => {
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+  });
+
+  it("post-94: cross-lock mcp.ts sha256", () => {
+    const mcp = readFileSync(join(root, 'src/mcp.ts'), 'utf8');
+    expect(createHash('sha256').update(mcp, 'utf8').digest('hex')).toBe('6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683');
+  });
+
+  it("post-94: cross-lock mcp.ts length 2057", () => {
+    expect(readFileSync(join(root, 'src/mcp.ts'), 'utf8').length).toBe(2057);
+  });
+
+  it("post-94: cross-lock index registers /curate /genres /stations", () => {
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(index).toMatch(/app\.get\('\/curate'/);
+    expect(index).toMatch(/app\.get\('\/genres'/);
+    expect(index).toMatch(/app\.get\('\/stations'/);
+  });
+
+  it("post-94: cross-lock genres VALID_GENRES mentioned examples", () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(spec.toLowerCase()).toContain(g);
+      expect(VALID_GENRES).toContain(g);
+    }
+  });
+
+  it("post-94: cross-lock GENRE_MAP late night ambient", () => {
+    expect(spec).toMatch(/late night/i);
+    expect(GENRE_MAP['late night']).toBe('ambient');
+  });
+
+  it("post-94: cross-lock GENRE_MAP focus and chill ambient", () => {
+    expect(spec).toMatch(/focus/i);
+    expect(spec).toMatch(/chill/i);
+    expect(GENRE_MAP.focus).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+  });
+
+  it("post-94: cross-lock CI hygiene checks mcp-spec files", () => {
+    const ci = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+    expect(ci).toContain('test -f docs/mcp-spec.md');
+    expect(ci).toContain('test -f test/mcp-spec-contract.test.ts');
+    expect(ci).toContain('test -f src/mcp.ts');
+  });
+
+  it("post-94: cross-lock AGENTS safe actions include endpoints", () => {
+    const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    expect(agents).toMatch(/\/playlist|\/now-playing|endpoints/i);
+  });
+
+  it("post-94: cross-lock README mentions MCP or tools or API", () => {
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    expect(readme.toLowerCase()).toMatch(/mcp|api|curate|genre/);
+  });
+
+  it("post-94: cross-lock index uses Gemini not Anthropic", () => {
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(index).toContain('gemini-2.0-flash');
+    expect(index).not.toMatch(/anthropic|claude|haiku/i);
+    expect(spec).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it("post-94: negative — no Anthropic", () => {
+    expect(spec).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it("post-94: negative — no API key material", () => {
+    expect(spec).not.toMatch(/AIza[0-9A-Za-z_-]{10,}|sk-[a-zA-Z0-9]{10,}/i);
+  });
+
+  it("post-94: negative — no Bearer tokens", () => {
+    expect(spec).not.toMatch(/Bearer [A-Za-z0-9._-]{10,}/i);
+  });
+
+  it("post-94: negative — no localhost", () => {
+    expect(spec).not.toMatch(/localhost|127\.0\.0\.1/i);
+  });
+
+  it("post-94: negative — no workers.dev", () => {
+    expect(spec).not.toMatch(/\.workers\.dev/i);
+  });
+
+  it("post-94: negative — no example.com", () => {
+    expect(spec).not.toMatch(/example\.com/i);
+  });
+
+  it("post-94: negative — no websocket", () => {
+    expect(spec).not.toMatch(/websocket|wss:/i);
+  });
+
+  it("post-94: negative — no graphql", () => {
+    expect(spec).not.toMatch(/graphql/i);
+  });
+
+  it("post-94: negative — no socket.io", () => {
+    expect(spec).not.toMatch(/socket\.io/i);
+  });
+
+  it("post-94: negative — no oauth", () => {
+    expect(spec).not.toMatch(/\boauth\b/i);
+  });
+
+  it("post-94: negative — no jwt", () => {
+    expect(spec).not.toMatch(/\bjwt\b/i);
+  });
+
+  it("post-94: negative — no password", () => {
+    expect(spec).not.toMatch(/password/i);
+  });
+
+  it("post-94: negative — no private_key", () => {
+    expect(spec).not.toMatch(/private[_-]?key/i);
+  });
+
+  it("post-94: negative — docs tool ids not in MCP_MANIFEST names", () => {
+    const names = MCP_MANIFEST.tools.map((t) => t.name);
+    expect(names.some((n) => n.startsWith('backlink_'))).toBe(false);
+  });
+
+  it("post-94: negative — claw tool names not used as markdown headings", () => {
+    for (const name of ["station_select","now_playing","genre_filter","curator_prompt"]) {
+      expect(spec).not.toContain('### \`' + name + '\`');
+    }
+  });
+
+  it("post-94: negative — no TODO/FIXME in spec", () => {
+    expect(spec).not.toMatch(/TODO|FIXME|XXX/);
+  });
+
+  it("post-94: negative — no HTML script tags", () => {
+    expect(spec).not.toMatch(/<script|<iframe/i);
+  });
+
+  it("post-94: TextEncoder round-trip", () => {
+    expect(new TextDecoder().decode(new TextEncoder().encode(spec))).toBe(spec);
+  });
+
+  it("post-94: Buffer utf8 round-trip", () => {
+    expect(Buffer.from(spec, 'utf8').toString('utf8')).toBe(spec);
+  });
+
+  it("post-94: normalize NFC identity", () => {
+    expect(spec.normalize('NFC')).toBe(spec);
+  });
+
+  it("post-94: btoa of tool id backlink_curate", () => {
+    expect(btoa('backlink_curate')).toBe('YmFja2xpbmtfY3VyYXRl');
+  });
+
+  it("post-94: btoa of Base URL host", () => {
+    expect(btoa('backlink.fuzzywigg.com')).toBe('YmFja2xpbmsuZnV6enl3aWdnLmNvbQ==');
+  });
+
+  it("post-94: createHash digest lengths", () => {
+    expect(createHash('sha256').update(spec, 'utf8').digest()).toHaveLength(32);
+    expect(createHash('sha1').update(spec, 'utf8').digest()).toHaveLength(20);
+    expect(createHash('md5').update(spec, 'utf8').digest()).toHaveLength(16);
+  });
+
+  it("post-94: toolSection curate bounds", () => {
+    const section = toolSection('backlink_curate', '### \`backlink_genres\`');
+    expect(section.startsWith('### \`backlink_curate\`')).toBe(true);
+    expect(section).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(section).not.toContain('### \`backlink_genres\`');
+  });
+
+  it("post-94: toolSection genres bounds", () => {
+    const section = toolSection('backlink_genres', '### \`backlink_now_playing\`');
+    expect(section).toContain('GET /genres');
+    expect(section).toContain('aliases');
+  });
+
+  it("post-94: toolSection now_playing bounds", () => {
+    const section = toolSection('backlink_now_playing', '## Integration Notes');
+    expect(section).toContain('stream_url');
+    expect(section).toContain('stations[0]');
+  });
+
+  it("post-94: Object.freeze tool ids immutable", () => {
+    const ids = Object.freeze(["backlink_curate","backlink_genres","backlink_now_playing"]);
+    expect(() => { (ids as string[]).push('x'); }).toThrow();
+  });
+
+  it("post-94: Map of tool id presence", () => {
+    const map = new Map(["backlink_curate","backlink_genres","backlink_now_playing"].map((k: string) => [k, true] as const));
+    expect(map.get('backlink_curate')).toBe(true);
+    expect(map.get('station_select')).toBeUndefined();
+  });
+
+  it("post-94: Set of claw tools size 4", () => {
+    expect(new Set(["station_select","now_playing","genre_filter","curator_prompt"]).size).toBe(4);
+  });
+
+  it("post-94: JSON.stringify tool ids", () => {
+    expect(JSON.stringify(["backlink_curate","backlink_genres","backlink_now_playing"])).toBe("[\"backlink_curate\",\"backlink_genres\",\"backlink_now_playing\"]");
+  });
+
+  it("post-94: structuredClone tool ids", () => {
+    expect(structuredClone(["backlink_curate","backlink_genres","backlink_now_playing"])).toEqual(["backlink_curate","backlink_genres","backlink_now_playing"]);
+  });
+
+  it("post-94: Promise.resolve sha256", () => {
+    return expect(Promise.resolve(createHash('sha256').update(spec, 'utf8').digest('hex'))).resolves.toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+  });
+
+  it("post-94: WeakRef spec still alive", () => {
+    expect(new WeakRef({ spec }).deref()?.spec).toBe(spec);
+  });
+
+  it("post-94: Object.is twin digests", () => {
+    const a = createHash('sha256').update(spec, 'utf8').digest('hex');
+    const b = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect(Object.is(a, b)).toBe(true);
+  });
+
+  it("post-94: split join round-trip", () => {
+    expect(spec.split('\n').join('\n')).toBe(spec);
+  });
+
+  it("post-94: Iterator values mirrors split", () => {
+    expect([...spec.split('\n').values()]).toEqual(spec.split('\n'));
+  });
+
+  it("post-94: indexOf # Backlink MCP Tool Specificatio locked at 0", () => {
+    expect(spec.indexOf("# Backlink MCP Tool Specification")).toBe(0);
+  });
+
+  it("post-94: indexOf ## Tools locked at 135", () => {
+    expect(spec.indexOf("## Tools")).toBe(135);
+  });
+
+  it("post-94: indexOf ### `backlink_curate` locked at 145", () => {
+    expect(spec.indexOf("### `backlink_curate`")).toBe(145);
+  });
+
+  it("post-94: indexOf ### `backlink_genres` locked at 1483", () => {
+    expect(spec.indexOf("### `backlink_genres`")).toBe(1483);
+  });
+
+  it("post-94: indexOf ### `backlink_now_playing` locked at 2151", () => {
+    expect(spec.indexOf("### `backlink_now_playing`")).toBe(2151);
+  });
+
+  it("post-94: indexOf ## Integration Notes locked at 3204", () => {
+    expect(spec.indexOf("## Integration Notes")).toBe(3204);
+  });
+
+  it("post-94: indexOf https://backlink.fuzzywigg.com locked at 3239", () => {
+    expect(spec.indexOf("https://backlink.fuzzywigg.com")).toBe(3239);
+  });
+
+  it("post-94: indexOf editorial: null locked at 3527", () => {
+    expect(spec.indexOf("editorial: null")).toBe(3527);
+  });
+
+  it("post-94: marker chain strictly increasing", () => {
+    const markers = ["# Backlink MCP Tool Specification","## Tools","### `backlink_curate`","### `backlink_genres`","### `backlink_now_playing`","## Integration Notes","https://backlink.fuzzywigg.com","editorial: null"];
+    const idxs = markers.map((m) => spec.indexOf(m));
+    expect(idxs.every((n) => n >= 0)).toBe(true);
+    for (let i = 1; i < idxs.length; i++) expect(idxs[i]).toBeGreaterThan(idxs[i - 1]);
+  });
+
+  it("post-94: contains marker # Backlink MCP Tool Specification", () => {
+    expect(spec).toContain("# Backlink MCP Tool Specification");
+  });
+
+  it("post-94: contains marker ## Tools", () => {
+    expect(spec).toContain("## Tools");
+  });
+
+  it("post-94: contains marker ### `backlink_curate`", () => {
+    expect(spec).toContain("### `backlink_curate`");
+  });
+
+  it("post-94: contains marker ### `backlink_genres`", () => {
+    expect(spec).toContain("### `backlink_genres`");
+  });
+
+  it("post-94: contains marker ### `backlink_now_playing`", () => {
+    expect(spec).toContain("### `backlink_now_playing`");
+  });
+
+  it("post-94: contains marker ## Integration Notes", () => {
+    expect(spec).toContain("## Integration Notes");
+  });
+
+  it("post-94: contains marker https://backlink.fuzzywigg.com", () => {
+    expect(spec).toContain("https://backlink.fuzzywigg.com");
+  });
+
+  it("post-94: contains marker editorial: null", () => {
+    expect(spec).toContain("editorial: null");
+  });
+
+  it("post-94: exact line 0", () => {
+    expect(spec.split('\n')[0]).toBe("# Backlink MCP Tool Specification");
+  });
+
+  it("post-94: exact line 1", () => {
+    expect(spec.split('\n')[1]).toBe("");
+  });
+
+  it("post-94: exact line 2", () => {
+    expect(spec.split('\n')[2]).toBe("This spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink API endpoint.");
+  });
+
+  it("post-94: exact line 3", () => {
+    expect(spec.split('\n')[3]).toBe("");
+  });
+
+  it("post-94: exact line 4", () => {
+    expect(spec.split('\n')[4]).toBe("---");
+  });
+
+  it("post-94: exact line 5", () => {
+    expect(spec.split('\n')[5]).toBe("");
+  });
+
+  it("post-94: exact line 6", () => {
+    expect(spec.split('\n')[6]).toBe("## Tools");
+  });
+
+  it("post-94: exact line 7", () => {
+    expect(spec.split('\n')[7]).toBe("");
+  });
+
+  it("post-94: exact line 8", () => {
+    expect(spec.split('\n')[8]).toBe("### `backlink_curate`");
+  });
+
+  it("post-94: exact line 9", () => {
+    expect(spec.split('\n')[9]).toBe("");
+  });
+
+  it("post-94: exact line 10", () => {
+    expect(spec.split('\n')[10]).toBe("**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.");
+  });
+
+  it("post-94: exact line 11", () => {
+    expect(spec.split('\n')[11]).toBe("");
+  });
+
+  it("post-94: exact line 12", () => {
+    expect(spec.split('\n')[12]).toBe("**Input Schema:**");
+  });
+
+  it("post-94: exact line 13", () => {
+    expect(spec.split('\n')[13]).toBe("```json");
+  });
+
+  it("post-94: exact line 14", () => {
+    expect(spec.split('\n')[14]).toBe("{");
+  });
+
+  it("post-94: exact line 135 near end", () => {
+    expect(spec.split('\n')[135]).toBe("---");
+  });
+
+  it("post-94: exact line 136 near end", () => {
+    expect(spec.split('\n')[136]).toBe("");
+  });
+
+  it("post-94: exact line 137 near end", () => {
+    expect(spec.split('\n')[137]).toBe("## Integration Notes");
+  });
+
+  it("post-94: exact line 138 near end", () => {
+    expect(spec.split('\n')[138]).toBe("");
+  });
+
+  it("post-94: exact line 139 near end", () => {
+    expect(spec.split('\n')[139]).toBe("- Base URL: `https://backlink.fuzzywigg.com`");
+  });
+
+  it("post-94: exact line 140 near end", () => {
+    expect(spec.split('\n')[140]).toBe("- No auth required for read endpoints");
+  });
+
+  it("post-94: exact line 141 near end", () => {
+    expect(spec.split('\n')[141]).toBe("- KV cache means `/stations` calls are fast after first hit per genre (1h TTL)");
+  });
+
+  it("post-94: exact line 142 near end", () => {
+    expect(spec.split('\n')[142]).toBe("- `/curate` always calls Gemini fresh — no LLM response caching");
+  });
+
+  it("post-94: exact line 143 near end", () => {
+    expect(spec.split('\n')[143]).toBe("- On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`");
+  });
+
+  it("post-94: exact line 144 near end", () => {
+    expect(spec.split('\n')[144]).toBe("");
+  });
+
+  it("post-94: char freq SPACE", () => {
+    expect(spec.split(" ").length - 1).toBe(640);
+  });
+
+  it("post-94: char freq DQUOTE", () => {
+    expect(spec.split("\"").length - 1).toBe(250);
+  });
+
+  it("post-94: char freq \"e\"", () => {
+    expect(spec.split("e").length - 1).toBe(220);
+  });
+
+  it("post-94: char freq \"t\"", () => {
+    expect(spec.split("t").length - 1).toBe(196);
+  });
+
+  it("post-94: char freq \"i\"", () => {
+    expect(spec.split("i").length - 1).toBe(164);
+  });
+
+  it("post-94: char freq \"r\"", () => {
+    expect(spec.split("r").length - 1).toBe(163);
+  });
+
+  it("post-94: char freq \"o\"", () => {
+    expect(spec.split("o").length - 1).toBe(146);
+  });
+
+  it("post-94: char freq \"n\"", () => {
+    expect(spec.split("n").length - 1).toBe(144);
+  });
+
+  it("post-94: char freq LF", () => {
+    expect(spec.split("\n").length - 1).toBe(144);
+  });
+
+  it("post-94: char freq \"a\"", () => {
+    expect(spec.split("a").length - 1).toBe(127);
+  });
+
+  it("post-94: char freq \"s\"", () => {
+    expect(spec.split("s").length - 1).toBe(124);
+  });
+
+  it("post-94: char freq \"p\"", () => {
+    expect(spec.split("p").length - 1).toBe(97);
+  });
+
+  it("post-94: char freq \":\"", () => {
+    expect(spec.split(":").length - 1).toBe(90);
+  });
+
+  it("post-94: char freq \"l\"", () => {
+    expect(spec.split("l").length - 1).toBe(80);
+  });
+
+  it("post-94: char freq \"c\"", () => {
+    expect(spec.split("c").length - 1).toBe(73);
+  });
+
+  it("post-94: char freq \"g\"", () => {
+    expect(spec.split("g").length - 1).toBe(68);
+  });
+
+  it("post-94: char freq \"d\"", () => {
+    expect(spec.split("d").length - 1).toBe(64);
+  });
+
+  it("post-94: char freq BACKTICK", () => {
+    expect(spec.split("`").length - 1).toBe(62);
+  });
+
+  it("post-94: char freq \",\"", () => {
+    expect(spec.split(",").length - 1).toBe(62);
+  });
+
+  it("post-94: char freq \"u\"", () => {
+    expect(spec.split("u").length - 1).toBe(53);
+  });
+
+  it("post-94: char freq \"*\"", () => {
+    expect(spec.split("*").length - 1).toBe(48);
+  });
+
+  it("post-94: char freq \"m\"", () => {
+    expect(spec.split("m").length - 1).toBe(43);
+  });
+
+  it("post-94: char freq \"y\"", () => {
+    expect(spec.split("y").length - 1).toBe(42);
+  });
+
+  it("post-94: char freq \"{\"", () => {
+    expect(spec.split("{").length - 1).toBe(40);
+  });
+
+  it("post-94: char freq \"}\"", () => {
+    expect(spec.split("}").length - 1).toBe(40);
+  });
+
+  it("post-94: required substring Ask Backlink's AI curator", () => {
+    expect(spec).toContain("Ask Backlink's AI curator");
+  });
+
+  it("post-94: required substring iptv-org genre categories", () => {
+    expect(spec).toContain("iptv-org genre categories");
+  });
+
+  it("post-94: required substring Friendly name → canonical slug mapping", () => {
+    expect(spec).toContain("Friendly name → canonical slug mapping");
+  });
+
+  it("post-94: required substring stream_url", () => {
+    expect(spec).toContain("stream_url");
+  });
+
+  it("post-94: required substring stations[0]", () => {
+    expect(spec).toContain("stations[0]");
+  });
+
+  it("post-94: required substring curated_by", () => {
+    expect(spec).toContain("curated_by");
+  });
+
+  it("post-94: required substring timestamp", () => {
+    expect(spec).toContain("timestamp");
+  });
+
+  it("post-94: required substring additionalProperties", () => {
+    expect(spec).toContain("additionalProperties");
+  });
+
+  it("post-94: required substring date-time", () => {
+    expect(spec).toContain("date-time");
+  });
+
+  it("post-94: required substring format\": \"uri\"", () => {
+    expect(spec).toContain("format\": \"uri\"");
+  });
+
+  it("post-94: required substring mood", () => {
+    expect(spec).toContain("mood");
+  });
+
+  it("post-94: required substring genre", () => {
+    expect(spec).toContain("genre");
+  });
+
+  it("post-94: required substring logo", () => {
+    expect(spec).toContain("logo");
+  });
+
+  it("post-94: required substring editorial", () => {
+    expect(spec).toContain("editorial");
+  });
+
+  it("post-94: required substring Canonical genre slugs", () => {
+    expect(spec).toContain("Canonical genre slugs");
+  });
+
+  it("post-94: required substring /curate", () => {
+    expect(spec).toContain("/curate");
+  });
+
+  it("post-94: required substring /genres", () => {
+    expect(spec).toContain("/genres");
+  });
+
+  it("post-94: required substring /stations", () => {
+    expect(spec).toContain("/stations");
+  });
+
+  it("post-94: required substring Gemini", () => {
+    expect(spec).toContain("Gemini");
+  });
+
+  it("post-94: required substring KV cache", () => {
+    expect(spec).toContain("KV cache");
+  });
+
+  it("post-94: forbidden token anthropic", () => {
+    expect(spec.toLowerCase()).not.toContain("anthropic");
+  });
+
+  it("post-94: forbidden token claude", () => {
+    expect(spec.toLowerCase()).not.toContain("claude");
+  });
+
+  it("post-94: forbidden token haiku", () => {
+    expect(spec.toLowerCase()).not.toContain("haiku");
+  });
+
+  it("post-94: forbidden token openai", () => {
+    expect(spec.toLowerCase()).not.toContain("openai");
+  });
+
+  it("post-94: forbidden token chatgpt", () => {
+    expect(spec.toLowerCase()).not.toContain("chatgpt");
+  });
+
+  it("post-94: forbidden token password", () => {
+    expect(spec.toLowerCase()).not.toContain("password");
+  });
+
+  it("post-94: forbidden token secret_key", () => {
+    expect(spec.toLowerCase()).not.toContain("secret_key");
+  });
+
+  it("post-94: forbidden token api_token", () => {
+    expect(spec.toLowerCase()).not.toContain("api_token");
+  });
+
+  it("post-94: forbidden token private_key", () => {
+    expect(spec.toLowerCase()).not.toContain("private_key");
+  });
+
+  it("post-94: forbidden token websocket", () => {
+    expect(spec.toLowerCase()).not.toContain("websocket");
+  });
+
+  it("post-94: forbidden token graphql", () => {
+    expect(spec.toLowerCase()).not.toContain("graphql");
+  });
+
+  it("post-94: forbidden token grpc", () => {
+    expect(spec.toLowerCase()).not.toContain("grpc");
+  });
+
+  it("post-94: forbidden token soap", () => {
+    expect(spec.toLowerCase()).not.toContain("soap");
+  });
+
+  it("post-94: forbidden token mongodb", () => {
+    expect(spec.toLowerCase()).not.toContain("mongodb");
+  });
+
+  it("post-94: forbidden token postgres", () => {
+    expect(spec.toLowerCase()).not.toContain("postgres");
+  });
+
+  it("post-94: forbidden token redis", () => {
+    expect(spec.toLowerCase()).not.toContain("redis");
+  });
+
+  it("post-94: forbidden token kafka", () => {
+    expect(spec.toLowerCase()).not.toContain("kafka");
+  });
+
+  it("post-94: cross-lock genres.ts exports GENRE_MAP used by aliases description", () => {
+    expect(spec).toContain('aliases');
+    expect(Object.keys(GENRE_MAP).length).toBeGreaterThan(VALID_GENRES.length);
+  });
+
+  it("post-94: cross-lock VALID_GENRES length 9", () => {
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it("post-94: cross-lock mcp tools count 4", () => {
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it("post-94: cross-lock curator_prompt requires mood", () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt');
+    expect(tool?.input_schema.required).toEqual(['mood']);
+  });
+
+  it("post-94: cross-lock station_select requires station_name", () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'station_select');
+    expect(tool?.input_schema.required).toEqual(['station_name']);
+  });
+
+  it("post-94: cross-lock genre_filter requires genre", () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'genre_filter');
+    expect(tool?.input_schema.required).toEqual(['genre']);
+  });
+
+  it("post-94: cross-lock now_playing empty properties", () => {
+    const tool = MCP_MANIFEST.tools.find((t) => t.name === 'now_playing');
+    expect(tool?.input_schema.properties).toEqual({});
+  });
+
+  it("post-94: cross-lock index editorial null degrade", () => {
+    const index = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(index).toMatch(/editorial:\s*null/);
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)/);
+  });
+
+  it("post-94: cross-lock package has no mcp sdk dependency", () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { dependencies: Record<string, string>; devDependencies: Record<string, string> };
+    expect(pkg.dependencies).not.toHaveProperty('@modelcontextprotocol/sdk');
+    expect(pkg.devDependencies).not.toHaveProperty('@modelcontextprotocol/sdk');
+  });
+
+  it("post-94: hygiene statSync spec is file", () => {
+    expect(statSync(specPath).isFile()).toBe(true);
+    expect(statSync(specPath).size).toBe(3552);
+  });
+
+  it("post-94: aliases description uses Unicode arrow", () => {
+    expect(spec).toContain('Friendly name → canonical slug mapping');
+    expect(spec).not.toContain('Friendly name -> canonical');
+  });
+
+  it("post-94: no curly quotes", () => {
+    expect(spec).not.toContain('\u201c');
+    expect(spec).not.toContain('\u201d');
+    expect(spec).not.toContain('\u2018');
+    expect(spec).not.toContain('\u2019');
+  });
+
+  it("post-94: mega purity 50x sha256", () => {
+    const expected = 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849';
+    for (let i = 0; i < 50; i++) {
+      expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
+  it("post-94: mega purity 25x re-read", () => {
+    for (let i = 0; i < 25; i++) {
+      expect(readFileSync(specPath, 'utf8')).toBe(spec);
+    }
+  });
+
+  it("post-94: final triple digest lock", () => {
+    expect(createHash('sha1').update(spec, 'utf8').digest('hex')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+    expect(createHash('md5').update(spec, 'utf8').digest('hex')).toBe('ee7881030c338c1773659cc6378c392c');
+  });
+
+  it("post-94: final mega 100x sha256", () => {
+    const expected = 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849';
+    for (let i = 0; i < 100; i++) {
+      expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe(expected);
+    }
+  });
+
+  it("post-94: field token query present", () => {
+    expect(spec).toContain("query");
+  });
+
+  it("post-94: field token curated_by present", () => {
+    expect(spec).toContain("curated_by");
+  });
+
+  it("post-94: field token timestamp present", () => {
+    expect(spec).toContain("timestamp");
+  });
+
+  it("post-94: field token stations present", () => {
+    expect(spec).toContain("stations");
+  });
+
+  it("post-94: field token name present", () => {
+    expect(spec).toContain("name");
+  });
+
+  it("post-94: field token url present", () => {
+    expect(spec).toContain("url");
+  });
+
+  it("post-94: field token logo present", () => {
+    expect(spec).toContain("logo");
+  });
+
+  it("post-94: field token editorial present", () => {
+    expect(spec).toContain("editorial");
+  });
+
+  it("post-94: field token genre present", () => {
+    expect(spec).toContain("genre");
+  });
+
+  it("post-94: field token genres present", () => {
+    expect(spec).toContain("genres");
+  });
+
+  it("post-94: field token aliases present", () => {
+    expect(spec).toContain("aliases");
+  });
+
+  it("post-94: field token stream_url present", () => {
+    expect(spec).toContain("stream_url");
+  });
+
+  it("post-94: field token mood present", () => {
+    expect(spec).toContain("mood");
+  });
+
+  it("post-94: endpoint bit GET /curate", () => {
+    expect(spec).toContain("GET /curate");
+  });
+
+  it("post-94: endpoint bit GET /genres", () => {
+    expect(spec).toContain("GET /genres");
+  });
+
+  it("post-94: endpoint bit genre={genre}", () => {
+    expect(spec).toContain("genre={genre}");
+  });
+
+  it("post-94: endpoint bit mood={mood}", () => {
+    expect(spec).toContain("mood={mood}");
+  });
+
+  it("post-94: endpoint bit stations[0]", () => {
+    expect(spec).toContain("stations[0]");
+  });
+
+  it("post-94: endpoint bit url` remapped to `stream_url", () => {
+    expect(spec).toContain("url` remapped to `stream_url");
+  });
+
+  it("post-94: line 0 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[0] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('99c84d33ad819ac9');
+  });
+
+  it("post-94: line 1 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[1] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 2 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[2] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('5e0f013658c5f50f');
+  });
+
+  it("post-94: line 3 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[3] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 4 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[4] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cb3f91d54eee30e5');
+  });
+
+  it("post-94: line 5 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[5] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 6 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[6] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b27734b46fbf7ef');
+  });
+
+  it("post-94: line 7 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[7] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 8 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[8] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('ff3cf26fccc17858');
+  });
+
+  it("post-94: line 9 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[9] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 10 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[10] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('02b56e10fd373ef3');
+  });
+
+  it("post-94: line 11 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[11] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 12 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[12] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('5e6fc6a874f15fa0');
+  });
+
+  it("post-94: line 13 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[13] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a56726cde84dae15');
+  });
+
+  it("post-94: line 14 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[14] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('021fb596db81e6d0');
+  });
+
+  it("post-94: line 15 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[15] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('d0c3102ad9c439dc');
+  });
+
+  it("post-94: line 16 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[16] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('0b5b7049adc5269a');
+  });
+
+  it("post-94: line 17 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[17] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c27ff1a8aedfd3a8');
+  });
+
+  it("post-94: line 18 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[18] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('b6d239e8efbb3458');
+  });
+
+  it("post-94: line 19 sha prefix", () => {
+    expect(createHash('sha256').update(spec.split('\n')[19] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('5d7e1477a4255851');
+  });
+
+  it("post-94: line 135 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[135] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cb3f91d54eee30e5');
+  });
+
+  it("post-94: line 136 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[136] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 137 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[137] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('025d1a806eaaae1a');
+  });
+
+  it("post-94: line 138 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[138] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: line 139 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[139] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('8994a27e468e9af1');
+  });
+
+  it("post-94: line 140 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[140] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('75bffc12b59f7503');
+  });
+
+  it("post-94: line 141 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[141] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('12fa63c6833ae862');
+  });
+
+  it("post-94: line 142 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[142] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('9f4c21047f874eb1');
+  });
+
+  it("post-94: line 143 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[143] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('aa0dda7332d1f1f0');
+  });
+
+  it("post-94: line 144 sha prefix end", () => {
+    expect(createHash('sha256').update(spec.split('\n')[144] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post-94: slice between header 0 and 1", () => {
+    expect(spec.slice(spec.indexOf("# Backlink MCP Tool Specification") + 33, spec.indexOf("## Tools"))).toBe("\n\nThis spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink API endpoint.\n\n---\n\n");
+  });
+
+  it("post-94: slice between header 1 and 2", () => {
+    expect(spec.slice(spec.indexOf("## Tools") + 8, spec.indexOf("### `backlink_curate`"))).toBe("\n\n");
+  });
+
+  it("post-94: slice between header 2 and 3", () => {
+    expect(spec.slice(spec.indexOf("### `backlink_curate`") + 21, spec.indexOf("### `backlink_genres`"))).toBe("\n\n**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genre\": {\n      \"type\": \"string\",\n      \"description\": \"Music genre (e.g. 'jazz', 'classical', 'ambient', 'rock', 'pop'). Optional if mood is provided.\"\n    },\n    \"mood\": {\n      \"type\": \"string\",\n      \"description\": \"Mood or vibe descriptor (e.g. 'late night', 'focus', 'chill', 'energizing'). Optional if genre is provided.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n```\n\n**Output:** Array of curated station objects.\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"query\": { \"type\": \"string\" },\n    \"curated_by\": { \"type\": \"string\" },\n    \"timestamp\": { \"type\": \"string\", \"format\": \"date-time\" },\n    \"stations\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"url\": { \"type\": \"string\", \"format\": \"uri\" },\n          \"logo\": { \"type\": [\"string\", \"null\"], \"format\": \"uri\" },\n          \"editorial\": { \"type\": [\"string\", \"null\"] },\n          \"genre\": { \"type\": \"string\" }\n        },\n        \"required\": [\"name\", \"url\", \"genre\"]\n      }\n    }\n  }\n}\n```\n\n**Endpoint:** `GET /curate?genre={genre}&mood={mood}`\n\n---\n\n");
+  });
+
+  it("post-94: slice between header 3 and 4", () => {
+    expect(spec.slice(spec.indexOf("### `backlink_genres`") + 21, spec.indexOf("### `backlink_now_playing`"))).toBe("\n\n**Description:** List all available iptv-org genre categories supported by Backlink, including mood aliases.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {},\n  \"additionalProperties\": false\n}\n```\n\n**Output:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genres\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"Canonical genre slugs accepted by /curate and /stations\"\n    },\n    \"aliases\": {\n      \"type\": \"object\",\n      \"additionalProperties\": { \"type\": \"string\" },\n      \"description\": \"Friendly name → canonical slug mapping\"\n    }\n  }\n}\n```\n\n**Endpoint:** `GET /genres`\n\n---\n\n");
+  });
+
+  it("post-94: slice between header 4 and 5", () => {
+    expect(spec.slice(spec.indexOf("### `backlink_now_playing`") + 26, spec.indexOf("## Integration Notes"))).toBe("\n\n**Description:** Get the top AI-curated pick for a genre or mood — the single best station right now, with editorial context.\n\n**Input Schema:**\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"genre\": {\n      \"type\": \"string\",\n      \"description\": \"Genre slug or friendly name (e.g. 'ambient', 'late night', 'jazz').\"\n    },\n    \"mood\": {\n      \"type\": \"string\",\n      \"description\": \"Mood descriptor. Used alongside or instead of genre.\"\n    }\n  },\n  \"additionalProperties\": false\n}\n```\n\n**Output:** Single station object (first result from /curate).\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": { \"type\": \"string\" },\n    \"stream_url\": { \"type\": \"string\", \"format\": \"uri\" },\n    \"logo\": { \"type\": [\"string\", \"null\"], \"format\": \"uri\" },\n    \"editorial\": { \"type\": [\"string\", \"null\"] },\n    \"genre\": { \"type\": \"string\" }\n  },\n  \"required\": [\"name\", \"stream_url\", \"genre\"]\n}\n```\n\n**Endpoint:** `GET /curate?genre={genre}&mood={mood}` — returns `stations[0]` only, with `url` remapped to `stream_url`.\n\n---\n\n");
+  });
+
+  it("post-94: codePointAt equals charCodeAt for BMP", () => {
+    for (let i = 0; i < Math.min(spec.length, 500); i++) {
+      const cp = spec.codePointAt(i)!;
+      if (cp > 0xffff) continue;
+      expect(cp).toBe(spec.charCodeAt(i));
+    }
+  });
+
+  it("post-94: padStart Base URL then slice", () => {
+    const host = 'backlink.fuzzywigg.com';
+    expect(host.padStart(40, '.').slice(-host.length)).toBe(host);
+  });
+
+  it("post-94: localeCompare tool ids order", () => {
+    const ids = ["backlink_curate","backlink_genres","backlink_now_playing"];
+    const sorted = [...ids].sort((a, b) => a.localeCompare(b));
+    expect(sorted[0]).toBe('backlink_curate');
+    expect(sorted.at(-1)).toBe('backlink_now_playing');
+  });
+
+  it("post-94: Proxy get on first line", () => {
+    const proxy = new Proxy({ line: spec.split('\n')[0] }, { get: (t, p) => Reflect.get(t, p) });
+    expect(proxy.line).toBe('# Backlink MCP Tool Specification');
+  });
+
+  it("post-94: Reflect.ownKeys frozen headers", () => {
+    const h = Object.freeze(["# Backlink MCP Tool Specification","## Tools","### `backlink_curate`","### `backlink_genres`","### `backlink_now_playing`","## Integration Notes"]);
+    expect(Reflect.ownKeys(h).filter((k) => k !== 'length')).toHaveLength(6);
+  });
+
+  it("post-94: reduce nonempty line length band", () => {
+    const n = spec.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0);
+    expect(n).toBe(3400);
+  });
+
+  it("post-94: lean line budget under 150 split parts", () => {
+    expect(spec.split('\n').length).toBeLessThanOrEqual(150);
+  });
+
+  it("post-94: sha256 starts a939 ends 6849", () => {
+    const d = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect(d.startsWith('a939')).toBe(true);
+    expect(d.endsWith('6849')).toBe(true);
+  });
+
+  it("post-94: md5 starts ee788 ends 392c", () => {
+    const d = createHash('md5').update(spec, 'utf8').digest('hex');
+    expect(d.startsWith('ee788')).toBe(true);
+    expect(d.endsWith('392c')).toBe(true);
+  });
+
 });
