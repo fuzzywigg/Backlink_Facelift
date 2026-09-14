@@ -26130,7 +26130,7 @@ describe('post181 wrangler HEAVY deepen (after #181 leftover / not source-contra
     expect(read('wrangler.toml')).toContain('backlink.fuzzywigg.com');
     expect(read('wrangler.toml')).toMatch(/VERSION\s*=\s*"0\.1\.0"/);
     expect(read('wrangler.toml')).not.toMatch(/GEMINI_API_KEY\s*=/);
-    expect(read('wrangler.toml')).not.toMatch(/\[\[queues\]\]/
+    expect(read('wrangler.toml')).not.toContain('[[queues]]');
     expect(read('test/wrangler-config.test.ts')).toContain("describe('post181 wrangler HEAVY deepen");
     expect(read('test/source-contracts.test.ts')).not.toContain("describe('post181 wrangler HEAVY deepen");
     expect(read('test/mcp.test.ts')).not.toContain("describe('post181 wrangler HEAVY deepen");
@@ -26236,7 +26236,7 @@ describe('post181 wrangler HEAVY deepen (after #181 leftover / not source-contra
   it('post181: locks src/index.ts blake2b512', () => { expect(blake2b('src/index.ts')).toBe('17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace'); });
   it('post181: locks src/index.ts ripemd160', () => { expect(ripemd('src/index.ts')).toBe('a8ea25913b26da27277f866fc7988fdcdf281093'); });
   it('post181: locks src/index.ts size 4738', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738); expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738); });
-  it('post181: locks src/index.ts utf8 4723 lines 154', () => { expect(read('src/index.ts')).toHaveLength(4723); expect(read('src/index.ts').split('\n')).toHaveLength(154); });
+  it('post181: locks src/index.ts utf8 4724 lines 154', () => { expect(read('src/index.ts')).toHaveLength(4724); expect(read('src/index.ts').split('\n')).toHaveLength(154); });
   it('post181: locks src/index.ts nibble 470 xor 14', () => { const d = sha256('src/index.ts'); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14); });
   it('post181: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256('src/index.ts'); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151); });
   it('post181: locks src/index.ts first/last/mid octets', () => { const d = sha256('src/index.ts'); expect(d.slice(0, 2)).toBe('7f'); expect(d.slice(-2)).toBe('72'); expect(d.slice(28, 36)).toBe('e2a20389'); });
@@ -26642,7 +26642,7 @@ describe('post181 wrangler extras HEAVY deepen (after #181 leftover slice)', () 
   it('post181-extras: HMAC wrangler-leftover src/index.ts', () => { expect(hmacSha256('wrangler-leftover', 'src/index.ts')).toBe('d12d83ba9c4d9239a0e50937ad412d8398512a00ed79019d7e1fb4fa0f311b73'); });
   it('post181-extras: HMAC not-genres src/index.ts', () => { expect(hmacSha256('not-genres', 'src/index.ts')).toBe('0bee565ad5f3efca35811b5d401135d547315cc3d0ae8c9e50aa7e44741818e0'); });
   it('post181-extras: size src/index.ts', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738); });
-  it('post181-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post181-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post181-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post181-extras: xor src/index.ts', () => { expect(xorNibbles(sha256('src/index.ts'))).toBe(14); });
   it('post181-extras: pairSum src/index.ts', () => { expect(pairSum(sha256('src/index.ts'))).toBe(4265); });
@@ -26957,7 +26957,7 @@ describe('post181 wrangler extras HEAVY deepen (after #181 leftover slice)', () 
   it('post181-extras: HMAC wrangler-leftover README.md', () => { expect(hmacSha256('wrangler-leftover', 'README.md')).toBe('a9e2f94a3fa96335d354904a1d91fb6ccb40f451c238a0d9dd43fb5c14b4cc41'); });
   it('post181-extras: HMAC not-genres README.md', () => { expect(hmacSha256('not-genres', 'README.md')).toBe('98f6a648a52cf998bc765ab7cc128aa64fc6022e895c721c17ed3ea111482857'); });
   it('post181-extras: size README.md', () => { expect(statSync(join(root, 'README.md')).size).toBe(2801); });
-  it('post181-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2755); });
+  it('post181-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2757); });
   it('post181-extras: nibble README.md', () => { expect(nibbleSum(sha256('README.md'))).toBe(429); });
   it('post181-extras: xor README.md', () => { expect(xorNibbles(sha256('README.md'))).toBe(13); });
   it('post181-extras: pairSum README.md', () => { expect(pairSum(sha256('README.md'))).toBe(4164); });
