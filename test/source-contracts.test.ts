@@ -47771,7 +47771,7 @@ describe('post293 source-contracts HEAVY deepen (after tip #293 leftover / tip-r
   };
 
 
-  it('post293: inventory — source-contracts leftover after tip #293 (beyond #293 helpers+source tip 7fcef5f; tip #290 genres+mcp merged; tip #291 wrangler+ci merged; tip #292 media-parser merged; tip-relaunch-2026-09-14 / helpers-source-only / not parser-routes / not genres invent)', () => {
+  it('post293: inventory — source-contracts leftover after tip #293 (beyond #293 helpers+source tip 7fcef5f; tip #295 genres+mcp merged; tip #291 wrangler+ci merged; tip #292 media-parser merged; tip-relaunch-2026-09-14 / helpers-source-only / not parser-routes / not genres invent)', () => {
     expect(read('test/source-contracts.test.ts')).toContain("describe('post293 source-contracts HEAVY deepen");
     expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post293 source-contracts HEAVY deepen"].join(''));
     expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post286 source-contracts HEAVY deepen"].join(''));
@@ -48012,7 +48012,7 @@ describe('post293 source-contracts HEAVY deepen (after tip #293 leftover / tip-r
     expect(helpers).not.toMatch(/anthropic|claude|haiku/i);
   });
 
-  it('post293: leftover — tip markers after #290/#291/#292/#293 present in helpers+source suites', () => {
+  it('post293: leftover — tip markers after #290/#291/#292/#293/#295 present in helpers+source suites', () => {
     const helpers = read('test/helpers.test.ts');
     const source = read('test/source-contracts.test.ts');
     expect(helpers).toContain('helpers-source-merged-293');
