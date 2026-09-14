@@ -38262,7 +38262,7 @@ https://example.com/shape255.m3u8
   it('post255: HMAC helpers-source-open-258 src/parser.ts', () => { expect(hmacSha256("helpers-source-open-258", "src/parser.ts")).toBe("2c5fa5280eb445fbe71af9c3b9d81c62ddb93d884f6d73f7543cce59b772fad4"); });
   it('post255: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post255: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post255: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post255: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post255: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post255: sha1 src/index.ts', () => { expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b"); });
   it('post255: md5 src/index.ts', () => { expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177"); });
@@ -38479,7 +38479,7 @@ describe('post255 parser extras HEAVY deepen (after #255+#254 leftover / media-p
   it('post255-extras: HMAC helpers-source-open-258 src/parser.ts', () => { expect(hmacSha256("helpers-source-open-258", "src/parser.ts")).toBe("2c5fa5280eb445fbe71af9c3b9d81c62ddb93d884f6d73f7543cce59b772fad4"); });
   it('post255-extras: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post255-extras: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post255-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post255-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post255-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post255-extras: HMAC post255 src/index.ts', () => { expect(hmacSha256("post255", "src/index.ts")).toBe("a1be24b076ef1f73df9236c338193c0c8d599d5d70dfb288d53ad4fbaa8e0d62"); });
   it('post255-extras: HMAC after-#255 src/index.ts', () => { expect(hmacSha256("after-#255", "src/index.ts")).toBe("66a8e26c758cd80f4f6eb555bec8de25f337eb77ace30e10aa216184870b918d"); });
