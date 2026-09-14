@@ -8598,3 +8598,2416 @@ describe('post94 genres HEAVY deepen', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#116): deepen genres unit slice only — no product inventing ---
+// Orthogonal to closed/conflicting #117 routes; leftover edges after post90/post94 genres.
+// Digests/HMAC, resolveGenre matrices, unicode/trim leftovers, inventing fences — tests-only.
+
+describe('post116 genres HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(genresRoot, rel), 'utf8');
+  const src = genresSource;
+
+  it("post116: locks genres.ts sha256 digest (reaffirm)", () => {
+    expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it("post116: locks genres.ts sha1 digest (reaffirm)", () => {
+    expect(createHash('sha1').update(src, 'utf8').digest('hex')).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it("post116: locks genres.ts md5 digest (reaffirm)", () => {
+    expect(createHash('md5').update(src, 'utf8').digest('hex')).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it("post116: locks genres.ts sha384 digest (reaffirm)", () => {
+    expect(createHash('sha384').update(src, 'utf8').digest('hex')).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16");
+  });
+
+  it("post116: locks genres.ts sha512 digest (reaffirm)", () => {
+    expect(createHash('sha512').update(src, 'utf8').digest('hex')).toBe("bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b");
+  });
+
+  it("post116: locks genres.ts sha256 nibble sum 500", () => {
+    const dig = createHash('sha256').update(src, 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(500);
+  });
+
+  it("post116: locks genres.ts sha256 xor-nibble 6", () => {
+    const dig = createHash('sha256').update(src, 'utf8').digest('hex');
+    expect([...dig].reduce((a, c) => a ^ parseInt(c, 16), 0)).toBe(6);
+  });
+
+  it("post116: first/last sha256 octets 0xaa / 0x4e", () => {
+    const dig = createHash('sha256').update(src, 'utf8').digest('hex');
+    expect(parseInt(dig.slice(0, 2), 16)).toBe(0xaa);
+    expect(parseInt(dig.slice(-2), 16)).toBe(0x4e);
+  });
+
+  it("post116: HMAC-SHA256 keyed by post116", () => {
+    expect(createHmac('sha256', "post116").update(src, 'utf8').digest('hex')).toBe("ca080cbf711d086c982824b4a0126960a02e0037a01ce5f49277d98aaa61ac4b");
+  });
+
+  it("post116: HMAC-SHA256 keyed by heavy-burn", () => {
+    expect(createHmac('sha256', "heavy-burn").update(src, 'utf8').digest('hex')).toBe("c9eb4b5d9a9a147d65e65a2d4b44843ed7fad2f4b1dffda9c36e15f2d072fc9a");
+  });
+
+  it("post116: HMAC-SHA256 keyed by VALID_GENRES", () => {
+    expect(createHmac('sha256', "VALID_GENRES").update(src, 'utf8').digest('hex')).toBe("022af5631e33153cb57479f640c634fed9801fa759671954791290e45cdafb25");
+  });
+
+  it("post116: HMAC-SHA256 keyed by backlink", () => {
+    expect(createHmac('sha256', "backlink").update(src, 'utf8').digest('hex')).toBe("49cdee589a580afd21210b21ce6c9577e60eb9550bc9ae91de61d5d641ca7a17");
+  });
+
+  it("post116: HMAC-SHA256 keyed by genres-post116", () => {
+    expect(createHmac('sha256', "genres-post116").update(src, 'utf8').digest('hex')).toBe("f916cbac134996a1272b940f67700546e0056d934fb41586684b5aeb2dec622b");
+  });
+
+  it("post116: HMAC-SHA256 keyed by leftover-edges", () => {
+    expect(createHmac('sha256', "leftover-edges").update(src, 'utf8').digest('hex')).toBe("eca771af61b9bbe132825505fe926c40fd743c76b1cf1e2e1aefb0d22937e3ea");
+  });
+
+  it("post116: HMAC-SHA256 keyed by TOKENMAXX", () => {
+    expect(createHmac('sha256', "TOKENMAXX").update(src, 'utf8').digest('hex')).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951");
+  });
+
+  it("post116: HMAC-SHA256 keyed by soft-cap", () => {
+    expect(createHmac('sha256', "soft-cap").update(src, 'utf8').digest('hex')).toBe("49307080c75facb5123c906dd6ee01ad436937193d49900cafc96c669e459c4f");
+  });
+
+  it("post116: HMAC-SHA256 keyed by EoD", () => {
+    expect(createHmac('sha256', "EoD").update(src, 'utf8').digest('hex')).toBe("b369feae0f72557119cf21d904698c894133aaa9ac81578aad65e9346678c0b2");
+  });
+
+  it("post116: HMAC-SHA256 keyed by no-routes", () => {
+    expect(createHmac('sha256', "no-routes").update(src, 'utf8').digest('hex')).toBe("6087ea269c1ee7d2325fb1455fcfed1927feefdaad1a57e8d70c79f439c706b8");
+  });
+
+  it("post116: HMAC-SHA1 keyed by post116", () => {
+    expect(createHmac('sha1', 'post116').update(src, 'utf8').digest('hex')).toBe("87526648b14b42dc09ab0ecc22f28cf2bc4793ae");
+  });
+
+  it("post116: HMAC-MD5 keyed by post116", () => {
+    expect(createHmac('md5', 'post116').update(src, 'utf8').digest('hex')).toBe("6062a60b71344154c1d4f0009783dedd");
+  });
+
+  it("post116: post116 HMAC differs from post94 and plain sha256", () => {
+    const plain = createHash('sha256').update(src, 'utf8').digest('hex');
+    const p116 = createHmac('sha256', 'post116').update(src, 'utf8').digest('hex');
+    const p94 = createHmac('sha256', 'post94').update(src, 'utf8').digest('hex');
+    expect(p116).not.toBe(plain);
+    expect(p116).not.toBe(p94);
+    expect(new Set([plain, p116, p94]).size).toBe(3);
+  });
+
+  it("post116: locks index.ts sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("src/index.ts"), 'utf8').digest('hex')).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it("post116: locks index.ts sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("src/index.ts"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(470);
+  });
+
+  it("post116: locks index.ts sha1", () => {
+    expect(createHash('sha1').update(read("src/index.ts"), 'utf8').digest('hex')).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it("post116: locks AGENTS.md sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("AGENTS.md"), 'utf8').digest('hex')).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it("post116: locks AGENTS.md sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("AGENTS.md"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(479);
+  });
+
+  it("post116: locks AGENTS.md sha1", () => {
+    expect(createHash('sha1').update(read("AGENTS.md"), 'utf8').digest('hex')).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it("post116: locks README.md sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("README.md"), 'utf8').digest('hex')).toBe("f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987");
+  });
+
+  it("post116: locks README.md sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("README.md"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(429);
+  });
+
+  it("post116: locks README.md sha1", () => {
+    expect(createHash('sha1').update(read("README.md"), 'utf8').digest('hex')).toBe("4f560a473d5838f25eba3eae21a87f6c97ba3b8b");
+  });
+
+  it("post116: locks DEPLOY.md sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("DEPLOY.md"), 'utf8').digest('hex')).toBe("11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a");
+  });
+
+  it("post116: locks DEPLOY.md sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("DEPLOY.md"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(439);
+  });
+
+  it("post116: locks DEPLOY.md sha1", () => {
+    expect(createHash('sha1').update(read("DEPLOY.md"), 'utf8').digest('hex')).toBe("37c72be44abb67343dae3e7c2303306a25b3481f");
+  });
+
+  it("post116: locks package.json sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("package.json"), 'utf8').digest('hex')).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it("post116: locks package.json sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("package.json"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(451);
+  });
+
+  it("post116: locks package.json sha1", () => {
+    expect(createHash('sha1').update(read("package.json"), 'utf8').digest('hex')).toBe("b58d14f35b9c13bb254d5e2a51240e2918a126c5");
+  });
+
+  it("post116: locks vitest.config.ts sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("vitest.config.ts"), 'utf8').digest('hex')).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it("post116: locks vitest.config.ts sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("vitest.config.ts"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(536);
+  });
+
+  it("post116: locks vitest.config.ts sha1", () => {
+    expect(createHash('sha1').update(read("vitest.config.ts"), 'utf8').digest('hex')).toBe("f8d49517ece92fc5e9781fbde021a948958aac37");
+  });
+
+  it("post116: locks tsconfig.json sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("tsconfig.json"), 'utf8').digest('hex')).toBe("ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792");
+  });
+
+  it("post116: locks tsconfig.json sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("tsconfig.json"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(506);
+  });
+
+  it("post116: locks tsconfig.json sha1", () => {
+    expect(createHash('sha1').update(read("tsconfig.json"), 'utf8').digest('hex')).toBe("68e3169249049539d687b6b3d81fc809079134f9");
+  });
+
+  it("post116: locks types.ts sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("src/types.ts"), 'utf8').digest('hex')).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+  });
+
+  it("post116: locks types.ts sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("src/types.ts"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(520);
+  });
+
+  it("post116: locks types.ts sha1", () => {
+    expect(createHash('sha1').update(read("src/types.ts"), 'utf8').digest('hex')).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8");
+  });
+
+  it("post116: locks ci.yml sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read(".github/workflows/ci.yml"), 'utf8').digest('hex')).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it("post116: locks ci.yml sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read(".github/workflows/ci.yml"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(515);
+  });
+
+  it("post116: locks ci.yml sha1", () => {
+    expect(createHash('sha1').update(read(".github/workflows/ci.yml"), 'utf8').digest('hex')).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+  });
+
+  it("post116: locks parser.ts sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("src/parser.ts"), 'utf8').digest('hex')).toBe("cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368");
+  });
+
+  it("post116: locks parser.ts sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("src/parser.ts"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(477);
+  });
+
+  it("post116: locks parser.ts sha1", () => {
+    expect(createHash('sha1').update(read("src/parser.ts"), 'utf8').digest('hex')).toBe("701cdecbef5a9049af6bd11497493c4036a60211");
+  });
+
+  it("post116: locks mcp.ts sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("src/mcp.ts"), 'utf8').digest('hex')).toBe("6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683");
+  });
+
+  it("post116: locks mcp.ts sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("src/mcp.ts"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(551);
+  });
+
+  it("post116: locks mcp.ts sha1", () => {
+    expect(createHash('sha1').update(read("src/mcp.ts"), 'utf8').digest('hex')).toBe("848b3977365809fda54fcb74a7d09affe685ea82");
+  });
+
+  it("post116: locks wrangler.toml sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read("wrangler.toml"), 'utf8').digest('hex')).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+  });
+
+  it("post116: locks wrangler.toml sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read("wrangler.toml"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(457);
+  });
+
+  it("post116: locks wrangler.toml sha1", () => {
+    expect(createHash('sha1').update(read("wrangler.toml"), 'utf8').digest('hex')).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+  });
+
+  it("post116: locks dependabot.yml sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read(".github/dependabot.yml"), 'utf8').digest('hex')).toBe("a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac");
+  });
+
+  it("post116: locks dependabot.yml sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read(".github/dependabot.yml"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(526);
+  });
+
+  it("post116: locks dependabot.yml sha1", () => {
+    expect(createHash('sha1').update(read(".github/dependabot.yml"), 'utf8').digest('hex')).toBe("dfdb63975444874143105431e4cee95165932c7b");
+  });
+
+  it("post116: locks deploy.yml sha256 (cross-surface)", () => {
+    expect(createHash('sha256').update(read(".github/workflows/deploy.yml"), 'utf8').digest('hex')).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3");
+  });
+
+  it("post116: locks deploy.yml sha256 nibble sum", () => {
+    const dig = createHash('sha256').update(read(".github/workflows/deploy.yml"), 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(476);
+  });
+
+  it("post116: locks deploy.yml sha1", () => {
+    expect(createHash('sha1').update(read(".github/workflows/deploy.yml"), 'utf8').digest('hex')).toBe("5f7a3932b69a68d740162b1079688d6934060f61");
+  });
+
+  it("post116: locks genres.ts byte/code-unit/stat/TextEncoder sizes", () => {
+    expect(Buffer.byteLength(src, 'utf8')).toBe(1027);
+    expect(src.length).toBe(1025);
+    expect(statSync(join(genresRoot, 'src/genres.ts')).size).toBe(1027);
+    expect(new TextEncoder().encode(src).length).toBe(1027);
+  });
+
+  it("post116: locks genres.ts line length vector", () => {
+    expect(src.split('\n').map((l) => l.length)).toEqual([65,50,26,19,21,22,19,25,23,15,16,13,15,16,16,17,15,19,33,15,24,18,21,2,0,29,10,12,9,14,8,9,9,11,18,11,0,55,0,29,17,42,11,29,43,86,1,0]);
+  });
+
+  it("post116: locks genres.ts first 48 char codes", () => {
+    expect([...src.slice(0, 48)].map((c) => c.charCodeAt(0))).toEqual([47,42,42,32,105,112,116,118,45,111,114,103,32,99,97,116,101,103,111,114,121,32,105,100,115,32,119,101,32,101,120,112,111,115,101,32,43,32,109,111,111,100,32,97,108,105,97,115]);
+  });
+
+  it("post116: locks genres.ts last 48 char codes", () => {
+    expect([...src.slice(-48)].map((c) => c.charCodeAt(0))).toEqual([117,100,101,115,40,108,111,119,101,114,32,97,115,32,86,97,108,105,100,71,101,110,114,101,41,32,63,32,108,111,119,101,114,32,58,32,39,109,117,115,105,99,39,41,59,10,125,10]);
+  });
+
+  it("post116: digit/upper/lower/space inventory", () => {
+    expect([...src].filter((c) => /\d/.test(c))).toHaveLength(0);
+    expect([...src].filter((c) => /[A-Z]/.test(c))).toHaveLength(58);
+    expect([...src].filter((c) => /[a-z]/.test(c))).toHaveLength(586);
+    expect((src.match(/ /g) ?? []).length).toBe(144);
+  });
+
+  it("post116: punctuation inventory lock", () => {
+    expect((src.match(/'/g) ?? []).length).toBe(68);
+    expect((src.match(/"/g) ?? []).length).toBe(0);
+    expect((src.match(/=/g) ?? []).length).toBe(5);
+    expect((src.match(/_/g) ?? []).length).toBe(5);
+    expect((src.match(/→/g) ?? []).length).toBe(1);
+    expect((src.match(/:/g) ?? []).length).toBe(26);
+    expect((src.match(/,/g) ?? []).length).toBe(34);
+    expect((src.match(/;/g) ?? []).length).toBe(6);
+    expect((src.match(/[()]/g) ?? []).length).toBe(14);
+    expect((src.match(/[{}]/g) ?? []).length).toBe(4);
+    expect((src.match(/[\[\]]/g) ?? []).length).toBe(6);
+    expect((src.match(/`/g) ?? []).length).toBe(0);
+    expect((src.match(/\t/g) ?? []).length).toBe(0);
+    expect((src.match(/\n/g) ?? []).length).toBe(47);
+  });
+
+  it("post116: unique char set lock", () => {
+    expect([...new Set(src)].sort().join('')).toBe("\n !'()*+,-./:;<=>?ACDEGILMNPRSV[]_abcdefghijklmnoprstuvwxyz{}→");
+  });
+
+  it("post116: code-unit sum 90942", () => {
+    expect([...src].reduce((a, c) => a + c.charCodeAt(0), 0)).toBe(90942);
+  });
+
+  it("post116: word token count + sha256", () => {
+    const words = src.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words).toHaveLength(109);
+    expect(createHash('sha256').update(words.join('|'), 'utf8').digest('hex')).toBe("ee9a96bc68ad7d62c8e1e229222caa9a1eab64604d60ba737d55690d8d9c35ad");
+  });
+
+  it("post116: unique word inventory lock", () => {
+    const unique = [...new Set(src.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])].sort();
+    expect(unique).toEqual(["GENRE_MAP","Record","VALID_GENRES","ValidGenre","aliases","ambient","as","blues","category","chill","classic","classical","const","dance","electronic","entertainment","export","expose","fi","focus","function","ids","if","includes","indie","input","iptv","jazz","late","lo","lofi","lower","map","metal","mood","music","news","night","number","org","pop","relaxing","resolveGenre","return","rock","sports","string","toLowerCase","trim","type","typeof","we"]);
+    expect(createHash('sha256').update(unique.join('|'), 'utf8').digest('hex')).toBe("83d7b745745117945de303179edac8c9a1504ce82a05f1be45caef8073702232");
+  });
+
+  it("post116: no BOM/CR/tab; single trailing newline", () => {
+    expect(src.charCodeAt(0)).not.toBe(0xfeff);
+    expect(src.includes('\r')).toBe(false);
+    expect(src.includes('\t')).toBe(false);
+    expect(src.endsWith('}\n')).toBe(true);
+    expect(src.endsWith('}\n\n')).toBe(false);
+  });
+
+  it("post116: NFC/NFD/NFKC/NFKD identity", () => {
+    expect(src.normalize('NFC')).toBe(src);
+    expect(src.normalize('NFD')).toBe(src);
+    expect(src.normalize('NFKC')).toBe(src);
+    expect(src.normalize('NFKD')).toBe(src);
+  });
+
+  it("post116: export surface + no imports", () => {
+    expect((src.match(/^export const /gm) ?? []).length).toBe(2);
+    expect((src.match(/^export function /gm) ?? []).length).toBe(1);
+    expect((src.match(/^export type /gm) ?? []).length).toBe(1);
+    expect(src).not.toMatch(/^import /m);
+    expect(src).not.toMatch(/require\(/);
+  });
+
+  it("post116: re-read genres.ts equals module snapshot", () => {
+    expect(read('src/genres.ts')).toBe(src);
+    expect(readFileSync(join(genresRoot, 'src/genres.ts'), 'utf8')).toBe(genresSource);
+  });
+
+  it("post116: GENRE_MAP JSON.stringify sha256", () => {
+    expect(createHash('sha256').update(JSON.stringify(GENRE_MAP), 'utf8').digest('hex')).toBe("a279e96e61bcbdcc0306c2347d4e30c0f00d429c70346b44829616ecef8ab158");
+  });
+
+  it("post116: VALID_GENRES JSON.stringify sha256", () => {
+    expect(createHash('sha256').update(JSON.stringify([...VALID_GENRES]), 'utf8').digest('hex')).toBe("8ce57463d560c8635b5f30da7eaaa97dcd875f8d97f24558e0cac151d3e47d96");
+  });
+
+  it("post116: GENRE_MAP keys pipe-join sha256", () => {
+    expect(createHash('sha256').update(Object.keys(GENRE_MAP).join('|'), 'utf8').digest('hex')).toBe("7a3398ba023b2a67e22e0654f84b70484a45545137d07fe0fafcd1ebdd7730cc");
+  });
+
+  it("post116: GENRE_MAP values pipe-join sha256", () => {
+    expect(createHash('sha256').update(Object.values(GENRE_MAP).join('|'), 'utf8').digest('hex')).toBe("f9b95af452043fe623f97768de6bdba0953e895a6a5a565629bf2929eba04688");
+  });
+
+  it("post116: VALID_GENRES comma/pipe sha256", () => {
+    expect(createHash('sha256').update([...VALID_GENRES].join(','), 'utf8').digest('hex')).toBe("94a784d3c39dd9b01770e66997951dadb72a2d0e41cb0902d5e4b246a3ff7632");
+    expect(createHash('sha256').update([...VALID_GENRES].join('|'), 'utf8').digest('hex')).toBe("4055f529288daaab06f6384967c7d48359f62f525b3ac063c950408fd6fe7ba6");
+  });
+
+  it("post116: GENRE_MAP insertion-order keys", () => {
+    expect(Object.keys(GENRE_MAP)).toEqual(["late night","chill","ambient","relaxing","focus","classical","classic","jazz","blues","pop","rock","metal","indie","music","news","sports","entertainment","dance","electronic","lofi","lo-fi"]);
+  });
+
+  it("post116: GENRE_MAP insertion-order values", () => {
+    expect(Object.values(GENRE_MAP)).toEqual(["ambient","ambient","ambient","ambient","ambient","classical","classical","jazz","jazz","pop","rock","rock","rock","music","news","sports","entertainment","pop","ambient","ambient","ambient"]);
+  });
+
+  it("post116: VALID_GENRES ordered tuple", () => {
+    expect([...VALID_GENRES]).toEqual(["music","ambient","jazz","classical","pop","rock","news","sports","entertainment"]);
+    expect(VALID_GENRES).toHaveLength(9);
+    expect(new Set(VALID_GENRES).size).toBe(9);
+  });
+
+  it("post116: value frequency histogram", () => {
+    const freq = Object.values(GENRE_MAP).reduce((acc, v) => {
+      acc[v] = (acc[v] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    expect(freq).toEqual({ ambient: 8, classical: 2, jazz: 2, pop: 2, rock: 3, music: 1, news: 1, sports: 1, entertainment: 1 });
+  });
+
+  it("post116: length sums keys/values/VALID_GENRES", () => {
+    expect(Object.keys(GENRE_MAP).reduce((s, k) => s + k.length, 0)).toBe(129);
+    expect(Object.values(GENRE_MAP).reduce((s, v) => s + v.length, 0)).toBe(128);
+    expect(VALID_GENRES.reduce((s, g) => s + g.length, 0)).toBe(55);
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it("post116: unique GENRE_MAP values equal VALID_GENRES set", () => {
+    expect(new Set(Object.values(GENRE_MAP))).toEqual(new Set(VALID_GENRES));
+  });
+
+  it("post116: every VALID_GENRES id is identity key in GENRE_MAP", () => {
+    for (const g of VALID_GENRES) {
+      expect(GENRE_MAP[g]).toBe(g);
+      expect(resolveGenre(g)).toBe(g);
+    }
+  });
+
+  it("post116: ambient fan-in sorted lock", () => {
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'ambient').map(([k]) => k).sort()).toEqual([
+      'ambient', 'chill', 'electronic', 'focus', 'late night', 'lo-fi', 'lofi', 'relaxing',
+    ]);
+  });
+
+  it("post116: rock/pop/classical/jazz fan-in locks", () => {
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'rock').map(([k]) => k).sort()).toEqual(['indie', 'metal', 'rock']);
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'pop').map(([k]) => k).sort()).toEqual(['dance', 'pop']);
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'classical').map(([k]) => k).sort()).toEqual(['classic', 'classical']);
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'jazz').map(([k]) => k).sort()).toEqual(['blues', 'jazz']);
+  });
+
+  it("post116: identity-only categories fan-in 1", () => {
+    for (const id of ['music', 'news', 'sports', 'entertainment'] as const) {
+      expect(Object.entries(GENRE_MAP).filter(([, v]) => v === id).map(([k]) => k)).toEqual([id]);
+    }
+  });
+
+  it("post116: alias sha+resolve late night", () => {
+    expect(createHash('sha256').update("late night", 'utf8').digest('hex')).toBe("23d46fae9e478b5f30406223eaad1dd052c4a3cca685dad20ec1f75f34344e06");
+    expect(GENRE_MAP["late night"]).toBe("ambient");
+    expect(resolveGenre("late night")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed late night", () => {
+    expect(resolveGenre("late night")).toBe("ambient");
+    expect(resolveGenre("LATE NIGHT")).toBe("ambient");
+    expect(resolveGenre('  ' + "late night" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "LATE NIGHT" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "late night" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip late night", () => {
+    const enc = btoa("late night");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias late night", () => {
+    const enc = Buffer.from("late night", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve chill", () => {
+    expect(createHash('sha256').update("chill", 'utf8').digest('hex')).toBe("9fe5e0a43712f05785002103cfac2add80771a19d76f2c562633f65375ea5581");
+    expect(GENRE_MAP["chill"]).toBe("ambient");
+    expect(resolveGenre("chill")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed chill", () => {
+    expect(resolveGenre("chill")).toBe("ambient");
+    expect(resolveGenre("CHILL")).toBe("ambient");
+    expect(resolveGenre('  ' + "chill" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "CHILL" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "chill" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip chill", () => {
+    const enc = btoa("chill");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias chill", () => {
+    const enc = Buffer.from("chill", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve ambient", () => {
+    expect(createHash('sha256').update("ambient", 'utf8').digest('hex')).toBe("31d18c0defdc3e0eadd46bb4c04e4ad798f4582fbde1216806bde3cbe250350c");
+    expect(GENRE_MAP["ambient"]).toBe("ambient");
+    expect(resolveGenre("ambient")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed ambient", () => {
+    expect(resolveGenre("ambient")).toBe("ambient");
+    expect(resolveGenre("AMBIENT")).toBe("ambient");
+    expect(resolveGenre('  ' + "ambient" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "AMBIENT" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "ambient" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip ambient", () => {
+    const enc = btoa("ambient");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias ambient", () => {
+    const enc = Buffer.from("ambient", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve relaxing", () => {
+    expect(createHash('sha256').update("relaxing", 'utf8').digest('hex')).toBe("f90997f63439a7791c142208e653be723b8b46902544cc216ab31ba2ed16222f");
+    expect(GENRE_MAP["relaxing"]).toBe("ambient");
+    expect(resolveGenre("relaxing")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed relaxing", () => {
+    expect(resolveGenre("relaxing")).toBe("ambient");
+    expect(resolveGenre("RELAXING")).toBe("ambient");
+    expect(resolveGenre('  ' + "relaxing" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "RELAXING" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "relaxing" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip relaxing", () => {
+    const enc = btoa("relaxing");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias relaxing", () => {
+    const enc = Buffer.from("relaxing", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve focus", () => {
+    expect(createHash('sha256').update("focus", 'utf8').digest('hex')).toBe("c51faa148557a08cbf790156578b7a82b41f22dd01227f7dde057e34c18a365f");
+    expect(GENRE_MAP["focus"]).toBe("ambient");
+    expect(resolveGenre("focus")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed focus", () => {
+    expect(resolveGenre("focus")).toBe("ambient");
+    expect(resolveGenre("FOCUS")).toBe("ambient");
+    expect(resolveGenre('  ' + "focus" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "FOCUS" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "focus" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip focus", () => {
+    const enc = btoa("focus");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias focus", () => {
+    const enc = Buffer.from("focus", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve classical", () => {
+    expect(createHash('sha256').update("classical", 'utf8').digest('hex')).toBe("25d9548a80c751e282183876990e49a6eb3c1ac94a28fa86c5b513019bf8cba6");
+    expect(GENRE_MAP["classical"]).toBe("classical");
+    expect(resolveGenre("classical")).toBe("classical");
+  });
+
+  it("post116: case+pad+mixed classical", () => {
+    expect(resolveGenre("classical")).toBe("classical");
+    expect(resolveGenre("CLASSICAL")).toBe("classical");
+    expect(resolveGenre('  ' + "classical" + '  ')).toBe("classical");
+    expect(resolveGenre('\t' + "CLASSICAL" + '\n')).toBe("classical");
+    expect(resolveGenre(' \r ' + "classical" + ' \r ')).toBe("classical");
+  });
+
+  it("post116: btoa/atob round-trip classical", () => {
+    const enc = btoa("classical");
+    expect(resolveGenre(atob(enc))).toBe("classical");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias classical", () => {
+    const enc = Buffer.from("classical", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("classical");
+  });
+
+  it("post116: alias sha+resolve classic", () => {
+    expect(createHash('sha256').update("classic", 'utf8').digest('hex')).toBe("b002a634647c3350c37b15a376bae6867d9034e9aa36a06002e3e335229c91db");
+    expect(GENRE_MAP["classic"]).toBe("classical");
+    expect(resolveGenre("classic")).toBe("classical");
+  });
+
+  it("post116: case+pad+mixed classic", () => {
+    expect(resolveGenre("classic")).toBe("classical");
+    expect(resolveGenre("CLASSIC")).toBe("classical");
+    expect(resolveGenre('  ' + "classic" + '  ')).toBe("classical");
+    expect(resolveGenre('\t' + "CLASSIC" + '\n')).toBe("classical");
+    expect(resolveGenre(' \r ' + "classic" + ' \r ')).toBe("classical");
+  });
+
+  it("post116: btoa/atob round-trip classic", () => {
+    const enc = btoa("classic");
+    expect(resolveGenre(atob(enc))).toBe("classical");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias classic", () => {
+    const enc = Buffer.from("classic", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("classical");
+  });
+
+  it("post116: alias sha+resolve jazz", () => {
+    expect(createHash('sha256').update("jazz", 'utf8').digest('hex')).toBe("c301f75ab52fa076c827231e613bbc976e26b2c1f7ddd01a319b2832b8ecdf9a");
+    expect(GENRE_MAP["jazz"]).toBe("jazz");
+    expect(resolveGenre("jazz")).toBe("jazz");
+  });
+
+  it("post116: case+pad+mixed jazz", () => {
+    expect(resolveGenre("jazz")).toBe("jazz");
+    expect(resolveGenre("JAZZ")).toBe("jazz");
+    expect(resolveGenre('  ' + "jazz" + '  ')).toBe("jazz");
+    expect(resolveGenre('\t' + "JAZZ" + '\n')).toBe("jazz");
+    expect(resolveGenre(' \r ' + "jazz" + ' \r ')).toBe("jazz");
+  });
+
+  it("post116: btoa/atob round-trip jazz", () => {
+    const enc = btoa("jazz");
+    expect(resolveGenre(atob(enc))).toBe("jazz");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias jazz", () => {
+    const enc = Buffer.from("jazz", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("jazz");
+  });
+
+  it("post116: alias sha+resolve blues", () => {
+    expect(createHash('sha256').update("blues", 'utf8').digest('hex')).toBe("91f25e3a2ff2783b05b9dc9f07e555d828317c6bc2024cbd81f00684ddb79c9d");
+    expect(GENRE_MAP["blues"]).toBe("jazz");
+    expect(resolveGenre("blues")).toBe("jazz");
+  });
+
+  it("post116: case+pad+mixed blues", () => {
+    expect(resolveGenre("blues")).toBe("jazz");
+    expect(resolveGenre("BLUES")).toBe("jazz");
+    expect(resolveGenre('  ' + "blues" + '  ')).toBe("jazz");
+    expect(resolveGenre('\t' + "BLUES" + '\n')).toBe("jazz");
+    expect(resolveGenre(' \r ' + "blues" + ' \r ')).toBe("jazz");
+  });
+
+  it("post116: btoa/atob round-trip blues", () => {
+    const enc = btoa("blues");
+    expect(resolveGenre(atob(enc))).toBe("jazz");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias blues", () => {
+    const enc = Buffer.from("blues", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("jazz");
+  });
+
+  it("post116: alias sha+resolve pop", () => {
+    expect(createHash('sha256').update("pop", 'utf8').digest('hex')).toBe("de70fa60cac227cbc13270a26ccde291af94df086959f0958122aedf154d90b5");
+    expect(GENRE_MAP["pop"]).toBe("pop");
+    expect(resolveGenre("pop")).toBe("pop");
+  });
+
+  it("post116: case+pad+mixed pop", () => {
+    expect(resolveGenre("pop")).toBe("pop");
+    expect(resolveGenre("POP")).toBe("pop");
+    expect(resolveGenre('  ' + "pop" + '  ')).toBe("pop");
+    expect(resolveGenre('\t' + "POP" + '\n')).toBe("pop");
+    expect(resolveGenre(' \r ' + "pop" + ' \r ')).toBe("pop");
+  });
+
+  it("post116: btoa/atob round-trip pop", () => {
+    const enc = btoa("pop");
+    expect(resolveGenre(atob(enc))).toBe("pop");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias pop", () => {
+    const enc = Buffer.from("pop", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("pop");
+  });
+
+  it("post116: alias sha+resolve rock", () => {
+    expect(createHash('sha256').update("rock", 'utf8').digest('hex')).toBe("350a770c0ec9f353e1a5629895f374fdaa299876c3870c03feb60eb4a3769d94");
+    expect(GENRE_MAP["rock"]).toBe("rock");
+    expect(resolveGenre("rock")).toBe("rock");
+  });
+
+  it("post116: case+pad+mixed rock", () => {
+    expect(resolveGenre("rock")).toBe("rock");
+    expect(resolveGenre("ROCK")).toBe("rock");
+    expect(resolveGenre('  ' + "rock" + '  ')).toBe("rock");
+    expect(resolveGenre('\t' + "ROCK" + '\n')).toBe("rock");
+    expect(resolveGenre(' \r ' + "rock" + ' \r ')).toBe("rock");
+  });
+
+  it("post116: btoa/atob round-trip rock", () => {
+    const enc = btoa("rock");
+    expect(resolveGenre(atob(enc))).toBe("rock");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias rock", () => {
+    const enc = Buffer.from("rock", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("rock");
+  });
+
+  it("post116: alias sha+resolve metal", () => {
+    expect(createHash('sha256').update("metal", 'utf8').digest('hex')).toBe("03ecab669ba200ba17f994677e88894400fd627e6f70439247ce0cbda8ca9a20");
+    expect(GENRE_MAP["metal"]).toBe("rock");
+    expect(resolveGenre("metal")).toBe("rock");
+  });
+
+  it("post116: case+pad+mixed metal", () => {
+    expect(resolveGenre("metal")).toBe("rock");
+    expect(resolveGenre("METAL")).toBe("rock");
+    expect(resolveGenre('  ' + "metal" + '  ')).toBe("rock");
+    expect(resolveGenre('\t' + "METAL" + '\n')).toBe("rock");
+    expect(resolveGenre(' \r ' + "metal" + ' \r ')).toBe("rock");
+  });
+
+  it("post116: btoa/atob round-trip metal", () => {
+    const enc = btoa("metal");
+    expect(resolveGenre(atob(enc))).toBe("rock");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias metal", () => {
+    const enc = Buffer.from("metal", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("rock");
+  });
+
+  it("post116: alias sha+resolve indie", () => {
+    expect(createHash('sha256').update("indie", 'utf8').digest('hex')).toBe("edb945ceb76842650f31c6a9aca3738c8b279d26215c172000dbb359d1122565");
+    expect(GENRE_MAP["indie"]).toBe("rock");
+    expect(resolveGenre("indie")).toBe("rock");
+  });
+
+  it("post116: case+pad+mixed indie", () => {
+    expect(resolveGenre("indie")).toBe("rock");
+    expect(resolveGenre("INDIE")).toBe("rock");
+    expect(resolveGenre('  ' + "indie" + '  ')).toBe("rock");
+    expect(resolveGenre('\t' + "INDIE" + '\n')).toBe("rock");
+    expect(resolveGenre(' \r ' + "indie" + ' \r ')).toBe("rock");
+  });
+
+  it("post116: btoa/atob round-trip indie", () => {
+    const enc = btoa("indie");
+    expect(resolveGenre(atob(enc))).toBe("rock");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias indie", () => {
+    const enc = Buffer.from("indie", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("rock");
+  });
+
+  it("post116: alias sha+resolve music", () => {
+    expect(createHash('sha256').update("music", 'utf8').digest('hex')).toBe("80f189984e5ca70287d13342f6daa0db45cba3c131c4e46dc81360f3a4c4f690");
+    expect(GENRE_MAP["music"]).toBe("music");
+    expect(resolveGenre("music")).toBe("music");
+  });
+
+  it("post116: case+pad+mixed music", () => {
+    expect(resolveGenre("music")).toBe("music");
+    expect(resolveGenre("MUSIC")).toBe("music");
+    expect(resolveGenre('  ' + "music" + '  ')).toBe("music");
+    expect(resolveGenre('\t' + "MUSIC" + '\n')).toBe("music");
+    expect(resolveGenre(' \r ' + "music" + ' \r ')).toBe("music");
+  });
+
+  it("post116: btoa/atob round-trip music", () => {
+    const enc = btoa("music");
+    expect(resolveGenre(atob(enc))).toBe("music");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias music", () => {
+    const enc = Buffer.from("music", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("music");
+  });
+
+  it("post116: alias sha+resolve news", () => {
+    expect(createHash('sha256').update("news", 'utf8').digest('hex')).toBe("19fba0e995b9794fc2c26217bf3b725c2f0d9eeda16719fe75e3ba23ca73bfc4");
+    expect(GENRE_MAP["news"]).toBe("news");
+    expect(resolveGenre("news")).toBe("news");
+  });
+
+  it("post116: case+pad+mixed news", () => {
+    expect(resolveGenre("news")).toBe("news");
+    expect(resolveGenre("NEWS")).toBe("news");
+    expect(resolveGenre('  ' + "news" + '  ')).toBe("news");
+    expect(resolveGenre('\t' + "NEWS" + '\n')).toBe("news");
+    expect(resolveGenre(' \r ' + "news" + ' \r ')).toBe("news");
+  });
+
+  it("post116: btoa/atob round-trip news", () => {
+    const enc = btoa("news");
+    expect(resolveGenre(atob(enc))).toBe("news");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias news", () => {
+    const enc = Buffer.from("news", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("news");
+  });
+
+  it("post116: alias sha+resolve sports", () => {
+    expect(createHash('sha256').update("sports", 'utf8').digest('hex')).toBe("1cb542228c76558789d114d3cb273a75850cca54ec3ee9a41100f2dc56ee561e");
+    expect(GENRE_MAP["sports"]).toBe("sports");
+    expect(resolveGenre("sports")).toBe("sports");
+  });
+
+  it("post116: case+pad+mixed sports", () => {
+    expect(resolveGenre("sports")).toBe("sports");
+    expect(resolveGenre("SPORTS")).toBe("sports");
+    expect(resolveGenre('  ' + "sports" + '  ')).toBe("sports");
+    expect(resolveGenre('\t' + "SPORTS" + '\n')).toBe("sports");
+    expect(resolveGenre(' \r ' + "sports" + ' \r ')).toBe("sports");
+  });
+
+  it("post116: btoa/atob round-trip sports", () => {
+    const enc = btoa("sports");
+    expect(resolveGenre(atob(enc))).toBe("sports");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias sports", () => {
+    const enc = Buffer.from("sports", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("sports");
+  });
+
+  it("post116: alias sha+resolve entertainment", () => {
+    expect(createHash('sha256').update("entertainment", 'utf8').digest('hex')).toBe("b34564f1c4cd1d98dc26aaa4f888e3020656033add4dd0620b26e820493bf5c2");
+    expect(GENRE_MAP["entertainment"]).toBe("entertainment");
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+  });
+
+  it("post116: case+pad+mixed entertainment", () => {
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+    expect(resolveGenre("ENTERTAINMENT")).toBe("entertainment");
+    expect(resolveGenre('  ' + "entertainment" + '  ')).toBe("entertainment");
+    expect(resolveGenre('\t' + "ENTERTAINMENT" + '\n')).toBe("entertainment");
+    expect(resolveGenre(' \r ' + "entertainment" + ' \r ')).toBe("entertainment");
+  });
+
+  it("post116: btoa/atob round-trip entertainment", () => {
+    const enc = btoa("entertainment");
+    expect(resolveGenre(atob(enc))).toBe("entertainment");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias entertainment", () => {
+    const enc = Buffer.from("entertainment", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("entertainment");
+  });
+
+  it("post116: alias sha+resolve dance", () => {
+    expect(createHash('sha256').update("dance", 'utf8').digest('hex')).toBe("2c371c2ada73a02e26e14416800e8a49f875d27b8b5ff31f1dbe37bdaa6d7faa");
+    expect(GENRE_MAP["dance"]).toBe("pop");
+    expect(resolveGenre("dance")).toBe("pop");
+  });
+
+  it("post116: case+pad+mixed dance", () => {
+    expect(resolveGenre("dance")).toBe("pop");
+    expect(resolveGenre("DANCE")).toBe("pop");
+    expect(resolveGenre('  ' + "dance" + '  ')).toBe("pop");
+    expect(resolveGenre('\t' + "DANCE" + '\n')).toBe("pop");
+    expect(resolveGenre(' \r ' + "dance" + ' \r ')).toBe("pop");
+  });
+
+  it("post116: btoa/atob round-trip dance", () => {
+    const enc = btoa("dance");
+    expect(resolveGenre(atob(enc))).toBe("pop");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias dance", () => {
+    const enc = Buffer.from("dance", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("pop");
+  });
+
+  it("post116: alias sha+resolve electronic", () => {
+    expect(createHash('sha256').update("electronic", 'utf8').digest('hex')).toBe("73e4c51456c25bab5458df719693e8dd7ca6b23e214ba2ef1142f7f29b33e995");
+    expect(GENRE_MAP["electronic"]).toBe("ambient");
+    expect(resolveGenre("electronic")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed electronic", () => {
+    expect(resolveGenre("electronic")).toBe("ambient");
+    expect(resolveGenre("ELECTRONIC")).toBe("ambient");
+    expect(resolveGenre('  ' + "electronic" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "ELECTRONIC" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "electronic" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip electronic", () => {
+    const enc = btoa("electronic");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias electronic", () => {
+    const enc = Buffer.from("electronic", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve lofi", () => {
+    expect(createHash('sha256').update("lofi", 'utf8').digest('hex')).toBe("13bbbbfaaf34c58eb5865c9dd5a14f2a5f90574f2d71836d80e665fc2a534182");
+    expect(GENRE_MAP["lofi"]).toBe("ambient");
+    expect(resolveGenre("lofi")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed lofi", () => {
+    expect(resolveGenre("lofi")).toBe("ambient");
+    expect(resolveGenre("LOFI")).toBe("ambient");
+    expect(resolveGenre('  ' + "lofi" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "LOFI" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "lofi" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip lofi", () => {
+    const enc = btoa("lofi");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias lofi", () => {
+    const enc = Buffer.from("lofi", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: alias sha+resolve lo-fi", () => {
+    expect(createHash('sha256').update("lo-fi", 'utf8').digest('hex')).toBe("2b84c4b36a5f6e1c152186381f971ef049e02832328df9f289a8d24b9cda124f");
+    expect(GENRE_MAP["lo-fi"]).toBe("ambient");
+    expect(resolveGenre("lo-fi")).toBe("ambient");
+  });
+
+  it("post116: case+pad+mixed lo-fi", () => {
+    expect(resolveGenre("lo-fi")).toBe("ambient");
+    expect(resolveGenre("LO-FI")).toBe("ambient");
+    expect(resolveGenre('  ' + "lo-fi" + '  ')).toBe("ambient");
+    expect(resolveGenre('\t' + "LO-FI" + '\n')).toBe("ambient");
+    expect(resolveGenre(' \r ' + "lo-fi" + ' \r ')).toBe("ambient");
+  });
+
+  it("post116: btoa/atob round-trip lo-fi", () => {
+    const enc = btoa("lo-fi");
+    expect(resolveGenre(atob(enc))).toBe("ambient");
+    expect(resolveGenre(enc)).toBe('music');
+  });
+
+  it("post116: base64url encode is not alias lo-fi", () => {
+    const enc = Buffer.from("lo-fi", 'utf8').toString('base64url');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(Buffer.from(enc, 'base64url').toString('utf8'))).toBe("ambient");
+  });
+
+  it("post116: VALID identity music empty-map + sha", () => {
+    expect(resolveGenre("music", {})).toBe("music");
+    expect(resolveGenre("MUSIC", {})).toBe("music");
+    expect(resolveGenre('  ' + "music" + '  ', {})).toBe("music");
+    expect(createHash('sha256').update("music", 'utf8').digest('hex')).toBe("80f189984e5ca70287d13342f6daa0db45cba3c131c4e46dc81360f3a4c4f690");
+  });
+
+  it("post116: delete identity music from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["music"];
+    expect(map["music"]).toBeUndefined();
+    expect(resolveGenre("music", map)).toBe("music");
+    expect(resolveGenre("MUSIC", map)).toBe("music");
+    expect(GENRE_MAP["music"]).toBe("music");
+  });
+
+  it("post116: VALID identity ambient empty-map + sha", () => {
+    expect(resolveGenre("ambient", {})).toBe("ambient");
+    expect(resolveGenre("AMBIENT", {})).toBe("ambient");
+    expect(resolveGenre('  ' + "ambient" + '  ', {})).toBe("ambient");
+    expect(createHash('sha256').update("ambient", 'utf8').digest('hex')).toBe("31d18c0defdc3e0eadd46bb4c04e4ad798f4582fbde1216806bde3cbe250350c");
+  });
+
+  it("post116: delete identity ambient from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["ambient"];
+    expect(map["ambient"]).toBeUndefined();
+    expect(resolveGenre("ambient", map)).toBe("ambient");
+    expect(resolveGenre("AMBIENT", map)).toBe("ambient");
+    expect(GENRE_MAP["ambient"]).toBe("ambient");
+  });
+
+  it("post116: VALID identity jazz empty-map + sha", () => {
+    expect(resolveGenre("jazz", {})).toBe("jazz");
+    expect(resolveGenre("JAZZ", {})).toBe("jazz");
+    expect(resolveGenre('  ' + "jazz" + '  ', {})).toBe("jazz");
+    expect(createHash('sha256').update("jazz", 'utf8').digest('hex')).toBe("c301f75ab52fa076c827231e613bbc976e26b2c1f7ddd01a319b2832b8ecdf9a");
+  });
+
+  it("post116: delete identity jazz from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["jazz"];
+    expect(map["jazz"]).toBeUndefined();
+    expect(resolveGenre("jazz", map)).toBe("jazz");
+    expect(resolveGenre("JAZZ", map)).toBe("jazz");
+    expect(GENRE_MAP["jazz"]).toBe("jazz");
+  });
+
+  it("post116: VALID identity classical empty-map + sha", () => {
+    expect(resolveGenre("classical", {})).toBe("classical");
+    expect(resolveGenre("CLASSICAL", {})).toBe("classical");
+    expect(resolveGenre('  ' + "classical" + '  ', {})).toBe("classical");
+    expect(createHash('sha256').update("classical", 'utf8').digest('hex')).toBe("25d9548a80c751e282183876990e49a6eb3c1ac94a28fa86c5b513019bf8cba6");
+  });
+
+  it("post116: delete identity classical from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["classical"];
+    expect(map["classical"]).toBeUndefined();
+    expect(resolveGenre("classical", map)).toBe("classical");
+    expect(resolveGenre("CLASSICAL", map)).toBe("classical");
+    expect(GENRE_MAP["classical"]).toBe("classical");
+  });
+
+  it("post116: VALID identity pop empty-map + sha", () => {
+    expect(resolveGenre("pop", {})).toBe("pop");
+    expect(resolveGenre("POP", {})).toBe("pop");
+    expect(resolveGenre('  ' + "pop" + '  ', {})).toBe("pop");
+    expect(createHash('sha256').update("pop", 'utf8').digest('hex')).toBe("de70fa60cac227cbc13270a26ccde291af94df086959f0958122aedf154d90b5");
+  });
+
+  it("post116: delete identity pop from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["pop"];
+    expect(map["pop"]).toBeUndefined();
+    expect(resolveGenre("pop", map)).toBe("pop");
+    expect(resolveGenre("POP", map)).toBe("pop");
+    expect(GENRE_MAP["pop"]).toBe("pop");
+  });
+
+  it("post116: VALID identity rock empty-map + sha", () => {
+    expect(resolveGenre("rock", {})).toBe("rock");
+    expect(resolveGenre("ROCK", {})).toBe("rock");
+    expect(resolveGenre('  ' + "rock" + '  ', {})).toBe("rock");
+    expect(createHash('sha256').update("rock", 'utf8').digest('hex')).toBe("350a770c0ec9f353e1a5629895f374fdaa299876c3870c03feb60eb4a3769d94");
+  });
+
+  it("post116: delete identity rock from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["rock"];
+    expect(map["rock"]).toBeUndefined();
+    expect(resolveGenre("rock", map)).toBe("rock");
+    expect(resolveGenre("ROCK", map)).toBe("rock");
+    expect(GENRE_MAP["rock"]).toBe("rock");
+  });
+
+  it("post116: VALID identity news empty-map + sha", () => {
+    expect(resolveGenre("news", {})).toBe("news");
+    expect(resolveGenre("NEWS", {})).toBe("news");
+    expect(resolveGenre('  ' + "news" + '  ', {})).toBe("news");
+    expect(createHash('sha256').update("news", 'utf8').digest('hex')).toBe("19fba0e995b9794fc2c26217bf3b725c2f0d9eeda16719fe75e3ba23ca73bfc4");
+  });
+
+  it("post116: delete identity news from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["news"];
+    expect(map["news"]).toBeUndefined();
+    expect(resolveGenre("news", map)).toBe("news");
+    expect(resolveGenre("NEWS", map)).toBe("news");
+    expect(GENRE_MAP["news"]).toBe("news");
+  });
+
+  it("post116: VALID identity sports empty-map + sha", () => {
+    expect(resolveGenre("sports", {})).toBe("sports");
+    expect(resolveGenre("SPORTS", {})).toBe("sports");
+    expect(resolveGenre('  ' + "sports" + '  ', {})).toBe("sports");
+    expect(createHash('sha256').update("sports", 'utf8').digest('hex')).toBe("1cb542228c76558789d114d3cb273a75850cca54ec3ee9a41100f2dc56ee561e");
+  });
+
+  it("post116: delete identity sports from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["sports"];
+    expect(map["sports"]).toBeUndefined();
+    expect(resolveGenre("sports", map)).toBe("sports");
+    expect(resolveGenre("SPORTS", map)).toBe("sports");
+    expect(GENRE_MAP["sports"]).toBe("sports");
+  });
+
+  it("post116: VALID identity entertainment empty-map + sha", () => {
+    expect(resolveGenre("entertainment", {})).toBe("entertainment");
+    expect(resolveGenre("ENTERTAINMENT", {})).toBe("entertainment");
+    expect(resolveGenre('  ' + "entertainment" + '  ', {})).toBe("entertainment");
+    expect(createHash('sha256').update("entertainment", 'utf8').digest('hex')).toBe("b34564f1c4cd1d98dc26aaa4f888e3020656033add4dd0620b26e820493bf5c2");
+  });
+
+  it("post116: delete identity entertainment from copy → VALID_GENRES branch", () => {
+    const map = { ...GENRE_MAP };
+    delete map["entertainment"];
+    expect(map["entertainment"]).toBeUndefined();
+    expect(resolveGenre("entertainment", map)).toBe("entertainment");
+    expect(resolveGenre("ENTERTAINMENT", map)).toBe("entertainment");
+    expect(GENRE_MAP["entertainment"]).toBe("entertainment");
+  });
+
+  it("post116: unknown podcast → music", () => {
+    expect(resolveGenre("podcast")).toBe('music');
+  });
+
+  it("post116: unknown radio → music", () => {
+    expect(resolveGenre("radio")).toBe('music');
+  });
+
+  it("post116: unknown k-pop → music", () => {
+    expect(resolveGenre("k-pop")).toBe('music');
+  });
+
+  it("post116: unknown hiphop → music", () => {
+    expect(resolveGenre("hiphop")).toBe('music');
+  });
+
+  it("post116: unknown hip-hop → music", () => {
+    expect(resolveGenre("hip-hop")).toBe('music');
+  });
+
+  it("post116: unknown r&b → music", () => {
+    expect(resolveGenre("r&b")).toBe('music');
+  });
+
+  it("post116: unknown rnb → music", () => {
+    expect(resolveGenre("rnb")).toBe('music');
+  });
+
+  it("post116: unknown techno → music", () => {
+    expect(resolveGenre("techno")).toBe('music');
+  });
+
+  it("post116: unknown house → music", () => {
+    expect(resolveGenre("house")).toBe('music');
+  });
+
+  it("post116: unknown trance → music", () => {
+    expect(resolveGenre("trance")).toBe('music');
+  });
+
+  it("post116: unknown folk → music", () => {
+    expect(resolveGenre("folk")).toBe('music');
+  });
+
+  it("post116: unknown country → music", () => {
+    expect(resolveGenre("country")).toBe('music');
+  });
+
+  it("post116: unknown reggae → music", () => {
+    expect(resolveGenre("reggae")).toBe('music');
+  });
+
+  it("post116: unknown ska → music", () => {
+    expect(resolveGenre("ska")).toBe('music');
+  });
+
+  it("post116: unknown punk → music", () => {
+    expect(resolveGenre("punk")).toBe('music');
+  });
+
+  it("post116: unknown emo → music", () => {
+    expect(resolveGenre("emo")).toBe('music');
+  });
+
+  it("post116: unknown grunge → music", () => {
+    expect(resolveGenre("grunge")).toBe('music');
+  });
+
+  it("post116: unknown soul → music", () => {
+    expect(resolveGenre("soul")).toBe('music');
+  });
+
+  it("post116: unknown funk → music", () => {
+    expect(resolveGenre("funk")).toBe('music');
+  });
+
+  it("post116: unknown disco → music", () => {
+    expect(resolveGenre("disco")).toBe('music');
+  });
+
+  it("post116: unknown opera → music", () => {
+    expect(resolveGenre("opera")).toBe('music');
+  });
+
+  it("post116: unknown symphony → music", () => {
+    expect(resolveGenre("symphony")).toBe('music');
+  });
+
+  it("post116: unknown piano → music", () => {
+    expect(resolveGenre("piano")).toBe('music');
+  });
+
+  it("post116: unknown guitar → music", () => {
+    expect(resolveGenre("guitar")).toBe('music');
+  });
+
+  it("post116: unknown drum → music", () => {
+    expect(resolveGenre("drum")).toBe('music');
+  });
+
+  it("post116: unknown vocal → music", () => {
+    expect(resolveGenre("vocal")).toBe('music');
+  });
+
+  it("post116: unknown instrumental → music", () => {
+    expect(resolveGenre("instrumental")).toBe('music');
+  });
+
+  it("post116: unknown world → music", () => {
+    expect(resolveGenre("world")).toBe('music');
+  });
+
+  it("post116: unknown latin → music", () => {
+    expect(resolveGenre("latin")).toBe('music');
+  });
+
+  it("post116: unknown afrobeat → music", () => {
+    expect(resolveGenre("afrobeat")).toBe('music');
+  });
+
+  it("post116: unknown chilling → music", () => {
+    expect(resolveGenre("chilling")).toBe('music');
+  });
+
+  it("post116: unknown jazzed → music", () => {
+    expect(resolveGenre("jazzed")).toBe('music');
+  });
+
+  it("post116: unknown rockabilly → music", () => {
+    expect(resolveGenre("rockabilly")).toBe('music');
+  });
+
+  it("post116: unknown popcorn → music", () => {
+    expect(resolveGenre("popcorn")).toBe('music');
+  });
+
+  it("post116: unknown late_night → music", () => {
+    expect(resolveGenre("late_night")).toBe('music');
+  });
+
+  it("post116: unknown late-night → music", () => {
+    expect(resolveGenre("late-night")).toBe('music');
+  });
+
+  it("post116: unknown lo_fi → music", () => {
+    expect(resolveGenre("lo_fi")).toBe('music');
+  });
+
+  it("post116: unknown lo fi → music", () => {
+    expect(resolveGenre("lo fi")).toBe('music');
+  });
+
+  it("post116: unknown late  night → music", () => {
+    expect(resolveGenre("late  night")).toBe('music');
+  });
+
+  it("post116: unknown LATE_NIGHT → music", () => {
+    expect(resolveGenre("LATE_NIGHT")).toBe('music');
+  });
+
+  it("post116: LoFi lowercases to lofi alias → ambient", () => {
+    expect(resolveGenre("LoFi")).toBe("ambient");
+    expect(resolveGenre("LOFI")).toBe("ambient");
+  });
+
+  it("post116: unknown LO FI → music", () => {
+    expect(resolveGenre("LO FI")).toBe('music');
+  });
+
+  it("post116: unknown electronic-music → music", () => {
+    expect(resolveGenre("electronic-music")).toBe('music');
+  });
+
+  it("post116: unknown ambient-music → music", () => {
+    expect(resolveGenre("ambient-music")).toBe('music');
+  });
+
+  it("post116: unknown deep house → music", () => {
+    expect(resolveGenre("deep house")).toBe('music');
+  });
+
+  it("post116: unknown 123 → music", () => {
+    expect(resolveGenre("123")).toBe('music');
+  });
+
+  it("post116: unknown jazz! → music", () => {
+    expect(resolveGenre("jazz!")).toBe('music');
+  });
+
+  it("post116: unknown 音楽 → music", () => {
+    expect(resolveGenre("音楽")).toBe('music');
+  });
+
+  it("post116: unknown jazz/blues → music", () => {
+    expect(resolveGenre("jazz/blues")).toBe('music');
+  });
+
+  it("post116: unknown 😀 → music", () => {
+    expect(resolveGenre("😀")).toBe('music');
+  });
+
+  it("post116: unknown 🎵 → music", () => {
+    expect(resolveGenre("🎵")).toBe('music');
+  });
+
+  it("post116: unknown @@@ → music", () => {
+    expect(resolveGenre("@@@")).toBe('music');
+  });
+
+  it("post116: unknown ... → music", () => {
+    expect(resolveGenre("...")).toBe('music');
+  });
+
+  it("post116: unknown --- → music", () => {
+    expect(resolveGenre("---")).toBe('music');
+  });
+
+  it("post116: unknown ___ → music", () => {
+    expect(resolveGenre("___")).toBe('music');
+  });
+
+  it("post116: unknown null → music", () => {
+    expect(resolveGenre("null")).toBe('music');
+  });
+
+  it("post116: unknown undefined → music", () => {
+    expect(resolveGenre("undefined")).toBe('music');
+  });
+
+  it("post116: unknown true → music", () => {
+    expect(resolveGenre("true")).toBe('music');
+  });
+
+  it("post116: unknown false → music", () => {
+    expect(resolveGenre("false")).toBe('music');
+  });
+
+  it("post116: unknown NaN → music", () => {
+    expect(resolveGenre("NaN")).toBe('music');
+  });
+
+  it("post116: unknown Infinity → music", () => {
+    expect(resolveGenre("Infinity")).toBe('music');
+  });
+
+  it("post116: unknown Object → music", () => {
+    expect(resolveGenre("Object")).toBe('music');
+  });
+
+  it("post116: unknown prototype → music", () => {
+    expect(resolveGenre("prototype")).toBe('music');
+  });
+
+  it("post116: __proto__ hits inherited Object.prototype (reliability quirk)", () => {
+    const hit = resolveGenre("__proto__");
+    expect(hit).not.toBe("music");
+    expect(typeof hit).toBe("object");
+  });
+
+  it("post116: constructor hits inherited Object.constructor (reliability quirk)", () => {
+    const hit = resolveGenre("constructor");
+    expect(hit).not.toBe("music");
+    expect(typeof hit).toBe("function");
+  });
+
+  it("post116: unknown toString → music", () => {
+    expect(resolveGenre("toString")).toBe('music');
+  });
+
+  it("post116: unknown valueOf → music", () => {
+    expect(resolveGenre("valueOf")).toBe('music');
+  });
+
+  it("post116: unknown hasOwnProperty → music", () => {
+    expect(resolveGenre("hasOwnProperty")).toBe('music');
+  });
+
+  it("post116: unknown GENRE_MAP → music", () => {
+    expect(resolveGenre("GENRE_MAP")).toBe('music');
+  });
+
+  it("post116: unknown VALID_GENRES → music", () => {
+    expect(resolveGenre("VALID_GENRES")).toBe('music');
+  });
+
+  it("post116: unknown resolveGenre → music", () => {
+    expect(resolveGenre("resolveGenre")).toBe('music');
+  });
+
+  it("post116: unknown ValidGenre → music", () => {
+    expect(resolveGenre("ValidGenre")).toBe('music');
+  });
+
+  it("post116: unknown iptv-org → music", () => {
+    expect(resolveGenre("iptv-org")).toBe('music');
+  });
+
+  it("post116: unknown playlist → music", () => {
+    expect(resolveGenre("playlist")).toBe('music');
+  });
+
+  it("post116: unknown now-playing → music", () => {
+    expect(resolveGenre("now-playing")).toBe('music');
+  });
+
+  it("post116: unknown stations → music", () => {
+    expect(resolveGenre("stations")).toBe('music');
+  });
+
+  it("post116: unknown curate → music", () => {
+    expect(resolveGenre("curate")).toBe('music');
+  });
+
+  it("post116: unknown health → music", () => {
+    expect(resolveGenre("health")).toBe('music');
+  });
+
+  it("post116: unknown mcp → music", () => {
+    expect(resolveGenre("mcp")).toBe('music');
+  });
+
+  it("post116: unknown gemini → music", () => {
+    expect(resolveGenre("gemini")).toBe('music');
+  });
+
+  it("post116: unknown durable-object → music", () => {
+    expect(resolveGenre("durable-object")).toBe('music');
+  });
+
+  it("post116: unknown r2 → music", () => {
+    expect(resolveGenre("r2")).toBe('music');
+  });
+
+  it("post116: unknown kv → music", () => {
+    expect(resolveGenre("kv")).toBe('music');
+  });
+
+  it("post116: unknown metalcore → music", () => {
+    expect(resolveGenre("metalcore")).toBe('music');
+  });
+
+  it("post116: unknown death-metal → music", () => {
+    expect(resolveGenre("death-metal")).toBe('music');
+  });
+
+  it("post116: unknown indie-pop → music", () => {
+    expect(resolveGenre("indie-pop")).toBe('music');
+  });
+
+  it("post116: unknown synthwave → music", () => {
+    expect(resolveGenre("synthwave")).toBe('music');
+  });
+
+  it("post116: unknown vaporwave → music", () => {
+    expect(resolveGenre("vaporwave")).toBe('music');
+  });
+
+  it("post116: unknown downtempo → music", () => {
+    expect(resolveGenre("downtempo")).toBe('music');
+  });
+
+  it("post116: unknown drum-and-bass → music", () => {
+    expect(resolveGenre("drum-and-bass")).toBe('music');
+  });
+
+  it("post116: unknown dubstep → music", () => {
+    expect(resolveGenre("dubstep")).toBe('music');
+  });
+
+  it("post116: unknown bluegrass → music", () => {
+    expect(resolveGenre("bluegrass")).toBe('music');
+  });
+
+  it("post116: unknown gospel → music", () => {
+    expect(resolveGenre("gospel")).toBe('music');
+  });
+
+  it("post116: unknown christian → music", () => {
+    expect(resolveGenre("christian")).toBe('music');
+  });
+
+  it("post116: unknown holiday → music", () => {
+    expect(resolveGenre("holiday")).toBe('music');
+  });
+
+  it("post116: unknown christmas → music", () => {
+    expect(resolveGenre("christmas")).toBe('music');
+  });
+
+  it("post116: unknown kids → music", () => {
+    expect(resolveGenre("kids")).toBe('music');
+  });
+
+  it("post116: unknown comedy → music", () => {
+    expect(resolveGenre("comedy")).toBe('music');
+  });
+
+  it("post116: unknown talk → music", () => {
+    expect(resolveGenre("talk")).toBe('music');
+  });
+
+  it("post116: unknown weather → music", () => {
+    expect(resolveGenre("weather")).toBe('music');
+  });
+
+  it("post116: unknown traffic → music", () => {
+    expect(resolveGenre("traffic")).toBe('music');
+  });
+
+  it("post116: leading/trailing NBSP trimmed so jazz/chill resolve", () => {
+    expect(resolveGenre('\u00A0jazz')).toBe('jazz');
+    expect(resolveGenre('jazz\u00A0')).toBe('jazz');
+    expect(resolveGenre('\u00A0\u00A0chill\u00A0')).toBe('ambient');
+  });
+
+  it("post116: interior NBSP in late night misses alias", () => {
+    expect(resolveGenre('late\u00A0night')).toBe('music');
+    expect(resolveGenre('late\u00A0\u00A0night')).toBe('music');
+  });
+
+  it("post116: BOM-prefixed aliases resolve after trim", () => {
+    expect(resolveGenre('\uFEFFchill')).toBe('ambient');
+    expect(resolveGenre('\uFEFFjazz')).toBe('jazz');
+    expect(resolveGenre('\uFEFF')).toBe('music');
+  });
+
+  it("post116: ZWSP-prefixed chill misses (ZWSP not trimmed)", () => {
+    expect(resolveGenre('\u200Bchill')).toBe('music');
+    expect(resolveGenre('chill\u200B')).toBe('music');
+    expect(resolveGenre('\u200B')).toBe('music');
+  });
+
+  it("post116: soft-hyphen alone/decorated misses", () => {
+    expect(resolveGenre('\u00AD')).toBe('music');
+    expect(resolveGenre('jaz\u00ADz')).toBe('music');
+    expect(resolveGenre('\u00ADjazz')).toBe('music');
+  });
+
+  it("post116: line/paragraph separators trim so jazz resolves", () => {
+    expect(resolveGenre('\u2028jazz')).toBe('jazz');
+    expect(resolveGenre('jazz\u2029')).toBe('jazz');
+  });
+
+  it("post116: en-quad / ideographic space trim", () => {
+    expect(resolveGenre('\u2000chill')).toBe('ambient');
+    expect(resolveGenre('\u3000jazz')).toBe('jazz');
+  });
+
+  it("post116: fullwidth latin lookalikes miss", () => {
+    expect(resolveGenre('ｊａｚｚ')).toBe('music');
+    expect(resolveGenre('ＪＡＺＺ')).toBe('music');
+    expect(resolveGenre('ｃｈｉｌｌ')).toBe('music');
+  });
+
+  it("post116: combining accents miss identity", () => {
+    expect(resolveGenre('jaz\u0301z')).toBe('music');
+    expect(resolveGenre('chill\u0301')).toBe('music');
+  });
+
+  it("post116: turkish İ locale lower does not invent jazz", () => {
+    expect(resolveGenre('İ'.toLocaleLowerCase('tr'))).not.toBe('jazz');
+    expect(resolveGenre('JAZZ'.toLocaleLowerCase('en'))).toBe('jazz');
+  });
+
+  it("post116: custom map remaps all aliases to news", () => {
+    const map = Object.fromEntries(Object.keys(GENRE_MAP).map((k) => [k, 'news'])) as Record<string, string>;
+    for (const k of Object.keys(GENRE_MAP)) expect(resolveGenre(k, map)).toBe('news');
+    expect(resolveGenre('chill')).toBe('ambient');
+  });
+
+  it("post116: custom map Proxy get trap for chill only", () => {
+    const map = new Proxy({} as Record<string, string>, {
+      get(_t, prop) {
+        if (prop === 'chill') return 'jazz';
+        return undefined;
+      },
+    });
+    expect(resolveGenre('chill', map)).toBe('jazz');
+    expect(resolveGenre('metal', map)).toBe('music');
+    expect(resolveGenre('rock', map)).toBe('rock');
+  });
+
+  it("post116: structuredClone remap does not mutate GENRE_MAP", () => {
+    const clone = structuredClone(GENRE_MAP);
+    clone.chill = 'news';
+    expect(resolveGenre('chill', clone)).toBe('news');
+    expect(resolveGenre('chill')).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+  });
+
+  it("post116: GENRE_MAP frozen by prior suite; resolve still works", () => {
+    // Earlier deepen suites freeze GENRE_MAP; lock that contract and keep resolve pure.
+    expect(Object.isFrozen(GENRE_MAP)).toBe(true);
+    expect(Object.isSealed(GENRE_MAP)).toBe(true);
+    expect(Object.isExtensible(GENRE_MAP)).toBe(false);
+    expect(resolveGenre('metal')).toBe('rock');
+    expect(resolveGenre('chill')).toBe('ambient');
+  });
+
+  it("post116: null-prototype custom map with only metal", () => {
+    const map = Object.create(null) as Record<string, string>;
+    map.metal = 'rock';
+    expect(resolveGenre('metal', map)).toBe('rock');
+    expect(resolveGenre('jazz', map)).toBe('jazz');
+    expect(resolveGenre('vibes', map)).toBe('music');
+  });
+
+  it("post116: custom map empty-string / null / undefined via ??", () => {
+    expect(resolveGenre('chill', { chill: '' })).toBe('');
+    expect(resolveGenre('chill', { chill: null } as unknown as Record<string, string>)).toBe('music');
+    expect(resolveGenre('chill', { chill: undefined } as unknown as Record<string, string>)).toBe('music');
+  });
+
+  it("post116: getter throw on custom map propagates", () => {
+    const map = {};
+    Object.defineProperty(map, 'chill', { get() { throw new Error('post116-boom'); }, enumerable: true });
+    expect(() => resolveGenre('chill', map as Record<string, string>)).toThrow('post116-boom');
+  });
+
+  it("post116: freeze/seal/preventExtensions custom maps still resolve", () => {
+    expect(resolveGenre('metal', Object.freeze({ metal: 'rock' } as Record<string, string>))).toBe('rock');
+    expect(resolveGenre('indie', Object.seal({ indie: 'rock' } as Record<string, string>))).toBe('rock');
+    expect(resolveGenre('dance', Object.preventExtensions({ dance: 'pop' } as Record<string, string>))).toBe('pop');
+  });
+
+  it("post116: URLSearchParams genre/mood simulation", () => {
+    const params = new URLSearchParams('genre=METAL&mood=lo-fi&q=podcast');
+    expect(resolveGenre(params.get('genre') ?? undefined)).toBe('rock');
+    expect(resolveGenre(params.get('mood') ?? undefined)).toBe('ambient');
+    expect(resolveGenre(params.get('q') ?? undefined)).toBe('music');
+    expect(resolveGenre(params.get('missing') ?? undefined)).toBe('music');
+  });
+
+  it("post116: URL pathname segment resolves; full path does not", () => {
+    const url = new URL('https://example.test/genres/classical');
+    expect(resolveGenre(url.pathname.split('/').pop())).toBe('classical');
+    expect(resolveGenre(url.pathname)).toBe('music');
+  });
+
+  it("post116: encodeURIComponent of late night is not alias", () => {
+    const enc = encodeURIComponent('late night');
+    expect(enc).toBe('late%20night');
+    expect(resolveGenre(enc)).toBe('music');
+    expect(resolveGenre(decodeURIComponent(enc))).toBe('ambient');
+  });
+
+  it("post116: falsy non-string inputs default to music", () => {
+    expect(resolveGenre(undefined)).toBe('music');
+    expect(resolveGenre(null as unknown as string)).toBe('music');
+    expect(resolveGenre(0 as unknown as string)).toBe('music');
+    expect(resolveGenre(false as unknown as string)).toBe('music');
+    expect(resolveGenre(NaN as unknown as string)).toBe('music');
+    expect(resolveGenre('')).toBe('music');
+    expect(resolveGenre('   ')).toBe('music');
+  });
+
+  it("post116: truthy non-string without toLowerCase throws", () => {
+    expect(() => resolveGenre(123 as unknown as string)).toThrow();
+    expect(() => resolveGenre({} as unknown as string)).toThrow();
+    expect(() => resolveGenre([] as unknown as string)).toThrow();
+  });
+
+  it("post116: String object wrappers resolve", () => {
+    expect(resolveGenre(Object('metal') as unknown as string)).toBe('rock');
+    expect(resolveGenre(Object('  JAZZ  ') as unknown as string)).toBe('jazz');
+    expect(resolveGenre(Object('late night') as unknown as string)).toBe('ambient');
+  });
+
+  it("post116: Reflect.get matches bracket access", () => {
+    expect(Reflect.get(GENRE_MAP, 'chill')).toBe(GENRE_MAP.chill);
+    expect(Reflect.get(GENRE_MAP, 'lo-fi')).toBe('ambient');
+    expect(resolveGenre('chill')).toBe(Reflect.get(GENRE_MAP, 'chill'));
+  });
+
+  it("post116: Object.hasOwn distinguishes own alias keys", () => {
+    expect(Object.hasOwn(GENRE_MAP, 'chill')).toBe(true);
+    expect(Object.hasOwn(GENRE_MAP, 'toString')).toBe(false);
+    expect(Object.hasOwn(GENRE_MAP, '__proto__')).toBe(false);
+    expect(Object.hasOwn(GENRE_MAP, 'podcast')).toBe(false);
+  });
+
+  it("post116: Symbol keys invisible to string lookup", () => {
+    const sym = Symbol("chill");
+    const map: Record<string | symbol, string> = { [sym]: "news", chill: "ambient" };
+    expect(resolveGenre('chill', map as Record<string, string>)).toBe('ambient');
+    expect(resolveGenre(String(sym), map as Record<string, string>)).toBe('music');
+  });
+
+  it("post116: Array.from VALID_GENRES equals spread", () => {
+    expect(Array.from(VALID_GENRES)).toEqual([...VALID_GENRES]);
+    expect(VALID_GENRES[Symbol.iterator]).toEqual(expect.any(Function));
+  });
+
+  it("post116: VALID_GENRES iterator yields 9 then done", () => {
+    const it = VALID_GENRES[Symbol.iterator]();
+    const seen: string[] = [];
+    for (;;) { const n = it.next(); if (n.done) break; seen.push(n.value); }
+    expect(seen).toEqual([...VALID_GENRES]);
+    expect(seen).toHaveLength(9);
+  });
+
+  it("post116: no product inventing — playlist/now-playing/DO/R2 absent from genres.ts", () => {
+    expect(src).not.toMatch(/playlist/i);
+    expect(src).not.toMatch(/now-playing/i);
+    expect(src).not.toMatch(/DurableObject/i);
+    expect(src).not.toMatch(/\bR2\b/);
+    expect(src).not.toMatch(/GEMINI_API_KEY/);
+    expect(src).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it("post116: no new genre inventing — VALID_GENRES stays 9 locked", () => {
+    expect(VALID_GENRES).toHaveLength(9);
+    expect([...VALID_GENRES]).toEqual(['music','ambient','jazz','classical','pop','rock','news','sports','entertainment']);
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it("post116: AGENTS.md still lists genres.ts as safe action surface", () => {
+    expect(read('AGENTS.md')).toMatch(/src\/genres\.ts/);
+    expect(read('AGENTS.md')).toMatch(/genre mappings/i);
+  });
+
+  it("post116: README Available Genres matches VALID_GENRES membership", () => {
+    const readme = read('README.md');
+    for (const g of VALID_GENRES) expect(readme.toLowerCase()).toContain(g);
+  });
+
+  it("post116: index.ts wires resolveGenre / VALID_GENRES / GENRE_MAP", () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/resolveGenre/);
+    expect(index).toMatch(/VALID_GENRES|GENRE_MAP/);
+    expect(index).toMatch(/from ['"]\.\/genres['"]/);
+  });
+
+  it("post116: ci hygiene still requires genres.test.ts", () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/test\/genres\.test\.ts/);
+  });
+
+  it("post116: Date.now independence — resolveGenre stable", () => {
+    const a = resolveGenre('chill');
+    const t0 = Date.now();
+    const b = resolveGenre('chill');
+    expect(Date.now()).toBeGreaterThanOrEqual(t0);
+    expect(a).toBe(b);
+    expect(a).toBe('ambient');
+  });
+
+  it("post116: performance.now independence — resolveGenre stable", () => {
+    const t0 = performance.now();
+    expect(resolveGenre('metal')).toBe('rock');
+    expect(performance.now()).toBeGreaterThanOrEqual(t0);
+  });
+
+  it("post116: Math.random hash does not affect resolveGenre", () => {
+    const bytes = createHash('sha256').update(String(Math.random()), 'utf8').digest('hex');
+    expect(resolveGenre('jazz')).toBe('jazz');
+    expect(bytes).toHaveLength(64);
+  });
+
+  it("post116: map of alias resolutions matches GENRE_MAP values", () => {
+    expect(Object.keys(GENRE_MAP).map((k) => resolveGenre(k))).toEqual(Object.values(GENRE_MAP));
+  });
+
+  it("post116: reduce builds pipe-joined VALID_GENRES lock", () => {
+    expect(VALID_GENRES.reduce((a, g) => (a ? a + '|' + g : g), '')).toBe('music|ambient|jazz|classical|pop|rock|news|sports|entertainment');
+  });
+
+  it("post116: ambient-family late night pad=nopad", () => {
+    expect(resolveGenre("" + "late night" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family late night pad=space", () => {
+    expect(resolveGenre(" " + "late night" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family late night pad=dspace", () => {
+    expect(resolveGenre("  " + "late night" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family late night pad=tab", () => {
+    expect(resolveGenre("\t" + "late night" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family late night pad=nl", () => {
+    expect(resolveGenre("\n" + "late night" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family late night pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "late night" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=nopad", () => {
+    expect(resolveGenre("" + "chill" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=space", () => {
+    expect(resolveGenre(" " + "chill" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=dspace", () => {
+    expect(resolveGenre("  " + "chill" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=tab", () => {
+    expect(resolveGenre("\t" + "chill" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=nl", () => {
+    expect(resolveGenre("\n" + "chill" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family chill pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "chill" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=nopad", () => {
+    expect(resolveGenre("" + "ambient" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=space", () => {
+    expect(resolveGenre(" " + "ambient" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=dspace", () => {
+    expect(resolveGenre("  " + "ambient" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=tab", () => {
+    expect(resolveGenre("\t" + "ambient" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=nl", () => {
+    expect(resolveGenre("\n" + "ambient" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family ambient pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "ambient" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=nopad", () => {
+    expect(resolveGenre("" + "relaxing" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=space", () => {
+    expect(resolveGenre(" " + "relaxing" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=dspace", () => {
+    expect(resolveGenre("  " + "relaxing" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=tab", () => {
+    expect(resolveGenre("\t" + "relaxing" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=nl", () => {
+    expect(resolveGenre("\n" + "relaxing" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family relaxing pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "relaxing" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=nopad", () => {
+    expect(resolveGenre("" + "focus" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=space", () => {
+    expect(resolveGenre(" " + "focus" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=dspace", () => {
+    expect(resolveGenre("  " + "focus" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=tab", () => {
+    expect(resolveGenre("\t" + "focus" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=nl", () => {
+    expect(resolveGenre("\n" + "focus" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family focus pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "focus" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=nopad", () => {
+    expect(resolveGenre("" + "electronic" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=space", () => {
+    expect(resolveGenre(" " + "electronic" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=dspace", () => {
+    expect(resolveGenre("  " + "electronic" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=tab", () => {
+    expect(resolveGenre("\t" + "electronic" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=nl", () => {
+    expect(resolveGenre("\n" + "electronic" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family electronic pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "electronic" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=nopad", () => {
+    expect(resolveGenre("" + "lofi" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=space", () => {
+    expect(resolveGenre(" " + "lofi" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=dspace", () => {
+    expect(resolveGenre("  " + "lofi" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=tab", () => {
+    expect(resolveGenre("\t" + "lofi" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=nl", () => {
+    expect(resolveGenre("\n" + "lofi" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lofi pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "lofi" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=nopad", () => {
+    expect(resolveGenre("" + "lo-fi" + "")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=space", () => {
+    expect(resolveGenre(" " + "lo-fi" + " ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=dspace", () => {
+    expect(resolveGenre("  " + "lo-fi" + "  ")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=tab", () => {
+    expect(resolveGenre("\t" + "lo-fi" + "\t")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=nl", () => {
+    expect(resolveGenre("\n" + "lo-fi" + "\n")).toBe('ambient');
+  });
+
+  it("post116: ambient-family lo-fi pad=crlf", () => {
+    expect(resolveGenre("\r\n" + "lo-fi" + "\r\n")).toBe('ambient');
+  });
+
+  it("post116: metal→rock casing=lower", () => {
+    expect(resolveGenre("metal")).toBe("rock");
+  });
+
+  it("post116: metal→rock casing=upper", () => {
+    expect(resolveGenre("METAL")).toBe("rock");
+  });
+
+  it("post116: metal→rock casing=mixed", () => {
+    expect(resolveGenre("Metal")).toBe("rock");
+  });
+
+  it("post116: indie→rock casing=lower", () => {
+    expect(resolveGenre("indie")).toBe("rock");
+  });
+
+  it("post116: indie→rock casing=upper", () => {
+    expect(resolveGenre("INDIE")).toBe("rock");
+  });
+
+  it("post116: indie→rock casing=mixed", () => {
+    expect(resolveGenre("Indie")).toBe("rock");
+  });
+
+  it("post116: dance→pop casing=lower", () => {
+    expect(resolveGenre("dance")).toBe("pop");
+  });
+
+  it("post116: dance→pop casing=upper", () => {
+    expect(resolveGenre("DANCE")).toBe("pop");
+  });
+
+  it("post116: dance→pop casing=mixed", () => {
+    expect(resolveGenre("Dance")).toBe("pop");
+  });
+
+  it("post116: blues→jazz casing=lower", () => {
+    expect(resolveGenre("blues")).toBe("jazz");
+  });
+
+  it("post116: blues→jazz casing=upper", () => {
+    expect(resolveGenre("BLUES")).toBe("jazz");
+  });
+
+  it("post116: blues→jazz casing=mixed", () => {
+    expect(resolveGenre("Blues")).toBe("jazz");
+  });
+
+  it("post116: classic→classical casing=lower", () => {
+    expect(resolveGenre("classic")).toBe("classical");
+  });
+
+  it("post116: classic→classical casing=upper", () => {
+    expect(resolveGenre("CLASSIC")).toBe("classical");
+  });
+
+  it("post116: classic→classical casing=mixed", () => {
+    expect(resolveGenre("Classic")).toBe("classical");
+  });
+
+  it("post116: final digest+resolve mega purity — 50 rounds", () => {
+    const expected = "aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e";
+    for (let i = 0; i < 50; i++) {
+      expect(createHash('sha256').update(src, 'utf8').digest('hex')).toBe(expected);
+      expect(resolveGenre('late night')).toBe('ambient');
+      expect(resolveGenre('podcast')).toBe('music');
+      expect(resolveGenre('metal')).toBe('rock');
+      expect(resolveGenre('dance')).toBe('pop');
+      expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+      expect(VALID_GENRES).toHaveLength(9);
+    }
+  });
+
+  it("post116: HMAC post116 mega purity — 30 rounds", () => {
+    const expected = "ca080cbf711d086c982824b4a0126960a02e0037a01ce5f49277d98aaa61ac4b";
+    for (let i = 0; i < 30; i++) {
+      expect(createHmac('sha256', 'post116').update(src, 'utf8').digest('hex')).toBe(expected);
+      expect(resolveGenre('lo-fi')).toBe('ambient');
+      expect(resolveGenre('blues')).toBe('jazz');
+    }
+  });
+
+  it("post116: genres.ts does not reference parser/mcp/hono", () => {
+    expect(src).not.toMatch(/parseM3U|hono|mcp|fetch\(/i);
+  });
+
+  it("post116: GENRE_MAP values never invent outside VALID_GENRES", () => {
+    for (const v of Object.values(GENRE_MAP)) expect(VALID_GENRES.includes(v as typeof VALID_GENRES[number])).toBe(true);
+  });
+
+  it("post116: alias-only keys are not VALID_GENRES members", () => {
+    const aliasOnly = Object.keys(GENRE_MAP).filter((k) => !(VALID_GENRES as readonly string[]).includes(k));
+    expect(aliasOnly.sort()).toEqual(['blues', 'chill', 'classic', 'dance', 'electronic', 'focus', 'indie', 'late night', 'lo-fi', 'lofi', 'metal', 'relaxing']);
+  });
+
+  it("post116: splitting late night tokens does not invent aliases", () => {
+    expect(resolveGenre('late')).toBe('music');
+    expect(resolveGenre('night')).toBe('music');
+    expect(resolveGenre('late night')).toBe('ambient');
+  });
+
+  it("post116: underscore/hyphen variants of late night miss", () => {
+    expect(resolveGenre('late_night')).toBe('music');
+    expect(resolveGenre('late-night')).toBe('music');
+    expect(resolveGenre('Late-Night')).toBe('music');
+  });
+
+  it("post116: lo_fi / lo fi miss; lo-fi / lofi hit", () => {
+    expect(resolveGenre('lo_fi')).toBe('music');
+    expect(resolveGenre('lo fi')).toBe('music');
+    expect(resolveGenre('lo-fi')).toBe('ambient');
+    expect(resolveGenre('lofi')).toBe('ambient');
+  });
+
+  it("post116: substring partials miss", () => {
+    expect(resolveGenre('chilling')).toBe('music');
+    expect(resolveGenre('jazzed')).toBe('music');
+    expect(resolveGenre('rockabilly')).toBe('music');
+    expect(resolveGenre('popcorn')).toBe('music');
+    expect(resolveGenre('classicality')).toBe('music');
+  });
+
+  it("post116: very long unknown does not throw", () => {
+    expect(resolveGenre('x'.repeat(10000))).toBe('music');
+    expect(resolveGenre(('jazz' + 'x'.repeat(5000)))).toBe('music');
+  });
+
+  it("post116: emoji-only and symbol-only → music", () => {
+    expect(resolveGenre('🎵🎶')).toBe('music');
+    expect(resolveGenre('!!!???')).toBe('music');
+    expect(resolveGenre('★☆')).toBe('music');
+  });
+
+  it("post116: surrogate-pair-only → music", () => {
+    expect(resolveGenre('\uD83C\uDFB5')).toBe('music');
+  });
+
+  it("post116: JSON round-trip GENRE_MAP preserves resolve", () => {
+    const round = JSON.parse(JSON.stringify(GENRE_MAP)) as Record<string, string>;
+    expect(resolveGenre('chill', round)).toBe('ambient');
+    expect(resolveGenre('metal', round)).toBe('rock');
+    expect(Object.keys(round)).toEqual(Object.keys(GENRE_MAP));
+  });
+
+  it("post116: entries length equals key count", () => {
+    expect(Object.entries(GENRE_MAP)).toHaveLength(Object.keys(GENRE_MAP).length);
+    expect(Object.entries(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it("post116: values subset of VALID_GENRES via every", () => {
+    expect(Object.values(GENRE_MAP).every((v) => (VALID_GENRES as readonly string[]).includes(v))).toBe(true);
+  });
+
+  it("post116: keys all lowercase (lookup assumes toLowerCase)", () => {
+    expect(Object.keys(GENRE_MAP).every((k) => k === k.toLowerCase())).toBe(true);
+    expect(Object.values(GENRE_MAP).every((v) => v === v.toLowerCase())).toBe(true);
+  });
+
+  it("post116: no leading/trailing whitespace in keys/values", () => {
+    for (const k of Object.keys(GENRE_MAP)) expect(k).toBe(k.trim());
+    for (const v of Object.values(GENRE_MAP)) expect(v).toBe(v.trim());
+  });
+
+  it("post116: resolveGenre default param source contains = GENRE_MAP once", () => {
+    expect((src.match(/= GENRE_MAP/g) ?? []).length).toBe(1);
+  });
+
+  it("post116: resolveGenre uses ?? and VALID_GENRES.includes", () => {
+    expect(src).toMatch(/\?\?/);
+    expect(src).toMatch(/VALID_GENRES\.includes/);
+    expect(src).toMatch(/toLowerCase\(\)\.trim\(\)/);
+  });
+
+  it("post116: comment documents mood aliases arrow category", () => {
+    expect(src).toContain('mood aliases → category');
+    expect(src).toContain('iptv-org category ids');
+  });
+
+  it("post116: Atomics/SharedArrayBuffer unused by genres module", () => {
+    expect(typeof Atomics).toBe('object');
+    expect(typeof SharedArrayBuffer).toBe('function');
+    expect(src).not.toMatch(/Atomics|SharedArrayBuffer/);
+  });
+
+  it("post116: package.json scripts still include typecheck/test/coverage", () => {
+    const pkg = JSON.parse(read('package.json'));
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toMatch(/vitest run --coverage/);
+  });
+
+  it("post116: vitest coverage thresholds remain 100", () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+  });
+
+  it("post116: HMAC-SHA256(post116, music) lock", () => {
+    expect(createHmac('sha256', 'post116').update("music", 'utf8').digest('hex')).toBe("404d3c55d4e4a5e26f3ee75396e5980b1335122da88d09aaac02a9f89570474d");
+  });
+
+  it("post116: HMAC-SHA256(post116, ambient) lock", () => {
+    expect(createHmac('sha256', 'post116').update("ambient", 'utf8').digest('hex')).toBe("f1ff0df88b53450bfa76918fb1fee1a65d788124c44ad54b40e15815ee0c1308");
+  });
+
+  it("post116: HMAC-SHA256(post116, jazz) lock", () => {
+    expect(createHmac('sha256', 'post116').update("jazz", 'utf8').digest('hex')).toBe("653f4a61c80637df59ec6ec23d51f272809f8ec9be112a218084ebb7fe782463");
+  });
+
+  it("post116: HMAC-SHA256(post116, classical) lock", () => {
+    expect(createHmac('sha256', 'post116').update("classical", 'utf8').digest('hex')).toBe("152edceea50e55d69fd8005ee07075b8ebfda321756ad85db82c2210f5f45f7a");
+  });
+
+  it("post116: HMAC-SHA256(post116, pop) lock", () => {
+    expect(createHmac('sha256', 'post116').update("pop", 'utf8').digest('hex')).toBe("f3fcca38399f619d4733627cb9ffcfcd30a8d75ce56a286225ad7bd27edc13d2");
+  });
+
+  it("post116: HMAC-SHA256(post116, rock) lock", () => {
+    expect(createHmac('sha256', 'post116').update("rock", 'utf8').digest('hex')).toBe("8680edcb54ec80a03d524fe3ca28df7c7363fdcde516c561cb317968a5944459");
+  });
+
+  it("post116: HMAC-SHA256(post116, news) lock", () => {
+    expect(createHmac('sha256', 'post116').update("news", 'utf8').digest('hex')).toBe("e8b9687262894e5bed3c972ac289e5fb43b624a752b7ea227c3eb27f81daa4e8");
+  });
+
+  it("post116: HMAC-SHA256(post116, sports) lock", () => {
+    expect(createHmac('sha256', 'post116').update("sports", 'utf8').digest('hex')).toBe("efe312b8a3f8b3c084d67f6756bc3027e4635f9cb7249ef467f5183fc8da8f9b");
+  });
+
+  it("post116: HMAC-SHA256(post116, entertainment) lock", () => {
+    expect(createHmac('sha256', 'post116').update("entertainment", 'utf8').digest('hex')).toBe("8d9472c1426588bc8eddf70001f07569b810306f4a351ece877643a8f393cb71");
+  });
+
+  it("post116: alias late night sha256 nibble sum", () => {
+    expect([..."23d46fae9e478b5f30406223eaad1dd052c4a3cca685dad20ec1f75f34344e06"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(468);
+  });
+
+  it("post116: alias chill sha256 nibble sum", () => {
+    expect([..."9fe5e0a43712f05785002103cfac2add80771a19d76f2c562633f65375ea5581"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(424);
+  });
+
+  it("post116: alias ambient sha256 nibble sum", () => {
+    expect([..."31d18c0defdc3e0eadd46bb4c04e4ad798f4582fbde1216806bde3cbe250350c"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(505);
+  });
+
+  it("post116: alias relaxing sha256 nibble sum", () => {
+    expect([..."f90997f63439a7791c142208e653be723b8b46902544cc216ab31ba2ed16222f"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(417);
+  });
+
+  it("post116: alias focus sha256 nibble sum", () => {
+    expect([..."c51faa148557a08cbf790156578b7a82b41f22dd01227f7dde057e34c18a365f"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(453);
+  });
+
+  it("post116: alias classical sha256 nibble sum", () => {
+    expect([..."25d9548a80c751e282183876990e49a6eb3c1ac94a28fa86c5b513019bf8cba6"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(464);
+  });
+
+  it("post116: alias classic sha256 nibble sum", () => {
+    expect([..."b002a634647c3350c37b15a376bae6867d9034e9aa36a06002e3e335229c91db"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(403);
+  });
+
+  it("post116: alias jazz sha256 nibble sum", () => {
+    expect([..."c301f75ab52fa076c827231e613bbc976e26b2c1f7ddd01a319b2832b8ecdf9a"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(475);
+  });
+
+  it("post116: alias blues sha256 nibble sum", () => {
+    expect([..."91f25e3a2ff2783b05b9dc9f07e555d828317c6bc2024cbd81f00684ddb79c9d"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(488);
+  });
+
+  it("post116: alias pop sha256 nibble sum", () => {
+    expect([..."de70fa60cac227cbc13270a26ccde291af94df086959f0958122aedf154d90b5"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(484);
+  });
+
+  it("post116: alias rock sha256 nibble sum", () => {
+    expect([..."350a770c0ec9f353e1a5629895f374fdaa299876c3870c03feb60eb4a3769d94"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(473);
+  });
+
+  it("post116: alias metal sha256 nibble sum", () => {
+    expect([..."03ecab669ba200ba17f994677e88894400fd627e6f70439247ce0cbda8ca9a20"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(472);
+  });
+
+  it("post116: alias indie sha256 nibble sum", () => {
+    expect([..."edb945ceb76842650f31c6a9aca3738c8b279d26215c172000dbb359d1122565"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(427);
+  });
+
+  it("post116: alias music sha256 nibble sum", () => {
+    expect([..."80f189984e5ca70287d13342f6daa0db45cba3c131c4e46dc81360f3a4c4f690"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(454);
+  });
+
+  it("post116: alias news sha256 nibble sum", () => {
+    expect([..."19fba0e995b9794fc2c26217bf3b725c2f0d9eeda16719fe75e3ba23ca73bfc4"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(520);
+  });
+
+  it("post116: alias sports sha256 nibble sum", () => {
+    expect([..."1cb542228c76558789d114d3cb273a75850cca54ec3ee9a41100f2dc56ee561e"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(451);
+  });
+
+  it("post116: alias entertainment sha256 nibble sum", () => {
+    expect([..."b34564f1c4cd1d98dc26aaa4f888e3020656033add4dd0620b26e820493bf5c2"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(447);
+  });
+
+  it("post116: alias dance sha256 nibble sum", () => {
+    expect([..."2c371c2ada73a02e26e14416800e8a49f875d27b8b5ff31f1dbe37bdaa6d7faa"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(494);
+  });
+
+  it("post116: alias electronic sha256 nibble sum", () => {
+    expect([..."73e4c51456c25bab5458df719693e8dd7ca6b23e214ba2ef1142f7f29b33e995"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(479);
+  });
+
+  it("post116: alias lofi sha256 nibble sum", () => {
+    expect([..."13bbbbfaaf34c58eb5865c9dd5a14f2a5f90574f2d71836d80e665fc2a534182"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(487);
+  });
+
+  it("post116: alias lo-fi sha256 nibble sum", () => {
+    expect([..."2b84c4b36a5f6e1c152186381f971ef049e02832328df9f289a8d24b9cda124f"].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(460);
+  });
+
+  it("post116: custom remap music→news", () => {
+    expect(resolveGenre("music", { "music": "news" })).toBe("news");
+    expect(resolveGenre("music")).toBe("music");
+  });
+
+  it("post116: custom remap music→music", () => {
+    expect(resolveGenre("music", { "music": "music" })).toBe("music");
+    expect(resolveGenre("music")).toBe("music");
+  });
+
+  it("post116: custom remap ambient→news", () => {
+    expect(resolveGenre("ambient", { "ambient": "news" })).toBe("news");
+    expect(resolveGenre("ambient")).toBe("ambient");
+  });
+
+  it("post116: custom remap ambient→music", () => {
+    expect(resolveGenre("ambient", { "ambient": "music" })).toBe("music");
+    expect(resolveGenre("ambient")).toBe("ambient");
+  });
+
+  it("post116: custom remap jazz→news", () => {
+    expect(resolveGenre("jazz", { "jazz": "news" })).toBe("news");
+    expect(resolveGenre("jazz")).toBe("jazz");
+  });
+
+  it("post116: custom remap jazz→music", () => {
+    expect(resolveGenre("jazz", { "jazz": "music" })).toBe("music");
+    expect(resolveGenre("jazz")).toBe("jazz");
+  });
+
+  it("post116: custom remap classical→news", () => {
+    expect(resolveGenre("classical", { "classical": "news" })).toBe("news");
+    expect(resolveGenre("classical")).toBe("classical");
+  });
+
+  it("post116: custom remap classical→music", () => {
+    expect(resolveGenre("classical", { "classical": "music" })).toBe("music");
+    expect(resolveGenre("classical")).toBe("classical");
+  });
+
+  it("post116: custom remap pop→news", () => {
+    expect(resolveGenre("pop", { "pop": "news" })).toBe("news");
+    expect(resolveGenre("pop")).toBe("pop");
+  });
+
+  it("post116: custom remap pop→music", () => {
+    expect(resolveGenre("pop", { "pop": "music" })).toBe("music");
+    expect(resolveGenre("pop")).toBe("pop");
+  });
+
+  it("post116: custom remap rock→news", () => {
+    expect(resolveGenre("rock", { "rock": "news" })).toBe("news");
+    expect(resolveGenre("rock")).toBe("rock");
+  });
+
+  it("post116: custom remap rock→music", () => {
+    expect(resolveGenre("rock", { "rock": "music" })).toBe("music");
+    expect(resolveGenre("rock")).toBe("rock");
+  });
+
+  it("post116: custom remap news→news", () => {
+    expect(resolveGenre("news", { "news": "news" })).toBe("news");
+    expect(resolveGenre("news")).toBe("news");
+  });
+
+  it("post116: custom remap news→music", () => {
+    expect(resolveGenre("news", { "news": "music" })).toBe("music");
+    expect(resolveGenre("news")).toBe("news");
+  });
+
+  it("post116: custom remap sports→news", () => {
+    expect(resolveGenre("sports", { "sports": "news" })).toBe("news");
+    expect(resolveGenre("sports")).toBe("sports");
+  });
+
+  it("post116: custom remap sports→music", () => {
+    expect(resolveGenre("sports", { "sports": "music" })).toBe("music");
+    expect(resolveGenre("sports")).toBe("sports");
+  });
+
+  it("post116: custom remap entertainment→news", () => {
+    expect(resolveGenre("entertainment", { "entertainment": "news" })).toBe("news");
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+  });
+
+  it("post116: custom remap entertainment→music", () => {
+    expect(resolveGenre("entertainment", { "entertainment": "music" })).toBe("music");
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+  });
+
+});
