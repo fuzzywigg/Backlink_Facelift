@@ -38946,7 +38946,7 @@ describe('post286 helpers HEAVY deepen (after tip #286 leftover / tip-relaunch-2
   };
 
 
-  it('post286: inventory — helpers leftover after tip #286 (beyond #274 helpers+source; tip #286 genres+mcp merged; tip #273 wrangler+ci merged; tip #279 media-parser merged; helpers-source-only / not parser-routes / not genres invent)', () => {
+  it('post286: inventory — helpers leftover after tip #286 (beyond #286 helpers+source tip cc95a0e; tip #287 genres+mcp merged; tip #289 wrangler+ci merged; tip #288 media-parser merged; tip-relaunch-2026-09-14 / helpers-source-only / not parser-routes / not genres invent)', () => {
     expect(read('test/helpers.test.ts')).toContain("describe('post286 helpers HEAVY deepen");
     expect(read('test/helpers.test.ts')).toContain(['describe(', "'post286 helpers HEAVY deepen"].join(''));
     expect(read('test/helpers.test.ts')).toContain(['describe(', "'post268 helpers HEAVY deepen"].join(''));
