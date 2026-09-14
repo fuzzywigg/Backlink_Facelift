@@ -45580,70 +45580,70 @@ https://example.com/ok-weaviate-288.m3u8
 
   it('post288: leftover protocol-relative // URL resets like non-http (wave6)', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="ProtoRel278",ProtoRel278
+#EXTINF:-1 tvg-name="ProtoRel288",ProtoRel288
 //cdn.example.com/stream288.m3u8
-#EXTINF:-1 tvg-name="OkProto278",OkProto278
+#EXTINF:-1 tvg-name="OkProto288",OkProto288
 https://example.com/ok-proto288.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['OkProto278']);
+    expect(stations.map((s) => s.name)).toEqual(['OkProto288']);
   });
 
   it('post288: leftover HTTPS:// uppercase scheme is not a stream URL (resets current)', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="BadHttps278",BadHttps278
+#EXTINF:-1 tvg-name="BadHttps288",BadHttps288
 HTTPS://example.com/bad288.m3u8
-#EXTINF:-1 tvg-name="OkHttps278",OkHttps278
+#EXTINF:-1 tvg-name="OkHttps288",OkHttps288
 https://example.com/ok-https288.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['OkHttps278']);
+    expect(stations.map((s) => s.name)).toEqual(['OkHttps288']);
   });
 
   it('post288: leftover single-quoted tvg-name is ignored; comma display name binds', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name='IgnoredSingle278',DisplayBind278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name='IgnoredSingle288',DisplayBind288
 https://example.com/single-name288.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('DisplayBind278');
+    expect(stations[0].name).toBe('DisplayBind288');
   });
 
   it('post288: leftover unquoted tvg-name=Foo does not match regex so comma name binds', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name=Unquoted278,CommaName288
+    const stations = parseM3U(`#EXTINF:-1 tvg-name=Unquoted288,CommaName288
 https://example.com/unquoted-name288.m3u8
 `);
     expect(stations[0].name).toBe('CommaName288');
   });
 
   it('post288: leftover attribute order country before language still extracts both', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-country="JP" tvg-language="ja" tvg-name="OrderCtry278",OrderCtry278
+    const stations = parseM3U(`#EXTINF:-1 tvg-country="JP" tvg-language="ja" tvg-name="OrderCtry288",OrderCtry288
 https://example.com/order-ctry288.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'OrderCtry278', language: 'ja', country: 'JP' });
+    expect(stations[0]).toMatchObject({ name: 'OrderCtry288', language: 'ja', country: 'JP' });
   });
 
   it('post288: leftover duplicate tvg-logo attrs keep first match only', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="DupLogo278" tvg-logo="https://cdn.example/first288.png" tvg-logo="https://cdn.example/second288.png",DupLogo278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="DupLogo288" tvg-logo="https://cdn.example/first288.png" tvg-logo="https://cdn.example/second288.png",DupLogo288
 https://example.com/dup-logo288.m3u8
 `);
     expect(stations[0].logo).toBe('https://cdn.example/first288.png');
   });
 
   it('post288: leftover empty tvg-language="" stores empty string', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyLang278" tvg-language="",EmptyLang278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyLang288" tvg-language="",EmptyLang288
 https://example.com/empty-lang288.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'EmptyLang278', language: '' });
+    expect(stations[0]).toMatchObject({ name: 'EmptyLang288', language: '' });
   });
 
   it('post288: leftover empty tvg-country="" stores empty string', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyCtry278" tvg-country="",EmptyCtry278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyCtry288" tvg-country="",EmptyCtry288
 https://example.com/empty-ctry288.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'EmptyCtry278', country: '' });
+    expect(stations[0]).toMatchObject({ name: 'EmptyCtry288', country: '' });
   });
 
   it('post288: leftover https URL with encoded hash %23 in path still binds', () => {
     const url = 'https://example.com/a%23frag288.m3u8';
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="PctH278",PctH278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="PctH288",PctH288
 ${url}
 `);
     expect(stations).toHaveLength(1);
@@ -45652,93 +45652,93 @@ ${url}
 
   it('post288: leftover https URL with IPv6 literal still binds (prefix-only scheme check)', () => {
     const url = 'https://[2001:db8::268]/port-ipv6-288.m3u8';
-    const stations = parseM3U('#EXTINF:-1 tvg-name="Ipv6Https278",Ipv6Https278\n' + url + '\n');
+    const stations = parseM3U('#EXTINF:-1 tvg-name="Ipv6Https288",Ipv6Https288\n' + url + '\n');
     expect(stations).toHaveLength(1);
-    expect(stations[0]).toMatchObject({ name: 'Ipv6Https278', url });
+    expect(stations[0]).toMatchObject({ name: 'Ipv6Https288', url });
   });
 
   it('post288: leftover #EXTINF with duration -1.5 still extracts attrs', () => {
-    const stations = parseM3U(`#EXTINF:-1.5 tvg-name="DurFloat278",DurFloat278
+    const stations = parseM3U(`#EXTINF:-1.5 tvg-name="DurFloat288",DurFloat288
 https://example.com/dur-float288.m3u8
 `);
-    expect(stations[0].name).toBe('DurFloat278');
+    expect(stations[0].name).toBe('DurFloat288');
   });
 
   it('post288: leftover #EXT-X-MEDIA comment preserves pending EXTINF before URL', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="HlsMedia278",HlsMedia278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="HlsMedia288",HlsMedia288
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac"
 https://example.com/hls-media288.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('HlsMedia278');
+    expect(stations[0].name).toBe('HlsMedia288');
   });
 
   it('post288: leftover LF-only blank between EXTINF and URL still binds after trim', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="LfMid278",LfMid278\n\nhttps://example.com/lf-mid288.m3u8\n`);
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="LfMid288",LfMid288\n\nhttps://example.com/lf-mid288.m3u8\n`);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('LfMid278');
+    expect(stations[0].name).toBe('LfMid288');
   });
 
   it('post288: leftover #EXT-X-TARGETDURATION mid-playlist does not clear pending EXTINF', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="MidTarget278",MidTarget278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="MidTarget288",MidTarget288
 #EXT-X-TARGETDURATION:10
 https://example.com/mid-target288.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('MidTarget278');
+    expect(stations[0].name).toBe('MidTarget288');
   });
 
   it('post288: leftover four consecutive EXTINF replaces pending so only last name binds', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="FirstExt278",FirstExt278
-#EXTINF:-1 tvg-name="SecondExt278",SecondExt278
-#EXTINF:-1 tvg-name="ThirdExt278",ThirdExt278
-#EXTINF:-1 tvg-name="FourthExt278",FourthExt278
+#EXTINF:-1 tvg-name="FirstExt288",FirstExt288
+#EXTINF:-1 tvg-name="SecondExt288",SecondExt288
+#EXTINF:-1 tvg-name="ThirdExt288",ThirdExt288
+#EXTINF:-1 tvg-name="FourthExt288",FourthExt288
 https://example.com/consec-ext288.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['FourthExt278']);
+    expect(stations.map((s) => s.name)).toEqual(['FourthExt288']);
   });
 
   it('post288: leftover fragment difference keeps both URLs as distinct seen keys', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="F1_278",F1_278
+#EXTINF:-1 tvg-name="F1_288",F1_288
 https://example.com/f288.m3u8#a
-#EXTINF:-1 tvg-name="F2_278",F2_278
+#EXTINF:-1 tvg-name="F2_288",F2_288
 https://example.com/f288.m3u8#b
 `);
-    expect(stations.map((s) => s.name)).toEqual(['F1_278', 'F2_278']);
+    expect(stations.map((s) => s.name)).toEqual(['F1_288', 'F2_288']);
   });
 
   it('post288: leftover query difference keeps both URLs as distinct seen keys', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="Q1_278",Q1_278
+#EXTINF:-1 tvg-name="Q1_288",Q1_288
 https://example.com/q288.m3u8?a=1
-#EXTINF:-1 tvg-name="Q2_278",Q2_278
+#EXTINF:-1 tvg-name="Q2_288",Q2_288
 https://example.com/q288.m3u8?a=2
 `);
-    expect(stations.map((s) => s.name)).toEqual(['Q1_278', 'Q2_278']);
+    expect(stations.map((s) => s.name)).toEqual(['Q1_288', 'Q2_288']);
   });
 
   it('post288: leftover tvg-logo with webp data URI still stores exact value', () => {
     const logo = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="WebpLogo278" tvg-logo="${logo}",WebpLogo278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="WebpLogo288" tvg-logo="${logo}",WebpLogo288
 https://example.com/webp-logo288.m3u8
 `);
     expect(stations[0].logo).toBe(logo);
   });
 
   it('post288: leftover group-title with emoji + ZWJ binds exactly', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmojiGrp278" group-title="📻✨ radio",EmojiGrp278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="EmojiGrp288" group-title="📻✨ radio",EmojiGrp288
 https://example.com/emoji-grp288.m3u8
 `);
     expect(stations[0].group).toBe('📻✨ radio');
   });
 
   it('post288: leftover buildSimpleM3U round-trip still yields one https station', () => {
-    const m3u = buildSimpleM3U([{ name: 'Build278', url: 'https://example.com/build288.m3u8', group: 'Jazz' }]);
+    const m3u = buildSimpleM3U([{ name: 'Build288', url: 'https://example.com/build288.m3u8', group: 'Jazz' }]);
     const stations = parseM3U(m3u);
     expect(stations).toHaveLength(1);
-    expect(stations[0]).toMatchObject({ name: 'Build278', url: 'https://example.com/build288.m3u8', group: 'Jazz' });
+    expect(stations[0]).toMatchObject({ name: 'Build288', url: 'https://example.com/build288.m3u8', group: 'Jazz' });
   });
 
   it('post288: leftover SAMPLE_M3U still yields six http stream lines via helper', () => {
@@ -45747,33 +45747,33 @@ https://example.com/emoji-grp288.m3u8
 
   it('post288: leftover tab-indented EXTINF/URL still binds after trim', () => {
     const stations = parseM3U(`#EXTM3U
-\t#EXTINF:-1 tvg-name="Tab278",Tab278
+\t#EXTINF:-1 tvg-name="Tab288",Tab288
 \thttps://example.com/tab288.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('Tab278');
+    expect(stations[0].name).toBe('Tab288');
   });
 
   it('post288: leftover BOM-prefixed #EXTM3U header still parses following station', () => {
-    const stations = parseM3U('\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name="Bom278",Bom278\nhttps://example.com/bom288.m3u8\n');
+    const stations = parseM3U('\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name="Bom288",Bom288\nhttps://example.com/bom288.m3u8\n');
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('Bom278');
+    expect(stations[0].name).toBe('Bom288');
   });
 
   it('post288: leftover five distinct https stations preserve insertion order', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="A288",A278
+#EXTINF:-1 tvg-name="A288",A288
 https://example.com/a288.m3u8
-#EXTINF:-1 tvg-name="B288",B278
+#EXTINF:-1 tvg-name="B288",B288
 https://example.com/b288.m3u8
-#EXTINF:-1 tvg-name="C278",C278
+#EXTINF:-1 tvg-name="C288",C288
 https://example.com/c288.m3u8
-#EXTINF:-1 tvg-name="D278",D278
+#EXTINF:-1 tvg-name="D288",D288
 https://example.com/d288.m3u8
-#EXTINF:-1 tvg-name="E278",E278
+#EXTINF:-1 tvg-name="E288",E288
 https://example.com/e288.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['A278', 'B278', 'C278', 'D278', 'E278']);
+    expect(stations.map((s) => s.name)).toEqual(['A288', 'B288', 'C288', 'D288', 'E288']);
   });
 
   it('post288: leftover #EXTINF without comma and without tvg-name drops following URL', () => {
@@ -45784,10 +45784,10 @@ https://example.com/no-name288.m3u8
   });
 
   it('post288: leftover tvg-name with embedded quote-free comma inside quotes prefers tvg-name', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="Alpha, Beta278",DisplayLose278
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Alpha, Beta288",DisplayLose288
 https://example.com/comma-in-name288.m3u8
 `);
-    expect(stations[0].name).toBe('Alpha, Beta278');
+    expect(stations[0].name).toBe('Alpha, Beta288');
   });
 
 
