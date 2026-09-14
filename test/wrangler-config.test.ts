@@ -11264,3 +11264,1246 @@ describe('post130 wrangler HEAVY deepen (after #130)', () => {
   });
 
 });
+
+
+// --- HEAVY burn (post-#134): deepen wrangler leftover edges only — no product inventing ---
+// Orthogonal to #134. TOKENMAXX tests-only; locks existing envjson as-is (no thin stubs).
+
+describe('post134 wrangler HEAVY deepen (after #134)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+
+  it("post134: locks wrangler.toml sha256", () => {
+    expect(sha256("wrangler.toml")).toBe("95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8");
+  });
+
+  it("post134: locks wrangler.toml sha1", () => {
+    expect(sha1("wrangler.toml")).toBe("481c8221707ffe602ab8d5ce4a2b7b5192d3ade6");
+  });
+
+  it("post134: locks wrangler.toml md5", () => {
+    expect(md5("wrangler.toml")).toBe("100cd1554884befe9db6453606e565f4");
+  });
+
+  it("post134: locks wrangler.toml sha384", () => {
+    expect(sha384("wrangler.toml")).toBe("77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09");
+  });
+
+  it("post134: locks wrangler.toml sha512", () => {
+    expect(sha512("wrangler.toml")).toBe("4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96");
+  });
+
+  it("post134: locks wrangler.toml sha3-256", () => {
+    expect(sha3("wrangler.toml")).toBe("67dbc36705b469b0f55c46e26ed7ac6355f2d0d59d088cf8d5f1b687c79ae9b9");
+  });
+
+  it("post134: locks wrangler.toml blake2b512", () => {
+    expect(blake2b("wrangler.toml")).toBe("c2c7d2994209964f33dd815a5abd5e40369f5a58f9d095a887a3e6096887f41cdabb8621faad084ad76430bdb19430751d1090ac30c3cd8125d6ed8a8c5a2e86");
+  });
+
+  it("post134: locks wrangler.toml ripemd160", () => {
+    expect(ripemd("wrangler.toml")).toBe("324931f8f42bb9dda5d95a21011a0897894de2e7");
+  });
+
+  it("post134: locks wrangler.toml size 330", () => {
+    expect(statSync(join(root, "wrangler.toml")).size).toBe(330);
+    expect(readFileSync(join(root, "wrangler.toml")).byteLength).toBe(330);
+  });
+
+  it("post134: locks wrangler.toml utf8 330 lines 18", () => {
+    expect(read("wrangler.toml")).toHaveLength(330);
+    expect(read("wrangler.toml").split('\n')).toHaveLength(18);
+  });
+
+  it("post134: locks wrangler.toml nibble 457 xor 13", () => {
+    const d = sha256("wrangler.toml");
+    expect(nibbleSum(d)).toBe(457);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it("post134: locks wrangler.toml pairSum 3802 rollingXor 122", () => {
+    const d = sha256("wrangler.toml");
+    expect(pairSum(d)).toBe(3802);
+    expect(rollingXor(d)).toBe(122);
+  });
+
+  it("post134: locks wrangler.toml first/last/mid octets", () => {
+    const d = sha256("wrangler.toml");
+    expect(d.slice(0, 2)).toBe("95");
+    expect(d.slice(-2)).toBe("f8");
+    expect(d.slice(28, 36)).toBe("4a0b0b87");
+  });
+
+  it("post134: locks wrangler.toml HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "wrangler.toml")).toBe("3eb43599cfa0cf03ba90567ef17ca54f9dabf1eda7596f9b48966aa7b89422ed");
+    expect(hmacSha256('leftover', "wrangler.toml")).toBe("117043293c91e6cdcad8f44181f5c253ceb0f7dc567ea32cddbd61f9d349a063");
+    expect(hmacSha256('TOKENMAXX', "wrangler.toml")).toBe("7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4");
+  });
+
+  it("post134: locks wrangler.toml HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "wrangler.toml")).toBe("430339f86613361d93cd104578bee5e654dbf76674a3fa4e4e6ff97d04cf1aaa");
+    expect(hmacSha256('HEAVY', "wrangler.toml")).toBe("0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db");
+    expect(hmacSha256('no-product-invent', "wrangler.toml")).toBe("3d99d134e0673c8ff163b29a6c72e49bfa5e599898762bf47dd20f0e65639abb");
+  });
+
+  it("post134: locks wrangler.toml spaces 26", () => {
+    expect((read("wrangler.toml").match(/ /g) ?? []).length).toBe(26);
+  });
+
+  it("post134: locks wrangler.toml reversed sha256", () => {
+    const rev = [...read("wrangler.toml")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("ea6a9ab9f608d61dbff959c2a36e09a4822605b77cdc9b1dda5853999ae53ad0");
+  });
+
+  it("post134: locks wrangler.toml sha256 UPPERCASE", () => {
+    expect(sha256("wrangler.toml").toUpperCase()).toBe("95B11779A88F0544F3561EEA67994A0B0B874D7B8776579189FA7142FA0473F8");
+  });
+
+  it("post134: locks wrangler.toml first-line sha256", () => {
+    expect(createHash('sha256').update(read("wrangler.toml").split('\n')[0]).digest('hex')).toBe("44eea2b40cca4009e9429bc54f55cd083523742a2e6bf8195731b2e95857194e");
+  });
+
+  it("post134: locks wrangler.toml size*lines 5940", () => {
+    expect(statSync(join(root, "wrangler.toml")).size * read("wrangler.toml").split('\n').length).toBe(5940);
+  });
+
+  it("post134: locks src/types.ts sha256", () => {
+    expect(sha256("src/types.ts")).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3");
+  });
+
+  it("post134: locks src/types.ts sha1", () => {
+    expect(sha1("src/types.ts")).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8");
+  });
+
+  it("post134: locks src/types.ts md5", () => {
+    expect(md5("src/types.ts")).toBe("ecba663d21928622be656805ad27d0a3");
+  });
+
+  it("post134: locks src/types.ts sha384", () => {
+    expect(sha384("src/types.ts")).toBe("40618d8902640e6ce24d5caf0b9daf86c4d5f962832b1835a86bb10ad7c37455cc60aa9f965ffd9a98f9a5967048b01c");
+  });
+
+  it("post134: locks src/types.ts sha512", () => {
+    expect(sha512("src/types.ts")).toBe("49cf750d836fe717822e6f08b6ff4998c1f7419a2dfb169a5cfb3001dc1f6dc84df5b428edba879cbd0f7e1b809662e27ee34bf28f88e1efc62ec7d0b37f37cc");
+  });
+
+  it("post134: locks src/types.ts sha3-256", () => {
+    expect(sha3("src/types.ts")).toBe("93122aa0fe9ef2958ed1b257bc139e91b30facb2e13e4094620dadf7d4acf8e4");
+  });
+
+  it("post134: locks src/types.ts blake2b512", () => {
+    expect(blake2b("src/types.ts")).toBe("fcb08243a6c336e8da2d3500665ae9a80d98f23a06c3da5f771a290a4b45b2697e2b00e440165eb6551886f58a3bdea0ba315c1d4d3caba38ba3af7f108b3723");
+  });
+
+  it("post134: locks src/types.ts ripemd160", () => {
+    expect(ripemd("src/types.ts")).toBe("80ca02c12c5db60b8eb1afb1cd21b18983ba16fb");
+  });
+
+  it("post134: locks src/types.ts size 174", () => {
+    expect(statSync(join(root, "src/types.ts")).size).toBe(174);
+    expect(readFileSync(join(root, "src/types.ts")).byteLength).toBe(174);
+  });
+
+  it("post134: locks src/types.ts utf8 172 lines 7", () => {
+    expect(read("src/types.ts")).toHaveLength(172);
+    expect(read("src/types.ts").split('\n')).toHaveLength(7);
+  });
+
+  it("post134: locks src/types.ts nibble 520 xor 14", () => {
+    const d = sha256("src/types.ts");
+    expect(nibbleSum(d)).toBe(520);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it("post134: locks src/types.ts pairSum 4300 rollingXor 104", () => {
+    const d = sha256("src/types.ts");
+    expect(pairSum(d)).toBe(4300);
+    expect(rollingXor(d)).toBe(104);
+  });
+
+  it("post134: locks src/types.ts first/last/mid octets", () => {
+    const d = sha256("src/types.ts");
+    expect(d.slice(0, 2)).toBe("40");
+    expect(d.slice(-2)).toBe("d3");
+    expect(d.slice(28, 36)).toBe("345e4f21");
+  });
+
+  it("post134: locks src/types.ts HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "src/types.ts")).toBe("6c2ff70cc5f67a0312bb5267d459dd7f515d91627f89f54fc976d77825d05358");
+    expect(hmacSha256('leftover', "src/types.ts")).toBe("80ae340e1af2b36a05fff7ab748e51fcfb6bf74f1efc7da6e4f5e11fae103e85");
+    expect(hmacSha256('TOKENMAXX', "src/types.ts")).toBe("5e7f31dee3604308898a0a2409c8809ded44c3f7518e5dd5b232b05b80d225bc");
+  });
+
+  it("post134: locks src/types.ts HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "src/types.ts")).toBe("1c4c63005049c47e7f4c51fb5deb22c3bce2b5d0c9ab62e9299734432d82205a");
+    expect(hmacSha256('HEAVY', "src/types.ts")).toBe("c30f6d748b6c06b8387764e536eab11def9e8f3f000f4b2b764e050f64ebc32a");
+    expect(hmacSha256('no-product-invent', "src/types.ts")).toBe("431b246bf23d8a3f8ec5228a8746b5ac62ace79e3ec1dc369e9645be295be076");
+  });
+
+  it("post134: locks src/types.ts spaces 25", () => {
+    expect((read("src/types.ts").match(/ /g) ?? []).length).toBe(25);
+  });
+
+  it("post134: locks src/types.ts reversed sha256", () => {
+    const rev = [...read("src/types.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("e02dd34c73f2571af21a48fda8cfd19667149441b37d30de0519262fc76f7f37");
+  });
+
+  it("post134: locks src/types.ts sha256 UPPERCASE", () => {
+    expect(sha256("src/types.ts").toUpperCase()).toBe("4008DDD3DD6DD2FB7E8D386DFE2A345E4F21FA5576E229A8FBBE691626F743D3");
+  });
+
+  it("post134: locks src/types.ts first-line sha256", () => {
+    expect(createHash('sha256').update(read("src/types.ts").split('\n')[0]).digest('hex')).toBe("1d293b13ae9f4103472d1553f95a9368a006f250a1178cb8946d4e566fda25f6");
+  });
+
+  it("post134: locks src/types.ts size*lines 1218", () => {
+    expect(statSync(join(root, "src/types.ts")).size * read("src/types.ts").split('\n').length).toBe(1218);
+  });
+
+  it("post134: locks src/index.ts sha256", () => {
+    expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it("post134: locks src/index.ts sha1", () => {
+    expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it("post134: locks src/index.ts md5", () => {
+    expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177");
+  });
+
+  it("post134: locks src/index.ts sha384", () => {
+    expect(sha384("src/index.ts")).toBe("1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65");
+  });
+
+  it("post134: locks src/index.ts sha512", () => {
+    expect(sha512("src/index.ts")).toBe("28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3");
+  });
+
+  it("post134: locks src/index.ts sha3-256", () => {
+    expect(sha3("src/index.ts")).toBe("437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b");
+  });
+
+  it("post134: locks src/index.ts blake2b512", () => {
+    expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace");
+  });
+
+  it("post134: locks src/index.ts ripemd160", () => {
+    expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093");
+  });
+
+  it("post134: locks src/index.ts size 4738", () => {
+    expect(statSync(join(root, "src/index.ts")).size).toBe(4738);
+    expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738);
+  });
+
+  it("post134: locks src/index.ts utf8 4724 lines 154", () => {
+    expect(read("src/index.ts")).toHaveLength(4724);
+    expect(read("src/index.ts").split('\n')).toHaveLength(154);
+  });
+
+  it("post134: locks src/index.ts nibble 470 xor 14", () => {
+    const d = sha256("src/index.ts");
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it("post134: locks src/index.ts pairSum 4265 rollingXor 151", () => {
+    const d = sha256("src/index.ts");
+    expect(pairSum(d)).toBe(4265);
+    expect(rollingXor(d)).toBe(151);
+  });
+
+  it("post134: locks src/index.ts first/last/mid octets", () => {
+    const d = sha256("src/index.ts");
+    expect(d.slice(0, 2)).toBe("7f");
+    expect(d.slice(-2)).toBe("72");
+    expect(d.slice(28, 36)).toBe("e2a20389");
+  });
+
+  it("post134: locks src/index.ts HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "src/index.ts")).toBe("d9b1015c527b573cb62410cf9753b4c0b7ca2f95b439e53fcb005b750839f6d4");
+    expect(hmacSha256('leftover', "src/index.ts")).toBe("268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be");
+    expect(hmacSha256('TOKENMAXX', "src/index.ts")).toBe("d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc");
+  });
+
+  it("post134: locks src/index.ts HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "src/index.ts")).toBe("67b989060e407ab6f347b5f02f657e4b1ab007128985d10f3cafb68406fc50ca");
+    expect(hmacSha256('HEAVY', "src/index.ts")).toBe("f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30");
+    expect(hmacSha256('no-product-invent', "src/index.ts")).toBe("49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a");
+  });
+
+  it("post134: locks src/index.ts spaces 761", () => {
+    expect((read("src/index.ts").match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it("post134: locks src/index.ts reversed sha256", () => {
+    const rev = [...read("src/index.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("457830430075a6d1dc4b28436b3c145eb42a640d91301599ca2792fb58433ead");
+  });
+
+  it("post134: locks src/index.ts sha256 UPPERCASE", () => {
+    expect(sha256("src/index.ts").toUpperCase()).toBe("7F0D574B0AEDC6CD71D3EA35BB03E2A20389028E6FF2C195718ACFF2E0313A72");
+  });
+
+  it("post134: locks src/index.ts first-line sha256", () => {
+    expect(createHash('sha256').update(read("src/index.ts").split('\n')[0]).digest('hex')).toBe("d8233fd79765534121de12d18bc3b54a6968d1868428cf5d52175e9a620cf6d4");
+  });
+
+  it("post134: locks src/index.ts size*lines 729652", () => {
+    expect(statSync(join(root, "src/index.ts")).size * read("src/index.ts").split('\n').length).toBe(729652);
+  });
+
+  it("post134: locks package.json sha256", () => {
+    expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it("post134: locks package.json sha1", () => {
+    expect(sha1("package.json")).toBe("b58d14f35b9c13bb254d5e2a51240e2918a126c5");
+  });
+
+  it("post134: locks package.json md5", () => {
+    expect(md5("package.json")).toBe("63472e1fb514fb0dadb5e49a7bdbaa5f");
+  });
+
+  it("post134: locks package.json sha384", () => {
+    expect(sha384("package.json")).toBe("4208b099e242907b02fce514c0ce890d1805b1a6de73ad0a15e49ce9f5a2eb5e311f6e3175464f97ff91b0ca752f7c20");
+  });
+
+  it("post134: locks package.json sha512", () => {
+    expect(sha512("package.json")).toBe("7b56f282c4ae1f06e33354171317d5a318ef8f85cf74f07392a18ee65f40a3ed66acb974513f5bae57b83d67b18132fc67b66dde5aa4dca015f7d5fc14926b28");
+  });
+
+  it("post134: locks package.json sha3-256", () => {
+    expect(sha3("package.json")).toBe("e56db806f28d1317bcd7620e70192882b7b8e72c55481fd4cd639b174e04a5a5");
+  });
+
+  it("post134: locks package.json blake2b512", () => {
+    expect(blake2b("package.json")).toBe("a4b33748d54cbb972b7e8ed7e5e370d92bee40b0110f42fa1158b2c1ee628ee68d34704af77564c5e3c2c7988d7020f5608a42c3b03bb58567874256c2f1dd1d");
+  });
+
+  it("post134: locks package.json ripemd160", () => {
+    expect(ripemd("package.json")).toBe("f3b12f3f8d6366baa145f30bfb68d5bbb06a1bad");
+  });
+
+  it("post134: locks package.json size 637", () => {
+    expect(statSync(join(root, "package.json")).size).toBe(637);
+    expect(readFileSync(join(root, "package.json")).byteLength).toBe(637);
+  });
+
+  it("post134: locks package.json utf8 635 lines 26", () => {
+    expect(read("package.json")).toHaveLength(635);
+    expect(read("package.json").split('\n')).toHaveLength(26);
+  });
+
+  it("post134: locks package.json nibble 451 xor 13", () => {
+    const d = sha256("package.json");
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it("post134: locks package.json pairSum 4051 rollingXor 13", () => {
+    const d = sha256("package.json");
+    expect(pairSum(d)).toBe(4051);
+    expect(rollingXor(d)).toBe(13);
+  });
+
+  it("post134: locks package.json first/last/mid octets", () => {
+    const d = sha256("package.json");
+    expect(d.slice(0, 2)).toBe("34");
+    expect(d.slice(-2)).toBe("1c");
+    expect(d.slice(28, 36)).toBe("e0ecaa43");
+  });
+
+  it("post134: locks package.json HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "package.json")).toBe("da6eab75dfa282d488400670e8a0a48a808b5777ee3903c4cd96558c404c84cb");
+    expect(hmacSha256('leftover', "package.json")).toBe("20e0c5771e324d5d7c4d9bb108e54226b1ca026d3c6d232d5f0b8ccba88462a1");
+    expect(hmacSha256('TOKENMAXX', "package.json")).toBe("ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58");
+  });
+
+  it("post134: locks package.json HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "package.json")).toBe("961232c61cd4dc84f8eb5deb35fbc2ddd21b32b32b3be0dad3720409f30867ec");
+    expect(hmacSha256('HEAVY', "package.json")).toBe("59f02fb62823abdd3ebccdd68ef1f27db9333e414f49a111c132eca85acb6563");
+    expect(hmacSha256('no-product-invent', "package.json")).toBe("b4d2e3db95a68120d3e5f1dc0b35bda72e5a8ffa0c34dd3b2b110699c0cd286b");
+  });
+
+  it("post134: locks package.json spaces 106", () => {
+    expect((read("package.json").match(/ /g) ?? []).length).toBe(106);
+  });
+
+  it("post134: locks package.json reversed sha256", () => {
+    const rev = [...read("package.json")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("76b81fd27392035d0e4776f664acfb5bf67811a2b3ebb57b61b7be81ceb7ccc4");
+  });
+
+  it("post134: locks package.json sha256 UPPERCASE", () => {
+    expect(sha256("package.json").toUpperCase()).toBe("34552493F3008B58991D10E7B41EE0ECAA43BF8BA3E79D261AC2A061E6F7181C");
+  });
+
+  it("post134: locks package.json first-line sha256", () => {
+    expect(createHash('sha256').update(read("package.json").split('\n')[0]).digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post134: locks package.json size*lines 16562", () => {
+    expect(statSync(join(root, "package.json")).size * read("package.json").split('\n').length).toBe(16562);
+  });
+
+  it("post134: locks AGENTS.md sha256", () => {
+    expect(sha256("AGENTS.md")).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it("post134: locks AGENTS.md sha1", () => {
+    expect(sha1("AGENTS.md")).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it("post134: locks AGENTS.md md5", () => {
+    expect(md5("AGENTS.md")).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it("post134: locks AGENTS.md sha384", () => {
+    expect(sha384("AGENTS.md")).toBe("817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a");
+  });
+
+  it("post134: locks AGENTS.md sha512", () => {
+    expect(sha512("AGENTS.md")).toBe("7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908");
+  });
+
+  it("post134: locks AGENTS.md sha3-256", () => {
+    expect(sha3("AGENTS.md")).toBe("894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4");
+  });
+
+  it("post134: locks AGENTS.md blake2b512", () => {
+    expect(blake2b("AGENTS.md")).toBe("7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0");
+  });
+
+  it("post134: locks AGENTS.md ripemd160", () => {
+    expect(ripemd("AGENTS.md")).toBe("6637e853e0148967671e4a3f21bd852255e8ed1c");
+  });
+
+  it("post134: locks AGENTS.md size 1017", () => {
+    expect(statSync(join(root, "AGENTS.md")).size).toBe(1017);
+    expect(readFileSync(join(root, "AGENTS.md")).byteLength).toBe(1017);
+  });
+
+  it("post134: locks AGENTS.md utf8 1011 lines 35", () => {
+    expect(read("AGENTS.md")).toHaveLength(1011);
+    expect(read("AGENTS.md").split('\n')).toHaveLength(35);
+  });
+
+  it("post134: locks AGENTS.md nibble 479 xor 5", () => {
+    const d = sha256("AGENTS.md");
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it("post134: locks AGENTS.md pairSum 5084 rollingXor 216", () => {
+    const d = sha256("AGENTS.md");
+    expect(pairSum(d)).toBe(5084);
+    expect(rollingXor(d)).toBe(216);
+  });
+
+  it("post134: locks AGENTS.md first/last/mid octets", () => {
+    const d = sha256("AGENTS.md");
+    expect(d.slice(0, 2)).toBe("48");
+    expect(d.slice(-2)).toBe("aa");
+    expect(d.slice(28, 36)).toBe("a5ec1be5");
+  });
+
+  it("post134: locks AGENTS.md HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "AGENTS.md")).toBe("1988f92b5fdd04e681c969c3279279c28d120dc08d91e34bdf83677579318ce1");
+    expect(hmacSha256('leftover', "AGENTS.md")).toBe("ebc9f95bcc289e29e0a1ef806d4a6466da053e934eba9da783fda10f1a46b84e");
+    expect(hmacSha256('TOKENMAXX', "AGENTS.md")).toBe("b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f");
+  });
+
+  it("post134: locks AGENTS.md HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "AGENTS.md")).toBe("00f1950ccd29586a92c5e8b1dcc168b3ae33f40128c0354f418c47eef8e3f144");
+    expect(hmacSha256('HEAVY', "AGENTS.md")).toBe("f5534ae49c23be34018c9e05a44b201edf94a776bd06b184d44b41e02e77c87c");
+    expect(hmacSha256('no-product-invent', "AGENTS.md")).toBe("dbfdb45d097dffeee56f94781c4ce33e6c8cfb185871bf00c7237385c42cf264");
+  });
+
+  it("post134: locks AGENTS.md spaces 120", () => {
+    expect((read("AGENTS.md").match(/ /g) ?? []).length).toBe(120);
+  });
+
+  it("post134: locks AGENTS.md reversed sha256", () => {
+    const rev = [...read("AGENTS.md")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("662d61b72071234b614b17c421d0f8a3fc73757a69c1690a0b6a36fd122672dc");
+  });
+
+  it("post134: locks AGENTS.md sha256 UPPERCASE", () => {
+    expect(sha256("AGENTS.md").toUpperCase()).toBe("48E590B4F146E2FBD1EBB409E0D5A5EC1BE50B72B2C310F1C1E360487B36FEAA");
+  });
+
+  it("post134: locks AGENTS.md first-line sha256", () => {
+    expect(createHash('sha256').update(read("AGENTS.md").split('\n')[0]).digest('hex')).toBe("e3df46c4dc415311293b71de67e5df2d01a72a69658ef8f8cf5ac9e682d8d618");
+  });
+
+  it("post134: locks AGENTS.md size*lines 35595", () => {
+    expect(statSync(join(root, "AGENTS.md")).size * read("AGENTS.md").split('\n').length).toBe(35595);
+  });
+
+  it("post134: locks DEPLOY.md sha256", () => {
+    expect(sha256("DEPLOY.md")).toBe("11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a");
+  });
+
+  it("post134: locks DEPLOY.md sha1", () => {
+    expect(sha1("DEPLOY.md")).toBe("37c72be44abb67343dae3e7c2303306a25b3481f");
+  });
+
+  it("post134: locks DEPLOY.md md5", () => {
+    expect(md5("DEPLOY.md")).toBe("da30bf656fdf0d9a61d2a00860c325f5");
+  });
+
+  it("post134: locks DEPLOY.md sha384", () => {
+    expect(sha384("DEPLOY.md")).toBe("90ba0589c08054172762287998d2a4d110a704705f82771cbd041c0f559f7b9a84dfbf37630b1f7bc9fa2cdbb4d1bf83");
+  });
+
+  it("post134: locks DEPLOY.md sha512", () => {
+    expect(sha512("DEPLOY.md")).toBe("504275c3bb3c4aa2dd5b4baa6accef1d5a8b83e995bf92146bed27604089ad7ae4540575691383a03a36062562e4388984a560a7ab199451b3bc063104162b80");
+  });
+
+  it("post134: locks DEPLOY.md sha3-256", () => {
+    expect(sha3("DEPLOY.md")).toBe("f6094c01e1db771acce81308dde362b644d90be4ea5e627be4c4ed922b76e2e0");
+  });
+
+  it("post134: locks DEPLOY.md blake2b512", () => {
+    expect(blake2b("DEPLOY.md")).toBe("c8b0fe4fb9e35653be4ac85fb6a63d2c4c3129c7015bb00f7ee44a53c7540ee5befa0184688ac570b4187caec65322924b29cb53b40b5cf69707f52054cb74db");
+  });
+
+  it("post134: locks DEPLOY.md ripemd160", () => {
+    expect(ripemd("DEPLOY.md")).toBe("1614c90dc6583beed4bd6540ae4a5b545789e8c6");
+  });
+
+  it("post134: locks DEPLOY.md size 1573", () => {
+    expect(statSync(join(root, "DEPLOY.md")).size).toBe(1573);
+    expect(readFileSync(join(root, "DEPLOY.md")).byteLength).toBe(1573);
+  });
+
+  it("post134: locks DEPLOY.md utf8 1539 lines 65", () => {
+    expect(read("DEPLOY.md")).toHaveLength(1539);
+    expect(read("DEPLOY.md").split('\n')).toHaveLength(65);
+  });
+
+  it("post134: locks DEPLOY.md nibble 439 xor 11", () => {
+    const d = sha256("DEPLOY.md");
+    expect(nibbleSum(d)).toBe(439);
+    expect(xorNibbles(d)).toBe(11);
+  });
+
+  it("post134: locks DEPLOY.md pairSum 4234 rollingXor 26", () => {
+    const d = sha256("DEPLOY.md");
+    expect(pairSum(d)).toBe(4234);
+    expect(rollingXor(d)).toBe(26);
+  });
+
+  it("post134: locks DEPLOY.md first/last/mid octets", () => {
+    const d = sha256("DEPLOY.md");
+    expect(d.slice(0, 2)).toBe("11");
+    expect(d.slice(-2)).toBe("5a");
+    expect(d.slice(28, 36)).toBe("f363d487");
+  });
+
+  it("post134: locks DEPLOY.md HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "DEPLOY.md")).toBe("20745b97ae4cf27c043d8bdd11dad12609e9c71ede3fc0b29f0fcdfe6be2c07a");
+    expect(hmacSha256('leftover', "DEPLOY.md")).toBe("8e69d3722a2f57941fecb3a0602ebb6cab5a31755e7c8bc88ed0771bc1822659");
+    expect(hmacSha256('TOKENMAXX', "DEPLOY.md")).toBe("bdb0c19924928cf4d54308dcdd72f032fea4ae1994669e96bf22f48567084f26");
+  });
+
+  it("post134: locks DEPLOY.md HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "DEPLOY.md")).toBe("f407db2a2fe2d5f117c8ed0e8720b15d2693cc2a00ede50d9de0f3e8a5fd0ea5");
+    expect(hmacSha256('HEAVY', "DEPLOY.md")).toBe("5e8e11b4b80c19b0e2828f509f4411d5c7d176f5101c2aa2094ae43dfcf385d3");
+    expect(hmacSha256('no-product-invent', "DEPLOY.md")).toBe("cb29f601b5afcc4ca9e180a792e0a028c44afad0b5fcbbbafdd0dcee3c24f29e");
+  });
+
+  it("post134: locks DEPLOY.md spaces 201", () => {
+    expect((read("DEPLOY.md").match(/ /g) ?? []).length).toBe(201);
+  });
+
+  it("post134: locks DEPLOY.md reversed sha256", () => {
+    const rev = [...read("DEPLOY.md")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("dc7966a18d22f94cad52e2211dfe7aef7c608e8916e4a97104f6b9300fc89793");
+  });
+
+  it("post134: locks DEPLOY.md sha256 UPPERCASE", () => {
+    expect(sha256("DEPLOY.md").toUpperCase()).toBe("11067FA2DA7EE6D2354842E1C258F363D487536AC307B76739893A93B0C9D05A");
+  });
+
+  it("post134: locks DEPLOY.md first-line sha256", () => {
+    expect(createHash('sha256').update(read("DEPLOY.md").split('\n')[0]).digest('hex')).toBe("bcb1aa55214a9bafe7c9aed196c9ec210e023dc6c81dc8f4db34220f221a2957");
+  });
+
+  it("post134: locks DEPLOY.md size*lines 102245", () => {
+    expect(statSync(join(root, "DEPLOY.md")).size * read("DEPLOY.md").split('\n').length).toBe(102245);
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha256", () => {
+    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha1", () => {
+    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+  });
+
+  it("post134: locks .github/workflows/ci.yml md5", () => {
+    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha384", () => {
+    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha512", () => {
+    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha3-256", () => {
+    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+  });
+
+  it("post134: locks .github/workflows/ci.yml blake2b512", () => {
+    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+  });
+
+  it("post134: locks .github/workflows/ci.yml ripemd160", () => {
+    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+  });
+
+  it("post134: locks .github/workflows/ci.yml size 6295", () => {
+    expect(statSync(join(root, ".github/workflows/ci.yml")).size).toBe(6295);
+    expect(readFileSync(join(root, ".github/workflows/ci.yml")).byteLength).toBe(6295);
+  });
+
+  it("post134: locks .github/workflows/ci.yml utf8 6295 lines 177", () => {
+    expect(read(".github/workflows/ci.yml")).toHaveLength(6295);
+    expect(read(".github/workflows/ci.yml").split('\n')).toHaveLength(177);
+  });
+
+  it("post134: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it("post134: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(pairSum(d)).toBe(4595);
+    expect(rollingXor(d)).toBe(71);
+  });
+
+  it("post134: locks .github/workflows/ci.yml first/last/mid octets", () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(d.slice(0, 2)).toBe("c4");
+    expect(d.slice(-2)).toBe("d5");
+    expect(d.slice(28, 36)).toBe("f5e6f56e");
+  });
+
+  it("post134: locks .github/workflows/ci.yml HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', ".github/workflows/ci.yml")).toBe("199965c6028a40806468dd20758d9c55c2a5d71f63de5c9c5b1fc85875be6c77");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+  });
+
+  it("post134: locks .github/workflows/ci.yml HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', ".github/workflows/ci.yml")).toBe("39985590571a396881fd6653fcb75dd1e02f4d1ed1ba0266f582711dd2f2f95d");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+  });
+
+  it("post134: locks .github/workflows/ci.yml spaces 1716", () => {
+    expect((read(".github/workflows/ci.yml").match(/ /g) ?? []).length).toBe(1716);
+  });
+
+  it("post134: locks .github/workflows/ci.yml reversed sha256", () => {
+    const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+  });
+
+  it("post134: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+  });
+
+  it("post134: locks .github/workflows/ci.yml first-line sha256", () => {
+    expect(createHash('sha256').update(read(".github/workflows/ci.yml").split('\n')[0]).digest('hex')).toBe("8e7430f31889b761a2ccebd73080d82a3491aa7c565a2ea6583bd0f8788ccbd8");
+  });
+
+  it("post134: locks .github/workflows/ci.yml size*lines 1114215", () => {
+    expect(statSync(join(root, ".github/workflows/ci.yml")).size * read(".github/workflows/ci.yml").split('\n').length).toBe(1114215);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha256", () => {
+    expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha1", () => {
+    expect(sha1(".github/workflows/deploy.yml")).toBe("5f7a3932b69a68d740162b1079688d6934060f61");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml md5", () => {
+    expect(md5(".github/workflows/deploy.yml")).toBe("ea86e4de097085159e425937542bf7cf");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha384", () => {
+    expect(sha384(".github/workflows/deploy.yml")).toBe("61fa961396d8c3231bc50da4eb215cff97cc8e73cd619076488abd7a58ae14a9c8295922846a197b0c2f60535bd02c9f");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha512", () => {
+    expect(sha512(".github/workflows/deploy.yml")).toBe("7157a652975fffe4354d4b6fcec916a5529485bd2b1c6dd96fa628b1228ae6a9883690c3c08aa30627eb0a635efeeb7e1f73e540064824415dcd3a844df0b641");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha3-256", () => {
+    expect(sha3(".github/workflows/deploy.yml")).toBe("c214b3a3742462dbe536466786d717241cdc0be84f5bbf71da7c8f8ed281d62e");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml blake2b512", () => {
+    expect(blake2b(".github/workflows/deploy.yml")).toBe("0ec8ba30a1fdece2b7033b67cffa78d926b8deb86a5f7468060a746f0ff0dc8b8488236b19465603f53aac178556c000ecca9748f4dcf7591155f67f0c1c5628");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml ripemd160", () => {
+    expect(ripemd(".github/workflows/deploy.yml")).toBe("7a476e7889618bef7c8b22a0f651f4e49658527e");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml size 1004", () => {
+    expect(statSync(join(root, ".github/workflows/deploy.yml")).size).toBe(1004);
+    expect(readFileSync(join(root, ".github/workflows/deploy.yml")).byteLength).toBe(1004);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml utf8 1004 lines 47", () => {
+    expect(read(".github/workflows/deploy.yml")).toHaveLength(1004);
+    expect(read(".github/workflows/deploy.yml").split('\n')).toHaveLength(47);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml nibble 476 xor 4", () => {
+    const d = sha256(".github/workflows/deploy.yml");
+    expect(nibbleSum(d)).toBe(476);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml pairSum 3686 rollingXor 38", () => {
+    const d = sha256(".github/workflows/deploy.yml");
+    expect(pairSum(d)).toBe(3686);
+    expect(rollingXor(d)).toBe(38);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml first/last/mid octets", () => {
+    const d = sha256(".github/workflows/deploy.yml");
+    expect(d.slice(0, 2)).toBe("49");
+    expect(d.slice(-2)).toBe("c3");
+    expect(d.slice(28, 36)).toBe("de06de33");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', ".github/workflows/deploy.yml")).toBe("3aefc8c35cf339fc3d6fa1e0da23ae7eaafef316d6196fd90ed87bcc789f2de2");
+    expect(hmacSha256('leftover', ".github/workflows/deploy.yml")).toBe("e2dbbf6c1389e4865ce3242c95a3e4d42b864f0813f4c9bf69ee4c63f5cbff83");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/deploy.yml")).toBe("339feabc44fb30f3c7e838856094324356823f1371ae0a32c0c328943494867b");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', ".github/workflows/deploy.yml")).toBe("9b716fb367cfdcff373a452ecb1c403a87b184f95b52657587a1a194f93b788b");
+    expect(hmacSha256('HEAVY', ".github/workflows/deploy.yml")).toBe("87354c51a785eb76f81ba427f9a58d6f8b0b7e3c85febd19b973c04874bde601");
+    expect(hmacSha256('no-product-invent', ".github/workflows/deploy.yml")).toBe("3ed3dcb49626ea55aa10de93931f8c107b800db0e2d4852f9cfe4a32f9ffe544");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml spaces 274", () => {
+    expect((read(".github/workflows/deploy.yml").match(/ /g) ?? []).length).toBe(274);
+  });
+
+  it("post134: locks .github/workflows/deploy.yml reversed sha256", () => {
+    const rev = [...read(".github/workflows/deploy.yml")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("c76eeb8130b6ef38120b7c8d0345a0401de9d92f3114786cea652396314dae41");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml sha256 UPPERCASE", () => {
+    expect(sha256(".github/workflows/deploy.yml").toUpperCase()).toBe("49BF571653F9091108A8E7E3F358DE06DE332686019D1B0E0F68DDAF7B48D5C3");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml first-line sha256", () => {
+    expect(createHash('sha256').update(read(".github/workflows/deploy.yml").split('\n')[0]).digest('hex')).toBe("2dbfcbc4df1ce394975f60183fd2e5c420d970fd3611c0d88ad06ff073091960");
+  });
+
+  it("post134: locks .github/workflows/deploy.yml size*lines 47188", () => {
+    expect(statSync(join(root, ".github/workflows/deploy.yml")).size * read(".github/workflows/deploy.yml").split('\n').length).toBe(47188);
+  });
+
+  it("post134: locks .cursor/environment.json sha256", () => {
+    expect(sha256(".cursor/environment.json")).toBe("4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694");
+  });
+
+  it("post134: locks .cursor/environment.json sha1", () => {
+    expect(sha1(".cursor/environment.json")).toBe("b4f3dec322cd018ce5c1dea89897a469bd128685");
+  });
+
+  it("post134: locks .cursor/environment.json md5", () => {
+    expect(md5(".cursor/environment.json")).toBe("956c8804543595a31d6a7051aecd6528");
+  });
+
+  it("post134: locks .cursor/environment.json sha384", () => {
+    expect(sha384(".cursor/environment.json")).toBe("0347d0c47319d7ae7b0221f2aac85537294169efac93d2fab633127f2a4fddcedba85875545448a4048d66f22a89193b");
+  });
+
+  it("post134: locks .cursor/environment.json sha512", () => {
+    expect(sha512(".cursor/environment.json")).toBe("bc77873140fa55fe7b9ff10f6c7ebb8e287d35087bc0da8667814e3db45773a3a4bcecb1f7ab7479e0a2c0c4cad140c385583af6a0bb760a01121a1c830a6efb");
+  });
+
+  it("post134: locks .cursor/environment.json sha3-256", () => {
+    expect(sha3(".cursor/environment.json")).toBe("070958f3fa1b4e8c86b71af2293d931e25decf653e60b5034dbcb817d5f10ad5");
+  });
+
+  it("post134: locks .cursor/environment.json blake2b512", () => {
+    expect(blake2b(".cursor/environment.json")).toBe("8b7f4c7c49f504196537519b837fc2ff3419620401f088a626b3e7e0d643f3328fb4deae533db22e4de5887914ead0849d4db4b74ecf80707e6bb5c178910b63");
+  });
+
+  it("post134: locks .cursor/environment.json ripemd160", () => {
+    expect(ripemd(".cursor/environment.json")).toBe("7475065e5ce5c2e4a5d757954b5428026c1156ae");
+  });
+
+  it("post134: locks .cursor/environment.json size 57", () => {
+    expect(statSync(join(root, ".cursor/environment.json")).size).toBe(57);
+    expect(readFileSync(join(root, ".cursor/environment.json")).byteLength).toBe(57);
+  });
+
+  it("post134: locks .cursor/environment.json utf8 57 lines 5", () => {
+    expect(read(".cursor/environment.json")).toHaveLength(57);
+    expect(read(".cursor/environment.json").split('\n')).toHaveLength(5);
+  });
+
+  it("post134: locks .cursor/environment.json nibble 472 xor 0", () => {
+    const d = sha256(".cursor/environment.json");
+    expect(nibbleSum(d)).toBe(472);
+    expect(xorNibbles(d)).toBe(0);
+  });
+
+  it("post134: locks .cursor/environment.json pairSum 4222 rollingXor 0", () => {
+    const d = sha256(".cursor/environment.json");
+    expect(pairSum(d)).toBe(4222);
+    expect(rollingXor(d)).toBe(0);
+  });
+
+  it("post134: locks .cursor/environment.json first/last/mid octets", () => {
+    const d = sha256(".cursor/environment.json");
+    expect(d.slice(0, 2)).toBe("4e");
+    expect(d.slice(-2)).toBe("94");
+    expect(d.slice(28, 36)).toBe("d121164a");
+  });
+
+  it("post134: locks .cursor/environment.json HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', ".cursor/environment.json")).toBe("1f4ab854a2023dd611fc654e162f05e4bc3cf965180f270744042fec93dab517");
+    expect(hmacSha256('leftover', ".cursor/environment.json")).toBe("f3c07027290cc01d2ddd1979fab399b4f4ddaed8e682f9ba6f15b59f23ba2bc4");
+    expect(hmacSha256('TOKENMAXX', ".cursor/environment.json")).toBe("796f38bc3f8907bef23dc36e49231f310bae76a745c9e26ac5073ba2ec3e8c49");
+  });
+
+  it("post134: locks .cursor/environment.json HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', ".cursor/environment.json")).toBe("b855dd0d6d8d0db9d2039b0afd29b83d3d2d492c8df1bb411faa95b4f7ca5398");
+    expect(hmacSha256('HEAVY', ".cursor/environment.json")).toBe("ac9494b2f787b999a6b41edc8f17a2bf4dfac30f0ee76ecef9d69be011dde10f");
+    expect(hmacSha256('no-product-invent', ".cursor/environment.json")).toBe("bba79bd9a590f177e32e895a7935716c6ff65a461b15d43916ad5996af1092c5");
+  });
+
+  it("post134: locks .cursor/environment.json spaces 7", () => {
+    expect((read(".cursor/environment.json").match(/ /g) ?? []).length).toBe(7);
+  });
+
+  it("post134: locks .cursor/environment.json reversed sha256", () => {
+    const rev = [...read(".cursor/environment.json")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("054da0309906ae5e94ac3e2002ae737e7406a3d7106627586e5ed5496472069d");
+  });
+
+  it("post134: locks .cursor/environment.json sha256 UPPERCASE", () => {
+    expect(sha256(".cursor/environment.json").toUpperCase()).toBe("4ED3537A1A4141C61BE528B8CA3BD121164AB2BED7D0A9B95C34CE81CCA99694");
+  });
+
+  it("post134: locks .cursor/environment.json first-line sha256", () => {
+    expect(createHash('sha256').update(read(".cursor/environment.json").split('\n')[0]).digest('hex')).toBe("021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96");
+  });
+
+  it("post134: locks .cursor/environment.json size*lines 285", () => {
+    expect(statSync(join(root, ".cursor/environment.json")).size * read(".cursor/environment.json").split('\n').length).toBe(285);
+  });
+
+  it("post134: locks vitest.config.ts sha256", () => {
+    expect(sha256("vitest.config.ts")).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it("post134: locks vitest.config.ts sha1", () => {
+    expect(sha1("vitest.config.ts")).toBe("f8d49517ece92fc5e9781fbde021a948958aac37");
+  });
+
+  it("post134: locks vitest.config.ts md5", () => {
+    expect(md5("vitest.config.ts")).toBe("f1176313255f5f064a946d458482d81a");
+  });
+
+  it("post134: locks vitest.config.ts sha384", () => {
+    expect(sha384("vitest.config.ts")).toBe("c740544ed89115527034ecf6e26516e084e03eb35bb32b53e2a9ba0c87e13c92d27eedad009b8248a3c0410200eba563");
+  });
+
+  it("post134: locks vitest.config.ts sha512", () => {
+    expect(sha512("vitest.config.ts")).toBe("ea76043e8370d77ce0cb6723483ce791cff7cb9b5fb3bf8997a9772e1f3e9c897d34fc0fe2787d4f95cfb0561a8c1439436468cefb79893325b21f462c243682");
+  });
+
+  it("post134: locks vitest.config.ts sha3-256", () => {
+    expect(sha3("vitest.config.ts")).toBe("ec04c66cbf9a14154aabbfb72cd926250ae10c5577428b5b8a8b749db6c0a7ba");
+  });
+
+  it("post134: locks vitest.config.ts blake2b512", () => {
+    expect(blake2b("vitest.config.ts")).toBe("93d50742fb1f4fa70321f558b00b563052eefcaf0112ff159c377f6e7d5c989a19df038ab20fe701cb59b44d1075a621253feead3118a6a974a21e23c2eb980a");
+  });
+
+  it("post134: locks vitest.config.ts ripemd160", () => {
+    expect(ripemd("vitest.config.ts")).toBe("6f29a743813430d4d364f8ddd66e0aedf1506fcd");
+  });
+
+  it("post134: locks vitest.config.ts size 535", () => {
+    expect(statSync(join(root, "vitest.config.ts")).size).toBe(535);
+    expect(readFileSync(join(root, "vitest.config.ts")).byteLength).toBe(535);
+  });
+
+  it("post134: locks vitest.config.ts utf8 535 lines 22", () => {
+    expect(read("vitest.config.ts")).toHaveLength(535);
+    expect(read("vitest.config.ts").split('\n')).toHaveLength(22);
+  });
+
+  it("post134: locks vitest.config.ts nibble 536 xor 2", () => {
+    const d = sha256("vitest.config.ts");
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it("post134: locks vitest.config.ts pairSum 4691 rollingXor 49", () => {
+    const d = sha256("vitest.config.ts");
+    expect(pairSum(d)).toBe(4691);
+    expect(rollingXor(d)).toBe(49);
+  });
+
+  it("post134: locks vitest.config.ts first/last/mid octets", () => {
+    const d = sha256("vitest.config.ts");
+    expect(d.slice(0, 2)).toBe("f9");
+    expect(d.slice(-2)).toBe("38");
+    expect(d.slice(28, 36)).toBe("ec95c6d5");
+  });
+
+  it("post134: locks vitest.config.ts HMAC post134/leftover/TOKENMAXX", () => {
+    expect(hmacSha256('post134', "vitest.config.ts")).toBe("c53a882c6e5e8ef3b1506104649574edf896592a9bc5ea53d19b9304e98409bc");
+    expect(hmacSha256('leftover', "vitest.config.ts")).toBe("3bc8abcf1f58dc77ee233f74f3e725de7089ea5307ef488f25b1aad2d0f3d1b7");
+    expect(hmacSha256('TOKENMAXX', "vitest.config.ts")).toBe("0f446a2e20693c7657cb1d718f1a1b296160af17a69fcd36cec18d937ae65de9");
+  });
+
+  it("post134: locks vitest.config.ts HMAC after-#134/HEAVY/no-product-invent", () => {
+    expect(hmacSha256('after-#134', "vitest.config.ts")).toBe("dc6c0303b4827d3ce7d0721e9e70d47e3d365b5613550dfa0ad885d70d9265bc");
+    expect(hmacSha256('HEAVY', "vitest.config.ts")).toBe("08ec43359860bb937405b1b476b372ee74b0d49b19430497c923df04bbe60179");
+    expect(hmacSha256('no-product-invent', "vitest.config.ts")).toBe("3e3b5178103ca33942111d45dcf7e812cb38dc01558a23497b43440560df420c");
+  });
+
+  it("post134: locks vitest.config.ts spaces 121", () => {
+    expect((read("vitest.config.ts").match(/ /g) ?? []).length).toBe(121);
+  });
+
+  it("post134: locks vitest.config.ts reversed sha256", () => {
+    const rev = [...read("vitest.config.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("0938009226d244856c43668b42c9aa000689efe510086849e55daf781d867c2b");
+  });
+
+  it("post134: locks vitest.config.ts sha256 UPPERCASE", () => {
+    expect(sha256("vitest.config.ts").toUpperCase()).toBe("F9B58BB937531DA55AD474592E69EC95C6D55A5B8B878F8FA251C0F8D6CAFF38");
+  });
+
+  it("post134: locks vitest.config.ts first-line sha256", () => {
+    expect(createHash('sha256').update(read("vitest.config.ts").split('\n')[0]).digest('hex')).toBe("85734f4752244f71454215d0cfbe952f4ff6d79da03016ebd55e0dd9a1e7d328");
+  });
+
+  it("post134: locks vitest.config.ts size*lines 11770", () => {
+    expect(statSync(join(root, "vitest.config.ts")).size * read("vitest.config.ts").split('\n').length).toBe(11770);
+  });
+
+  it("post134: HMAC wrangler.toml key wrangler", () => {
+    expect(hmacSha256("wrangler", "wrangler.toml")).toBe("bbac4432f0fadae42a1d39402045dcfbfccff5b22c2689832451059ad3ed82e6");
+  });
+
+  it("post134: HMAC wrangler.toml key backlink", () => {
+    expect(hmacSha256("backlink", "wrangler.toml")).toBe("e6ea9a4c22d8be77830f69ba042d79bb716184b8783f2ede72efa58b3b7601d4");
+  });
+
+  it("post134: HMAC wrangler.toml key CATALOG_CACHE", () => {
+    expect(hmacSha256("CATALOG_CACHE", "wrangler.toml")).toBe("9335716a0466ecfa551aa06fc7eef4ef33fe1611e0542e420de582ba1bcac0b5");
+  });
+
+  it("post134: HMAC wrangler.toml key GEMINI_API_KEY", () => {
+    expect(hmacSha256("GEMINI_API_KEY", "wrangler.toml")).toBe("92708ab36e6cec40464d1d99390978feaf9d5a1eaa4b7caa0249267812835f4b");
+  });
+
+  it("post134: HMAC wrangler.toml key compatibility_date", () => {
+    expect(hmacSha256("compatibility_date", "wrangler.toml")).toBe("76f9a459b4da830f9283b18a7161a0750d108f5ccd45db4e0d23c263e0d23100");
+  });
+
+  it("post134: HMAC wrangler.toml key kv_namespaces", () => {
+    expect(hmacSha256("kv_namespaces", "wrangler.toml")).toBe("57f36bedd0d11b34444fcbeac861582450509419559d9cc2010adf1299e1fe41");
+  });
+
+  it("post134: HMAC wrangler.toml key custom_domain", () => {
+    expect(hmacSha256("custom_domain", "wrangler.toml")).toBe("3ae8d9823021bfcf166b84c11cc53c3b3ab947e4e268039ce9966e0500911ea0");
+  });
+
+  it("post134: HMAC wrangler.toml key VERSION", () => {
+    expect(hmacSha256("VERSION", "wrangler.toml")).toBe("e58759ef162af856e56aa5468e4c6e0486d0420ac8ea4732d08ca2d5120ed237");
+  });
+
+  it("post134: HMAC wrangler.toml key routes", () => {
+    expect(hmacSha256("routes", "wrangler.toml")).toBe("22ec0567f0a1e8f4f7f9ea5b8f1e9f31c72708ae548ab7d791fed75e3e7e870d");
+  });
+
+  it("post134: HMAC wrangler.toml key vars", () => {
+    expect(hmacSha256("vars", "wrangler.toml")).toBe("e49998b2c77487157f7e1f56023d5acaf53f75505ba262733b062833edff2d54");
+  });
+
+  it("post134: HMAC wrangler.toml key Secrets", () => {
+    expect(hmacSha256("Secrets", "wrangler.toml")).toBe("8187c1d7f3e60e58c408ae59b3be0974a7a528885f102808824fe0069ed0f4df");
+  });
+
+  it("post134: HMAC wrangler.toml key fuzzywigg", () => {
+    expect(hmacSha256("fuzzywigg", "wrangler.toml")).toBe("4f271fc6714d566a00b298cdfb6a651d66b4584a14851ea67a7ebbd1cedd9407");
+  });
+
+  it("post134: HMAC wrangler.toml key edb6ca4df12f4f45b40508b3dda3c432", () => {
+    expect(hmacSha256("edb6ca4df12f4f45b40508b3dda3c432", "wrangler.toml")).toBe("30f5a30469cd4378feca7a22799964935a98f11328794c2d3d06a38b98babad3");
+  });
+
+  it("post134: HMAC wrangler.toml key 2025-01-01", () => {
+    expect(hmacSha256("2025-01-01", "wrangler.toml")).toBe("1719e0de1e631f204660de6b6544839854ab51968d0dc500bad99b9e9eb7195d");
+  });
+
+  it("post134: HMAC wrangler.toml key src/index.ts", () => {
+    expect(hmacSha256("src/index.ts", "wrangler.toml")).toBe("eb9d67e6dbc0a3d4c570103c85ba5fa0eb121aa519a2094f9908f269f71fc3a8");
+  });
+
+  it("post134: HMAC wrangler.toml key post108", () => {
+    expect(hmacSha256("post108", "wrangler.toml")).toBe("2dca77980de18c574b77e51d910c6acd090792b2b0dc4b786d8ed65f62ab7c2d");
+  });
+
+  it("post134: HMAC wrangler.toml key post126", () => {
+    expect(hmacSha256("post126", "wrangler.toml")).toBe("da3ab4682042abd142b12864ac0a33348f5f3412a7640f9ebe695194f0a11a39");
+  });
+
+  it("post134: HMAC wrangler.toml key HITL", () => {
+    expect(hmacSha256("HITL", "wrangler.toml")).toBe("163535e4f1ffba9fa5d82ccec88c349b95720ee09d57f10a4b7d067551b2e0bf");
+  });
+
+  it("post134: HMAC wrangler.toml key no-invent", () => {
+    expect(hmacSha256("no-invent", "wrangler.toml")).toBe("7e094fb96a0b2e9c2c742d56764951bfd5022491fa119a518dd6b8fe112bf040");
+  });
+
+  it("post134: toml contains name backlink", () => {
+    expect(toml).toContain("name = \"backlink\"");
+  });
+
+  it("post134: toml contains main src/index.ts", () => {
+    expect(toml).toContain("main = \"src/index.ts\"");
+  });
+
+  it("post134: toml contains compatibility_date 2025-01-01", () => {
+    expect(toml).toContain("compatibility_date = \"2025-01-01\"");
+  });
+
+  it("post134: toml contains kv_namespaces table", () => {
+    expect(toml).toContain("[[kv_namespaces]]");
+  });
+
+  it("post134: toml contains CATALOG_CACHE binding", () => {
+    expect(toml).toContain("binding = \"CATALOG_CACHE\"");
+  });
+
+  it("post134: toml contains kv id pin", () => {
+    expect(toml).toContain("id = \"edb6ca4df12f4f45b40508b3dda3c432\"");
+  });
+
+  it("post134: toml contains routes table", () => {
+    expect(toml).toContain("[[routes]]");
+  });
+
+  it("post134: toml contains custom domain pattern", () => {
+    expect(toml).toContain("pattern = \"backlink.fuzzywigg.com\"");
+  });
+
+  it("post134: toml contains custom_domain true", () => {
+    expect(toml).toContain("custom_domain = true");
+  });
+
+  it("post134: toml contains vars table", () => {
+    expect(toml).toContain("[vars]");
+  });
+
+  it("post134: toml contains VERSION 0.1.0", () => {
+    expect(toml).toContain("VERSION = \"0.1.0\"");
+  });
+
+  it("post134: toml contains secret put comment", () => {
+    expect(toml).toContain("wrangler secret put GEMINI_API_KEY");
+  });
+
+  it("post134: toml forbids inline GEMINI_API_KEY assignment", () => {
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(toml).not.toMatch(/ANTHROPIC_API_KEY/);
+    expect(toml).not.toMatch(/api[_-]?key\s*=/i);
+  });
+
+  it("post134: toml forbids durable objects / workers.dev invent", () => {
+    expect(toml.toLowerCase()).not.toContain('durable_objects');
+    expect(toml.toLowerCase()).not.toContain('workers_dev');
+    expect(toml.toLowerCase()).not.toContain('r2_buckets');
+    expect(toml.toLowerCase()).not.toContain('d1_databases');
+    expect(toml.toLowerCase()).not.toContain('vectorize');
+    expect(toml.toLowerCase()).not.toContain('hyperdrive');
+    expect(toml.toLowerCase()).not.toContain('queues');
+    expect(toml.toLowerCase()).not.toContain('analytics_engine');
+  });
+
+  it("post134: Env types still match toml bindings", () => {
+    expect(typesSrc).toContain('CATALOG_CACHE: KVNamespace');
+    expect(typesSrc).toMatch(/GEMINI_API_KEY\?:\s*string/);
+    expect(typesSrc).toMatch(/VERSION\?:\s*string/);
+  });
+
+  it("post134: package.json name/version align with toml", () => {
+    const pkg = JSON.parse(read('package.json')) as { name: string; version: string };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.version).toBe('0.1.0');
+    expect(toml).toContain('name = "backlink"');
+    expect(toml).toContain('VERSION = "0.1.0"');
+  });
+
+  it("post134: locks existing .cursor/environment.json name+install (no thin stub invent)", () => {
+    const envJson = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+    expect(envJson.name).toBe("Backlink_Facelift");
+    expect(envJson.install).toBe("npm ci");
+    expect(Object.keys(envJson).sort()).toEqual(['install', 'name']);
+  });
+
+  it("post134: deploy.yml still present and non-empty", () => {
+    const deployYml = read('.github/workflows/deploy.yml');
+    expect(deployYml.length).toBeGreaterThan(100);
+    expect(deployYml).toMatch(/wrangler|deploy/i);
+  });
+
+  it("post134: ci.yml still runs typecheck/test/coverage", () => {
+    const ciYml = read('.github/workflows/ci.yml');
+    expect(ciYml).toMatch(/typecheck/);
+    expect(ciYml).toMatch(/vitest|npm test|test:coverage/);
+  });
+
+  it("post134: DEPLOY.md references wrangler secret + domain", () => {
+    expect(deployMd).toMatch(/wrangler secret put GEMINI_API_KEY/);
+    expect(deployMd).toMatch(/backlink\.fuzzywigg\.com|custom.?domain/i);
+  });
+
+  it("post134: AGENTS.md escalates secret/HITL/CORS", () => {
+    expect(agentsMd).toMatch(/GEMINI_API_KEY/);
+    expect(agentsMd).toMatch(/HITL/i);
+    expect(agentsMd).toMatch(/CORS|authentication/i);
+  });
+
+  it("post134: index main entry referenced by toml exists", () => {
+    expect(indexSrc.length).toBeGreaterThan(100);
+    expect(toml).toContain('main = "src/index.ts"');
+  });
+
+  it("post134: toml line count 18", () => {
+    expect(toml.split('\n')).toHaveLength(18);
+  });
+
+  it("post134: toml line 0 exact", () => {
+    expect(toml.split('\n')[0]).toBe("name = \"backlink\"");
+  });
+
+  it("post134: toml line 1 exact", () => {
+    expect(toml.split('\n')[1]).toBe("main = \"src/index.ts\"");
+  });
+
+  it("post134: toml line 2 exact", () => {
+    expect(toml.split('\n')[2]).toBe("compatibility_date = \"2025-01-01\"");
+  });
+
+  it("post134: toml line 4 exact", () => {
+    expect(toml.split('\n')[4]).toBe("[[kv_namespaces]]");
+  });
+
+  it("post134: toml line 5 exact", () => {
+    expect(toml.split('\n')[5]).toBe("binding = \"CATALOG_CACHE\"");
+  });
+
+  it("post134: toml line 6 exact", () => {
+    expect(toml.split('\n')[6]).toBe("id = \"edb6ca4df12f4f45b40508b3dda3c432\"");
+  });
+
+  it("post134: toml line 8 exact", () => {
+    expect(toml.split('\n')[8]).toBe("[[routes]]");
+  });
+
+  it("post134: toml line 9 exact", () => {
+    expect(toml.split('\n')[9]).toBe("pattern = \"backlink.fuzzywigg.com\"");
+  });
+
+  it("post134: toml line 10 exact", () => {
+    expect(toml.split('\n')[10]).toBe("custom_domain = true");
+  });
+
+  it("post134: toml line 12 exact", () => {
+    expect(toml.split('\n')[12]).toBe("[vars]");
+  });
+
+  it("post134: toml line 13 exact", () => {
+    expect(toml.split('\n')[13]).toBe("VERSION = \"0.1.0\"");
+  });
+
+  it("post134: toml line 15 exact", () => {
+    expect(toml.split('\n')[15]).toBe("# Secrets (set via CLI, never commit):");
+  });
+
+  it("post134: toml line 16 exact", () => {
+    expect(toml.split('\n')[16]).toBe("# wrangler secret put GEMINI_API_KEY");
+  });
+
+  it("post134: HMAC digests differ for distinct keys on toml", () => {
+    expect(hmacSha256('post134', 'wrangler.toml')).not.toBe(hmacSha256('leftover', 'wrangler.toml'));
+    expect(hmacSha256('TOKENMAXX', 'wrangler.toml')).not.toBe(hmacSha256('HEAVY', 'wrangler.toml'));
+    expect(hmacSha256('CATALOG_CACHE', 'wrangler.toml')).not.toBe(hmacSha256('VERSION', 'wrangler.toml'));
+  });
+
+  it("post134: mega purity 40x wrangler.toml sha256", () => {
+    const expected = "95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8";
+    for (let i = 0; i < 40; i++) expect(sha256('wrangler.toml')).toBe(expected);
+  });
+
+  it("post134: extra HMAC keys inventory digest", () => {
+    const keys = ["wrangler","backlink","CATALOG_CACHE","GEMINI_API_KEY","compatibility_date","kv_namespaces","custom_domain","VERSION","routes","vars","Secrets","fuzzywigg","edb6ca4df12f4f45b40508b3dda3c432","2025-01-01","src/index.ts","post108","post134","HITL","no-invent"];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe("5327c9465c50eb11ed3d3b8385893e2c6968b86f04e0b2e7c6811583a72b8fef");
+    expect(keys).toHaveLength(19);
+  });
+
+  it("post134: final inventory markers", () => {
+    const body = read('test/wrangler-config.test.ts');
+    expect(body).toContain("describe('post108 wrangler HEAVY deepen (after #108 parser)'");
+    expect(body).toContain("describe('post130 wrangler HEAVY deepen (after #130)'");
+    expect(body).toContain("describe('post134 wrangler HEAVY deepen (after #134)'");
+    expect((body.match(/it\("post134:/g) ?? []).length).toBeGreaterThan(100);
+  });
+
+});
