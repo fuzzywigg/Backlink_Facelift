@@ -46439,4 +46439,4 @@ describe('post277 source-contracts ultra HEAVY deepen (after #277 typecheck-hygi
     expect(body).toContain('unsaturated-after-277');
     expect((body.match(/it\(['"]post277-ultra:/g) ?? []).length).toBeGreaterThan(40);
   });
-}
+});
