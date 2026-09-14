@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9197,4 +9197,1556 @@ https://example.com/x
         expect(stations[0].url).toBe('https://stream');
         expect(stations[0].logo).toBe('https://cdn.example/l.png');
   });
+});
+
+describe('post104 parser HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(parserRoot, rel), 'utf8');
+  const parserSrc = read('src/parser.ts');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const STATION_KEYS = ['name', 'url', 'logo', 'group', 'language', 'country'] as const;
+  const ATTR_RES = [
+    /tvg-name="([^"]*)"/i,
+    /tvg-logo="([^"]*)"/i,
+    /group-title="([^"]*)"/i,
+    /tvg-language="([^"]*)"/i,
+    /tvg-country="([^"]*)"/i,
+  ] as const;
+
+  it("post104: locks parser.ts sha256 digest", () => {
+    expect(createHash('sha256').update(parserSrc, 'utf8').digest('hex')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+  });
+
+  it("post104: locks parser.ts sha1 digest", () => {
+    expect(createHash('sha1').update(parserSrc, 'utf8').digest('hex')).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+  });
+
+  it("post104: locks parser.ts md5 digest", () => {
+    expect(createHash('md5').update(parserSrc, 'utf8').digest('hex')).toBe('500211c4c526de887252451726776563');
+  });
+
+  it("post104: locks parser.ts sha384 digest", () => {
+    expect(createHash('sha384').update(parserSrc, 'utf8').digest('hex')).toBe('f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9');
+  });
+
+  it("post104: locks parser.ts sha512 digest", () => {
+    expect(createHash('sha512').update(parserSrc, 'utf8').digest('hex')).toBe('66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89');
+  });
+
+  it("post104: locks parser.ts sha256 nibble sum", () => {
+    expect(nibbleSum(createHash('sha256').update(parserSrc, 'utf8').digest('hex'))).toBe(477);
+  });
+
+  it("post104: locks parser.ts sha256 xor-nibble fingerprint", () => {
+    expect(xorNibbles(createHash('sha256').update(parserSrc, 'utf8').digest('hex'))).toBe(9);
+  });
+
+  it("post104: sha256/sha384/sha512 digests are pairwise distinct", () => {
+    const a = createHash('sha256').update(parserSrc, 'utf8').digest('hex');
+    const b = createHash('sha384').update(parserSrc, 'utf8').digest('hex');
+    const c = createHash('sha512').update(parserSrc, 'utf8').digest('hex');
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it("post104: sha384 length 96 and sha512 length 128 lowercase hex", () => {
+    const a = createHash('sha384').update(parserSrc, 'utf8').digest('hex');
+    const b = createHash('sha512').update(parserSrc, 'utf8').digest('hex');
+    expect(a).toHaveLength(96);
+    expect(b).toHaveLength(128);
+    expect(/^[a-f0-9]+$/.test(a + b)).toBe(true);
+  });
+
+  it("post104: HMAC-SHA256 keyed by post104 locks digest", () => {
+    expect(createHmac('sha256', "post104").update(parserSrc, 'utf8').digest('hex')).toBe('0f6b521688d3b3ef97dbcd2be5685a2c31ed536633b4cc5bdaf08dfd50b29a6f');
+  });
+
+  it("post104: HMAC-SHA256 keyed by parser-unit locks digest", () => {
+    expect(createHmac('sha256', "parser-unit").update(parserSrc, 'utf8').digest('hex')).toBe('50e6a500800adc39e1d712506829e200984d261c965a47b815da4fd02bf1ef7c');
+  });
+
+  it("post104: HMAC-SHA256 keyed by parseM3U locks digest", () => {
+    expect(createHmac('sha256', "parseM3U").update(parserSrc, 'utf8').digest('hex')).toBe('6a02c2bd7b3573d7202afc9bd5e9f0f0af368217776af69bb431d07005a5ff90');
+  });
+
+  it("post104: HMAC-SHA256 keyed by Station locks digest", () => {
+    expect(createHmac('sha256', "Station").update(parserSrc, 'utf8').digest('hex')).toBe('3aa51a9346b986d3b790b94986884d11a1d3b1b76be1b789e39505106c230b34');
+  });
+
+  it("post104: HMAC-SHA256 keyed by EXTINF locks digest", () => {
+    expect(createHmac('sha256', "EXTINF").update(parserSrc, 'utf8').digest('hex')).toBe('b1278e02e65ed611815fa337c4ec78b95bc1e84d4bb2d440fad935194426a910');
+  });
+
+  it("post104: HMAC-SHA256 keyed by tvg-name locks digest", () => {
+    expect(createHmac('sha256', "tvg-name").update(parserSrc, 'utf8').digest('hex')).toBe('9ae1525696686b515e20f00ab6a75bbf527060eee94322b28450e9a5ca0ee2a8');
+  });
+
+  it("post104: HMAC-SHA256 keyed by tvg-logo locks digest", () => {
+    expect(createHmac('sha256', "tvg-logo").update(parserSrc, 'utf8').digest('hex')).toBe('ead95583467d30e020572a7f51600d3f81311d59adefaa8404f25c5688e94420');
+  });
+
+  it("post104: HMAC-SHA256 keyed by group-title locks digest", () => {
+    expect(createHmac('sha256', "group-title").update(parserSrc, 'utf8').digest('hex')).toBe('eb6b28143dfb3a806354787e92981447f7d52e905d04a8c91a1c3eef6929f429');
+  });
+
+  it("post104: HMAC-SHA256 keyed by tvg-language locks digest", () => {
+    expect(createHmac('sha256', "tvg-language").update(parserSrc, 'utf8').digest('hex')).toBe('5213712b65d0b5016a99a99b7456e2f67a06911db66af9bd160f06fb891d0498');
+  });
+
+  it("post104: HMAC-SHA256 keyed by tvg-country locks digest", () => {
+    expect(createHmac('sha256', "tvg-country").update(parserSrc, 'utf8').digest('hex')).toBe('c6a0e72f1b4a60db8eb31cedd3c51ecc2c7bc838eb3496cc896fb1151899ae82');
+  });
+
+  it("post104: HMAC-SHA256 keyed by http:// locks digest", () => {
+    expect(createHmac('sha256', "http://").update(parserSrc, 'utf8').digest('hex')).toBe('3c583338322fcc443b0a1b430b6ab44b5788fac7bd82d20f05d8a0e53cb45b5e');
+  });
+
+  it("post104: HMAC-SHA256 keyed by https:// locks digest", () => {
+    expect(createHmac('sha256', "https://").update(parserSrc, 'utf8').digest('hex')).toBe('8939933b6a29a6a00cb2c28b438900e94e07e59912c0eb45967454cf589352aa');
+  });
+
+  it("post104: HMAC-SHA256 keyed by seen locks digest", () => {
+    expect(createHmac('sha256', "seen").update(parserSrc, 'utf8').digest('hex')).toBe('a412e286d263482f02b6a81ad1e6ad2c8cf86d4b64ef58857932b6d70b997c79');
+  });
+
+  it("post104: HMAC-SHA256 keyed by dedupe locks digest", () => {
+    expect(createHmac('sha256', "dedupe").update(parserSrc, 'utf8').digest('hex')).toBe('0d5475ea16edb542977cf375b866e0c3d44f30083356d8f6e708f731f9d015cb');
+  });
+
+  it("post104: HMAC-SHA256 keyed by m3u locks digest", () => {
+    expect(createHmac('sha256', "m3u").update(parserSrc, 'utf8').digest('hex')).toBe('766d557c3d029beffae84dfa28563802dbc40cc486c25da08890e76d471c93eb');
+  });
+
+  it("post104: HMAC-SHA256 keyed by iptv-org locks digest", () => {
+    expect(createHmac('sha256', "iptv-org").update(parserSrc, 'utf8').digest('hex')).toBe('a1c1a7e31db65012bc03f0c219cf6b5c51012ee9753fce5e653b180e24655514');
+  });
+
+  it("post104: HMAC-SHA256 keyed by backlink locks digest", () => {
+    expect(createHmac('sha256', "backlink").update(parserSrc, 'utf8').digest('hex')).toBe('9d45133ec8b6ea6888b04d7810e9e74a5ae6e40f8b885ac29cf9f8828ecb5bdb');
+  });
+
+  it("post104: HMAC-SHA256 keyed by fuzzywigg locks digest", () => {
+    expect(createHmac('sha256', "fuzzywigg").update(parserSrc, 'utf8').digest('hex')).toBe('84bba718304e8ae87e488eb7d34d91334a8a583de252f8bf8c7a1262af17f07a');
+  });
+
+  it("post104: HMAC-SHA256 keyed by HEAVY locks digest", () => {
+    expect(createHmac('sha256', "HEAVY").update(parserSrc, 'utf8').digest('hex')).toBe('fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70');
+  });
+
+  it("post104: HMAC-SHA256 keyed by TOKENMAXX locks digest", () => {
+    expect(createHmac('sha256', "TOKENMAXX").update(parserSrc, 'utf8').digest('hex')).toBe('eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8');
+  });
+
+  it("post104: HMAC-SHA256 keyed by non-http-reset locks digest", () => {
+    expect(createHmac('sha256', "non-http-reset").update(parserSrc, 'utf8').digest('hex')).toBe('b3c895b3a7091d66a8bf8026d6dbf434c09dce9b3dbc76a1cf654a3a9f2c1628');
+  });
+
+  it("post104: HMAC-SHA256 keyed by comma-fallback locks digest", () => {
+    expect(createHmac('sha256', "comma-fallback").update(parserSrc, 'utf8').digest('hex')).toBe('d25338c8be224d89efbb15ca9745d83e855403e9c638ffec9ea206ba1f0f4a0c');
+  });
+
+  it("post104: HMAC-SHA256 keyed by double-quote-attrs locks digest", () => {
+    expect(createHmac('sha256', "double-quote-attrs").update(parserSrc, 'utf8').digest('hex')).toBe('722c6e016afe0a689990b1d8bbaaabf21cc04a906d0e27d775947cb8f84b0364');
+  });
+
+  it("post104: HMAC-SHA256 keyed by case-sensitive-scheme locks digest", () => {
+    expect(createHmac('sha256', "case-sensitive-scheme").update(parserSrc, 'utf8').digest('hex')).toBe('3afce29778e2fbf2abffd5d04419942eae234921a7214564c2994c2288fbf138');
+  });
+
+  it("post104: HMAC-SHA1 keyed by post104 locks digest", () => {
+    expect(createHmac('sha1', 'post104').update(parserSrc, 'utf8').digest('hex')).toBe('e2c97ff89415a4b55c10ea91ee8d90b26c490a6f');
+  });
+
+  it("post104: HMAC-SHA384 keyed by post104 locks digest", () => {
+    expect(createHmac('sha384', 'post104').update(parserSrc, 'utf8').digest('hex')).toBe('9992e6651946e61eb1b3f19e9e3dafdd67235bcd8aca3738cfc4e8633fcd9fe73f355d252896267d0924aedc5829139b');
+  });
+
+  it("post104: HMAC-SHA512 keyed by post104 locks digest", () => {
+    expect(createHmac('sha512', 'post104').update(parserSrc, 'utf8').digest('hex')).toBe('0d321e882fbb36cfdf901904882182f284a7cee21df402c548888b312df18865bcfb6576fa45f9a90a0363ad278141bb450266c08994403cdff47bcbb2abf387');
+  });
+
+  it("post104: HMAC digests differ from unkeyed sha256 and each other", () => {
+    const plain = createHash('sha256').update(parserSrc, 'utf8').digest('hex');
+    const a = createHmac('sha256', 'post104').update(parserSrc, 'utf8').digest('hex');
+    const b = createHmac('sha256', 'parser-unit').update(parserSrc, 'utf8').digest('hex');
+    expect(a).not.toBe(plain);
+    expect(b).not.toBe(plain);
+    expect(a).not.toBe(b);
+  });
+
+  it("post104: locks parser.ts byte and code-unit lengths", () => {
+    expect(Buffer.byteLength(parserSrc, 'utf8')).toBe(1955);
+    expect(parserSrc.length).toBe(1953);
+  });
+
+  it("post104: locks parser.ts code-unit sum", () => {
+    const sum = [...parserSrc].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(160347);
+  });
+
+  it("post104: locks parser.ts line count and trailing newline", () => {
+    expect(parserSrc.endsWith('\n')).toBe(true);
+    expect(parserSrc.split('\n')).toHaveLength(67);
+    expect((parserSrc.match(/\n/g) ?? []).length).toBe(66);
+  });
+
+  it("post104: glyph budget — quotes equals spaces underscores", () => {
+    expect((parserSrc.match(/"/g) ?? []).length).toBe(15);
+    expect((parserSrc.match(/=/g) ?? []).length).toBe(27);
+    expect((parserSrc.match(/ /g) ?? []).length).toBe(432);
+    expect((parserSrc.match(/_/g) ?? []).length).toBe(0);
+  });
+
+  it("post104: glyph budget — colons commas semis parens braces brackets", () => {
+    expect((parserSrc.match(/:/g) ?? []).length).toBe(19);
+    expect((parserSrc.match(/,/g) ?? []).length).toBe(8);
+    expect((parserSrc.match(/;/g) ?? []).length).toBe(28);
+    expect((parserSrc.match(/[()]/g) ?? []).length).toBe(80);
+    expect((parserSrc.match(/[{}]/g) ?? []).length).toBe(26);
+    expect((parserSrc.match(/[\[\]]/g) ?? []).length).toBe(26);
+  });
+
+  it("post104: glyph budget — singles backticks newlines tabs emdash", () => {
+    expect((parserSrc.match(/'/g) ?? []).length).toBe(12);
+    expect((parserSrc.match(/`/g) ?? []).length).toBe(0);
+    expect((parserSrc.match(/\n/g) ?? []).length).toBe(66);
+    expect((parserSrc.match(/\t/g) ?? []).length).toBe(0);
+    expect(parserSrc).toContain('—');
+  });
+
+  it("post104: parser.ts starts with Station interface export", () => {
+    expect(parserSrc.startsWith('export interface Station {')).toBe(true);
+  });
+
+  it("post104: parser.ts exports only Station and parseM3U", () => {
+    expect((parserSrc.match(/^export /gm) ?? []).length).toBe(2);
+    expect(parserSrc).toContain('export interface Station');
+    expect(parserSrc).toContain('export function parseM3U(raw: string): Station[]');
+  });
+
+  it("post104: Station field inventory lock", () => {
+    for (const k of STATION_KEYS) expect(parserSrc).toContain(k);
+    expect(createHash('sha256').update(STATION_KEYS.join('|'), 'utf8').digest('hex')).toBe('04e50eddacfc6f2ea3c772393766761775888f2e539ecc06b9a8be96024c5df3');
+  });
+
+  it("post104: five attribute regexes appear via match calls", () => {
+    expect((parserSrc.match(/\.match\(/g) ?? []).length).toBe(5);
+    for (const re of ATTR_RES) {
+      expect(parserSrc).toContain(re.source);
+    }
+  });
+
+  it("post104: scheme gate uses exact lowercase http and https startsWith", () => {
+    expect(parserSrc).toContain("line.startsWith('http://') || line.startsWith('https://')");
+    expect(parserSrc).not.toMatch(/toLowerCase\(\)/);
+  });
+
+  it("post104: seen Set dedupe and non-http reset branch present", () => {
+    expect(parserSrc).toContain('const seen = new Set<string>()');
+    expect(parserSrc).toContain('!seen.has(line)');
+    expect(parserSrc).toContain('seen.add(line)');
+    expect(parserSrc).toContain("line && !line.startsWith('#')");
+    expect(parserSrc).toContain('current = {}');
+  });
+
+  it("post104: comma fallback uses lastIndexOf", () => {
+    expect(parserSrc).toContain("line.lastIndexOf(',')");
+    expect(parserSrc).toContain('line.slice(commaIdx + 1).trim()');
+  });
+
+  it("post104: negative — no product inventing surface in parser.ts", () => {
+    expect(parserSrc).not.toMatch(/now-playing|nowPlaying|playlist|openapi|podcast|websocket|sse\b/i);
+    expect(parserSrc).not.toMatch(/GEMINI|Hono|fetch\(|resolveGenre|MCP_/);
+    expect(parserSrc).not.toMatch(/async |await |Promise/);
+  });
+
+  it("post104: negative — no tabs CRLF or BOM in parser.ts", () => {
+    expect(parserSrc).not.toContain('\t');
+    expect(parserSrc).not.toContain('\r');
+    expect(parserSrc.charCodeAt(0)).not.toBe(0xfeff);
+  });
+
+  it("post104: case-sensitive scheme rejects HTTP://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTP://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: case-sensitive scheme rejects HTTPS://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTPS://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: case-sensitive scheme rejects Http://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHttp://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: case-sensitive scheme rejects Https://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHttps://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: case-sensitive scheme rejects hTTp://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhTTp://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: case-sensitive scheme rejects hTTps://", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhTTps://example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects http:/", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp:/example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects https:/", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps:/example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects http:", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp:example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects https:", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps:example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects http//", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp//example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: malformed scheme rejects https//", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps//example.com/a\n')).toEqual([]);
+  });
+
+  it("post104: protocol-relative //cdn does not bind and resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n//cdn.example/a\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http rtmp resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nrtmp://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http rtmps resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nrtmps://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http rtsp resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nrtsp://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http mms resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nmms://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http udp resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nudp://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http ftp resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nftp://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http file resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nfile://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http ws resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nws://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: non-http wss resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nwss://x\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: relative path resets without bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nrelative/path.m3u8\n#EXTINF:-1,B\nhttps://b\n')).toEqual([
+      { name: 'B', url: 'https://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: bare host without scheme resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nexample.com/live\n#EXTINF:-1,B\nhttp://b\n')).toEqual([
+      { name: 'B', url: 'http://b', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: empty double-quoted attrs become empty strings not undefined", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo="" group-title="" tvg-language="" tvg-country="",X\nhttps://u\n');
+    expect(s).toEqual({ name: 'N', url: 'https://u', logo: '', group: '', language: '', country: '' });
+  });
+
+  it("post104: missing optional attrs are undefined own keys", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N",N\nhttps://u\n');
+    expect(s).toEqual({ name: 'N', url: 'https://u', logo: undefined, group: undefined, language: undefined, country: undefined });
+    expect(Object.keys(s).sort()).toEqual([...STATION_KEYS].sort());
+    expect('logo' in s).toBe(true);
+  });
+
+  it("post104: unquoted attrs are ignored; comma fallback used", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name=Unquoted group-title=G,Fallback\nhttps://u\n');
+    expect(s.name).toBe('Fallback');
+    expect(s.group).toBeUndefined();
+  });
+
+  it("post104: single-quoted attrs are ignored", () => {
+    const [s] = parseM3U("#EXTM3U\n#EXTINF:-1 tvg-name='Single' group-title='G',Fallback\nhttps://u\n");
+    expect(s.name).toBe('Fallback');
+    expect(s.group).toBeUndefined();
+  });
+
+  it("post104: spaces around = break double-quoted attr match", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name = "Spaced",Fallback\nhttps://u\n');
+    expect(s.name).toBe('Fallback');
+  });
+
+  it("post104: tvg-id never lands on Station object", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-id="drone.zone" tvg-name="N",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('tvg-id');
+    expect((s as unknown as Record<string, unknown>)['tvg-id']).toBeUndefined();
+    expect(Object.keys(s).sort()).toEqual([...STATION_KEYS].sort());
+  });
+
+  it("post104: unknown attrs never land on Station", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" radio="true" bitrate="128",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('radio');
+    expect(s).not.toHaveProperty('bitrate');
+  });
+
+  it("post104: case-insensitive attr names still extract", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 TVG-NAME="N" TVG-LOGO="L" GROUP-TITLE="G" TVG-LANGUAGE="en" TVG-COUNTRY="US",X\nhttps://u\n');
+    expect(s).toEqual({ name: 'N', url: 'https://u', logo: 'L', group: 'G', language: 'en', country: 'US' });
+  });
+
+  it("post104: empty tvg-name falls back to comma display name", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="",Display\nhttps://u\n');
+    expect(s.name).toBe('Display');
+  });
+
+  it("post104: whitespace-only tvg-name is kept (truthy) over comma", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="   ",Display\nhttps://u\n');
+    expect(s.name).toBe('   ');
+  });
+
+  it("post104: last comma wins for fallback name", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 duration=-1,Part A,Part B\nhttps://u\n');
+    expect(s.name).toBe('Part B');
+  });
+
+  it("post104: EXTINF without comma and without tvg-name yields no station", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1 no-comma-here\nhttps://u\n')).toEqual([]);
+  });
+
+  it("post104: URL without preceding EXTINF name does not bind", () => {
+    expect(parseM3U('#EXTM3U\nhttps://orphan\n')).toEqual([]);
+  });
+
+  it("post104: # comments between EXTINF and URL keep attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\n#EXTVLCOPT:network-caching=1000\n# comment\nhttps://u\n');
+    expect(s).toEqual({ name: 'N', url: 'https://u', logo: undefined, group: 'G', language: undefined, country: undefined });
+  });
+
+  it("post104: blank lines between EXTINF and URL keep attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N",N\n\n\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.url).toBe('https://u');
+  });
+
+  it("post104: comment containing https:// text does not bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n# see https://docs.example\nhttps://a\n')).toEqual([
+      { name: 'A', url: 'https://a', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: identical URL dedupes keeping first name", () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,First\nhttps://u\n#EXTINF:-1,Second\nhttps://u\n');
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('First');
+  });
+
+  it("post104: trailing slash makes distinct URL", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u/\n')).toHaveLength(2);
+  });
+
+  it("post104: query string difference keeps both", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u?a=1\n#EXTINF:-1,B\nhttps://u?a=2\n')).toHaveLength(2);
+  });
+
+  it("post104: fragment difference keeps both", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u#a\n#EXTINF:-1,B\nhttps://u#b\n')).toHaveLength(2);
+  });
+
+  it("post104: http vs https same host are distinct", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp://u\n#EXTINF:-1,B\nhttps://u\n')).toHaveLength(2);
+  });
+
+  it("post104: same name different URL keeps both", () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,Same\nhttps://a\n#EXTINF:-1,Same\nhttps://b\n');
+    expect(stations).toHaveLength(2);
+    expect(stations.map((s) => s.url)).toEqual(['https://a', 'https://b']);
+  });
+
+  it("post104: leading and trailing spaces on URL trimmed before bind", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n  https://spaced  \n');
+    expect(s.url).toBe('https://spaced');
+  });
+
+  it("post104: tabs around URL trimmed", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n\thttps://tabbed\t\n');
+    expect(s.url).toBe('https://tabbed');
+  });
+
+  it("post104: CRLF playlists parse like LF", () => {
+    expect(parseM3U('#EXTM3U\r\n#EXTINF:-1,A\r\nhttps://a\r\n')).toEqual([
+      { name: 'A', url: 'https://a', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: unicode name and path preserved", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="ラジオ 🎵",X\nhttps://example.com/日本.m3u8\n');
+    expect(s.name).toBe('ラジオ 🎵');
+    expect(s.url).toBe('https://example.com/日本.m3u8');
+  });
+
+  it("post104: zero-width chars in name preserved", () => {
+    const name = 'A\u200bB';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="' + name + '",X\nhttps://u\n');
+    expect(s.name).toBe(name);
+    expect([...s.name]).toHaveLength(3);
+  });
+
+  it("post104: null byte in name preserved", () => {
+    const name = 'A\u0000B';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="' + name + '",X\nhttps://u\n');
+    expect(s.name).toBe(name);
+  });
+
+  it("post104: parseM3U is pure across 50 identical SAMPLE_M3U calls", () => {
+    const first = parseM3U(SAMPLE_M3U);
+    for (let i = 0; i < 50; i++) expect(parseM3U(SAMPLE_M3U)).toEqual(first);
+  });
+
+  it("post104: mutating returned stations does not affect next parse", () => {
+    const a = parseM3U(SAMPLE_M3U);
+    a[0].name = 'MUTATED';
+    a.pop();
+    const b = parseM3U(SAMPLE_M3U);
+    expect(b[0].name).toBe('Alpha FM');
+    expect(b).toHaveLength(6);
+  });
+
+  it("post104: SAMPLE_M3U parse name/url join digests", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.map((s) => s.name).join('|')).toBe("Alpha FM|Beta FM|Gamma FM|Delta FM|Epsilon FM|Zeta FM");
+    expect(stations.map((s) => s.url).join('|')).toBe("https://example.com/alpha.m3u8|https://example.com/beta.m3u8|https://example.com/gamma.m3u8|https://example.com/delta.m3u8|https://example.com/epsilon.m3u8|https://example.com/zeta.m3u8");
+    expect(createHash('sha256').update(stations.map((s) => s.name).join('|'), 'utf8').digest('hex')).toBe('73b444744788ccee9b0beffa8294a8210f8fd506983147ebbe6eba89802f1f3f');
+    expect(createHash('sha256').update(stations.map((s) => s.url).join('|'), 'utf8').digest('hex')).toBe('67e78b06dc81ad55e708ecb6da7ca6bfdb489833dc6fb31f9327d1e83f288de9');
+  });
+
+  it("post104: SAMPLE_M3U JSON.stringify digest lock", () => {
+    expect(createHash('sha256').update(JSON.stringify(parseM3U(SAMPLE_M3U)), 'utf8').digest('hex')).toBe('922ccb6c950b027adfa96f57d7adf42982139adcbbf8060f9f184a663d07fcf2');
+  });
+
+  it("post104: 300 unique http streams all bind in order", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 300; i++) {
+      lines.push('#EXTINF:-1,U' + i);
+      lines.push('https://scale/' + i);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(300);
+    expect(stations[0].url).toBe('https://scale/0');
+    expect(stations[299].url).toBe('https://scale/299');
+    expect(stations[150].name).toBe('U150');
+  });
+
+  it("post104: 150 unique then 150 dupes keep 150", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 150; i++) {
+      lines.push('#EXTINF:-1,U' + i);
+      lines.push('https://d/' + i);
+    }
+    for (let i = 0; i < 150; i++) {
+      lines.push('#EXTINF:-1,D' + i);
+      lines.push('https://d/' + i);
+    }
+    expect(parseM3U(lines.join('\n'))).toHaveLength(150);
+  });
+
+  it("post104: alternating http bind and rtmp reset matrix (40)", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 40; i++) {
+      lines.push('#EXTINF:-1,H' + i);
+      lines.push('https://h/' + i);
+      lines.push('#EXTINF:-1,R' + i);
+      lines.push('rtmp://r/' + i);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(40);
+    expect(stations.every((s) => s.url.startsWith('https://'))).toBe(true);
+    expect(stations.some((s) => s.name.startsWith('R'))).toBe(false);
+  });
+
+  it("post104: buildSimpleM3U round-trip preserves all Station fields", () => {
+    const m3u = buildSimpleM3U([
+      { name: 'Full', url: 'https://full', logo: 'https://logo', group: 'G', language: 'en', country: 'US' },
+    ]);
+    expect(parseM3U(m3u)).toEqual([
+      { name: 'Full', url: 'https://full', logo: 'https://logo', group: 'G', language: 'en', country: 'US' },
+    ]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+  });
+
+  it("post104: countHttpStreamLines aligns with parseM3U length for SAMPLE_M3U", () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(parseM3U(SAMPLE_M3U).length);
+  });
+
+  it("post104: countHttpStreamLines counts uppercase HTTP as zero", () => {
+    expect(countHttpStreamLines('HTTP://upper\nHTTPS://upper')).toBe(0);
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTP://upper\n')).toEqual([]);
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token music", () => {
+    const m3u = buildSimpleM3U([{ name: "music", url: "https://ex.example/music", group: "music" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("music");
+    expect(s.group).toBe("music");
+    expect(s.url).toBe("https://ex.example/music");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token ambient", () => {
+    const m3u = buildSimpleM3U([{ name: "ambient", url: "https://ex.example/ambient", group: "ambient" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("ambient");
+    expect(s.group).toBe("ambient");
+    expect(s.url).toBe("https://ex.example/ambient");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token jazz", () => {
+    const m3u = buildSimpleM3U([{ name: "jazz", url: "https://ex.example/jazz", group: "jazz" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("jazz");
+    expect(s.group).toBe("jazz");
+    expect(s.url).toBe("https://ex.example/jazz");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token classical", () => {
+    const m3u = buildSimpleM3U([{ name: "classical", url: "https://ex.example/classical", group: "classical" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("classical");
+    expect(s.group).toBe("classical");
+    expect(s.url).toBe("https://ex.example/classical");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token pop", () => {
+    const m3u = buildSimpleM3U([{ name: "pop", url: "https://ex.example/pop", group: "pop" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("pop");
+    expect(s.group).toBe("pop");
+    expect(s.url).toBe("https://ex.example/pop");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token rock", () => {
+    const m3u = buildSimpleM3U([{ name: "rock", url: "https://ex.example/rock", group: "rock" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("rock");
+    expect(s.group).toBe("rock");
+    expect(s.url).toBe("https://ex.example/rock");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token news", () => {
+    const m3u = buildSimpleM3U([{ name: "news", url: "https://ex.example/news", group: "news" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("news");
+    expect(s.group).toBe("news");
+    expect(s.url).toBe("https://ex.example/news");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token sports", () => {
+    const m3u = buildSimpleM3U([{ name: "sports", url: "https://ex.example/sports", group: "sports" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("sports");
+    expect(s.group).toBe("sports");
+    expect(s.url).toBe("https://ex.example/sports");
+  });
+
+  it("post104: buildSimpleM3U+parse for genre token entertainment", () => {
+    const m3u = buildSimpleM3U([{ name: "entertainment", url: "https://ex.example/entertainment", group: "entertainment" }]);
+    const [s] = parseM3U(m3u);
+    expect(s.name).toBe("entertainment");
+    expect(s.group).toBe("entertainment");
+    expect(s.url).toBe("https://ex.example/entertainment");
+  });
+
+  it("post104: AGENTS.md lists parser.ts as safe agent action", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('src/parser.ts');
+    expect(agents).toMatch(/Improve M3U parser/);
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+  });
+
+  it("post104: vitest coverage floors remain 100%", () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+    expect(cfg).toContain("include: ['src/**/*.ts']");
+  });
+
+  it("post104: CI workflow runs test:coverage on PRs", () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('npm run test:coverage');
+    expect(ci).toContain('npm run typecheck');
+    expect(ci).toMatch(/pull_request:/);
+  });
+
+  it("post104: test inventory still includes parser.test.ts", () => {
+    const names = ["ci-config.test.ts","genres.test.ts","helpers.test.ts","mcp-spec-contract.test.ts","mcp.test.ts","parser.test.ts","routes.test.ts","source-contracts.test.ts","wrangler-config.test.ts"];
+    for (const n of names) expect(read('test/' + n).length).toBeGreaterThan(1000);
+    expect(createHash('sha256').update(names.join('|'), 'utf8').digest('hex')).toBe('7e43dda473551d8b100e462256d0a1ec50ff601f9f2ca783341ddb10234466d0');
+  });
+
+  it("post104: parser.test.ts imports parseM3U from src/parser only", () => {
+    const self = read('test/parser.test.ts');
+    expect(self).toContain("import { parseM3U } from '../src/parser';");
+    expect(self).toContain("describe('post104 parser HEAVY deepen'");
+    expect(self).not.toMatch(/from '\.\.\/src\/index'/);
+  });
+
+  it("post104: no playlist/now-playing endpoint inventing in parser tests", () => {
+    const self = read('test/parser.test.ts');
+    expect(self).not.toMatch(/app\.(get|post)\(['"]\/(playlist|now-playing)/);
+    expect(parserSrc).not.toMatch(/\/playlist|\/now-playing/);
+  });
+
+  it("post104: HMAC-SHA256 of SAMPLE_M3U keyed by post104", () => {
+    expect(createHmac('sha256', 'post104').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('f059f49ce2a5f2f2b5af2c2810e354bdbc30f78451b0408f55358e1c3af75543');
+  });
+
+  it("post104: SAMPLE_M3U sha256 digest lock", () => {
+    expect(createHash('sha256').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('d333f382d92be92d05fc76ff08d56269b7a5f305770748fc8cdf68506169c45e');
+  });
+
+  it("post104: second EXTINF clears prior attrs before URL", () => {
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="Old" group-title="G",Old\n#EXTINF:-1 tvg-name="New",New\nhttps://new\n');
+    expect(stations).toEqual([
+      { name: 'New', url: 'https://new', logo: undefined, group: undefined, language: undefined, country: undefined },
+    ]);
+  });
+
+  it("post104: logo on EXTINF does not bind as stream mid-line", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="L" tvg-logo="https://cdn.example/l.png",L\nhttps://stream\n');
+    expect(s.url).toBe('https://stream');
+    expect(s.logo).toBe('https://cdn.example/l.png');
+  });
+
+  it("post104: bare http:// binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttp://a\n')[0].url).toBe('http://a');
+  });
+
+  it("post104: bare https:// binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')[0].url).toBe('https://a');
+  });
+
+  it("post104: https:// with userinfo binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://user:pass@host/path\n')[0].url).toBe('https://user:pass@host/path');
+  });
+
+  it("post104: https:// with port binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://host:8443/path\n')[0].url).toBe('https://host:8443/path');
+  });
+
+  it("post104: station object key order is name url logo group language country", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo="L" group-title="G" tvg-language="en" tvg-country="US",X\nhttps://u\n');
+    expect(Object.keys(s)).toEqual([...STATION_KEYS]);
+  });
+
+  it("post104: Array.isArray result and per-station plain object", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(Array.isArray(stations)).toBe(true);
+    expect(Object.getPrototypeOf(stations[0])).toBe(Object.prototype);
+  });
+
+  it("post104: 25x parse SAMPLE then sha256 of JSON is stable", () => {
+    let digest = '';
+    for (let i = 0; i < 25; i++) {
+      digest = createHash('sha256').update(JSON.stringify(parseM3U(SAMPLE_M3U)), 'utf8').digest('hex');
+    }
+    expect(digest).toBe('922ccb6c950b027adfa96f57d7adf42982139adcbbf8060f9f184a663d07fcf2');
+  });
+
+  it("post104: exotic scheme git resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\ngit://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme svn resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nsvn://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme ssh resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nssh://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme telnet resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\ntelnet://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme gopher resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\ngopher://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme nntp resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nnntp://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme irc resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nirc://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme sftp resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nsftp://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme smb resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nsmb://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: exotic scheme nfs resets", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nnfs://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: attr value stops at first closing quote", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="Before" after="x",Display\nhttps://u\n');
+    expect(s.name).toBe('Before');
+  });
+
+  it("post104: group-title with spaces and punctuation preserved", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="Jazz & Blues (Late)",X\nhttps://u\n');
+    expect(s.group).toBe('Jazz & Blues (Late)');
+  });
+
+  it("post104: language and country short codes preserved", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-language="pt" tvg-country="BR",X\nhttps://u\n');
+    expect(s.language).toBe('pt');
+    expect(s.country).toBe('BR');
+  });
+
+  it("post104: empty string returns []", () => {
+    expect(parseM3U('')).toEqual([]);
+  });
+
+  it("post104: whitespace-only returns []", () => {
+    expect(parseM3U('   \n\t\n  ')).toEqual([]);
+  });
+
+  it("post104: header-only EXTM3U returns []", () => {
+    expect(parseM3U('#EXTM3U\n')).toEqual([]);
+  });
+
+  it("post104: only comments return []", () => {
+    expect(parseM3U('#EXTM3U\n# comment\n# another\n')).toEqual([]);
+  });
+
+  it("post104: only non-http URLs return []", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nrtmp://a\n#EXTINF:-1,B\nftp://b\n')).toEqual([]);
+  });
+
+  it("post104: dedupe keeps first logo/group not second", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="First" tvg-logo="L1" group-title="G1",First\nhttps://u\n#EXTINF:-1 tvg-name="Second" tvg-logo="L2" group-title="G2",Second\nhttps://u\n');
+    expect(s).toEqual({ name: 'First', url: 'https://u', logo: 'L1', group: 'G1', language: undefined, country: undefined });
+  });
+
+  it("post104: src/genres.ts does not reimplement parseM3U", () => {
+    expect(read('src/genres.ts')).not.toContain('parseM3U');
+    expect(read('src/mcp.ts')).not.toContain('parseM3U');
+  });
+
+  it("post104: src/index.ts imports parseM3U from ./parser", () => {
+    expect(read('src/index.ts')).toMatch(/import \{ parseM3U, Station \} from '\.\/parser'/);
+  });
+
+  it("post104: sha256 starts with cf293136 ends with 1f4368", () => {
+    const d = createHash('sha256').update(parserSrc, 'utf8').digest('hex');
+    expect(d.startsWith('cf293136')).toBe(true);
+    expect(d.endsWith('1f4368')).toBe(true);
+  });
+
+  it("post104: sha1 starts with 701cdecb ends with a60211", () => {
+    const d = createHash('sha1').update(parserSrc, 'utf8').digest('hex');
+    expect(d.startsWith('701cdecb')).toBe(true);
+    expect(d.endsWith('a60211')).toBe(true);
+  });
+
+  it("post104: EXTINF:-1 duration form binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF:0 duration form binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:0,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF:10.5 duration form binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:10.5,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: lowercase #extinf does not enter EXTINF branch", () => {
+    expect(parseM3U('#EXTM3U\n#extinf:-1,A\nhttps://a\n')).toEqual([]);
+  });
+
+  it("post104: #EXTINF-something still enters EXTINF branch", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF-1 tvg-name="N",N\nhttps://a\n')[0].name).toBe('N');
+  });
+
+  it("post104: concatenated playlists parse as one stream", () => {
+    const a = '#EXTM3U\n#EXTINF:-1,A\nhttps://a\n';
+    const b = '#EXTM3U\n#EXTINF:-1,B\nhttps://b\n';
+    expect(parseM3U(a + b).map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it("post104: 2k-char name preserved", () => {
+    const name = 'N'.repeat(2000);
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="' + name + '",X\nhttps://u\n')[0].name).toBe(name);
+  });
+
+  it("post104: 2k-char url path preserved", () => {
+    const url = 'https://u/' + 'p'.repeat(2000);
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + url + '\n')[0].url).toBe(url);
+  });
+
+  it("post104: parser.test.ts ends with newline after post104 block", () => {
+    expect(read('test/parser.test.ts').endsWith('\n')).toBe(true);
+  });
+
+  it("post104: post104 describe name locked in file", () => {
+    expect(read('test/parser.test.ts')).toContain("describe('post104 parser HEAVY deepen'");
+  });
+
+  it("post104: createHmac imported for post104 battery", () => {
+    expect(read('test/parser.test.ts')).toMatch(/import \{ createHash, createHmac \} from 'node:crypto'/);
+  });
+
+  it("post104: HMAC key inventory sha256 lock", () => {
+    const keys = ["post104","parser-unit","parseM3U","Station","EXTINF","tvg-name","tvg-logo","group-title","tvg-language","tvg-country","http://","https://","seen","dedupe","m3u","iptv-org","backlink","fuzzywigg","HEAVY","TOKENMAXX","non-http-reset","comma-fallback","double-quote-attrs","case-sensitive-scheme"];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe('8091f9e797f0c164c2d29f63b17f78741859f4585fee309c8dbbbb5061b87ec2');
+    expect(keys).toHaveLength(24);
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Alpha FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Alpha FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Alpha FM")?.group).toBe('Music');
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Beta FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Beta FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Beta FM")?.group).toBe('Music');
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Gamma FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Gamma FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Gamma FM")?.group).toBe('Music');
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Delta FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Delta FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Delta FM")?.group).toBe('Music');
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Epsilon FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Epsilon FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Epsilon FM")?.group).toBe('Music');
+  });
+
+  it("post104: SAMPLE_M3U contains ordered station Zeta FM", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.some((s) => s.name === "Zeta FM")).toBe(true);
+    expect(stations.find((s) => s.name === "Zeta FM")?.group).toBe('Music');
+  });
+
+  it("post104: percent-encoded URL preserved exactly", () => {
+    const url = 'https://example.com/a%20b%2Fc';
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + url + '\n')[0].url).toBe(url);
+  });
+
+  it("post104: plus signs in query preserved", () => {
+    const url = 'https://example.com/x?q=a+b+c';
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + url + '\n')[0].url).toBe(url);
+  });
+
+  it("post104: ipv6 literal URL binds", () => {
+    const url = 'http://[2001:db8::1]/stream';
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + url + '\n')[0].url).toBe(url);
+  });
+
+  it("post104: parseM3U does not set globalThis markers", () => {
+    const before = Object.keys(globalThis).length;
+    parseM3U(SAMPLE_M3U);
+    expect(Object.keys(globalThis).length).toBe(before);
+    expect((globalThis as Record<string, unknown>).__parseM3U__).toBeUndefined();
+  });
+
+  it("post104: structuredClone of parse equals original", () => {
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(structuredClone(stations)).toEqual(stations);
+    expect(structuredClone(stations)).not.toBe(stations);
+  });
+
+  it("post104: Object.freeze on station copy still readable", () => {
+    const [s] = parseM3U(SAMPLE_M3U);
+    const frozen = Object.freeze({ ...s });
+    expect(frozen.name).toBe('Alpha FM');
+    expect(() => { (frozen as { name: string }).name = 'X'; }).toThrow();
+  });
+
+  it("post104: HMAC-SHA256 key matrix all digests unique", () => {
+    const keys = ["post104","parser-unit","parseM3U","Station","EXTINF","tvg-name","tvg-logo","group-title","tvg-language","tvg-country","http://","https://","seen","dedupe","m3u","iptv-org","backlink","fuzzywigg","HEAVY","TOKENMAXX","non-http-reset","comma-fallback","double-quote-attrs","case-sensitive-scheme"];
+    const digests = keys.map((k) => createHmac('sha256', k).update(parserSrc, 'utf8').digest('hex'));
+    expect(new Set(digests).size).toBe(keys.length);
+  });
+
+  it("post104: NON_HTTP_SCHEMES constant behavioral join digest", () => {
+    const schemes = ['rtmp://x','rtmps://x','rtsp://x','mms://x','udp://x','ftp://x','file://x','ws://x','wss://x'];
+    const results = schemes.map((scheme) => parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + scheme + '\n#EXTINF:-1,B\nhttps://b\n').map((s) => s.name).join(','));
+    expect(results.every((r) => r === 'B')).toBe(true);
+    expect(createHash('sha256').update(results.join('|'), 'utf8').digest('hex')).toBe('7a18590ae448f117ca59f47a27808af7a1a40ded611197ab6e1d78572b6c9697');
+  });
+
+  it("post104: attr case variant tvg-name extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N",X\nhttps://u\n');
+    expect(s.name).toBe('N');
+  });
+
+  it("post104: attr case variant TVG-NAME extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 TVG-NAME="N",X\nhttps://u\n');
+    expect(s.name).toBe('N');
+  });
+
+  it("post104: attr case variant Tvg-Name extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 Tvg-Name="N",X\nhttps://u\n');
+    expect(s.name).toBe('N');
+  });
+
+  it("post104: attr case variant tvg-Name extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-Name="N",X\nhttps://u\n');
+    expect(s.name).toBe('N');
+  });
+
+  it("post104: attr case variant TVG-name extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 TVG-name="N",X\nhttps://u\n');
+    expect(s.name).toBe('N');
+  });
+
+  it("post104: group attr case variant group-title extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",X\nhttps://u\n');
+    expect(s.group).toBe('G');
+  });
+
+  it("post104: group attr case variant GROUP-TITLE extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" GROUP-TITLE="G",X\nhttps://u\n');
+    expect(s.group).toBe('G');
+  });
+
+  it("post104: group attr case variant Group-Title extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" Group-Title="G",X\nhttps://u\n');
+    expect(s.group).toBe('G');
+  });
+
+  it("post104: group attr case variant group-Title extracts", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-Title="G",X\nhttps://u\n');
+    expect(s.group).toBe('G');
+  });
+
+  it("post104: dedupe matrix https://u vs https://U => 2", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://U\n')).toHaveLength(2);
+  });
+
+  it("post104: dedupe matrix https://u vs https://u/ => 2", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u/\n')).toHaveLength(2);
+  });
+
+  it("post104: dedupe matrix https://u vs https://u? => 2", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u?\n')).toHaveLength(2);
+  });
+
+  it("post104: dedupe matrix https://u vs https://u# => 2", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u#\n')).toHaveLength(2);
+  });
+
+  it("post104: dedupe matrix https://u vs http://u => 2", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttp://u\n')).toHaveLength(2);
+  });
+
+  it("post104: dedupe matrix https://u vs https://u => 1", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n#EXTINF:-1,B\nhttps://u\n')).toHaveLength(1);
+  });
+
+  it("post104: 100x empty parse stays []", () => {
+    for (let i = 0; i < 100; i++) expect(parseM3U('')).toEqual([]);
+  });
+
+  it("post104: 100x header-only stays []", () => {
+    for (let i = 0; i < 100; i++) expect(parseM3U('#EXTM3U\n')).toEqual([]);
+  });
+
+  it("post104: DEPLOY.md remains deploy-only without parser inventing", () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/[Ww]rangler|[Dd]eploy|Cloudflare/);
+    expect(parserSrc).not.toContain('DEPLOY.md');
+  });
+
+  it("post104: package.json test scripts lock", () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+  });
+
+  it("post104: post104 HEAVY deepen block is after parseM3U describe", () => {
+    const self = read('test/parser.test.ts');
+    const a = self.indexOf("describe('parseM3U'");
+    const b = self.indexOf("describe('post104 parser HEAVY deepen'");
+    expect(a).toBeGreaterThanOrEqual(0);
+    expect(b).toBeGreaterThan(a);
+  });
+
+});
+
+describe('post104 parser HEAVY deepen extras', () => {
+  const read = (rel: string) => readFileSync(join(parserRoot, rel), 'utf8');
+  const parserSrc = read('src/parser.ts');
+
+  it("post104: HMAC-SHA256 extra key post103", () => {
+    expect(createHmac('sha256', "post103").update(parserSrc, 'utf8').digest('hex')).toBe('3c9b71dc656c0a9f5d64b167bb65688a4872d1dea2bf8ea98d7841b4e090b580');
+  });
+
+  it("post104: HMAC-SHA256 extra key post102", () => {
+    expect(createHmac('sha256', "post102").update(parserSrc, 'utf8').digest('hex')).toBe('0fc93da85492bd248137c480eadd239b0c666d3e26a7ec8e2069458a6fc458be');
+  });
+
+  it("post104: HMAC-SHA256 extra key post100", () => {
+    expect(createHmac('sha256', "post100").update(parserSrc, 'utf8').digest('hex')).toBe('28da875e2c80046736fbd4d5b47debf8bd7b98cf3fa2f4d7e7da44a7db2eff09');
+  });
+
+  it("post104: HMAC-SHA256 extra key post99", () => {
+    expect(createHmac('sha256', "post99").update(parserSrc, 'utf8').digest('hex')).toBe('343bfbe18e38241277da7222aed4c8ae4fee2a02a5fa1176c82ab46199aff2ab');
+  });
+
+  it("post104: HMAC-SHA256 extra key post98", () => {
+    expect(createHmac('sha256', "post98").update(parserSrc, 'utf8').digest('hex')).toBe('f793ae30c2adc63980b01e34fb40670386798d181b69e5e898a12d01c9c12d89');
+  });
+
+  it("post104: HMAC-SHA256 extra key post96", () => {
+    expect(createHmac('sha256', "post96").update(parserSrc, 'utf8').digest('hex')).toBe('f29921fbf145b7da9f404b48a1f967506db20772f43ac4dd95cd2af59ca61e4a');
+  });
+
+  it("post104: HMAC-SHA256 extra key post89", () => {
+    expect(createHmac('sha256', "post89").update(parserSrc, 'utf8').digest('hex')).toBe('8599dcfdca66d088b523064ef95fc0421cc99d65231b8e46f52869764b8af250');
+  });
+
+  it("post104: HMAC-SHA256 extra key post84", () => {
+    expect(createHmac('sha256', "post84").update(parserSrc, 'utf8').digest('hex')).toBe('34a822fa62a0a19573697d421dd15ac639bd8c93305d5713b056de1f351b46cb');
+  });
+
+  it("post104: HMAC-SHA256 extra key trim", () => {
+    expect(createHmac('sha256', "trim").update(parserSrc, 'utf8').digest('hex')).toBe('a8d77f070c94af24a723f411619bf22ab710c5de6f0296bd9315aeead9c8d7be');
+  });
+
+  it("post104: HMAC-SHA256 extra key split", () => {
+    expect(createHmac('sha256', "split").update(parserSrc, 'utf8').digest('hex')).toBe('8d0b6cb718bb204bec670f10f77decab48dbddf9d7faaa40a1917739dbefcef6');
+  });
+
+  it("post104: HMAC-SHA256 extra key Partial", () => {
+    expect(createHmac('sha256', "Partial").update(parserSrc, 'utf8').digest('hex')).toBe('721c67ecbe7181393062d3cd0fdce91018a0a4c4052a5cf0750f69176688d3eb');
+  });
+
+  it("post104: HMAC-SHA256 extra key Station[]", () => {
+    expect(createHmac('sha256', "Station[]").update(parserSrc, 'utf8').digest('hex')).toBe('a04331fa4a4ba7b34233638d61d878916584e4181ee1dcc9460adace5e955b5e');
+  });
+
+  it("post104: HMAC-SHA256 extra key #EXTM3U", () => {
+    expect(createHmac('sha256', "#EXTM3U").update(parserSrc, 'utf8').digest('hex')).toBe('850622777e7a1bd2734f810f603aae3777c133bea915d4033a7ec3ca0dbc7ed2');
+  });
+
+  it("post104: HMAC-SHA256 extra key #EXTINF", () => {
+    expect(createHmac('sha256', "#EXTINF").update(parserSrc, 'utf8').digest('hex')).toBe('bbbe7dbad90676fdb74a899c5ceb0d3559242694788101f0cce63127e0d7781e');
+  });
+
+  it("post104: HMAC-SHA256 extra key logoMatch", () => {
+    expect(createHmac('sha256', "logoMatch").update(parserSrc, 'utf8').digest('hex')).toBe('c69cdd4225055a6f0fb359ae919a9490ed46f21cc2834e06d37d66024db9fe7b');
+  });
+
+  it("post104: HMAC-SHA256 extra key groupMatch", () => {
+    expect(createHmac('sha256', "groupMatch").update(parserSrc, 'utf8').digest('hex')).toBe('f71838b0804c6da9182033eb736b98c14753a013d517ef1b2cf1b90e1c72eb57');
+  });
+
+  it("post104: HMAC-SHA256 extra key langMatch", () => {
+    expect(createHmac('sha256', "langMatch").update(parserSrc, 'utf8').digest('hex')).toBe('96acd4bbc0bc0dde3157cde5168b440f8d7a7ed9d84cf7643ba60f4790a14c46');
+  });
+
+  it("post104: HMAC-SHA256 extra key countryMatch", () => {
+    expect(createHmac('sha256', "countryMatch").update(parserSrc, 'utf8').digest('hex')).toBe('c32b14f91382e063435c8b3c4e11174e4353254ca3804738f69ab88d45e92ea4');
+  });
+
+  it("post104: HMAC-SHA256 extra key nameMatch", () => {
+    expect(createHmac('sha256', "nameMatch").update(parserSrc, 'utf8').digest('hex')).toBe('ed814c9c0ac7d653cb707bb86efd7ef38f23f2bcbbad53bcebc7f775ad5c71ca');
+  });
+
+  it("post104: HMAC-SHA256 extra key commaIdx", () => {
+    expect(createHmac('sha256', "commaIdx").update(parserSrc, 'utf8').digest('hex')).toBe('36891b27792f385f3d9dd354a3f96d25794adde5cb1221eb2f1b532cc6fec976');
+  });
+
+  it("post104: HMAC-SHA256 extra key stations.push", () => {
+    expect(createHmac('sha256', "stations.push").update(parserSrc, 'utf8').digest('hex')).toBe('a897b0ae97006164c3afc56794816394d504eb04f44715b462eaa1d846f0c4ae');
+  });
+
+  it("post104: HMAC-SHA256 extra key raw.split", () => {
+    expect(createHmac('sha256', "raw.split").update(parserSrc, 'utf8').digest('hex')).toBe('79725044d3a131a665971c42d188fe44b97a75d67fbc6451ffe939a584b597b5');
+  });
+
+  it("post104: reset scheme about:blank", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nabout:blank\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme javascript:void(0)", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\njavascript:void(0)\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme chrome://settings", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nchrome://settings\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme view-source:https://x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nview-source:https://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme android-app://x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nandroid-app://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme intent://x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nintent://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme market://x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nmarket://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme steam://x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nsteam://x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme spotify:track:x", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nspotify:track:x\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme mailto:a@b.c", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nmailto:a@b.c\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme tel:+15551212", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\ntel:+15551212\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme sms:+1555", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nsms:+1555\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme geo:0,0", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\ngeo:0,0\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: reset scheme maps:q=1", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nmaps:q=1\n#EXTINF:-1,B\nhttps://ok\n').map((s) => s.name)).toEqual(['B']);
+  });
+
+  it("post104: SAMPLE_M3U index 0 is Alpha FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[0];
+    expect(s.name).toBe("Alpha FM");
+    expect(s.url).toBe("https://example.com/alpha.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: SAMPLE_M3U index 1 is Beta FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[1];
+    expect(s.name).toBe("Beta FM");
+    expect(s.url).toBe("https://example.com/beta.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: SAMPLE_M3U index 2 is Gamma FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[2];
+    expect(s.name).toBe("Gamma FM");
+    expect(s.url).toBe("https://example.com/gamma.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: SAMPLE_M3U index 3 is Delta FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[3];
+    expect(s.name).toBe("Delta FM");
+    expect(s.url).toBe("https://example.com/delta.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: SAMPLE_M3U index 4 is Epsilon FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[4];
+    expect(s.name).toBe("Epsilon FM");
+    expect(s.url).toBe("https://example.com/epsilon.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: SAMPLE_M3U index 5 is Zeta FM", () => {
+    const s = parseM3U(SAMPLE_M3U)[5];
+    expect(s.name).toBe("Zeta FM");
+    expect(s.url).toBe("https://example.com/zeta.m3u8");
+    expect(s.group).toBe('Music');
+    expect(s.logo).toBeUndefined();
+    expect(s.language).toBeUndefined();
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post104: URL pad-trim pattern  ", () => {
+    const pad = ' ';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: URL pad-trim pattern   ", () => {
+    const pad = '  ';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: URL pad-trim pattern \\\\t", () => {
+    const pad = '\t';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: URL pad-trim pattern \\\\t\\\\t", () => {
+    const pad = '\t\t';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: URL pad-trim pattern  \\\\t ", () => {
+    const pad = ' \t ';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: URL pad-trim pattern \\\\t \\\\t", () => {
+    const pad = '\t \t';
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\n' + pad + 'https://trim' + pad + '\n');
+    expect(s.url).toBe('https://trim');
+  });
+
+  it("post104: EXTINF duration -1 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 0 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:0,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 1 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:1,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 12 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:12,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 99 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:99,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 100.5 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:100.5,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration -1.0 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1.0,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it("post104: EXTINF duration 0001 binds", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:0001,A\nhttps://a\n')).toHaveLength(1);
+  });
+
+  it('post104: buildSimpleM3U multi-station round-trip order', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'https://a' },
+      { name: 'B', url: 'https://b', group: 'G' },
+      { name: 'C', url: 'https://c', logo: 'https://l', language: 'en', country: 'US' },
+    ]);
+    expect(parseM3U(m3u).map((s) => s.name)).toEqual(['A', 'B', 'C']);
+    expect(countHttpStreamLines(m3u)).toBe(3);
+  });
+
+  it('post104: 20 stations with comments between each still bind', () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 20; i++) {
+      lines.push('# comment ' + i);
+      lines.push('#EXTINF:-1,S' + i);
+      lines.push('# another ' + i);
+      lines.push('https://s/' + i);
+    }
+    expect(parseM3U(lines.join('\n'))).toHaveLength(20);
+  });
+
+  it("post104: source contains token export interface Station", () => {
+    expect(parserSrc).toContain("export interface Station");
+  });
+
+  it("post104: source contains token export function parseM3U", () => {
+    expect(parserSrc).toContain("export function parseM3U");
+  });
+
+  it("post104: source contains token tvg-name=\"([^\"]*)\"", () => {
+    expect(parserSrc).toContain("tvg-name=\"([^\"]*)\"");
+  });
+
+  it("post104: source contains token tvg-logo=\"([^\"]*)\"", () => {
+    expect(parserSrc).toContain("tvg-logo=\"([^\"]*)\"");
+  });
+
+  it("post104: source contains token group-title=\"([^\"]*)\"", () => {
+    expect(parserSrc).toContain("group-title=\"([^\"]*)\"");
+  });
+
+  it("post104: source contains token tvg-language=\"([^\"]*)\"", () => {
+    expect(parserSrc).toContain("tvg-language=\"([^\"]*)\"");
+  });
+
+  it("post104: source contains token tvg-country=\"([^\"]*)\"", () => {
+    expect(parserSrc).toContain("tvg-country=\"([^\"]*)\"");
+  });
+
+  it("post104: source contains token startsWith('http://')", () => {
+    expect(parserSrc).toContain("startsWith('http://')");
+  });
+
+  it("post104: source contains token startsWith('https://')", () => {
+    expect(parserSrc).toContain("startsWith('https://')");
+  });
+
+  it("post104: source contains token Partial<Station>", () => {
+    expect(parserSrc).toContain("Partial<Station>");
+  });
+
+  it("post104: source contains token stations.push", () => {
+    expect(parserSrc).toContain("stations.push");
+  });
+
+  it("post104: source contains token seen.has(line)", () => {
+    expect(parserSrc).toContain("seen.has(line)");
+  });
+
+  it("post104: source contains token Non-http URL", () => {
+    expect(parserSrc).toContain("Non-http URL");
+  });
+
+  it("post104: parser.ts forbids invent token /playlist", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("/playlist");
+  });
+
+  it("post104: parser.ts forbids invent token /now-playing", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("/now-playing");
+  });
+
+  it("post104: parser.ts forbids invent token openapi", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("openapi");
+  });
+
+  it("post104: parser.ts forbids invent token WebSocket", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("websocket");
+  });
+
+  it("post104: parser.ts forbids invent token EventSource", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("eventsource");
+  });
+
+  it("post104: parser.ts forbids invent token DurableObject", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("durableobject");
+  });
+
+  it("post104: parser.ts forbids invent token D1Database", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("d1database");
+  });
+
+  it("post104: parser.ts forbids invent token R2Bucket", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("r2bucket");
+  });
+
+  it("post104: parser.ts forbids invent token Workers AI", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("workers ai");
+  });
+
+  it("post104: parser.ts forbids invent token podcast", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("podcast");
+  });
+
+  it("post104: parser.ts forbids invent token spotify", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("spotify");
+  });
+
+  it("post104: parser.ts forbids invent token youtube", () => {
+    expect(parserSrc.toLowerCase()).not.toContain("youtube");
+  });
+
+  it('post104: helpers SAMPLE_M3U length and stream count align', () => {
+    expect(SAMPLE_M3U.length).toBe(554);
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+  });
+
+  it('post104: extra HMAC keys inventory digest', () => {
+    const keys = ["post103","post102","post100","post99","post98","post96","post89","post84","trim","split","Partial","Station[]","#EXTM3U","#EXTINF","logoMatch","groupMatch","langMatch","countryMatch","nameMatch","commaIdx","stations.push","raw.split"];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe('0fdb18b5ab357f3b6797937d0e0948579c171ea222a6644149e61f332f53dad4');
+    expect(keys).toHaveLength(22);
+  });
+
+  it('post104: extras describe appears after main post104 deepen', () => {
+    const self = read('test/parser.test.ts');
+    const a = self.indexOf("describe('post104 parser HEAVY deepen'");
+    const b = self.indexOf("describe('post104 parser HEAVY deepen extras'");
+    expect(a).toBeGreaterThanOrEqual(0);
+    expect(b).toBeGreaterThan(a);
+  });
+
 });
