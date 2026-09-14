@@ -37836,10 +37836,9 @@ describe('post277 helpers HEAVY deepen (after #277 tip leftover / helpers-source
 
   it('post277: inventory — helpers leftover after tip #277 (beyond #274 helpers+source; tip #277 genres+mcp merged; tip #273 wrangler+ci merged; tip #276 media-parser merged; helpers-source-only / not parser-routes / not genres invent)', () => {
     expect(read('test/helpers.test.ts')).toContain("describe('post277 helpers HEAVY deepen");
-    expect(read('test/helpers.test.ts')).toContain("describe('post268 helpers HEAVY deepen");
-    expect(read('test/source-contracts.test.ts')).toContain("describe('post268 source-contracts HEAVY deepen");
-    expect(read('test/genres.test.ts')).toContain("describe('post268 genres HEAVY deepen");
-    
+    expect(read('test/helpers.test.ts')).toContain(['describe(', "'post268 helpers HEAVY deepen"].join(''));
+    expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post268 source-contracts HEAVY deepen"].join(''));
+    expect(read('test/genres.test.ts')).toContain(['describe(', "'post268 genres HEAVY deepen"].join(''));
     expect(read('test/helpers.test.ts')).toContain('helpers-source-only');
     expect(read('test/helpers.test.ts')).toContain('unsaturated-after-277');
     expect(read('test/helpers.test.ts')).toContain('beyond-post277');
