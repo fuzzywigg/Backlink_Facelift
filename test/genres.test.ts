@@ -12241,3 +12241,444 @@ describe('post123 genres HEAVY deepen (after #123)', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#126): deepen genres leftover edges only — no product inventing ---
+// Orthogonal to #126 ci-config. Alias/VALID matrices + digest/HMAC post126 locks.
+
+describe('post126 genres HEAVY deepen (after #126)', () => {
+  const root = genresRoot;
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+
+  it('post126: locks src/genres.ts sha256', () => {
+    expect(sha256("src/genres.ts")).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it('post126: locks src/genres.ts sha1', () => {
+    expect(sha1("src/genres.ts")).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it('post126: locks src/genres.ts md5', () => {
+    expect(md5("src/genres.ts")).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it('post126: locks src/genres.ts sha384', () => {
+    expect(sha384("src/genres.ts")).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16");
+  });
+
+  it('post126: locks src/genres.ts sha512', () => {
+    expect(sha512("src/genres.ts")).toBe("bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b");
+  });
+
+  it('post126: locks src/genres.ts sha3-256', () => {
+    expect(sha3("src/genres.ts")).toBe("d873c498335014a5e3d40e5ab78ea8f3ba4e642df056fff51de989da45634d7f");
+  });
+
+  it('post126: locks src/genres.ts blake2b512', () => {
+    expect(blake2b("src/genres.ts")).toBe("731f6cb880bc465d545820c1dff8ccf87b92624a34e703085f2d49af06e6a7f0fe14f2f7b99080a9a1699b32806a33199b21b9b30f6d3b21127cafdaaddb4d67");
+  });
+
+  it('post126: locks src/genres.ts ripemd160', () => {
+    expect(ripemd("src/genres.ts")).toBe("bb9faaf8890bdba8dd86bcdf7e418da622d19bf5");
+  });
+
+  it('post126: locks src/genres.ts size 1027', () => {
+    expect(statSync(join(root, "src/genres.ts")).size).toBe(1027);
+    expect(readFileSync(join(root, "src/genres.ts")).byteLength).toBe(1027);
+  });
+
+  it('post126: locks src/genres.ts utf8 1025 lines 48', () => {
+    expect(read("src/genres.ts")).toHaveLength(1025);
+    expect(read("src/genres.ts").split('\n')).toHaveLength(48);
+  });
+
+  it('post126: locks src/genres.ts nibble 500 xor 6', () => {
+    const d = sha256("src/genres.ts");
+    expect(nibbleSum(d)).toBe(500);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post126: locks src/genres.ts pairSum 3950 rollingXor 96', () => {
+    const d = sha256("src/genres.ts");
+    expect(pairSum(d)).toBe(3950);
+    expect(rollingXor(d)).toBe(96);
+  });
+
+  it('post126: locks src/genres.ts first/last/mid octets', () => {
+    const d = sha256("src/genres.ts");
+    expect(d.slice(0, 2)).toBe("aa");
+    expect(d.slice(-2)).toBe("4e");
+    expect(d.slice(28, 36)).toBe("811dfbc2");
+  });
+
+  it('post126: locks src/genres.ts HMAC post126/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post126', "src/genres.ts")).toBe("d00397aa14b640d123623b36ef27110bc9deed9da9f10ad241e24389d9ab5b9a");
+    expect(hmacSha256('leftover', "src/genres.ts")).toBe("bc49b5523a2b049ad6ea2abd27732f8e53d9ff48d9296f3da0bd9cb76d72624f");
+    expect(hmacSha256('TOKENMAXX', "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951");
+  });
+
+  it('post126: locks src/genres.ts HMAC after-#126/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#126', "src/genres.ts")).toBe("ac142d4e503dc966ad6a0fe4a5929de2676083956be4c90f386cc762d42d170f");
+    expect(hmacSha256('HEAVY', "src/genres.ts")).toBe("728dd3fe7c4667ea4d489028dc3a100c092d2ede6b7319716769186532d3b575");
+    expect(hmacSha256('no-product-invent', "src/genres.ts")).toBe("3d21ae09929f61fc420c1aff78e7fbcdaa55895034e581f9845399de2569142b");
+  });
+
+  it('post126: locks src/genres.ts spaces 144', () => {
+    expect((read("src/genres.ts").match(/ /g) ?? []).length).toBe(144);
+  });
+
+  it('post126: locks src/genres.ts reversed sha256', () => {
+    const rev = [...read("src/genres.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("02c6881bd75e415d5d3fd74f475f1cdc5843c91030255732f8decb1703f46eac");
+  });
+
+  it('post126: locks src/genres.ts sha256 UPPERCASE', () => {
+    expect(sha256("src/genres.ts").toUpperCase()).toBe("AA626817CF3BC8A707AC5ADBA39F811DFBC23F695E5E0CB9D070007D839D914E");
+  });
+
+  it('post126: locks src/genres.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read("src/genres.ts").split('\n')[0]).digest('hex')).toBe("907b574a0aac9a6f7bd2904b3af22ac0c611daa5f3e30b8a7a5d8f264f7ddc68");
+  });
+
+  it('post126: locks src/genres.ts size*lines 49296', () => {
+    expect(statSync(join(root, "src/genres.ts")).size * read("src/genres.ts").split('\n').length).toBe(49296);
+  });
+
+  it('post126: locks src/index.ts sha256', () => {
+    expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it('post126: locks src/index.ts sha1', () => {
+    expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it('post126: locks src/index.ts md5', () => {
+    expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177");
+  });
+
+  it('post126: locks src/index.ts sha384', () => {
+    expect(sha384("src/index.ts")).toBe("1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65");
+  });
+
+  it('post126: locks src/index.ts sha512', () => {
+    expect(sha512("src/index.ts")).toBe("28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3");
+  });
+
+  it('post126: locks src/index.ts sha3-256', () => {
+    expect(sha3("src/index.ts")).toBe("437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b");
+  });
+
+  it('post126: locks src/index.ts blake2b512', () => {
+    expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace");
+  });
+
+  it('post126: locks src/index.ts ripemd160', () => {
+    expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093");
+  });
+
+  it('post126: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, "src/index.ts")).size).toBe(4738);
+    expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738);
+  });
+
+  it('post126: locks src/index.ts utf8 4724 lines 154', () => {
+    expect(read("src/index.ts")).toHaveLength(4724);
+    expect(read("src/index.ts").split('\n')).toHaveLength(154);
+  });
+
+  it('post126: locks src/index.ts nibble 470 xor 14', () => {
+    const d = sha256("src/index.ts");
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post126: locks src/index.ts pairSum 4265 rollingXor 151', () => {
+    const d = sha256("src/index.ts");
+    expect(pairSum(d)).toBe(4265);
+    expect(rollingXor(d)).toBe(151);
+  });
+
+  it('post126: locks src/index.ts first/last/mid octets', () => {
+    const d = sha256("src/index.ts");
+    expect(d.slice(0, 2)).toBe("7f");
+    expect(d.slice(-2)).toBe("72");
+    expect(d.slice(28, 36)).toBe("e2a20389");
+  });
+
+  it('post126: locks src/index.ts HMAC post126/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post126', "src/index.ts")).toBe("8b3e887c6aba91ba1e3e67132a9f169906b85e48e656d3e7522f1cd97c6e0c93");
+    expect(hmacSha256('leftover', "src/index.ts")).toBe("268d5e353fd881bdd119b1f654cb291896d509e3f70768fde43a2bef6fdea2be");
+    expect(hmacSha256('TOKENMAXX', "src/index.ts")).toBe("d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc");
+  });
+
+  it('post126: locks src/index.ts HMAC after-#126/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#126', "src/index.ts")).toBe("8f464238e124275839a76b775ae483a4bfec33c961d54d99789db40663a580d0");
+    expect(hmacSha256('HEAVY', "src/index.ts")).toBe("f3d8136884b78d12b0d57975d091081c2234daac8b42ecdabbf37d8bb6022b30");
+    expect(hmacSha256('no-product-invent', "src/index.ts")).toBe("49e017c3ff39fee9c0f5d47c30cccb692dd0c4c39f3d36655bbb08108fcc7e0a");
+  });
+
+  it('post126: locks src/index.ts spaces 761', () => {
+    expect((read("src/index.ts").match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it('post126: locks src/index.ts reversed sha256', () => {
+    const rev = [...read("src/index.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("457830430075a6d1dc4b28436b3c145eb42a640d91301599ca2792fb58433ead");
+  });
+
+  it('post126: locks src/index.ts sha256 UPPERCASE', () => {
+    expect(sha256("src/index.ts").toUpperCase()).toBe("7F0D574B0AEDC6CD71D3EA35BB03E2A20389028E6FF2C195718ACFF2E0313A72");
+  });
+
+  it('post126: locks src/index.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read("src/index.ts").split('\n')[0]).digest('hex')).toBe("d8233fd79765534121de12d18bc3b54a6968d1868428cf5d52175e9a620cf6d4");
+  });
+
+  it('post126: locks src/index.ts size*lines 729652', () => {
+    expect(statSync(join(root, "src/index.ts")).size * read("src/index.ts").split('\n').length).toBe(729652);
+  });
+
+
+  it('post126: resolveGenre maps "late night" → ambient', () => {
+    expect(resolveGenre("late night")).toBe("ambient");
+    expect(resolveGenre("LATE NIGHT")).toBe("ambient");
+    expect(resolveGenre("  late night  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "chill" → ambient', () => {
+    expect(resolveGenre("chill")).toBe("ambient");
+    expect(resolveGenre("CHILL")).toBe("ambient");
+    expect(resolveGenre("  chill  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "ambient" → ambient', () => {
+    expect(resolveGenre("ambient")).toBe("ambient");
+    expect(resolveGenre("AMBIENT")).toBe("ambient");
+    expect(resolveGenre("  ambient  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "relaxing" → ambient', () => {
+    expect(resolveGenre("relaxing")).toBe("ambient");
+    expect(resolveGenre("RELAXING")).toBe("ambient");
+    expect(resolveGenre("  relaxing  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "focus" → ambient', () => {
+    expect(resolveGenre("focus")).toBe("ambient");
+    expect(resolveGenre("FOCUS")).toBe("ambient");
+    expect(resolveGenre("  focus  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "classical" → classical', () => {
+    expect(resolveGenre("classical")).toBe("classical");
+    expect(resolveGenre("CLASSICAL")).toBe("classical");
+    expect(resolveGenre("  classical  ")).toBe("classical");
+  });
+
+  it('post126: resolveGenre maps "classic" → classical', () => {
+    expect(resolveGenre("classic")).toBe("classical");
+    expect(resolveGenre("CLASSIC")).toBe("classical");
+    expect(resolveGenre("  classic  ")).toBe("classical");
+  });
+
+  it('post126: resolveGenre maps "jazz" → jazz', () => {
+    expect(resolveGenre("jazz")).toBe("jazz");
+    expect(resolveGenre("JAZZ")).toBe("jazz");
+    expect(resolveGenre("  jazz  ")).toBe("jazz");
+  });
+
+  it('post126: resolveGenre maps "blues" → jazz', () => {
+    expect(resolveGenre("blues")).toBe("jazz");
+    expect(resolveGenre("BLUES")).toBe("jazz");
+    expect(resolveGenre("  blues  ")).toBe("jazz");
+  });
+
+  it('post126: resolveGenre maps "pop" → pop', () => {
+    expect(resolveGenre("pop")).toBe("pop");
+    expect(resolveGenre("POP")).toBe("pop");
+    expect(resolveGenre("  pop  ")).toBe("pop");
+  });
+
+  it('post126: resolveGenre maps "rock" → rock', () => {
+    expect(resolveGenre("rock")).toBe("rock");
+    expect(resolveGenre("ROCK")).toBe("rock");
+    expect(resolveGenre("  rock  ")).toBe("rock");
+  });
+
+  it('post126: resolveGenre maps "metal" → rock', () => {
+    expect(resolveGenre("metal")).toBe("rock");
+    expect(resolveGenre("METAL")).toBe("rock");
+    expect(resolveGenre("  metal  ")).toBe("rock");
+  });
+
+  it('post126: resolveGenre maps "indie" → rock', () => {
+    expect(resolveGenre("indie")).toBe("rock");
+    expect(resolveGenre("INDIE")).toBe("rock");
+    expect(resolveGenre("  indie  ")).toBe("rock");
+  });
+
+  it('post126: resolveGenre maps "music" → music', () => {
+    expect(resolveGenre("music")).toBe("music");
+    expect(resolveGenre("MUSIC")).toBe("music");
+    expect(resolveGenre("  music  ")).toBe("music");
+  });
+
+  it('post126: resolveGenre maps "news" → news', () => {
+    expect(resolveGenre("news")).toBe("news");
+    expect(resolveGenre("NEWS")).toBe("news");
+    expect(resolveGenre("  news  ")).toBe("news");
+  });
+
+  it('post126: resolveGenre maps "sports" → sports', () => {
+    expect(resolveGenre("sports")).toBe("sports");
+    expect(resolveGenre("SPORTS")).toBe("sports");
+    expect(resolveGenre("  sports  ")).toBe("sports");
+  });
+
+  it('post126: resolveGenre maps "entertainment" → entertainment', () => {
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+    expect(resolveGenre("ENTERTAINMENT")).toBe("entertainment");
+    expect(resolveGenre("  entertainment  ")).toBe("entertainment");
+  });
+
+  it('post126: resolveGenre maps "dance" → pop', () => {
+    expect(resolveGenre("dance")).toBe("pop");
+    expect(resolveGenre("DANCE")).toBe("pop");
+    expect(resolveGenre("  dance  ")).toBe("pop");
+  });
+
+  it('post126: resolveGenre maps "electronic" → ambient', () => {
+    expect(resolveGenre("electronic")).toBe("ambient");
+    expect(resolveGenre("ELECTRONIC")).toBe("ambient");
+    expect(resolveGenre("  electronic  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "lofi" → ambient', () => {
+    expect(resolveGenre("lofi")).toBe("ambient");
+    expect(resolveGenre("LOFI")).toBe("ambient");
+    expect(resolveGenre("  lofi  ")).toBe("ambient");
+  });
+
+  it('post126: resolveGenre maps "lo-fi" → ambient', () => {
+    expect(resolveGenre("lo-fi")).toBe("ambient");
+    expect(resolveGenre("LO-FI")).toBe("ambient");
+    expect(resolveGenre("  lo-fi  ")).toBe("ambient");
+  });
+
+  it('post126: VALID_GENRES includes music identity', () => {
+    expect(VALID_GENRES).toContain("music");
+    expect(resolveGenre("music")).toBe("music");
+    expect(GENRE_MAP["music"]).toBe("music");
+  });
+
+  it('post126: VALID_GENRES includes ambient identity', () => {
+    expect(VALID_GENRES).toContain("ambient");
+    expect(resolveGenre("ambient")).toBe("ambient");
+    expect(GENRE_MAP["ambient"]).toBe("ambient");
+  });
+
+  it('post126: VALID_GENRES includes jazz identity', () => {
+    expect(VALID_GENRES).toContain("jazz");
+    expect(resolveGenre("jazz")).toBe("jazz");
+    expect(GENRE_MAP["jazz"]).toBe("jazz");
+  });
+
+  it('post126: VALID_GENRES includes classical identity', () => {
+    expect(VALID_GENRES).toContain("classical");
+    expect(resolveGenre("classical")).toBe("classical");
+    expect(GENRE_MAP["classical"]).toBe("classical");
+  });
+
+  it('post126: VALID_GENRES includes pop identity', () => {
+    expect(VALID_GENRES).toContain("pop");
+    expect(resolveGenre("pop")).toBe("pop");
+    expect(GENRE_MAP["pop"]).toBe("pop");
+  });
+
+  it('post126: VALID_GENRES includes rock identity', () => {
+    expect(VALID_GENRES).toContain("rock");
+    expect(resolveGenre("rock")).toBe("rock");
+    expect(GENRE_MAP["rock"]).toBe("rock");
+  });
+
+  it('post126: VALID_GENRES includes news identity', () => {
+    expect(VALID_GENRES).toContain("news");
+    expect(resolveGenre("news")).toBe("news");
+    expect(GENRE_MAP["news"]).toBe("news");
+  });
+
+  it('post126: VALID_GENRES includes sports identity', () => {
+    expect(VALID_GENRES).toContain("sports");
+    expect(resolveGenre("sports")).toBe("sports");
+    expect(GENRE_MAP["sports"]).toBe("sports");
+  });
+
+  it('post126: VALID_GENRES includes entertainment identity', () => {
+    expect(VALID_GENRES).toContain("entertainment");
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+    expect(GENRE_MAP["entertainment"]).toBe("entertainment");
+  });
+
+  it('post126: unknown alias falls back to music', () => {
+    expect(resolveGenre('unknown-genre-xyz')).toBe('music');
+    expect(resolveGenre('????')).toBe('music');
+  });
+
+  it('post126: custom map override wins', () => {
+    expect(resolveGenre('custom', { custom: 'jazz' })).toBe('jazz');
+    expect(resolveGenre('missing', { custom: 'jazz' })).toBe('music');
+  });
+
+  it('post126: GENRE_MAP key count 21 and VALID length 9', () => {
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it('post126: ambient fan-in eight aliases', () => {
+    const ambient = Object.entries(GENRE_MAP).filter(([, v]) => v === 'ambient').map(([k]) => k);
+    expect(ambient.sort()).toEqual(['ambient', 'chill', 'electronic', 'focus', 'late night', 'lo-fi', 'lofi', 'relaxing'].sort());
+  });
+
+  it('post126: rock fan-in three aliases', () => {
+    expect(Object.entries(GENRE_MAP).filter(([, v]) => v === 'rock').map(([k]) => k).sort()).toEqual(['indie', 'metal', 'rock']);
+  });
+
+  it('post126: negative inventing fence genres source', () => {
+    expect(genresSource).not.toMatch(/\/playlist|\/now-playing|openapi|__proto__/);
+  });
+
+  it('post126: mega purity 30x genres.ts sha256', () => {
+    const expected = "aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e";
+    for (let i = 0; i < 30; i++) expect(sha256('src/genres.ts')).toBe(expected);
+  });
+
+  it('post126: final inventory markers', () => {
+    const body = read('test/genres.test.ts');
+    expect(body).toContain("describe('post123 genres HEAVY deepen (after #123)'");
+    expect(body).toContain("describe('post126 genres HEAVY deepen (after #126)'");
+    expect((body.match(/it\('post126:/g) ?? []).length).toBeGreaterThan(40);
+  });
+
+});

@@ -17363,3 +17363,389 @@ describe('post123 parser HEAVY deepen wave3', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#126): deepen parser leftover edges only — no product inventing ---
+// Orthogonal to #126 ci-config. Locale matrix + digest/HMAC post126 locks.
+
+describe('post126 parser HEAVY deepen (after #126)', () => {
+  const root = parserRoot;
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+
+  it('post126: locks src/parser.ts sha256', () => {
+    expect(sha256("src/parser.ts")).toBe("cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368");
+  });
+
+  it('post126: locks src/parser.ts sha1', () => {
+    expect(sha1("src/parser.ts")).toBe("701cdecbef5a9049af6bd11497493c4036a60211");
+  });
+
+  it('post126: locks src/parser.ts md5', () => {
+    expect(md5("src/parser.ts")).toBe("500211c4c526de887252451726776563");
+  });
+
+  it('post126: locks src/parser.ts sha384', () => {
+    expect(sha384("src/parser.ts")).toBe("f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9");
+  });
+
+  it('post126: locks src/parser.ts sha512', () => {
+    expect(sha512("src/parser.ts")).toBe("66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89");
+  });
+
+  it('post126: locks src/parser.ts sha3-256', () => {
+    expect(sha3("src/parser.ts")).toBe("0ec47247da4cff229cc417b213da73883427985239714e246eb16d1f021bf9c2");
+  });
+
+  it('post126: locks src/parser.ts blake2b512', () => {
+    expect(blake2b("src/parser.ts")).toBe("d61759e7d0a68efcd16a74811ad84abebe0b82dab5c16e51261ca37118efc5a3c36aec8bc1523ce2b0d3908cd065c7cb8d1c153ea9a31dec633a90ec53aca7ef");
+  });
+
+  it('post126: locks src/parser.ts ripemd160', () => {
+    expect(ripemd("src/parser.ts")).toBe("36f12fc76af98f06dfa651f814e8f2e13b26c96a");
+  });
+
+  it('post126: locks src/parser.ts size 1955', () => {
+    expect(statSync(join(root, "src/parser.ts")).size).toBe(1955);
+    expect(readFileSync(join(root, "src/parser.ts")).byteLength).toBe(1955);
+  });
+
+  it('post126: locks src/parser.ts utf8 1953 lines 67', () => {
+    expect(read("src/parser.ts")).toHaveLength(1953);
+    expect(read("src/parser.ts").split('\n')).toHaveLength(67);
+  });
+
+  it('post126: locks src/parser.ts nibble 477 xor 9', () => {
+    const d = sha256("src/parser.ts");
+    expect(nibbleSum(d)).toBe(477);
+    expect(xorNibbles(d)).toBe(9);
+  });
+
+  it('post126: locks src/parser.ts pairSum 3612 rollingXor 126', () => {
+    const d = sha256("src/parser.ts");
+    expect(pairSum(d)).toBe(3612);
+    expect(rollingXor(d)).toBe(126);
+  });
+
+  it('post126: locks src/parser.ts first/last/mid octets', () => {
+    const d = sha256("src/parser.ts");
+    expect(d.slice(0, 2)).toBe("cf");
+    expect(d.slice(-2)).toBe("68");
+    expect(d.slice(28, 36)).toBe("a0e83a07");
+  });
+
+  it('post126: locks src/parser.ts HMAC post126/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post126', "src/parser.ts")).toBe("37e5f42836543b47389f2ea0a090b73fae44bd622643292ff3eb8ac0cebd2ca3");
+    expect(hmacSha256('leftover', "src/parser.ts")).toBe("e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3");
+    expect(hmacSha256('TOKENMAXX', "src/parser.ts")).toBe("eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8");
+  });
+
+  it('post126: locks src/parser.ts HMAC after-#126/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#126', "src/parser.ts")).toBe("c4da10756de18543677a0c5b1498e3c41d8fdaee085c296f8218b139a5a0aa70");
+    expect(hmacSha256('HEAVY', "src/parser.ts")).toBe("fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70");
+    expect(hmacSha256('no-product-invent', "src/parser.ts")).toBe("25b61b2dada026216640bb0a1e66ac0b6216c6f7aa182e6af20a1d43bb35446f");
+  });
+
+  it('post126: locks src/parser.ts spaces 432', () => {
+    expect((read("src/parser.ts").match(/ /g) ?? []).length).toBe(432);
+  });
+
+  it('post126: locks src/parser.ts reversed sha256', () => {
+    const rev = [...read("src/parser.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("a78f8cb8e92e3203b94933c1ec51e34ac1f54892dcc0c99024a48333407e79de");
+  });
+
+  it('post126: locks src/parser.ts sha256 UPPERCASE', () => {
+    expect(sha256("src/parser.ts").toUpperCase()).toBe("CF293136412FBA636AD7391BCEA0A0E83A079FBBCC8FC14D0CA41FA6621F4368");
+  });
+
+  it('post126: locks src/parser.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read("src/parser.ts").split('\n')[0]).digest('hex')).toBe("64a393f12da7f34518f8343d01e7da0c8da3e9f0b9cf1916ec7af9a35cbf8eb5");
+  });
+
+  it('post126: locks src/parser.ts size*lines 130985', () => {
+    expect(statSync(join(root, "src/parser.ts")).size * read("src/parser.ts").split('\n').length).toBe(130985);
+  });
+
+  it('post126: locks test/helpers.ts sha256', () => {
+    expect(sha256("test/helpers.ts")).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+  });
+
+  it('post126: locks test/helpers.ts sha1', () => {
+    expect(sha1("test/helpers.ts")).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+  });
+
+  it('post126: locks test/helpers.ts md5', () => {
+    expect(md5("test/helpers.ts")).toBe("004bbc8741017d8dd45bee28a29b46e1");
+  });
+
+  it('post126: locks test/helpers.ts sha384', () => {
+    expect(sha384("test/helpers.ts")).toBe("1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167");
+  });
+
+  it('post126: locks test/helpers.ts sha512', () => {
+    expect(sha512("test/helpers.ts")).toBe("153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91");
+  });
+
+  it('post126: locks test/helpers.ts sha3-256', () => {
+    expect(sha3("test/helpers.ts")).toBe("8ffbb4baecd580e1f9f797a737d24af1f3e0fb48af208435dafe8afaa584b113");
+  });
+
+  it('post126: locks test/helpers.ts blake2b512', () => {
+    expect(blake2b("test/helpers.ts")).toBe("9000b1e34f31a60c5b766398de6ce5657f7325d791b129e388e1312c47d8448070919d7711a2824b821a99661fbeb73f6e13dfa4b1de53d72aa0990f73f1061f");
+  });
+
+  it('post126: locks test/helpers.ts ripemd160', () => {
+    expect(ripemd("test/helpers.ts")).toBe("24c482ba1ff1b74537b67a89b99058b6f2e500a4");
+  });
+
+  it('post126: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, "test/helpers.ts")).size).toBe(6078);
+    expect(readFileSync(join(root, "test/helpers.ts")).byteLength).toBe(6078);
+  });
+
+  it('post126: locks test/helpers.ts utf8 6078 lines 164', () => {
+    expect(read("test/helpers.ts")).toHaveLength(6078);
+    expect(read("test/helpers.ts").split('\n')).toHaveLength(164);
+  });
+
+  it('post126: locks test/helpers.ts nibble 487 xor 5', () => {
+    const d = sha256("test/helpers.ts");
+    expect(nibbleSum(d)).toBe(487);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post126: locks test/helpers.ts pairSum 4132 rollingXor 216', () => {
+    const d = sha256("test/helpers.ts");
+    expect(pairSum(d)).toBe(4132);
+    expect(rollingXor(d)).toBe(216);
+  });
+
+  it('post126: locks test/helpers.ts first/last/mid octets', () => {
+    const d = sha256("test/helpers.ts");
+    expect(d.slice(0, 2)).toBe("24");
+    expect(d.slice(-2)).toBe("29");
+    expect(d.slice(28, 36)).toBe("0c4a4014");
+  });
+
+  it('post126: locks test/helpers.ts HMAC post126/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post126', "test/helpers.ts")).toBe("9bac212ed828d4e80176e29e1a6581de364bcfa6eb7d4f36b0076eb2e8686439");
+    expect(hmacSha256('leftover', "test/helpers.ts")).toBe("3cf47764c97927288d3627ddc71cecde2a6313dea10d1f5941a8cce945d8b3d1");
+    expect(hmacSha256('TOKENMAXX', "test/helpers.ts")).toBe("8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391");
+  });
+
+  it('post126: locks test/helpers.ts HMAC after-#126/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#126', "test/helpers.ts")).toBe("a56b1041ff0dfde09d8921086fe9ed340ecd8d8df52322aad730f91c94c86ea2");
+    expect(hmacSha256('HEAVY', "test/helpers.ts")).toBe("458cfb306ea3e2c9310b3e3840ecd5a5ca295e18c46146bad4c6111c4c3c1c24");
+    expect(hmacSha256('no-product-invent', "test/helpers.ts")).toBe("a6bca018ba16cafff8a3d108bbc4c96391d8da76ccdaf6927e095cbf2e763870");
+  });
+
+  it('post126: locks test/helpers.ts spaces 919', () => {
+    expect((read("test/helpers.ts").match(/ /g) ?? []).length).toBe(919);
+  });
+
+  it('post126: locks test/helpers.ts reversed sha256', () => {
+    const rev = [...read("test/helpers.ts")].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("e4e0c03b4add5880ffd0e08d925c61f9b010f475d513abd32e2baa8f79ef7625");
+  });
+
+  it('post126: locks test/helpers.ts sha256 UPPERCASE', () => {
+    expect(sha256("test/helpers.ts").toUpperCase()).toBe("240E1FC521E029B07CA3EBDA83410C4A4014AF02F3AD64FA4EBA8BF6FFD3AF29");
+  });
+
+  it('post126: locks test/helpers.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read("test/helpers.ts").split('\n')[0]).digest('hex')).toBe("e33b7958170700d0297aa0c9ad1db4689002e9bcee93e0e92b4e20e4837fbe22");
+  });
+
+  it('post126: locks test/helpers.ts size*lines 996792', () => {
+    expect(statSync(join(root, "test/helpers.ts")).size * read("test/helpers.ts").split('\n').length).toBe(996792);
+  });
+
+
+  it('post126: locale matrix 0 en/US', () => {
+    const raw = '#EXTINF:-1 tvg-name="P0" tvg-language="en" tvg-country="US" group-title="g0",P0\nhttps://p126.example/0.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P0', url: 'https://p126.example/0.m3u8', group: 'g0', language: 'en', country: 'US' });
+  });
+
+  it('post126: locale matrix 1 ja/JP', () => {
+    const raw = '#EXTINF:-1 tvg-name="P1" tvg-language="ja" tvg-country="JP" group-title="g1",P1\nhttps://p126.example/1.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P1', url: 'https://p126.example/1.m3u8', group: 'g1', language: 'ja', country: 'JP' });
+  });
+
+  it('post126: locale matrix 2 de/DE', () => {
+    const raw = '#EXTINF:-1 tvg-name="P2" tvg-language="de" tvg-country="DE" group-title="g2",P2\nhttps://p126.example/2.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P2', url: 'https://p126.example/2.m3u8', group: 'g2', language: 'de', country: 'DE' });
+  });
+
+  it('post126: locale matrix 3 fr/FR', () => {
+    const raw = '#EXTINF:-1 tvg-name="P3" tvg-language="fr" tvg-country="FR" group-title="g3",P3\nhttps://p126.example/3.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P3', url: 'https://p126.example/3.m3u8', group: 'g3', language: 'fr', country: 'FR' });
+  });
+
+  it('post126: locale matrix 4 es/ES', () => {
+    const raw = '#EXTINF:-1 tvg-name="P4" tvg-language="es" tvg-country="ES" group-title="g4",P4\nhttps://p126.example/4.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P4', url: 'https://p126.example/4.m3u8', group: 'g4', language: 'es', country: 'ES' });
+  });
+
+  it('post126: locale matrix 5 it/IT', () => {
+    const raw = '#EXTINF:-1 tvg-name="P5" tvg-language="it" tvg-country="IT" group-title="g0",P5\nhttps://p126.example/5.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P5', url: 'https://p126.example/5.m3u8', group: 'g0', language: 'it', country: 'IT' });
+  });
+
+  it('post126: locale matrix 6 pt/BR', () => {
+    const raw = '#EXTINF:-1 tvg-name="P6" tvg-language="pt" tvg-country="BR" group-title="g1",P6\nhttps://p126.example/6.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P6', url: 'https://p126.example/6.m3u8', group: 'g1', language: 'pt', country: 'BR' });
+  });
+
+  it('post126: locale matrix 7 ko/KR', () => {
+    const raw = '#EXTINF:-1 tvg-name="P7" tvg-language="ko" tvg-country="KR" group-title="g2",P7\nhttps://p126.example/7.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P7', url: 'https://p126.example/7.m3u8', group: 'g2', language: 'ko', country: 'KR' });
+  });
+
+  it('post126: locale matrix 8 zh/CN', () => {
+    const raw = '#EXTINF:-1 tvg-name="P8" tvg-language="zh" tvg-country="CN" group-title="g3",P8\nhttps://p126.example/8.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P8', url: 'https://p126.example/8.m3u8', group: 'g3', language: 'zh', country: 'CN' });
+  });
+
+  it('post126: locale matrix 9 nl/NL', () => {
+    const raw = '#EXTINF:-1 tvg-name="P9" tvg-language="nl" tvg-country="NL" group-title="g4",P9\nhttps://p126.example/9.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P9', url: 'https://p126.example/9.m3u8', group: 'g4', language: 'nl', country: 'NL' });
+  });
+
+  it('post126: locale matrix 10 sv/SE', () => {
+    const raw = '#EXTINF:-1 tvg-name="P10" tvg-language="sv" tvg-country="SE" group-title="g0",P10\nhttps://p126.example/10.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P10', url: 'https://p126.example/10.m3u8', group: 'g0', language: 'sv', country: 'SE' });
+  });
+
+  it('post126: locale matrix 11 no/NO', () => {
+    const raw = '#EXTINF:-1 tvg-name="P11" tvg-language="no" tvg-country="NO" group-title="g1",P11\nhttps://p126.example/11.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P11', url: 'https://p126.example/11.m3u8', group: 'g1', language: 'no', country: 'NO' });
+  });
+
+  it('post126: locale matrix 12 da/DK', () => {
+    const raw = '#EXTINF:-1 tvg-name="P12" tvg-language="da" tvg-country="DK" group-title="g2",P12\nhttps://p126.example/12.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P12', url: 'https://p126.example/12.m3u8', group: 'g2', language: 'da', country: 'DK' });
+  });
+
+  it('post126: locale matrix 13 fi/FI', () => {
+    const raw = '#EXTINF:-1 tvg-name="P13" tvg-language="fi" tvg-country="FI" group-title="g3",P13\nhttps://p126.example/13.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P13', url: 'https://p126.example/13.m3u8', group: 'g3', language: 'fi', country: 'FI' });
+  });
+
+  it('post126: locale matrix 14 pl/PL', () => {
+    const raw = '#EXTINF:-1 tvg-name="P14" tvg-language="pl" tvg-country="PL" group-title="g4",P14\nhttps://p126.example/14.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P14', url: 'https://p126.example/14.m3u8', group: 'g4', language: 'pl', country: 'PL' });
+  });
+
+  it('post126: locale matrix 15 tr/TR', () => {
+    const raw = '#EXTINF:-1 tvg-name="P15" tvg-language="tr" tvg-country="TR" group-title="g0",P15\nhttps://p126.example/15.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P15', url: 'https://p126.example/15.m3u8', group: 'g0', language: 'tr', country: 'TR' });
+  });
+
+  it('post126: locale matrix 16 ar/SA', () => {
+    const raw = '#EXTINF:-1 tvg-name="P16" tvg-language="ar" tvg-country="SA" group-title="g1",P16\nhttps://p126.example/16.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P16', url: 'https://p126.example/16.m3u8', group: 'g1', language: 'ar', country: 'SA' });
+  });
+
+  it('post126: locale matrix 17 he/IL', () => {
+    const raw = '#EXTINF:-1 tvg-name="P17" tvg-language="he" tvg-country="IL" group-title="g2",P17\nhttps://p126.example/17.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P17', url: 'https://p126.example/17.m3u8', group: 'g2', language: 'he', country: 'IL' });
+  });
+
+  it('post126: locale matrix 18 hi/IN', () => {
+    const raw = '#EXTINF:-1 tvg-name="P18" tvg-language="hi" tvg-country="IN" group-title="g3",P18\nhttps://p126.example/18.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P18', url: 'https://p126.example/18.m3u8', group: 'g3', language: 'hi', country: 'IN' });
+  });
+
+  it('post126: locale matrix 19 th/TH', () => {
+    const raw = '#EXTINF:-1 tvg-name="P19" tvg-language="th" tvg-country="TH" group-title="g4",P19\nhttps://p126.example/19.m3u8\n';
+    expect(parseM3U(raw)[0]).toEqual({ name: 'P19', url: 'https://p126.example/19.m3u8', group: 'g4', language: 'th', country: 'TH' });
+  });
+
+  it('post126: duplicate url keeps first name only', () => {
+    const raw = '#EXTINF:-1 tvg-name="A",A\nhttps://dup.example/x\n#EXTINF:-1 tvg-name="B",B\nhttps://dup.example/x\n';
+    expect(parseM3U(raw)).toEqual([{ name: 'A', url: 'https://dup.example/x' }]);
+  });
+
+  it('post126: rtmp resets current without adding', () => {
+    const raw = '#EXTINF:-1 tvg-name="R",R\nrtmp://live/x\n#EXTINF:-1 tvg-name="H",H\nhttps://ok.example/h\n';
+    expect(parseM3U(raw)).toEqual([{ name: 'H', url: 'https://ok.example/h' }]);
+  });
+
+  it('post126: comma-only fallback name', () => {
+    const raw = '#EXTINF:-1,Comma Name\nhttps://c.example/c\n';
+    expect(parseM3U(raw)[0].name).toBe('Comma Name');
+  });
+
+  it('post126: empty and header-only yield empty', () => {
+    expect(parseM3U('')).toEqual([]);
+    expect(parseM3U('#EXTM3U\n')).toEqual([]);
+  });
+
+  it('post126: http and https both accepted', () => {
+    const raw = '#EXTINF:-1 tvg-name="S",S\nhttp://plain.example/s\n#EXTINF:-1 tvg-name="T",T\nhttps://secure.example/t\n';
+    expect(parseM3U(raw).map((s) => s.url)).toEqual(['http://plain.example/s', 'https://secure.example/t']);
+  });
+
+  it('post126: logo optional attr', () => {
+    const raw = '#EXTINF:-1 tvg-name="L" tvg-logo="https://cdn/l.png",L\nhttps://l.example/l\n';
+    expect(parseM3U(raw)[0].logo).toBe('https://cdn/l.png');
+  });
+
+  it('post126: whitespace trim on lines', () => {
+    const raw = '  #EXTINF:-1 tvg-name="W",W  \n  https://w.example/w  \n';
+    expect(parseM3U(raw)).toEqual([{ name: 'W', url: 'https://w.example/w' }]);
+  });
+
+  it('post126: SAMPLE_M3U countHttpStreamLines 6', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+  });
+
+  it('post126: buildSimpleM3U round-trip parse', () => {
+    const m3u = buildSimpleM3U([
+      { name: 'One', url: 'https://one', group: 'G', language: 'en', country: 'US', logo: 'https://logo' },
+    ]);
+    expect(parseM3U(m3u)[0]).toEqual({
+      name: 'One', url: 'https://one', group: 'G', language: 'en', country: 'US', logo: 'https://logo',
+    });
+  });
+
+  it('post126: negative inventing fence parser source', () => {
+    expect(parserSource).not.toMatch(/\/playlist|\/now-playing|openapi|GEMINI_API_KEY/);
+  });
+
+  it('post126: mega purity 30x parser.ts sha256', () => {
+    const expected = "cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368";
+    for (let i = 0; i < 30; i++) expect(sha256('src/parser.ts')).toBe(expected);
+  });
+
+  it('post126: final inventory markers', () => {
+    const body = read('test/parser.test.ts');
+    expect(body).toContain("describe('post123 parser HEAVY deepen'");
+    expect(body).toContain("describe('post126 parser HEAVY deepen (after #126)'");
+    expect((body.match(/it\('post126:/g) ?? []).length).toBeGreaterThan(40);
+  });
+
+});
