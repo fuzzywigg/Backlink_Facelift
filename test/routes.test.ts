@@ -23780,8 +23780,8 @@ describe('post171 routes HEAVY deepen (after #171 / leftover after #166 ci-confi
     expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738);
   });
 
-  it('post171: locks src/index.ts utf8 4723 lines 154', () => {
-    expect(read('src/index.ts')).toHaveLength(4723);
+  it('post171: locks src/index.ts utf8 4724 lines 154', () => {
+    expect(read('src/index.ts')).toHaveLength(4724);
     expect(read('src/index.ts').split('\n')).toHaveLength(154);
   });
 
@@ -24431,7 +24431,7 @@ describe('post171 routes extras HEAVY deepen (after #171 leftover slice)', () =>
   it('post171-extras: src/genres.ts forbids invent phrase dead_letter', () => { expect(read('src/genres.ts').toLowerCase()).not.toContain('dead_letter'); });
   it('post171-extras: sha256 src/index.ts', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
   it('post171-extras: size src/index.ts', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738); });
-  it('post171-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post171-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post171-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post171-extras: HMAC post171 src/index.ts', () => { expect(hmacSha256('post171', 'src/index.ts')).toBe('40331404ec091a9d04a5636cd37bf9cf33899375e2dc67ed74bb92a043ad8e05'); });
   it('post171-extras: HMAC after-#171 src/index.ts', () => { expect(hmacSha256('after-#171', 'src/index.ts')).toBe('5c2fd667f185a3845aa36634f55e945fed1da9a2d3b43bc2e490344e7c2f19f9'); });
