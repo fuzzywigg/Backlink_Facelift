@@ -10052,14 +10052,16 @@ https://example.com/s.m3u8
     expect(res.headers.get('last-modified')).toBeNull();
   });
 
-  it('post76: TRACE method is not a success path on /health', async () => {
-    const res = await app.request('/health', { method: 'TRACE' }, testEnv());
-    expect(res.status).toBeGreaterThanOrEqual(400);
+  it('post76: TRACE method is rejected by Hono request adapter', () => {
+    expect(() => app.request('/health', { method: 'TRACE' }, testEnv())).toThrow(
+      /TRACE.*unsupported/i,
+    );
   });
 
-  it('post76: CONNECT method is not a success path on /', async () => {
-    const res = await app.request('/', { method: 'CONNECT' }, testEnv());
-    expect(res.status).toBeGreaterThanOrEqual(400);
+  it('post76: CONNECT method is rejected by Hono request adapter', () => {
+    expect(() => app.request('/', { method: 'CONNECT' }, testEnv())).toThrow(
+      /CONNECT.*unsupported/i,
+    );
   });
 
   it('post76: Upgrade websocket request does not invent a socket handler', async () => {
@@ -10775,7 +10777,8 @@ https://example.com/s.m3u8
 
   it('post76: purity — 12x /curate success with warm seed identical query/curated_by', async () => {
     const seed = seedStationsCache('jazz', [{ name: 'J', url: 'https://j' }]);
-    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: curatedGeminiJson() }));
+    // Factory per call — a shared Response body can only be consumed once under concurrency.
+    vi.stubGlobal('fetch', stubIptvAndGemini({ gemini: () => curatedGeminiJson() }));
     const env = testEnv({ GEMINI_API_KEY: 'k', CATALOG_CACHE: mockKV(seed) });
     const payloads = await Promise.all(
       Array.from({ length: 12 }, async () =>
