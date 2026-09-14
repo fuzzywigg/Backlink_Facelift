@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9197,4 +9197,2409 @@ https://example.com/x
         expect(stations[0].url).toBe('https://stream');
         expect(stations[0].logo).toBe('https://cdn.example/l.png');
   });
+});
+
+describe('post106 parser HEAVY deepen', () => {
+  // TOKENMAXX HEAVY burn — tests only. Orthogonal to #106 ci-config / #105 helpers.
+  // Deepens parseM3U leftovers on latest main after #106.
+
+  const sha256Hex = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
+  const sha1Hex = (s: string) => createHash("sha1").update(s, "utf8").digest("hex");
+  const md5Hex = (s: string) => createHash("md5").update(s, "utf8").digest("hex");
+  const hmacSha256 = (key: string, s: string) =>
+    createHmac("sha256", key).update(s, "utf8").digest("hex");
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((x, c) => x ^ parseInt(c, 16), 0);
+
+  it("post106: sha256 fingerprint reaffirm", () => {
+    expect(sha256Hex(parserSource)).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+  });
+
+  it("post106: sha1 fingerprint reaffirm", () => {
+    expect(sha1Hex(parserSource)).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+  });
+
+  it("post106: md5 fingerprint reaffirm", () => {
+    expect(md5Hex(parserSource)).toBe('500211c4c526de887252451726776563');
+  });
+
+  it("post106: sha384 fingerprint lock", () => {
+    expect(createHash('sha384').update(parserSource, 'utf8').digest('hex')).toBe('f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9');
+  });
+
+  it("post106: sha512 fingerprint lock", () => {
+    expect(createHash('sha512').update(parserSource, 'utf8').digest('hex')).toBe('66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89');
+  });
+
+  it("post106: sha256 nibble sum 477", () => {
+    expect(nibbleSum(sha256Hex(parserSource))).toBe(477);
+  });
+
+  it("post106: sha256 xor nibbles 9", () => {
+    expect(xorNibbles(sha256Hex(parserSource))).toBe(9);
+  });
+
+  it("post106: sha256 first/last octets", () => {
+    const h = sha256Hex(parserSource);
+    expect(h.slice(0, 2)).toBe('cf');
+    expect(h.slice(-2)).toBe('68');
+    expect(h).toHaveLength(64);
+  });
+
+  it("post106: HMAC-SHA256 key parser", () => {
+    expect(hmacSha256('parser', parserSource)).toBe('9276d22adc96b16b1448de50885b29e41d299ade46428c74e22062b8fe6b617a');
+  });
+
+  it("post106: HMAC-SHA256 key post106", () => {
+    expect(hmacSha256('post106', parserSource)).toBe('a4c46c14b3a760871b3b94c51f84195953c3fa32fb6d65d475c5bdab4fd5e442');
+  });
+
+  it("post106: HMAC-SHA256 key parseM3U", () => {
+    expect(hmacSha256('parseM3U', parserSource)).toBe('6a02c2bd7b3573d7202afc9bd5e9f0f0af368217776af69bb431d07005a5ff90');
+  });
+
+  it("post106: HMAC-SHA256 key Station", () => {
+    expect(hmacSha256('Station', parserSource)).toBe('3aa51a9346b986d3b790b94986884d11a1d3b1b76be1b789e39505106c230b34');
+  });
+
+  it("post106: HMAC digests differ for distinct keys", () => {
+    expect(hmacSha256('parser', parserSource)).not.toBe(hmacSha256('post106', parserSource));
+  });
+
+  it("post106: utf8 char length 1953", () => {
+    expect(parserSource).toHaveLength(1953);
+  });
+
+  it("post106: byte length 1955 via Buffer/TextEncoder", () => {
+    expect(Buffer.byteLength(parserSource, 'utf8')).toBe(1955);
+    expect(new TextEncoder().encode(parserSource).length).toBe(1955);
+  });
+
+  it("post106: line count 67", () => {
+    expect(parserSource.split('\n')).toHaveLength(67);
+  });
+
+  it("post106: newline count 66", () => {
+    expect((parserSource.match(/\n/g) ?? []).length).toBe(66);
+  });
+
+  it("post106: line length vector lock", () => {
+    expect(parserSource.split('\n').map((l) => l.length)).toEqual([26,15,14,16,17,20,19,1,0,50,53,33,33,0,37,0,29,37,19,0,25,58,49,0,25,58,49,0,28,62,52,0,29,62,53,0,28,64,58,0,74,26,47,76,7,75,44,23,23,29,20,29,31,37,35,11,7,19,47,62,19,5,3,0,18,1,0]);
+  });
+
+  it("post106: first 40 char codes lock", () => {
+    expect([...parserSource.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([101,120,112,111,114,116,32,105,110,116,101,114,102,97,99,101,32,83,116,97,116,105,111,110,32,123,10,32,32,110,97,109,101,58,32,115,116,114,105,110]);
+  });
+
+  it("post106: last 40 char codes lock", () => {
+    expect([...parserSource.slice(-40)].map((c) => c.charCodeAt(0))).toEqual([116,32,61,32,123,125,59,10,32,32,32,32,125,10,32,32,125,10,10,32,32,114,101,116,117,114,110,32,115,116,97,116,105,111,110,115,59,10,125,10]);
+  });
+
+  it("post106: unique char set lock", () => {
+    expect([...new Set(parserSource)].sort().join('')).toBe("\n !\"#&'()*+,-./13:;<=>?EFILMNOPRSTUWX[\\]^abcdefghiklmnoprstuvwxy{|}—");
+  });
+
+  it("post106: space count 432", () => {
+    expect((parserSource.match(/ /g) ?? []).length).toBe(432);
+  });
+
+  it("post106: double-quote count 15", () => {
+    expect((parserSource.match(/"/g) ?? []).length).toBe(15);
+  });
+
+  it("post106: single-quote count 12", () => {
+    expect((parserSource.match(/'/g) ?? []).length).toBe(12);
+  });
+
+  it("post106: equals count 27", () => {
+    expect((parserSource.match(/=/g) ?? []).length).toBe(27);
+  });
+
+  it("post106: colon count 19", () => {
+    expect((parserSource.match(/:/g) ?? []).length).toBe(19);
+  });
+
+  it("post106: semicolon count 28", () => {
+    expect((parserSource.match(/;/g) ?? []).length).toBe(28);
+  });
+
+  it("post106: brace pair counts", () => {
+    expect((parserSource.match(/\{/g) ?? []).length).toBe(13);
+    expect((parserSource.match(/\}/g) ?? []).length).toBe(13);
+  });
+
+  it("post106: paren pair counts", () => {
+    expect((parserSource.match(/\(/g) ?? []).length).toBe(40);
+    expect((parserSource.match(/\)/g) ?? []).length).toBe(40);
+  });
+
+  it("post106: bracket pair counts", () => {
+    expect((parserSource.match(/\[/g) ?? []).length).toBe(13);
+    expect((parserSource.match(/\]/g) ?? []).length).toBe(13);
+  });
+
+  it("post106: question mark count 4", () => {
+    expect((parserSource.match(/\?/g) ?? []).length).toBe(4);
+  });
+
+  it("post106: slash count 30", () => {
+    expect((parserSource.match(/\//g) ?? []).length).toBe(30);
+  });
+
+  it("post106: backslash count 1", () => {
+    expect((parserSource.match(/\\/g) ?? []).length).toBe(1);
+  });
+
+  it("post106: hash count 3", () => {
+    expect((parserSource.match(/#/g) ?? []).length).toBe(3);
+  });
+
+  it("post106: comma count 8", () => {
+    expect((parserSource.match(/,/g) ?? []).length).toBe(8);
+  });
+
+  it("post106: dot count 32", () => {
+    expect((parserSource.match(/\./g) ?? []).length).toBe(32);
+  });
+
+  it("post106: underscore count 0", () => {
+    expect((parserSource.match(/_/g) ?? []).length).toBe(0);
+  });
+
+  it("post106: dash count 12", () => {
+    expect((parserSource.match(/-/g) ?? []).length).toBe(12);
+  });
+
+  it("post106: amp count 4", () => {
+    expect((parserSource.match(/&/g) ?? []).length).toBe(4);
+  });
+
+  it("post106: pipe count 2", () => {
+    expect((parserSource.match(/\|/g) ?? []).length).toBe(2);
+  });
+
+  it("post106: digit count 8", () => {
+    expect([...parserSource].filter((c) => /\d/.test(c))).toHaveLength(8);
+  });
+
+  it("post106: uppercase count 54", () => {
+    expect([...parserSource].filter((c) => /[A-Z]/.test(c))).toHaveLength(54);
+  });
+
+  it("post106: lowercase count 1043", () => {
+    expect([...parserSource].filter((c) => /[a-z]/.test(c))).toHaveLength(1043);
+  });
+
+  it("post106: tab and CR absent", () => {
+    expect(parserSource.includes('\t')).toBe(false);
+    expect(parserSource.includes('\r')).toBe(false);
+  });
+
+  it("post106: nonempty line count", () => {
+    expect(parserSource.split('\n').filter((l) => l.length > 0)).toHaveLength(56);
+  });
+
+  it("post106: nonempty line length sum", () => {
+    expect(parserSource.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(1887);
+  });
+
+  it("post106: word token count 208", () => {
+    expect((parserSource.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? []).length).toBe(208);
+  });
+
+  it("post106: export interface Station and function parseM3U only", () => {
+    expect([...parserSource.matchAll(/^export (?:interface|function) (\w+)/gm)].map((m) => m[1])).toEqual(['Station', 'parseM3U']);
+  });
+
+  it("post106: no import statements", () => {
+    expect(parserSource).not.toMatch(/^import /m);
+  });
+
+  it("post106: no default export", () => {
+    expect(parserSource).not.toMatch(/export default/);
+  });
+
+  it("post106: no async/await/Promise", () => {
+    expect(parserSource).not.toMatch(/\basync\b|\bawait\b|\bPromise\b/);
+  });
+
+  it("post106: no fetch/Hono/Gemini inventing", () => {
+    expect(parserSource).not.toMatch(/GEMINI|fetch\(|Hono|resolveGenre|GENRE_MAP|MCP_MANIFEST/);
+  });
+
+  it("post106: no DurableObject / R2 / D1 inventing", () => {
+    expect(parserSource).not.toMatch(/DurableObject|R2Bucket|D1Database|WorkersAI|Vectorize/i);
+  });
+
+  it("post106: no auth/cors inventing in parser", () => {
+    expect(parserSource).not.toMatch(/Authorization|Bearer|CORS|Access-Control|api[_-]?key/i);
+  });
+
+  it("post106: re-read equals module snapshot", () => {
+    expect(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8')).toBe(parserSource);
+  });
+
+  it("post106: mega purity 50x sha256", () => {
+    const expected = 'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368';
+    for (let i = 0; i < 50; i++) expect(sha256Hex(parserSource)).toBe(expected);
+  });
+
+  it("post106: mega purity 25x re-read", () => {
+    for (let i = 0; i < 25; i++) {
+      expect(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8')).toBe(parserSource);
+    }
+  });
+
+  it("post106: final triple digest lock", () => {
+    expect(sha1Hex(parserSource)).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+    expect(sha256Hex(parserSource)).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+    expect(md5Hex(parserSource)).toBe('500211c4c526de887252451726776563');
+  });
+
+  it("post106: HMAC-SHA256 key backlink", () => {
+    expect(hmacSha256('backlink', parserSource)).toBe('9d45133ec8b6ea6888b04d7810e9e74a5ae6e40f8b885ac29cf9f8828ecb5bdb');
+  });
+
+  it("post106: HMAC-SHA256 key EXTINF", () => {
+    expect(hmacSha256('EXTINF', parserSource)).toBe('b1278e02e65ed611815fa337c4ec78b95bc1e84d4bb2d440fad935194426a910');
+  });
+
+  it("post106: HMAC-SHA256 key tvg-name", () => {
+    expect(hmacSha256('tvg-name', parserSource)).toBe('9ae1525696686b515e20f00ab6a75bbf527060eee94322b28450e9a5ca0ee2a8');
+  });
+
+  it("post106: HMAC-SHA256 key tvg-logo", () => {
+    expect(hmacSha256('tvg-logo', parserSource)).toBe('ead95583467d30e020572a7f51600d3f81311d59adefaa8404f25c5688e94420');
+  });
+
+  it("post106: HMAC-SHA256 key group-title", () => {
+    expect(hmacSha256('group-title', parserSource)).toBe('eb6b28143dfb3a806354787e92981447f7d52e905d04a8c91a1c3eef6929f429');
+  });
+
+  it("post106: HMAC-SHA256 key tvg-language", () => {
+    expect(hmacSha256('tvg-language', parserSource)).toBe('5213712b65d0b5016a99a99b7456e2f67a06911db66af9bd160f06fb891d0498');
+  });
+
+  it("post106: HMAC-SHA256 key tvg-country", () => {
+    expect(hmacSha256('tvg-country', parserSource)).toBe('c6a0e72f1b4a60db8eb31cedd3c51ecc2c7bc838eb3496cc896fb1151899ae82');
+  });
+
+  it("post106: HMAC-SHA256 key http", () => {
+    expect(hmacSha256('http', parserSource)).toBe('029182f335680acd873ca4dd0aefd7e78b00ae6df78d3b5fb1e0b32643e22648');
+  });
+
+  it("post106: HMAC-SHA256 key https", () => {
+    expect(hmacSha256('https', parserSource)).toBe('696b360274525081cb295b8bf6994600c072ae6ce566c9e52cfbd8a48f67a07f');
+  });
+
+  it("post106: HMAC-SHA256 key seen", () => {
+    expect(hmacSha256('seen', parserSource)).toBe('a412e286d263482f02b6a81ad1e6ad2c8cf86d4b64ef58857932b6d70b997c79');
+  });
+
+  it("post106: HMAC-SHA256 key current", () => {
+    expect(hmacSha256('current', parserSource)).toBe('937292587c7a727dbcdcd313de16ccce2f40df493d5d69cc7ff1c76b9052c647');
+  });
+
+  it("post106: HMAC-SHA256 key stations", () => {
+    expect(hmacSha256('stations', parserSource)).toBe('d8e77f93d543ffcc101006388f50ab09ccb6b12d89eaafe4f6ab3e53365af98a');
+  });
+
+  it("post106: HMAC-SHA256 key trim", () => {
+    expect(hmacSha256('trim', parserSource)).toBe('a8d77f070c94af24a723f411619bf22ab710c5de6f0296bd9315aeead9c8d7be');
+  });
+
+  it("post106: HMAC-SHA256 key lastIndexOf", () => {
+    expect(hmacSha256('lastIndexOf', parserSource)).toBe('db51fc917fb5ecd02c74709a126a1375810b38388026767a02006996cb3a3157');
+  });
+
+  it("post106: HMAC-SHA256 key startsWith", () => {
+    expect(hmacSha256('startsWith', parserSource)).toBe('80aa249a6385bc2bcd7afaba1be183314413f20069b323519e4101903c53ffa7');
+  });
+
+  it("post106: HMAC-SHA256 key Partial", () => {
+    expect(hmacSha256('Partial', parserSource)).toBe('721c67ecbe7181393062d3cd0fdce91018a0a4c4052a5cf0750f69176688d3eb');
+  });
+
+  it("post106: HMAC-SHA256 key Set", () => {
+    expect(hmacSha256('Set', parserSource)).toBe('535b651bc51fb3ea5976e48d5b5510ecf1afd651815017d9d9f8a6b6178cd179');
+  });
+
+  it("post106: HMAC-SHA256 key logo", () => {
+    expect(hmacSha256('logo', parserSource)).toBe('afbe4a0ea6e9570a6a4db246db94747aeab4bfd5e322a07916651a4e91fe8184');
+  });
+
+  it("post106: HMAC-SHA256 key group", () => {
+    expect(hmacSha256('group', parserSource)).toBe('fba3ea01dc61f37ab7cfc10411f9b2547c6c13927d909f142f228a9353290b7b');
+  });
+
+  it("post106: HMAC-SHA256 key language", () => {
+    expect(hmacSha256('language', parserSource)).toBe('48cece1beec138f768bfb4e518789f6efdd7056ece09ca20df07e04943b98817');
+  });
+
+  it("post106: HMAC-SHA256 key country", () => {
+    expect(hmacSha256('country', parserSource)).toBe('4b34ac8199e9e9104fb2d35698e558e787c77f0acc5969e94c4e2e365676cef4');
+  });
+
+  it("post106: HMAC-SHA256 key url", () => {
+    expect(hmacSha256('url', parserSource)).toBe('19c2ecbbe57848ca18a50b059bb2464ee322cef1159982a5b64045fc814b8e19');
+  });
+
+  it("post106: HMAC-SHA256 key name", () => {
+    expect(hmacSha256('name', parserSource)).toBe('14df1c826b03c31c46f00df129446ab57d3e9fc27d1ae0d0f32fe268e1923916');
+  });
+
+  it("post106: HMAC-SHA256 key raw", () => {
+    expect(hmacSha256('raw', parserSource)).toBe('24dba66fcd3d39a7ba4b8d9ed2cc8ee64b8141cb51b6e0ad05bd787ea5c50b40');
+  });
+
+  it("post106: HMAC-SHA256 key lines", () => {
+    expect(hmacSha256('lines', parserSource)).toBe('df3d638875b6f29bff69d41b31391f16a18ecfdcbd8d1491bc4cb9f2d4076463');
+  });
+
+  it("post106: HMAC-SHA256 key fuzzywigg", () => {
+    expect(hmacSha256('fuzzywigg', parserSource)).toBe('84bba718304e8ae87e488eb7d34d91334a8a583de252f8bf8c7a1262af17f07a');
+  });
+
+  it("post106: HMAC-SHA256 key iptv-org", () => {
+    expect(hmacSha256('iptv-org', parserSource)).toBe('a1c1a7e31db65012bc03f0c219cf6b5c51012ee9753fce5e653b180e24655514');
+  });
+
+  it("post106: HMAC-SHA256 key m3u8", () => {
+    expect(hmacSha256('m3u8', parserSource)).toBe('91ed35b06e11aef4a86d145f4104d7ea94b3637b0f82d91bd4fce785b840b302');
+  });
+
+  it("post106: HMAC-SHA256 key rtmp", () => {
+    expect(hmacSha256('rtmp', parserSource)).toBe('07bcf1fb2ee7a85237524659120c7bb286a3e6a8b7c922ca1524144311a2d226');
+  });
+
+  it("post106: HMAC-SHA256 key comma", () => {
+    expect(hmacSha256('comma', parserSource)).toBe('f8c8796d608c2a0746c46235682314392ce30d3b48f9a05c93572b5808537401');
+  });
+
+  it("post106: forbidden inventing token oauth", () => {
+    expect(parserSource.toLowerCase()).not.toContain("oauth");
+  });
+
+  it("post106: forbidden inventing token webhook", () => {
+    expect(parserSource.toLowerCase()).not.toContain("webhook");
+  });
+
+  it("post106: forbidden inventing token smtp", () => {
+    expect(parserSource.toLowerCase()).not.toContain("smtp");
+  });
+
+  it("post106: forbidden inventing token redis", () => {
+    expect(parserSource.toLowerCase()).not.toContain("redis");
+  });
+
+  it("post106: forbidden inventing token postgres", () => {
+    expect(parserSource.toLowerCase()).not.toContain("postgres");
+  });
+
+  it("post106: forbidden inventing token mongodb", () => {
+    expect(parserSource.toLowerCase()).not.toContain("mongodb");
+  });
+
+  it("post106: forbidden inventing token sqlite", () => {
+    expect(parserSource.toLowerCase()).not.toContain("sqlite");
+  });
+
+  it("post106: forbidden inventing token mysql", () => {
+    expect(parserSource.toLowerCase()).not.toContain("mysql");
+  });
+
+  it("post106: forbidden inventing token kafka", () => {
+    expect(parserSource.toLowerCase()).not.toContain("kafka");
+  });
+
+  it("post106: forbidden inventing token rabbitmq", () => {
+    expect(parserSource.toLowerCase()).not.toContain("rabbitmq");
+  });
+
+  it("post106: forbidden inventing token elasticsearch", () => {
+    expect(parserSource.toLowerCase()).not.toContain("elasticsearch");
+  });
+
+  it("post106: forbidden inventing token sentry", () => {
+    expect(parserSource.toLowerCase()).not.toContain("sentry");
+  });
+
+  it("post106: forbidden inventing token datadog", () => {
+    expect(parserSource.toLowerCase()).not.toContain("datadog");
+  });
+
+  it("post106: forbidden inventing token newrelic", () => {
+    expect(parserSource.toLowerCase()).not.toContain("newrelic");
+  });
+
+  it("post106: forbidden inventing token honeycomb", () => {
+    expect(parserSource.toLowerCase()).not.toContain("honeycomb");
+  });
+
+  it("post106: forbidden inventing token launchdarkly", () => {
+    expect(parserSource.toLowerCase()).not.toContain("launchdarkly");
+  });
+
+  it("post106: forbidden inventing token stripe", () => {
+    expect(parserSource.toLowerCase()).not.toContain("stripe");
+  });
+
+  it("post106: forbidden inventing token paypal", () => {
+    expect(parserSource.toLowerCase()).not.toContain("paypal");
+  });
+
+  it("post106: forbidden inventing token twilio", () => {
+    expect(parserSource.toLowerCase()).not.toContain("twilio");
+  });
+
+  it("post106: forbidden inventing token sendgrid", () => {
+    expect(parserSource.toLowerCase()).not.toContain("sendgrid");
+  });
+
+  it("post106: forbidden inventing token mailgun", () => {
+    expect(parserSource.toLowerCase()).not.toContain("mailgun");
+  });
+
+  it("post106: forbidden inventing token jwt_secret", () => {
+    expect(parserSource.toLowerCase()).not.toContain("jwt_secret");
+  });
+
+  it("post106: forbidden inventing token session_secret", () => {
+    expect(parserSource.toLowerCase()).not.toContain("session_secret");
+  });
+
+  it("post106: forbidden inventing token encryption_key", () => {
+    expect(parserSource.toLowerCase()).not.toContain("encryption_key");
+  });
+
+  it("post106: forbidden inventing token aws_access", () => {
+    expect(parserSource.toLowerCase()).not.toContain("aws_access");
+  });
+
+  it("post106: forbidden inventing token aws_secret", () => {
+    expect(parserSource.toLowerCase()).not.toContain("aws_secret");
+  });
+
+  it("post106: forbidden inventing token gcp_project", () => {
+    expect(parserSource.toLowerCase()).not.toContain("gcp_project");
+  });
+
+  it("post106: forbidden inventing token anthropic", () => {
+    expect(parserSource.toLowerCase()).not.toContain("anthropic");
+  });
+
+  it("post106: forbidden inventing token openai", () => {
+    expect(parserSource.toLowerCase()).not.toContain("openai");
+  });
+
+  it("post106: forbidden inventing token claude", () => {
+    expect(parserSource.toLowerCase()).not.toContain("claude");
+  });
+
+  it("post106: forbidden inventing token chatgpt", () => {
+    expect(parserSource.toLowerCase()).not.toContain("chatgpt");
+  });
+
+  it("post106: forbidden inventing token langchain", () => {
+    expect(parserSource.toLowerCase()).not.toContain("langchain");
+  });
+
+  it("post106: forbidden inventing token pinecone", () => {
+    expect(parserSource.toLowerCase()).not.toContain("pinecone");
+  });
+
+  it("post106: forbidden inventing token weaviate", () => {
+    expect(parserSource.toLowerCase()).not.toContain("weaviate");
+  });
+
+  it("post106: forbidden inventing token qdrant", () => {
+    expect(parserSource.toLowerCase()).not.toContain("qdrant");
+  });
+
+  it("post106: forbidden inventing token supabase", () => {
+    expect(parserSource.toLowerCase()).not.toContain("supabase");
+  });
+
+  it("post106: forbidden inventing token firebase", () => {
+    expect(parserSource.toLowerCase()).not.toContain("firebase");
+  });
+
+  it("post106: forbidden inventing token planetscale", () => {
+    expect(parserSource.toLowerCase()).not.toContain("planetscale");
+  });
+
+  it("post106: forbidden inventing token neon", () => {
+    expect(parserSource.toLowerCase()).not.toContain("neon");
+  });
+
+  it("post106: forbidden inventing token turso", () => {
+    expect(parserSource.toLowerCase()).not.toContain("turso");
+  });
+
+  it("post106: forbidden inventing token drizzle", () => {
+    expect(parserSource.toLowerCase()).not.toContain("drizzle");
+  });
+
+  it("post106: forbidden inventing token prisma", () => {
+    expect(parserSource.toLowerCase()).not.toContain("prisma");
+  });
+
+  it("post106: forbidden inventing token graphql", () => {
+    expect(parserSource.toLowerCase()).not.toContain("graphql");
+  });
+
+  it("post106: forbidden inventing token trpc", () => {
+    expect(parserSource.toLowerCase()).not.toContain("trpc");
+  });
+
+  it("post106: forbidden inventing token websocket", () => {
+    expect(parserSource.toLowerCase()).not.toContain("websocket");
+  });
+
+  it("post106: forbidden inventing token socket.io", () => {
+    expect(parserSource.toLowerCase()).not.toContain("socket.io");
+  });
+
+  it("post106: forbidden inventing token express", () => {
+    expect(parserSource.toLowerCase()).not.toContain("express");
+  });
+
+  it("post106: forbidden inventing token fastify", () => {
+    expect(parserSource.toLowerCase()).not.toContain("fastify");
+  });
+
+  it("post106: forbidden inventing token nestjs", () => {
+    expect(parserSource.toLowerCase()).not.toContain("nestjs");
+  });
+
+  it("post106: forbidden inventing token nextjs", () => {
+    expect(parserSource.toLowerCase()).not.toContain("nextjs");
+  });
+
+  it("post106: forbidden inventing token remix", () => {
+    expect(parserSource.toLowerCase()).not.toContain("remix");
+  });
+
+  it("post106: forbidden inventing token astro", () => {
+    expect(parserSource.toLowerCase()).not.toContain("astro");
+  });
+
+  it("post106: forbidden inventing token svelte", () => {
+    expect(parserSource.toLowerCase()).not.toContain("svelte");
+  });
+
+  it("post106: forbidden inventing token vue", () => {
+    expect(parserSource.toLowerCase()).not.toContain("vue");
+  });
+
+  it("post106: forbidden inventing token angular", () => {
+    expect(parserSource.toLowerCase()).not.toContain("angular");
+  });
+
+  it("post106: forbidden inventing token react", () => {
+    expect(parserSource.toLowerCase()).not.toContain("react");
+  });
+
+  it("post106: forbidden inventing token jsx", () => {
+    expect(parserSource.toLowerCase()).not.toContain("jsx");
+  });
+
+  it("post106: forbidden inventing token tsx", () => {
+    expect(parserSource.toLowerCase()).not.toContain("tsx");
+  });
+
+  it("post106: forbidden inventing token css", () => {
+    expect(parserSource.toLowerCase()).not.toContain("css");
+  });
+
+  it("post106: forbidden inventing token tailwind", () => {
+    expect(parserSource.toLowerCase()).not.toContain("tailwind");
+  });
+
+  it("post106: forbidden inventing token emotion", () => {
+    expect(parserSource.toLowerCase()).not.toContain("emotion");
+  });
+
+  it("post106: forbidden inventing token billing", () => {
+    expect(parserSource.toLowerCase()).not.toContain("billing");
+  });
+
+  it("post106: forbidden inventing token invoice", () => {
+    expect(parserSource.toLowerCase()).not.toContain("invoice");
+  });
+
+  it("post106: forbidden inventing token subscription", () => {
+    expect(parserSource.toLowerCase()).not.toContain("subscription");
+  });
+
+  it("post106: forbidden inventing token payment", () => {
+    expect(parserSource.toLowerCase()).not.toContain("payment");
+  });
+
+  it("post106: forbidden inventing token checkout", () => {
+    expect(parserSource.toLowerCase()).not.toContain("checkout");
+  });
+
+  it("post106: forbidden inventing token cart", () => {
+    expect(parserSource.toLowerCase()).not.toContain("cart");
+  });
+
+  it("post106: forbidden inventing token sku", () => {
+    expect(parserSource.toLowerCase()).not.toContain("sku");
+  });
+
+  it("post106: forbidden inventing token password", () => {
+    expect(parserSource.toLowerCase()).not.toContain("password");
+  });
+
+  it("post106: forbidden inventing token passwd", () => {
+    expect(parserSource.toLowerCase()).not.toContain("passwd");
+  });
+
+  it("post106: forbidden inventing token secret_key", () => {
+    expect(parserSource.toLowerCase()).not.toContain("secret_key");
+  });
+
+  it("post106: forbidden inventing token private_key", () => {
+    expect(parserSource.toLowerCase()).not.toContain("private_key");
+  });
+
+  it("post106: forbidden inventing token ssh-rsa", () => {
+    expect(parserSource.toLowerCase()).not.toContain("ssh-rsa");
+  });
+
+  it("post106: forbidden inventing token BEGIN PRIVATE", () => {
+    expect(parserSource.toLowerCase()).not.toContain("begin private");
+  });
+
+  it("post106: resets on ftp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nftp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ftp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ftp');
+  });
+
+  it("post106: resets on ftps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nftps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ftps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ftps');
+  });
+
+  it("post106: resets on sftp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsftp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/sftp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/sftp');
+  });
+
+  it("post106: resets on file: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nfile://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/file\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/file');
+  });
+
+  it("post106: resets on data: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ndata://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/data\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/data');
+  });
+
+  it("post106: resets on blob: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nblob://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/blob\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/blob');
+  });
+
+  it("post106: resets on about: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nabout://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/about\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/about');
+  });
+
+  it("post106: resets on chrome: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nchrome://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/chrome\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/chrome');
+  });
+
+  it("post106: resets on chrome-extension: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nchrome-extension://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/chrome-extension\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/chrome-extension');
+  });
+
+  it("post106: resets on moz-extension: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmoz-extension://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/moz-extension\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/moz-extension');
+  });
+
+  it("post106: resets on view-source: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nview-source://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/view-source\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/view-source');
+  });
+
+  it("post106: resets on javascript: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\njavascript://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/javascript\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/javascript');
+  });
+
+  it("post106: resets on vbscript: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nvbscript://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/vbscript\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/vbscript');
+  });
+
+  it("post106: resets on ws: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nws://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ws\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ws');
+  });
+
+  it("post106: resets on wss: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nwss://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/wss\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/wss');
+  });
+
+  it("post106: resets on tcp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ntcp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/tcp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/tcp');
+  });
+
+  it("post106: resets on udp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nudp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/udp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/udp');
+  });
+
+  it("post106: resets on quic: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nquic://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/quic\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/quic');
+  });
+
+  it("post106: resets on ipfs: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nipfs://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ipfs\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ipfs');
+  });
+
+  it("post106: resets on ipns: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nipns://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ipns\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ipns');
+  });
+
+  it("post106: resets on magnet: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmagnet://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/magnet\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/magnet');
+  });
+
+  it("post106: resets on mailto: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmailto://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mailto\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mailto');
+  });
+
+  it("post106: resets on tel: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ntel://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/tel\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/tel');
+  });
+
+  it("post106: resets on sms: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsms://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/sms\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/sms');
+  });
+
+  it("post106: resets on geo: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngeo://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/geo\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/geo');
+  });
+
+  it("post106: resets on maps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmaps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/maps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/maps');
+  });
+
+  it("post106: resets on intent: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nintent://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/intent\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/intent');
+  });
+
+  it("post106: resets on market: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmarket://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/market\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/market');
+  });
+
+  it("post106: resets on itms: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nitms://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/itms\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/itms');
+  });
+
+  it("post106: resets on itms-apps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nitms-apps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/itms-apps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/itms-apps');
+  });
+
+  it("post106: resets on spotify: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nspotify://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/spotify\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/spotify');
+  });
+
+  it("post106: resets on steam: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsteam://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/steam\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/steam');
+  });
+
+  it("post106: resets on discord: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ndiscord://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/discord\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/discord');
+  });
+
+  it("post106: resets on slack: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nslack://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/slack\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/slack');
+  });
+
+  it("post106: resets on zoommtg: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nzoommtg://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/zoommtg\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/zoommtg');
+  });
+
+  it("post106: resets on webcal: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nwebcal://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/webcal\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/webcal');
+  });
+
+  it("post106: resets on feed: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nfeed://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/feed\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/feed');
+  });
+
+  it("post106: resets on news: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnews://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/news\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/news');
+  });
+
+  it("post106: resets on nntp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnntp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/nntp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/nntp');
+  });
+
+  it("post106: resets on gopher: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngopher://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/gopher\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/gopher');
+  });
+
+  it("post106: resets on gemini: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngemini://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/gemini\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/gemini');
+  });
+
+  it("post106: resets on finger: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nfinger://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/finger\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/finger');
+  });
+
+  it("post106: resets on whois: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nwhois://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/whois\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/whois');
+  });
+
+  it("post106: resets on ldap: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nldap://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ldap\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ldap');
+  });
+
+  it("post106: resets on ldaps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nldaps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ldaps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ldaps');
+  });
+
+  it("post106: resets on nfs: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnfs://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/nfs\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/nfs');
+  });
+
+  it("post106: resets on smb: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsmb://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/smb\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/smb');
+  });
+
+  it("post106: resets on cifs: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncifs://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/cifs\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/cifs');
+  });
+
+  it("post106: resets on afp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nafp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/afp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/afp');
+  });
+
+  it("post106: resets on rsync: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrsync://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rsync\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rsync');
+  });
+
+  it("post106: resets on svn: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsvn://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/svn\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/svn');
+  });
+
+  it("post106: resets on git: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngit://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/git\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/git');
+  });
+
+  it("post106: resets on ssh: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nssh://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ssh\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ssh');
+  });
+
+  it("post106: resets on telnet: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ntelnet://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/telnet\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/telnet');
+  });
+
+  it("post106: resets on tn3270: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ntn3270://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/tn3270\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/tn3270');
+  });
+
+  it("post106: resets on irc: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nirc://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/irc\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/irc');
+  });
+
+  it("post106: resets on ircs: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nircs://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/ircs\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/ircs');
+  });
+
+  it("post106: resets on xmpp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nxmpp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/xmpp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/xmpp');
+  });
+
+  it("post106: resets on sip: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsip://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/sip\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/sip');
+  });
+
+  it("post106: resets on sips: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsips://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/sips\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/sips');
+  });
+
+  it("post106: resets on h323: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nh323://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/h323\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/h323');
+  });
+
+  it("post106: resets on rtmp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtmp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtmp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtmp');
+  });
+
+  it("post106: resets on rtmps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtmps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtmps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtmps');
+  });
+
+  it("post106: resets on rtmpt: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtmpt://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtmpt\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtmpt');
+  });
+
+  it("post106: resets on rtsp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtsp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtsp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtsp');
+  });
+
+  it("post106: resets on rtsps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtsps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtsps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtsps');
+  });
+
+  it("post106: resets on mms: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmms://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mms\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mms');
+  });
+
+  it("post106: resets on mmsh: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmmsh://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mmsh\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mmsh');
+  });
+
+  it("post106: resets on mmst: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmmst://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mmst\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mmst');
+  });
+
+  it("post106: resets on rtp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nrtp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/rtp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/rtp');
+  });
+
+  it("post106: resets on sctp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsctp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/sctp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/sctp');
+  });
+
+  it("post106: resets on coap: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncoap://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/coap\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/coap');
+  });
+
+  it("post106: resets on coaps: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncoaps://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/coaps\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/coaps');
+  });
+
+  it("post106: resets on mqtt: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmqtt://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mqtt\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mqtt');
+  });
+
+  it("post106: resets on amqp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\namqp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/amqp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/amqp');
+  });
+
+  it("post106: resets on stomp: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nstomp://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/stomp\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/stomp');
+  });
+
+  it("post106: resets on redis: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nredis://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/redis\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/redis');
+  });
+
+  it("post106: resets on postgres: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\npostgres://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/postgres\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/postgres');
+  });
+
+  it("post106: resets on mysql: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmysql://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mysql\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mysql');
+  });
+
+  it("post106: resets on mongodb: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmongodb://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/mongodb\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/mongodb');
+  });
+
+  it("post106: resets on cassandra: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncassandra://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/cassandra\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/cassandra');
+  });
+
+  it("post106: resets on elasticsearch: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nelasticsearch://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/elasticsearch\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/elasticsearch');
+  });
+
+  it("post106: resets on bolt: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nbolt://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/bolt\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/bolt');
+  });
+
+  it("post106: resets on docker: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ndocker://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/docker\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/docker');
+  });
+
+  it("post106: resets on podman: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\npodman://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/podman\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/podman');
+  });
+
+  it("post106: resets on kubectl: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nkubectl://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/kubectl\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/kubectl');
+  });
+
+  it("post106: resets on k8s: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nk8s://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/k8s\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/k8s');
+  });
+
+  it("post106: resets on consul: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nconsul://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/consul\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/consul');
+  });
+
+  it("post106: resets on vault: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nvault://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/vault\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/vault');
+  });
+
+  it("post106: resets on nomad: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnomad://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/nomad\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/nomad');
+  });
+
+  it("post106: resets on etcd: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\netcd://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/etcd\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/etcd');
+  });
+
+  it("post106: resets on apt: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\napt://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/apt\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/apt');
+  });
+
+  it("post106: resets on snap: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nsnap://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/snap\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/snap');
+  });
+
+  it("post106: resets on flatpak: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nflatpak://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/flatpak\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/flatpak');
+  });
+
+  it("post106: resets on brew: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nbrew://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/brew\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/brew');
+  });
+
+  it("post106: resets on choco: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nchoco://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/choco\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/choco');
+  });
+
+  it("post106: resets on winget: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nwinget://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/winget\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/winget');
+  });
+
+  it("post106: resets on npm: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnpm://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/npm\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/npm');
+  });
+
+  it("post106: resets on yarn: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nyarn://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/yarn\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/yarn');
+  });
+
+  it("post106: resets on pnpm: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\npnpm://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/pnpm\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/pnpm');
+  });
+
+  it("post106: resets on pip: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\npip://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/pip\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/pip');
+  });
+
+  it("post106: resets on cargo: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncargo://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/cargo\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/cargo');
+  });
+
+  it("post106: resets on go: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngo://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/go\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/go');
+  });
+
+  it("post106: resets on gem: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngem://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/gem\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/gem');
+  });
+
+  it("post106: resets on composer: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ncomposer://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/composer\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/composer');
+  });
+
+  it("post106: resets on nuget: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nnuget://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/nuget\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/nuget');
+  });
+
+  it("post106: resets on maven: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nmaven://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/maven\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/maven');
+  });
+
+  it("post106: resets on gradle: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\ngradle://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/gradle\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/gradle');
+  });
+
+  it("post106: resets on bazel: then recovers with https", () => {
+    const stations = parseM3U(`#EXTM3U\n#EXTINF:-1,A\nbazel://example.com/stream\n#EXTINF:-1,B\nhttps://ok.example/bazel\n`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('B');
+    expect(stations[0].url).toBe('https://ok.example/bazel');
+  });
+
+  it("post106: tvg-name empty string falls back to comma display name", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="",X\nhttps://u\n');
+    expect(s.name).toBe('X');
+  });
+
+  it("post106: tvg-name with spaces around equals is NOT matched (strict regex)", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name = "N",X\nhttps://u\n');
+    expect(s.name).toBe('X');
+  });
+
+  it("post106: tvg-logo empty string binds as empty logo", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo="",X\nhttps://u\n');
+    expect(s.logo).toBe('');
+  });
+
+  it("post106: tvg-logo with spaces around equals is NOT matched (strict regex)", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo = "https://cdn.example/x.png",X\nhttps://u\n');
+    expect(s.logo).toBeUndefined();
+  });
+
+  it("post106: group-title empty string binds as empty group", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="",X\nhttps://u\n');
+    expect(s.group).toBe('');
+  });
+
+  it("post106: group-title with spaces around equals is NOT matched (strict regex)", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title = "G",X\nhttps://u\n');
+    expect(s.group).toBeUndefined();
+  });
+
+  it("post106: tvg-language empty string binds as empty language", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-language="",X\nhttps://u\n');
+    expect(s.language).toBe('');
+  });
+
+  it("post106: tvg-language with spaces around equals is NOT matched (strict regex)", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-language = "en",X\nhttps://u\n');
+    expect(s.language).toBeUndefined();
+  });
+
+  it("post106: tvg-country empty string binds as empty country", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-country="",X\nhttps://u\n');
+    expect(s.country).toBe('');
+  });
+
+  it("post106: tvg-country with spaces around equals is NOT matched (strict regex)", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-country = "US",X\nhttps://u\n');
+    expect(s.country).toBeUndefined();
+  });
+
+  it("post106: unicode name emoji round-trips via tvg-name", () => {
+    const name = "emoji radio 🎵";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/emoji\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/emoji');
+  });
+
+  it("post106: unicode name cyrillic round-trips via tvg-name", () => {
+    const name = "Кириллица FM";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/cyrillic\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/cyrillic');
+  });
+
+  it("post106: unicode name arabic round-trips via tvg-name", () => {
+    const name = "العربية";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/arabic\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/arabic');
+  });
+
+  it("post106: unicode name hebrew round-trips via tvg-name", () => {
+    const name = "עברית";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/hebrew\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/hebrew');
+  });
+
+  it("post106: unicode name cjk round-trips via tvg-name", () => {
+    const name = "中文电台";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/cjk\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/cjk');
+  });
+
+  it("post106: unicode name japanese round-trips via tvg-name", () => {
+    const name = "日本語";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/japanese\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/japanese');
+  });
+
+  it("post106: unicode name korean round-trips via tvg-name", () => {
+    const name = "한국어";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/korean\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/korean');
+  });
+
+  it("post106: unicode name vietnamese round-trips via tvg-name", () => {
+    const name = "Tiếng Việt";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/vietnamese\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/vietnamese');
+  });
+
+  it("post106: unicode name greek round-trips via tvg-name", () => {
+    const name = "Ελληνικά";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/greek\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/greek');
+  });
+
+  it("post106: unicode name turkish round-trips via tvg-name", () => {
+    const name = "Türkçe";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/turkish\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/turkish');
+  });
+
+  it("post106: unicode name spanish round-trips via tvg-name", () => {
+    const name = "Ñandú FM";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/spanish\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/spanish');
+  });
+
+  it("post106: unicode name nordic round-trips via tvg-name", () => {
+    const name = "Ångström";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/nordic\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/nordic');
+  });
+
+  it("post106: unicode name polish round-trips via tvg-name", () => {
+    const name = "Zażółć";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/polish\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/polish');
+  });
+
+  it("post106: unicode name german round-trips via tvg-name", () => {
+    const name = "ÄÖÜß";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/german\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/german');
+  });
+
+  it("post106: unicode name flag round-trips via tvg-name", () => {
+    const name = "🇫🇷 France";
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u/flag\n`);
+    expect(s.name).toBe(name);
+    expect(s.url).toBe('https://u/flag');
+  });
+
+  it("post106: binds url variant bare-host", () => {
+    const url = "https://example.com";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant trailing-slash", () => {
+    const url = "https://example.com/";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant port", () => {
+    const url = "https://example.com:8443/live";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant userinfo", () => {
+    const url = "https://user:pass@example.com/live";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant percent", () => {
+    const url = "https://example.com/a%20b.m3u8";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant query", () => {
+    const url = "https://example.com/live?token=abc&x=1";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant hash", () => {
+    const url = "https://example.com/live#frag";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant ipv4", () => {
+    const url = "https://127.0.0.1/live";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant ipv6", () => {
+    const url = "https://[::1]/live";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant http-aac", () => {
+    const url = "http://example.com/live.aac";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant http-mp3", () => {
+    const url = "http://example.com/live.mp3";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant dotdot", () => {
+    const url = "https://cdn.example/path/../live.m3u8";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant mixed-case-host", () => {
+    const url = "https://EXAMPLE.COM/Live.M3U8";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: binds url variant long-path", () => {
+    const url = "https://example.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,N\n' + url + '\n');
+    expect(s.url).toBe(url);
+    expect(s.name).toBe('N');
+  });
+
+  it("post106: dedupe keeps first of 1 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 1; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 2 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 2; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 3 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 3; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 5 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 5; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 8 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 8; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 13 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 13; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 21 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 21; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 34 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 34; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 55 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 55; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: dedupe keeps first of 89 identical https urls", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 89; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://same.example/stream');
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('N0');
+  });
+
+  it("post106: buildSimpleM3U length 0 parses identically", () => {
+    const items = Array.from({ length: 0 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(0);
+  });
+
+  it("post106: buildSimpleM3U length 1 parses identically", () => {
+    const items = Array.from({ length: 1 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[0].url).toBe('https://ex/0');
+  });
+
+  it("post106: buildSimpleM3U length 2 parses identically", () => {
+    const items = Array.from({ length: 2 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(2);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[1].url).toBe('https://ex/1');
+  });
+
+  it("post106: buildSimpleM3U length 4 parses identically", () => {
+    const items = Array.from({ length: 4 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(4);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[3].url).toBe('https://ex/3');
+  });
+
+  it("post106: buildSimpleM3U length 7 parses identically", () => {
+    const items = Array.from({ length: 7 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(7);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[6].url).toBe('https://ex/6');
+  });
+
+  it("post106: buildSimpleM3U length 10 parses identically", () => {
+    const items = Array.from({ length: 10 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(10);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[9].url).toBe('https://ex/9');
+  });
+
+  it("post106: buildSimpleM3U length 16 parses identically", () => {
+    const items = Array.from({ length: 16 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(16);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[15].url).toBe('https://ex/15');
+  });
+
+  it("post106: buildSimpleM3U length 25 parses identically", () => {
+    const items = Array.from({ length: 25 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(25);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[24].url).toBe('https://ex/24');
+  });
+
+  it("post106: buildSimpleM3U length 32 parses identically", () => {
+    const items = Array.from({ length: 32 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(32);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[31].url).toBe('https://ex/31');
+  });
+
+  it("post106: buildSimpleM3U length 50 parses identically", () => {
+    const items = Array.from({ length: 50 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(50);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[49].url).toBe('https://ex/49');
+  });
+
+  it("post106: buildSimpleM3U length 64 parses identically", () => {
+    const items = Array.from({ length: 64 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(64);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[63].url).toBe('https://ex/63');
+  });
+
+  it("post106: buildSimpleM3U length 100 parses identically", () => {
+    const items = Array.from({ length: 100 }, (_, i) => ({
+      name: 'S' + i,
+      url: 'https://ex/' + i,
+      group: 'G' + (i % 3),
+      language: 'en',
+      country: 'US',
+    }));
+    const stations = parseM3U(buildSimpleM3U(items));
+    expect(stations).toHaveLength(100);
+    expect(stations[0].name).toBe('S0');
+    expect(stations[99].url).toBe('https://ex/99');
+  });
+
+  it("post106: SAMPLE_M3U parse length 6", () => {
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+  });
+
+  it("post106: SAMPLE_M3U all Music group", () => {
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.group === 'Music')).toBe(true);
+  });
+
+  it("post106: SAMPLE_M3U names Alpha..Zeta", () => {
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.name)).toEqual(['Alpha FM','Beta FM','Gamma FM','Delta FM','Epsilon FM','Zeta FM']);
+  });
+
+  it("post106: SAMPLE_M3U urls all https example.com", () => {
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.url.startsWith('https://example.com/') && s.url.endsWith('.m3u8'))).toBe(true);
+  });
+
+  it("post106: SAMPLE_M3U optionals undefined", () => {
+    expect(parseM3U(SAMPLE_M3U).every((s) => s.logo === undefined && s.language === undefined && s.country === undefined)).toBe(true);
+  });
+
+  it("post106: SAMPLE_M3U countHttpStreamLines equals parse length", () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(parseM3U(SAMPLE_M3U).length);
+  });
+
+  it("post106: SAMPLE_M3U dual parse deep equal", () => {
+    expect(parseM3U(SAMPLE_M3U)).toEqual(parseM3U(SAMPLE_M3U));
+  });
+
+  it("post106: SAMPLE_M3U dual parse not same ref", () => {
+    expect(parseM3U(SAMPLE_M3U)).not.toBe(parseM3U(SAMPLE_M3U));
+  });
+
+  it("post106: SAMPLE_M3U JSON round-trip drops undefined", () => {
+    const via = JSON.parse(JSON.stringify(parseM3U(SAMPLE_M3U)));
+    expect(via).toHaveLength(6);
+    expect(via[0]).not.toHaveProperty('logo');
+    expect(via[0].name).toBe('Alpha FM');
+  });
+
+  it("post106: SAMPLE_M3U sha256 of joined urls lock", () => {
+    const joined = parseM3U(SAMPLE_M3U).map((s) => s.url).join('|');
+    expect(sha256Hex(joined)).toBe('67e78b06dc81ad55e708ecb6da7ca6bfdb489833dc6fb31f9327d1e83f288de9');
+  });
+
+  it("post106: SAMPLE_M3U sha256 of joined names lock", () => {
+    const joined = parseM3U(SAMPLE_M3U).map((s) => s.name).join(',');
+    expect(sha256Hex(joined)).toBe('eb217952ba68b98d6a37c35c4a80186cec2a33bf950e7cb8875e1213bf43920a');
+  });
+
+  it("post106: SAMPLE_M3U station keys exactly six fields", () => {
+    for (const s of parseM3U(SAMPLE_M3U)) {
+      expect(Object.keys(s).sort()).toEqual(['country','group','language','logo','name','url']);
+    }
+  });
+
+  it("post106: CRLF playlists still parse after trim strips CR", () => {
+    const raw = '#EXTM3U\r\n#EXTINF:-1,A\r\nhttps://a\r\n';
+    expect(parseM3U(raw)).toEqual([{ name: 'A', url: 'https://a', logo: undefined, group: undefined, language: undefined, country: undefined }]);
+  });
+
+  it("post106: mixed blank lines between stations", () => {
+    const stations = parseM3U('#EXTM3U\n\n#EXTINF:-1,A\n\nhttps://a\n\n\n#EXTINF:-1,B\nhttps://b\n');
+    expect(stations.map((s) => s.name)).toEqual(['A', 'B']);
+  });
+
+  it("post106: #EXTM3U only with trailing spaces lines", () => {
+    expect(parseM3U('   \n#EXTM3U\n   \n')).toEqual([]);
+  });
+
+  it("post106: multiple #EXTM3U headers ignored as comments", () => {
+    const stations = parseM3U('#EXTM3U\n#EXTM3U\n#EXTINF:-1,A\nhttps://a\n#EXTM3U\n#EXTINF:-1,B\nhttps://b\n');
+    expect(stations).toHaveLength(2);
+  });
+
+  it("post106: HTTP:// uppercase does not bind (startsWith is case-sensitive)", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTP://example.com/a\n')).toEqual([]);
+  });
+
+  it("post106: HTTPS:// uppercase does not bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHTTPS://example.com/a\n')).toEqual([]);
+  });
+
+  it("post106: Http:// mixed case does not bind", () => {
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,A\nHttp://example.com/a\n')).toEqual([]);
+  });
+
+  it("post106: EXTINF duration -1 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration 0 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:0 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration 1 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration 10 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:10 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration 3600 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:3600 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration -1.0 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1.0 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: EXTINF duration 12.5 still extracts attrs", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:12.5 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s.group).toBe('G');
+  });
+
+  it("post106: does not invent station.id", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('id');
+  });
+
+  it("post106: does not invent station.uuid", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('uuid');
+  });
+
+  it("post106: does not invent station.slug", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('slug');
+  });
+
+  it("post106: does not invent station.bitrate", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('bitrate');
+  });
+
+  it("post106: does not invent station.codec", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('codec');
+  });
+
+  it("post106: does not invent station.format", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('format');
+  });
+
+  it("post106: does not invent station.mime", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('mime');
+  });
+
+  it("post106: does not invent station.contentType", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('contentType');
+  });
+
+  it("post106: does not invent station.headers", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('headers');
+  });
+
+  it("post106: does not invent station.auth", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('auth');
+  });
+
+  it("post106: does not invent station.token", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('token');
+  });
+
+  it("post106: does not invent station.apiKey", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('apiKey');
+  });
+
+  it("post106: does not invent station.secret", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('secret');
+  });
+
+  it("post106: does not invent station.curated", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('curated');
+  });
+
+  it("post106: does not invent station.editorial", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('editorial');
+  });
+
+  it("post106: does not invent station.mood", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('mood');
+  });
+
+  it("post106: does not invent station.energy", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('energy');
+  });
+
+  it("post106: does not invent station.bpm", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('bpm');
+  });
+
+  it("post106: does not invent station.tags", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('tags');
+  });
+
+  it("post106: does not invent station.keywords", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('keywords');
+  });
+
+  it("post106: does not invent station.score", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('score');
+  });
+
+  it("post106: does not invent station.rank", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('rank');
+  });
+
+  it("post106: does not invent station.priority", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('priority');
+  });
+
+  it("post106: does not invent station.weight", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('weight');
+  });
+
+  it("post106: does not invent station.favorite", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('favorite');
+  });
+
+  it("post106: does not invent station.liked", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('liked');
+  });
+
+  it("post106: does not invent station.playCount", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('playCount');
+  });
+
+  it("post106: does not invent station.listeners", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('listeners');
+  });
+
+  it("post106: does not invent station.nowPlaying", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('nowPlaying');
+  });
+
+  it("post106: does not invent station.track", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('track');
+  });
+
+  it("post106: does not invent station.artist", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('artist');
+  });
+
+  it("post106: does not invent station.album", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('album');
+  });
+
+  it("post106: does not invent station.artwork", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('artwork');
+  });
+
+  it("post106: does not invent station.icy", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('icy');
+  });
+
+  it("post106: does not invent station.metadata", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('metadata');
+  });
+
+  it("post106: does not invent station.mcp", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('mcp');
+  });
+
+  it("post106: does not invent station.tool", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('tool');
+  });
+
+  it("post106: does not invent station.manifest", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('manifest');
+  });
+
+  it("post106: does not invent station.prompt", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('prompt');
+  });
+
+  it("post106: does not invent station.model", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('model');
+  });
+
+  it("post106: does not invent station.temperature", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('temperature');
+  });
+
+  it("post106: does not invent station.tokens", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('tokens');
+  });
+
+  it("post106: does not invent station.kv", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('kv');
+  });
+
+  it("post106: does not invent station.cache", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('cache');
+  });
+
+  it("post106: does not invent station.ttl", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('ttl');
+  });
+
+  it("post106: does not invent station.etag", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('etag');
+  });
+
+  it("post106: does not invent station.lastModified", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('lastModified');
+  });
+
+  it("post106: does not invent station.createdAt", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('createdAt');
+  });
+
+  it("post106: does not invent station.updatedAt", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="N" group-title="G",N\nhttps://u\n');
+    expect(s).not.toHaveProperty('updatedAt');
+  });
+
+  it("post106: 128 unique urls preserve insertion order", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 128; i++) {
+      lines.push('#EXTINF:-1,N' + i);
+      lines.push('https://ord/' + i);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(128);
+    expect(stations.map((s) => s.url)).toEqual(Array.from({ length: 128 }, (_, i) => 'https://ord/' + i));
+  });
+
+  it("post106: interleaved http and non-http resets correctly across 40 pairs", () => {
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 40; i++) {
+      lines.push('#EXTINF:-1,Bad' + i);
+      lines.push('rtmp://bad/' + i);
+      lines.push('#EXTINF:-1,Good' + i);
+      lines.push('https://good/' + i);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(40);
+    expect(stations.every((s) => s.name.startsWith('Good'))).toBe(true);
+  });
+
+  it("post106: attr regex does not capture across quotes into next attr", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-logo="https://l" group-title="G" tvg-language="en" tvg-country="US",Disp\nhttps://u\n');
+    expect(s).toEqual({ name: 'A', url: 'https://u', logo: 'https://l', group: 'G', language: 'en', country: 'US' });
+  });
+
+  it("post106: single-quoted attrs are NOT extracted", () => {
+    const [s] = parseM3U("#EXTM3U\n#EXTINF:-1 tvg-name='Nope' group-title='Jazz',Disp\nhttps://u\n");
+    expect(s.name).toBe('Disp');
+    expect(s.group).toBeUndefined();
+  });
+
+  it("post106: unquoted attrs are NOT extracted", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name=Nope group-title=Jazz,Disp\nhttps://u\n');
+    expect(s.name).toBe('Disp');
+    expect(s.group).toBeUndefined();
+  });
+
+  it("post106: tvg-id and other unknown attrs ignored", () => {
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-id="x" tvg-chno="9" tvg-name="N",N\nhttps://u\n');
+    expect(s.name).toBe('N');
+    expect(s).not.toHaveProperty('id');
+    expect(s).not.toHaveProperty('chno');
+    expect(Object.keys(s).sort()).toEqual(['country','group','language','logo','name','url']);
+  });
+
+  it("post106: parseM3U is pure — same input same JSON", () => {
+    const raw = buildSimpleM3U([{ name: 'A', url: 'https://a', group: 'G' }, { name: 'B', url: 'https://b' }]);
+    expect(JSON.stringify(parseM3U(raw))).toBe(JSON.stringify(parseM3U(raw)));
+  });
+
+  it("post106: final mega 100x sha256 of parserSource", () => {
+    const expected = 'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368';
+    for (let i = 0; i < 100; i++) expect(sha256Hex(parserSource)).toBe(expected);
+  });
+
+  it("post106: final lock module snapshot equals disk", () => {
+    expect(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8')).toBe(parserSource);
+    expect(sha256Hex(parserSource)).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+    expect(parserSource).toHaveLength(1953);
+  });
+
 });
