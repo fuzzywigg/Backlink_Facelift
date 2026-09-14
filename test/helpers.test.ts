@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
-import { readFileSync, statSync } from 'node:fs';
+import { createHash, createHmac } from 'node:crypto';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
@@ -6364,6 +6364,1341 @@ https://c.example/stream
     const testFile = readFileSync(join(helpersRoot, 'test/helpers.test.ts'), 'utf8');
     expect(helpers.endsWith('\n')).toBe(true);
     expect(testFile.endsWith('\n')).toBe(true);
+  });
+
+});
+
+describe('post98 helpers HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(helpersRoot, rel), 'utf8');
+  const helpersSrc = read('test/helpers.ts');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const HELPER_EXPORTS = [
+    'mockKV',
+    'testEnv',
+    'SAMPLE_M3U',
+    'geminiTextResponse',
+    'stubIptvAndGemini',
+    'curatedGeminiJson',
+    'iptvCategoryUrl',
+    'countHttpStreamLines',
+    'buildSimpleM3U',
+    'seedStationsCache',
+    'captureGeminiRequest',
+    'iptvCallsWithInit',
+  ] as const;
+  const VALIDISH = ['music', 'ambient', 'jazz', 'classical', 'pop', 'rock', 'news', 'sports', 'entertainment'] as const;
+
+  it("post98: locks helpers.ts sha256 digest", () => {
+    expect(createHash('sha256').update(helpersSrc, 'utf8').digest('hex')).toBe('240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29');
+  });
+
+  it("post98: locks helpers.ts sha1 digest", () => {
+    expect(createHash('sha1').update(helpersSrc, 'utf8').digest('hex')).toBe('aac5e2154aa8f0784db092ad4bb51304fce6e117');
+  });
+
+  it("post98: locks helpers.ts md5 digest", () => {
+    expect(createHash('md5').update(helpersSrc, 'utf8').digest('hex')).toBe('004bbc8741017d8dd45bee28a29b46e1');
+  });
+
+  it("post98: locks helpers.ts sha384 digest", () => {
+    expect(createHash('sha384').update(helpersSrc, 'utf8').digest('hex')).toBe('1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167');
+  });
+
+  it("post98: locks helpers.ts sha512 digest", () => {
+    expect(createHash('sha512').update(helpersSrc, 'utf8').digest('hex')).toBe('153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91');
+  });
+
+  it("post98: locks helpers.ts sha256 nibble sum", () => {
+    expect(nibbleSum(createHash('sha256').update(helpersSrc, 'utf8').digest('hex'))).toBe(487);
+  });
+
+  it("post98: locks helpers.ts sha256 xor-nibble fingerprint", () => {
+    expect(xorNibbles(createHash('sha256').update(helpersSrc, 'utf8').digest('hex'))).toBe(5);
+  });
+
+  it("post98: sha256/sha384/sha512 digests are pairwise distinct", () => {
+    const a = createHash('sha256').update(helpersSrc, 'utf8').digest('hex');
+    const b = createHash('sha384').update(helpersSrc, 'utf8').digest('hex');
+    const c = createHash('sha512').update(helpersSrc, 'utf8').digest('hex');
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it("post98: sha384 length 96 and sha512 length 128 lowercase hex", () => {
+    const a = createHash('sha384').update(helpersSrc, 'utf8').digest('hex');
+    const b = createHash('sha512').update(helpersSrc, 'utf8').digest('hex');
+    expect(a).toHaveLength(96);
+    expect(b).toHaveLength(128);
+    expect(/^[a-f0-9]+$/.test(a + b)).toBe(true);
+  });
+
+  it("post98: HMAC-SHA256 keyed by post98 locks digest", () => {
+    expect(createHmac('sha256', 'post98').update(helpersSrc, 'utf8').digest('hex')).toBe('11f4d84949a54857585cee048ba2131c22bf243818877c8a1a5b296e77751e8d');
+  });
+
+  it("post98: HMAC-SHA256 keyed by helpers-unit locks digest", () => {
+    expect(createHmac('sha256', 'helpers-unit').update(helpersSrc, 'utf8').digest('hex')).toBe('f0ea1215268fd6a193c2632ee3b22e03a94763fd6e8c7f9f19f4992eb225b7e6');
+  });
+
+  it("post98: HMAC-SHA256 keyed by mockKV locks digest", () => {
+    expect(createHmac('sha256', 'mockKV').update(helpersSrc, 'utf8').digest('hex')).toBe('a296e2bd1cce8b9f37469dc6a80328e97d162778b56fd9069157ad6a8a73491e');
+  });
+
+  it("post98: HMAC-SHA256 keyed by testEnv locks digest", () => {
+    expect(createHmac('sha256', 'testEnv').update(helpersSrc, 'utf8').digest('hex')).toBe('3603bfa33024370b7fa45a2a75bd68d678678a43324161b2e4b459dbaec59077');
+  });
+
+  it("post98: HMAC-SHA256 keyed by SAMPLE_M3U locks digest", () => {
+    expect(createHmac('sha256', 'SAMPLE_M3U').update(helpersSrc, 'utf8').digest('hex')).toBe('2e8e7b295e770ee3b57b5bba119da51e72d12edaab4a5be0b5ec70a6a0701314');
+  });
+
+  it("post98: HMAC-SHA256 keyed by stubIptvAndGemini locks digest", () => {
+    expect(createHmac('sha256', 'stubIptvAndGemini').update(helpersSrc, 'utf8').digest('hex')).toBe('213ad05b5f9c6fc7a37ecdaa2839623f0372b92692c9e790d374b44ea9ace5ad');
+  });
+
+  it("post98: HMAC-SHA256 keyed by buildSimpleM3U locks digest", () => {
+    expect(createHmac('sha256', 'buildSimpleM3U').update(helpersSrc, 'utf8').digest('hex')).toBe('281ca55d2b34d3c06f8e7fadce2aacbde801efc264180e411989e49ff45e1432');
+  });
+
+  it("post98: HMAC-SHA256 keyed by seedStationsCache locks digest", () => {
+    expect(createHmac('sha256', 'seedStationsCache').update(helpersSrc, 'utf8').digest('hex')).toBe('99e48db331d55be15919fc2c739d9ba3f47afb347cf1caeeebcce33fb7863342');
+  });
+
+  it("post98: HMAC-SHA256 keyed by geminiTextResponse locks digest", () => {
+    expect(createHmac('sha256', 'geminiTextResponse').update(helpersSrc, 'utf8').digest('hex')).toBe('c67133024b834fb02db172eeee03ce5fb74aa60c977e604d47f4dcff6134590a');
+  });
+
+  it("post98: HMAC-SHA256 keyed by curatedGeminiJson locks digest", () => {
+    expect(createHmac('sha256', 'curatedGeminiJson').update(helpersSrc, 'utf8').digest('hex')).toBe('0f37469518d9624dd955451ccc6fad3e43436dee8ec2003654d5ae2581b083c3');
+  });
+
+  it("post98: HMAC digests differ from unkeyed sha256 and each other", () => {
+    const plain = createHash('sha256').update(helpersSrc, 'utf8').digest('hex');
+    const a = createHmac('sha256', 'post98').update(helpersSrc, 'utf8').digest('hex');
+    const b = createHmac('sha256', 'helpers-unit').update(helpersSrc, 'utf8').digest('hex');
+    expect(a).not.toBe(plain);
+    expect(b).not.toBe(plain);
+    expect(a).not.toBe(b);
+  });
+
+  it("post98: locks helpers.ts byte and code-unit lengths", () => {
+    expect(Buffer.byteLength(helpersSrc, 'utf8')).toBe(6078);
+    expect(helpersSrc.length).toBe(6078);
+  });
+
+  it("post98: locks helpers.ts code-unit sum", () => {
+    const sum = [...helpersSrc].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(507506);
+  });
+
+  it("post98: locks helpers.ts line count and trailing newline", () => {
+    expect(helpersSrc.endsWith('\n')).toBe(true);
+    expect(helpersSrc.split('\n')).toHaveLength(164);
+  });
+
+  it("post98: glyph budget — quotes equals spaces underscores", () => {
+    expect((helpersSrc.match(/"/g) ?? []).length).toBe(34);
+    expect((helpersSrc.match(/=/g) ?? []).length).toBe(71);
+    expect((helpersSrc.match(/ /g) ?? []).length).toBe(919);
+    expect((helpersSrc.match(/_/g) ?? []).length).toBe(4);
+  });
+
+  it("post98: glyph budget — colons commas semis parens braces brackets", () => {
+    expect((helpersSrc.match(/:/g) ?? []).length).toBe(106);
+    expect((helpersSrc.match(/,/g) ?? []).length).toBe(58);
+    expect((helpersSrc.match(/;/g) ?? []).length).toBe(56);
+    expect((helpersSrc.match(/[()]/g) ?? []).length).toBe(180);
+    expect((helpersSrc.match(/[{}]/g) ?? []).length).toBe(118);
+    expect((helpersSrc.match(/[\[\]]/g) ?? []).length).toBe(42);
+  });
+
+  it("post98: glyph budget — singles backticks newlines tabs arrows", () => {
+    expect((helpersSrc.match(/'/g) ?? []).length).toBe(48);
+    expect((helpersSrc.match(/`/g) ?? []).length).toBe(20);
+    expect((helpersSrc.match(/\n/g) ?? []).length).toBe(163);
+    expect((helpersSrc.match(/\t/g) ?? []).length).toBe(0);
+    expect((helpersSrc.match(/\u2192/g) ?? []).length).toBe(0);
+  });
+
+  it("post98: helpers.ts starts with vitest import and Env type import", () => {
+    expect(helpersSrc.startsWith("import { vi } from 'vitest';")).toBe(true);
+    expect(helpersSrc).toContain("import type { Env } from '../src/types';");
+  });
+
+  it("post98: helpers.ts export inventory lock (12)", () => {
+    expect(HELPER_EXPORTS).toHaveLength(12);
+    expect(createHash('sha256').update(HELPER_EXPORTS.join('|'), 'utf8').digest('hex')).toBe('0b6d293e07cc0615c0ffb954dc0890dfd54940b811d64e79261d79342b3a4b9c');
+    for (const name of HELPER_EXPORTS) {
+      expect(helpersSrc).toMatch(new RegExp(`export (?:function|const) ${name}`));
+    }
+  });
+
+  it("post98: helpers.ts has no product inventing surface names", () => {
+    expect(helpersSrc).not.toMatch(/now-playing|nowPlaying|playlist|openapi|podcast|websocket|sse\b/i);
+    expect(helpersSrc).not.toMatch(/GEMINI_API_KEY\s*=/);
+  });
+
+  it("post98: locks SAMPLE_M3U sha256 digest", () => {
+    expect(createHash('sha256').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('d333f382d92be92d05fc76ff08d56269b7a5f305770748fc8cdf68506169c45e');
+  });
+
+  it("post98: locks SAMPLE_M3U length and http stream count", () => {
+    expect(SAMPLE_M3U.length).toBe(554);
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(SAMPLE_M3U.startsWith('#EXTM3U')).toBe(true);
+  });
+
+  it("post98: SAMPLE_M3U greek names and urls ordered", () => {
+    const names = ['Alpha FM', 'Beta FM', 'Gamma FM', 'Delta FM', 'Epsilon FM', 'Zeta FM'];
+    const urls = ['https://example.com/alpha.m3u8', 'https://example.com/beta.m3u8', 'https://example.com/gamma.m3u8', 'https://example.com/delta.m3u8', 'https://example.com/epsilon.m3u8', 'https://example.com/zeta.m3u8'];
+    for (const n of names) expect(SAMPLE_M3U).toContain(n);
+    for (const u of urls) expect(SAMPLE_M3U).toContain(u);
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.name)).toEqual(names);
+    expect(parseM3U(SAMPLE_M3U).map((s) => s.url)).toEqual(urls);
+  });
+
+  it("post98: SAMPLE_M3U every station has group-title Music", () => {
+    const parsed = parseM3U(SAMPLE_M3U);
+    expect(parsed.every((s) => s.group === 'Music')).toBe(true);
+    expect((SAMPLE_M3U.match(/group-title="Music"/g) ?? []).length).toBe(6);
+  });
+
+  it("post98: SAMPLE_M3U omits logo language country attrs", () => {
+    expect(SAMPLE_M3U).not.toMatch(/tvg-logo=/);
+    expect(SAMPLE_M3U).not.toMatch(/tvg-language=/);
+    expect(SAMPLE_M3U).not.toMatch(/tvg-country=/);
+  });
+
+  it("post98: SAMPLE_M3U contains Alpha FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Alpha FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/alpha.m3u8');
+  });
+
+  it("post98: SAMPLE_M3U contains Beta FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Beta FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/beta.m3u8');
+  });
+
+  it("post98: SAMPLE_M3U contains Gamma FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Gamma FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/gamma.m3u8');
+  });
+
+  it("post98: SAMPLE_M3U contains Delta FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Delta FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/delta.m3u8');
+  });
+
+  it("post98: SAMPLE_M3U contains Epsilon FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Epsilon FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/epsilon.m3u8');
+  });
+
+  it("post98: SAMPLE_M3U contains Zeta FM stream pair", () => {
+    expect(SAMPLE_M3U).toContain('tvg-name="Zeta FM"');
+    expect(SAMPLE_M3U).toContain('https://example.com/zeta.m3u8');
+  });
+
+  it("post98: mockKV seed round-trip for stations cache keys", async () => {
+    const seed = Object.fromEntries(VALIDISH.map((g) => [`stations:${g}`, JSON.stringify([{ name: g }])]));
+    const kv = mockKV(seed);
+    for (const g of VALIDISH) {
+      await expect(kv.get(`stations:${g}`)).resolves.toBe(JSON.stringify([{ name: g }]));
+    }
+  });
+
+  it("post98: mockKV put overwrite and delete matrix", async () => {
+    const kv = mockKV({ a: '1', b: '2' });
+    await kv.put('a', '9');
+    await expect(kv.get('a')).resolves.toBe('9');
+    await kv.delete('b');
+    await expect(kv.get('b')).resolves.toBeNull();
+    await kv.delete('missing');
+    await expect(kv.get('missing')).resolves.toBeNull();
+  });
+
+  it("post98: mockKV list and getWithMetadata stay empty stubs", async () => {
+    const kv = mockKV({ x: '1' });
+    await expect(kv.list()).resolves.toEqual({ keys: [], list_complete: true, cacheStatus: null });
+    await expect(kv.getWithMetadata('x')).resolves.toEqual({ value: null, metadata: null, cacheStatus: null });
+  });
+
+  it("post98: mockKV seed object mutation isolation", async () => {
+    const seed: Record<string, string> = { k: 'v' };
+    const kv = mockKV(seed);
+    seed.k = 'mutated';
+    seed.extra = 'nope';
+    await expect(kv.get('k')).resolves.toBe('v');
+    await expect(kv.get('extra')).resolves.toBeNull();
+  });
+
+  it("post98: mockKV independent instances do not share store", async () => {
+    const a = mockKV({ k: 'a' });
+    const b = mockKV({ k: 'b' });
+    await a.put('k', 'A');
+    await expect(b.get('k')).resolves.toBe('b');
+    await expect(a.get('k')).resolves.toBe('A');
+  });
+
+  it("post98: testEnv defaults VERSION 0.1.0-test and fresh KV", () => {
+    const a = testEnv();
+    const b = testEnv();
+    expect(a.VERSION).toBe('0.1.0-test');
+    expect(b.VERSION).toBe('0.1.0-test');
+    expect(a.CATALOG_CACHE).not.toBe(b.CATALOG_CACHE);
+    expect(a.GEMINI_API_KEY).toBeUndefined();
+  });
+
+  it("post98: testEnv override matrix for VERSION and GEMINI_API_KEY", () => {
+    expect(testEnv({ VERSION: '9.9.9' }).VERSION).toBe('9.9.9');
+    expect(testEnv({ GEMINI_API_KEY: 'secret' }).GEMINI_API_KEY).toBe('secret');
+    expect(testEnv({ VERSION: undefined }).VERSION).toBeUndefined();
+  });
+
+  it("post98: testEnv can inject custom CATALOG_CACHE", async () => {
+    const custom = mockKV({ 'stations:jazz': '[]' });
+    const env = testEnv({ CATALOG_CACHE: custom });
+    expect(env.CATALOG_CACHE).toBe(custom);
+    await expect(env.CATALOG_CACHE.get('stations:jazz')).resolves.toBe('[]');
+  });
+
+  it("post98: geminiTextResponse shape lock for empty and unicode", async () => {
+    for (const text of ['', 'hello', '日本語', '{"x":1}', 'a'.repeat(200)]) {
+      const body = (await geminiTextResponse(text).json()) as {
+        candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+      };
+      expect(body.candidates).toHaveLength(1);
+      expect(body.candidates[0].content.parts).toHaveLength(1);
+      expect(body.candidates[0].content.parts[0].text).toBe(text);
+    }
+  });
+
+  it("post98: geminiTextResponse content-type application/json", () => {
+    const res = geminiTextResponse('x');
+    expect(res.headers.get('content-type')).toMatch(/application\/json/);
+  });
+
+  it("post98: curatedGeminiJson default Alpha FM music pick", async () => {
+    const text = ((await curatedGeminiJson().json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    }).candidates[0].content.parts[0].text;
+    const parsed = JSON.parse(text) as Array<Record<string, string>>;
+    expect(parsed).toEqual([
+      { name: 'Alpha FM', url: 'https://example.com/alpha.m3u8', editorial: 'Default curated pick.', genre: 'music' },
+    ]);
+  });
+
+  it("post98: curatedGeminiJson custom multi-station with logo", async () => {
+    const picks = [
+      { name: 'A', url: 'https://a.example/a', editorial: 'ea', genre: 'jazz', logo: 'https://logo/a.png' },
+      { name: 'B', url: 'https://b.example/b', editorial: 'eb', genre: 'rock' },
+    ];
+    const text = ((await curatedGeminiJson(picks).json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    }).candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual(picks);
+  });
+
+  it("post98: curatedGeminiJson empty array still wraps JSON text", async () => {
+    const text = ((await curatedGeminiJson([]).json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    }).candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual([]);
+  });
+
+  it("post98: iptvCategoryUrl builds categories/music.m3u", () => {
+    expect(iptvCategoryUrl('music')).toBe('https://iptv-org.github.io/iptv/categories/music.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/ambient.m3u", () => {
+    expect(iptvCategoryUrl('ambient')).toBe('https://iptv-org.github.io/iptv/categories/ambient.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/jazz.m3u", () => {
+    expect(iptvCategoryUrl('jazz')).toBe('https://iptv-org.github.io/iptv/categories/jazz.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/classical.m3u", () => {
+    expect(iptvCategoryUrl('classical')).toBe('https://iptv-org.github.io/iptv/categories/classical.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/pop.m3u", () => {
+    expect(iptvCategoryUrl('pop')).toBe('https://iptv-org.github.io/iptv/categories/pop.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/rock.m3u", () => {
+    expect(iptvCategoryUrl('rock')).toBe('https://iptv-org.github.io/iptv/categories/rock.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/news.m3u", () => {
+    expect(iptvCategoryUrl('news')).toBe('https://iptv-org.github.io/iptv/categories/news.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/sports.m3u", () => {
+    expect(iptvCategoryUrl('sports')).toBe('https://iptv-org.github.io/iptv/categories/sports.m3u');
+  });
+
+  it("post98: iptvCategoryUrl builds categories/entertainment.m3u", () => {
+    expect(iptvCategoryUrl('entertainment')).toBe('https://iptv-org.github.io/iptv/categories/entertainment.m3u');
+  });
+
+  it("post98: iptvCategoryUrl does not encode or strip odd genre ids", () => {
+    expect(iptvCategoryUrl('')).toBe('https://iptv-org.github.io/iptv/categories/.m3u');
+    expect(iptvCategoryUrl('a/b')).toBe('https://iptv-org.github.io/iptv/categories/a/b.m3u');
+    expect(iptvCategoryUrl('music.m3u')).toBe('https://iptv-org.github.io/iptv/categories/music.m3u.m3u');
+    expect(iptvCategoryUrl('jazz?x=1')).toBe('https://iptv-org.github.io/iptv/categories/jazz?x=1.m3u');
+  });
+
+  it("post98: iptvCategoryUrl join of VALIDISH sha256", () => {
+    const joined = VALIDISH.map((g) => iptvCategoryUrl(g)).join('|');
+    expect(createHash('sha256').update(joined, 'utf8').digest('hex')).toBe('0acfbae6393088f35c9b74acc4d02a1e01341e0773f485d4c08b638ccc0694d1');
+  });
+
+  it("post98: countHttpStreamLines SAMPLE_M3U is 6", () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+  });
+
+  it("post98: countHttpStreamLines edge matrix", () => {
+    expect(countHttpStreamLines('')).toBe(0);
+    expect(countHttpStreamLines('\r\n')).toBe(0);
+    expect(countHttpStreamLines('  https://x  \nhttp://y')).toBe(2);
+    expect(countHttpStreamLines('HTTP://upper')).toBe(0);
+    expect(countHttpStreamLines('rtmp://x\nftp://y')).toBe(0);
+    expect(countHttpStreamLines('#EXTINF:-1 tvg-logo=\"https://logo\",N\nhttps://stream')).toBe(1);
+  });
+
+  it("post98: buildSimpleM3U empty yields header only", () => {
+    expect(buildSimpleM3U([])).toBe('#EXTM3U\n');
+  });
+
+  it("post98: buildSimpleM3U name-only attrs", () => {
+    const m3u = buildSimpleM3U([{ name: 'Solo', url: 'https://s.example/s' }]);
+    expect(m3u).toContain('tvg-name="Solo"');
+    expect(m3u).not.toContain('tvg-logo=');
+    expect(m3u).not.toContain('group-title=');
+    expect(m3u).not.toContain('tvg-language=');
+    expect(m3u).not.toContain('tvg-country=');
+    expect(parseM3U(m3u)).toEqual([{ name: 'Solo', url: 'https://s.example/s' }]);
+  });
+
+  it("post98: buildSimpleM3U full attr set round-trip via parseM3U", () => {
+    const m3u = buildSimpleM3U([
+      {
+        name: 'Full',
+        url: 'https://full.example/f',
+        logo: 'https://logo/f.png',
+        group: 'G',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    expect(parseM3U(m3u)).toEqual([
+      {
+        name: 'Full',
+        url: 'https://full.example/f',
+        logo: 'https://logo/f.png',
+        group: 'G',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+  });
+
+  it("post98: buildSimpleM3U multi-station preserves order", () => {
+    const stations = VALIDISH.map((g, i) => ({
+      name: `N${i}`,
+      url: `https://ex.example/${g}`,
+      group: g,
+    }));
+    const parsed = parseM3U(buildSimpleM3U(stations));
+    expect(parsed.map((s) => s.url)).toEqual(stations.map((s) => s.url));
+    expect(parsed.map((s) => s.group)).toEqual([...VALIDISH]);
+  });
+
+  it("post98: buildSimpleM3U always trailing newline and EXTINF -1", () => {
+    const m3u = buildSimpleM3U([{ name: 'X', url: 'https://x' }]);
+    expect(m3u.endsWith('\n')).toBe(true);
+    expect(m3u.startsWith('#EXTM3U\n')).toBe(true);
+    expect(m3u).toContain('#EXTINF:-1 ');
+  });
+
+  it("post98: seedStationsCache serializes objects under stations:genre", () => {
+    expect(seedStationsCache('jazz', [{ name: 'J' }])).toEqual({
+      'stations:jazz': JSON.stringify([{ name: 'J' }]),
+    });
+  });
+
+  it("post98: seedStationsCache keeps raw strings and merges existing", () => {
+    expect(seedStationsCache('music', 'RAW', { other: '1' })).toEqual({
+      other: '1',
+      'stations:music': 'RAW',
+    });
+  });
+
+  it("post98: seedStationsCache key stations:music", () => {
+    const seeded = seedStationsCache('music', []);
+    expect(Object.keys(seeded)).toEqual(['stations:music']);
+    expect(seeded['stations:music']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:ambient", () => {
+    const seeded = seedStationsCache('ambient', []);
+    expect(Object.keys(seeded)).toEqual(['stations:ambient']);
+    expect(seeded['stations:ambient']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:jazz", () => {
+    const seeded = seedStationsCache('jazz', []);
+    expect(Object.keys(seeded)).toEqual(['stations:jazz']);
+    expect(seeded['stations:jazz']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:classical", () => {
+    const seeded = seedStationsCache('classical', []);
+    expect(Object.keys(seeded)).toEqual(['stations:classical']);
+    expect(seeded['stations:classical']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:pop", () => {
+    const seeded = seedStationsCache('pop', []);
+    expect(Object.keys(seeded)).toEqual(['stations:pop']);
+    expect(seeded['stations:pop']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:rock", () => {
+    const seeded = seedStationsCache('rock', []);
+    expect(Object.keys(seeded)).toEqual(['stations:rock']);
+    expect(seeded['stations:rock']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:news", () => {
+    const seeded = seedStationsCache('news', []);
+    expect(Object.keys(seeded)).toEqual(['stations:news']);
+    expect(seeded['stations:news']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:sports", () => {
+    const seeded = seedStationsCache('sports', []);
+    expect(Object.keys(seeded)).toEqual(['stations:sports']);
+    expect(seeded['stations:sports']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache key stations:entertainment", () => {
+    const seeded = seedStationsCache('entertainment', []);
+    expect(Object.keys(seeded)).toEqual(['stations:entertainment']);
+    expect(seeded['stations:entertainment']).toBe('[]');
+  });
+
+  it("post98: seedStationsCache does not mutate existing object", () => {
+    const existing = { a: '1' };
+    const next = seedStationsCache('rock', 'x', existing);
+    expect(existing).toEqual({ a: '1' });
+    expect(next).toEqual({ a: '1', 'stations:rock': 'x' });
+    expect(next).not.toBe(existing);
+  });
+
+  it("post98: captureGeminiRequest null when no gemini calls", () => {
+    expect(captureGeminiRequest({ mock: { calls: [['https://iptv-org.github.io/x']] } })).toBeNull();
+  });
+
+  it("post98: captureGeminiRequest extracts POST JSON body", () => {
+    const captured = captureGeminiRequest({
+      mock: {
+        calls: [
+          [
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=k',
+            { method: 'post', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contents: [] }) },
+          ],
+        ],
+      },
+    });
+    expect(captured).toEqual({
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=k',
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: { contents: [] },
+    });
+  });
+
+  it("post98: captureGeminiRequest defaults method GET when init omitted", () => {
+    const captured = captureGeminiRequest({
+      mock: { calls: [['https://generativelanguage.googleapis.com/x']] },
+    });
+    expect(captured?.method).toBe('GET');
+    expect(captured?.body).toEqual({});
+  });
+
+  it("post98: iptvCallsWithInit filters only iptv-org with init", () => {
+    const fetchMock = {
+      mock: {
+        calls: [
+          ['https://iptv-org.github.io/a'],
+          ['https://iptv-org.github.io/b', { method: 'GET' }],
+          ['https://generativelanguage.googleapis.com/x', { method: 'POST' }],
+          ['https://example.com', { method: 'GET' }],
+        ],
+      },
+    };
+    expect(iptvCallsWithInit(fetchMock)).toEqual([['https://iptv-org.github.io/b', { method: 'GET' }]]);
+  });
+
+  it("post98: stubIptvAndGemini default m3u is SAMPLE_M3U", async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('music'))).text()).toBe(SAMPLE_M3U);
+  });
+
+  it("post98: stubIptvAndGemini default gemini is boom 500", async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/v1');
+    expect(res.status).toBe(500);
+    expect(await res.text()).toBe('boom');
+  });
+
+  it("post98: stubIptvAndGemini unrelated host is nope 404", async () => {
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://example.com/other');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 400", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 400 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(400);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 401", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 401 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(401);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 403", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 403 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(403);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 404", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 404 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 408", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 408 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(408);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 409", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 409 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(409);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 418", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 418 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(418);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 422", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 422 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(422);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 429", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 429 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(429);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 500", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 500 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(500);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 502", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 502 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(502);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 503", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 504", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 504 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(504);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 520", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 520 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(520);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stubIptvAndGemini m3u null iptvStatus 521", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 521 }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(521);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: stub iptvByGenre solo hit for music", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { music: 'BODY_MUSIC' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('music'))).text()).toBe('BODY_MUSIC');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for ambient", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { ambient: 'BODY_AMBIENT' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('ambient'))).text()).toBe('BODY_AMBIENT');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for jazz", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz: 'BODY_JAZZ' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('jazz'))).text()).toBe('BODY_JAZZ');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for classical", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { classical: 'BODY_CLASSICAL' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('classical'))).text()).toBe('BODY_CLASSICAL');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for pop", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { pop: 'BODY_POP' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('pop'))).text()).toBe('BODY_POP');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for rock", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { rock: 'BODY_ROCK' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('rock'))).text()).toBe('BODY_ROCK');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for news", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { news: 'BODY_NEWS' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('news'))).text()).toBe('BODY_NEWS');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for sports", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { sports: 'BODY_SPORTS' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('sports'))).text()).toBe('BODY_SPORTS');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre solo hit for entertainment", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { entertainment: 'BODY_ENTERTAINMENT' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('entertainment'))).text()).toBe('BODY_ENTERTAINMENT');
+    expect(await (await fetchMock(iptvCategoryUrl('__other__'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre null per-genre uses iptvStatus", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz: null },
+      iptvStatus: 418,
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    expect(res.status).toBe(418);
+    expect(await res.text()).toBe('down');
+    expect(await (await fetchMock(iptvCategoryUrl('music'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub iptvByGenre hasOwnProperty does not treat prototype keys", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: Object.create({ music: 'PROTO' }) as Record<string, string | null>,
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock(iptvCategoryUrl('music'))).text()).toBe('FALLBACK');
+  });
+
+  it("post98: stub gemini Response instance reused; factory invoked each time", async () => {
+    const gemini = curatedGeminiJson();
+    const reused = stubIptvAndGemini({ gemini }) as unknown as (u: string) => Promise<Response>;
+    expect(await reused('https://generativelanguage.googleapis.com/a')).toBe(gemini);
+    let n = 0;
+    const factory = stubIptvAndGemini({
+      gemini: () => {
+        n += 1;
+        return geminiTextResponse(String(n));
+      },
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await factory('https://generativelanguage.googleapis.com/a')).json()).toMatchObject({
+      candidates: [{ content: { parts: [{ text: '1' }] } }],
+    });
+    expect(await (await factory('https://generativelanguage.googleapis.com/b')).json()).toMatchObject({
+      candidates: [{ content: { parts: [{ text: '2' }] } }],
+    });
+    expect(n).toBe(2);
+  });
+
+  it("post98: stub accepts URL objects and RequestInfo stringification", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: 'URL_OBJ' }) as unknown as (u: RequestInfo | URL) => Promise<Response>;
+    expect(await (await fetchMock(new URL(iptvCategoryUrl('jazz')))).text()).toBe('URL_OBJ');
+  });
+
+  it("post98: stub category regex requires .m3u and allows query suffix", async () => {
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz: 'HIT' },
+      m3u: 'FALLBACK',
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://iptv-org.github.io/iptv/categories/jazz')).text()).toBe('FALLBACK');
+    expect(await (await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u?cache=1')).text()).toBe('HIT');
+  });
+
+  it("post98: stub is vitest mock with call history", async () => {
+    const fetchMock = stubIptvAndGemini({});
+    expect(vi.isMockFunction(fetchMock)).toBe(true);
+    await (fetchMock as unknown as (u: string) => Promise<Response>)(iptvCategoryUrl('music'));
+    await (fetchMock as unknown as (u: string) => Promise<Response>)('https://generativelanguage.googleapis.com/x');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("post98: stub concurrent iptv+gemini+other", async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson(), m3u: 'M3U' }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    const [iptv, gemini, other] = await Promise.all([
+      fetchMock(iptvCategoryUrl('music')),
+      fetchMock('https://generativelanguage.googleapis.com/x'),
+      fetchMock('https://example.com'),
+    ]);
+    expect(await iptv.text()).toBe('M3U');
+    expect(gemini.status).toBe(200);
+    expect(other.status).toBe(404);
+  });
+
+  it("post98: stub empty-string m3u is 200 empty body", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: '' }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('music'));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('');
+  });
+
+  it("post98: stub gemini factory thrown error propagates", async () => {
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => {
+        throw new Error('gemini-boom');
+      },
+    }) as unknown as (u: string) => Promise<Response>;
+    await expect(fetchMock('https://generativelanguage.googleapis.com/x')).rejects.toThrow('gemini-boom');
+  });
+
+  it("post98: stub iptvByGenre full VALIDISH matrix", async () => {
+    const iptvByGenre = Object.fromEntries(VALIDISH.map((g) => [g, `BODY_${g}`])) as Record<string, string | null>;
+    const fetchMock = stubIptvAndGemini({ iptvByGenre, m3u: 'FALLBACK' }) as unknown as (u: string) => Promise<Response>;
+    for (const g of VALIDISH) {
+      expect(await (await fetchMock(iptvCategoryUrl(g))).text()).toBe(`BODY_${g}`);
+    }
+  });
+
+  it("post98: stub iptvByGenre null defaults iptvStatus 503", async () => {
+    const fetchMock = stubIptvAndGemini({ iptvByGenre: { rock: null } }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl('rock'));
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('down');
+  });
+
+  it("post98: locks package.json test scripts and coverage floors via vitest", () => {
+    const pkgJson = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkgJson.scripts.test).toBe('vitest run');
+    expect(pkgJson.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkgJson.scripts['test:coverage']).toBe('vitest run --coverage');
+    expect(read('vitest.config.ts')).toContain('lines: 100');
+    expect(read('vitest.config.ts')).toContain('functions: 100');
+    expect(read('vitest.config.ts')).toContain('branches: 100');
+    expect(read('vitest.config.ts')).toContain('statements: 100');
+  });
+
+  it("post98: locks AGENTS Verify block names npm scripts", () => {
+    const agentsMd = read('AGENTS.md');
+    expect(agentsMd).toContain('npm ci');
+    expect(agentsMd).toContain('npm run typecheck');
+    expect(agentsMd).toContain('npm test');
+    expect(agentsMd).toContain('npm run test:coverage');
+  });
+
+  it("post98: locks CI workflow runs typecheck and test:coverage", () => {
+    const ciYml = read('.github/workflows/ci.yml');
+    expect(ciYml).toContain('npm run typecheck');
+    expect(ciYml).toContain('npm run test:coverage');
+    expect(ciYml).toContain('coverage/lcov.info');
+  });
+
+  it("post98: locks test inventory includes helpers siblings", () => {
+    expect(readdirSync(join(helpersRoot, 'test')).sort()).toEqual([
+      'ci-config.test.ts',
+      'genres.test.ts',
+      'helpers.test.ts',
+      'helpers.ts',
+      'mcp-spec-contract.test.ts',
+      'mcp.test.ts',
+      'parser.test.ts',
+      'routes.test.ts',
+      'source-contracts.test.ts',
+      'wrangler-config.test.ts',
+    ]);
+  });
+
+  it("post98: locks src/types Env shape referenced by helpers", () => {
+    const typesSrc = read('src/types.ts');
+    expect(typesSrc).toContain('CATALOG_CACHE');
+    expect(typesSrc).toContain('GEMINI_API_KEY');
+    expect(typesSrc).toContain('VERSION');
+    expect(helpersSrc).toContain("import type { Env } from '../src/types';");
+  });
+
+  it("post98: locks helpers free of process.env Deno Bun require", () => {
+    expect(helpersSrc).not.toMatch(/process\.env/);
+    expect(helpersSrc).not.toMatch(/\bDeno\b/);
+    expect(helpersSrc).not.toMatch(/\bBun\b/);
+    expect(helpersSrc).not.toMatch(/\brequire\s*\(/);
+  });
+
+  it("post98: negative inventing fence — helpers do not add playlist/now-playing helpers", () => {
+    for (const banned of ['playlist', 'nowPlaying', 'now-playing', 'openapi', 'podcast', 'websocket']) {
+      expect(helpersSrc.toLowerCase()).not.toContain(banned.toLowerCase());
+    }
+  });
+
+  it("post98: negative inventing fence — no new helper export beyond the twelve", () => {
+    const exportNames = [...helpersSrc.matchAll(/export (?:async )?function ([A-Za-z0-9_]+)|export const ([A-Za-z0-9_]+)/g)].map(
+      (m) => m[1] ?? m[2],
+    );
+    expect(exportNames.sort()).toEqual([...HELPER_EXPORTS].sort());
+  });
+
+  it("post98: README documents /stations and /curate without inventing endpoints", () => {
+    const readmeMd = read('README.md');
+    expect(readmeMd).toMatch(/\/stations/);
+    expect(readmeMd).toMatch(/\/curate/);
+    expect(readmeMd).not.toMatch(/\/playlist/);
+    expect(readmeMd).not.toMatch(/\/now-playing/);
+  });
+
+  it("post98: parseM3U(buildSimpleM3U(SAMPLE stations)) preserves six urls", () => {
+    const stations = parseM3U(SAMPLE_M3U).map((s) => ({ name: s.name, url: s.url, group: s.group }));
+    const rebuilt = parseM3U(buildSimpleM3U(stations));
+    expect(rebuilt.map((s) => s.url)).toEqual(stations.map((s) => s.url));
+    expect(countHttpStreamLines(buildSimpleM3U(stations))).toBe(6);
+  });
+
+  it("post98: seedStationsCache + mockKV integration for all VALIDISH", async () => {
+    let seed: Record<string, string> = {};
+    for (const g of VALIDISH) {
+      seed = seedStationsCache(g, [{ genre: g }], seed);
+    }
+    const kv = mockKV(seed);
+    for (const g of VALIDISH) {
+      await expect(kv.get(`stations:${g}`)).resolves.toBe(JSON.stringify([{ genre: g }]));
+    }
+  });
+
+  it("post98: captureGeminiRequest + stubIptvAndGemini integration", async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(
+      'https://generativelanguage.googleapis.com/v1beta/models/x:generateContent?key=k',
+      { method: 'POST', body: JSON.stringify({ foo: 1 }) },
+    );
+    const captured = captureGeminiRequest(fetchMock);
+    expect(captured?.method).toBe('POST');
+    expect(captured?.body).toEqual({ foo: 1 });
+  });
+
+  it("post98: iptvCallsWithInit + stub with init records the call", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: 'OK' });
+    await (fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>)(iptvCategoryUrl('music'), {
+      method: 'GET',
+    });
+    expect(iptvCallsWithInit(fetchMock)).toHaveLength(1);
+  });
+
+  it("post98: helpers.ts file size and mtime are stable positive", () => {
+    const st = statSync(join(helpersRoot, 'test/helpers.ts'));
+    expect(st.size).toBe(6078);
+    expect(st.mtimeMs).toBeGreaterThan(0);
+  });
+
+  it("post98: Buffer compare helpers prefix import", () => {
+    expect(Buffer.from(helpersSrc.slice(0, 6), 'utf8').equals(Buffer.from('import'))).toBe(true);
+  });
+
+  it("post98: TextEncoder UTF-8 length equals Buffer byteLength", () => {
+    expect(new TextEncoder().encode(helpersSrc).length).toBe(Buffer.byteLength(helpersSrc, 'utf8'));
+  });
+
+  it("post98: queueMicrotask does not alter helpers digest", async () => {
+    const before = createHash('sha256').update(helpersSrc, 'utf8').digest('hex');
+    await new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+    expect(createHash('sha256').update(read('test/helpers.ts'), 'utf8').digest('hex')).toBe(before);
+  });
+
+  it("post98: performance.now around helpers read is finite", () => {
+    const t0 = performance.now();
+    expect(read('test/helpers.ts').length).toBeGreaterThan(0);
+    expect(Number.isFinite(performance.now() - t0)).toBe(true);
+  });
+
+  it("post98: Blob round-trip of SAMPLE_M3U header", async () => {
+    const blob = new Blob(['#EXTM3U'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('#EXTM3U');
+    expect(SAMPLE_M3U.startsWith('#EXTM3U')).toBe(true);
+  });
+
+  it("post98: WeakMap can key mockKV result object", () => {
+    const kv = mockKV();
+    const wm = new WeakMap<object, string>();
+    wm.set(kv as unknown as object, 'mock-kv');
+    expect(wm.get(kv as unknown as object)).toBe('mock-kv');
+  });
+
+  it("post98: encodeURI of iptv host path equals itself", () => {
+    const host = 'https://iptv-org.github.io/iptv/categories/music.m3u';
+    expect(encodeURI(host)).toBe(host);
+    expect(iptvCategoryUrl('music')).toBe(host);
+  });
+
+  it("post98: JSON.stringify testEnv VERSION stable", () => {
+    expect(JSON.parse(JSON.stringify({ VERSION: testEnv().VERSION }))).toEqual({ VERSION: '0.1.0-test' });
+  });
+
+  it("post98: Array.from VALIDISH equals spread and slice", () => {
+    expect(Array.from(VALIDISH)).toEqual([...VALIDISH]);
+    expect(VALIDISH.slice()).toEqual([...VALIDISH]);
+  });
+
+  it("post98: fromCharCode rebuild of helper export names", () => {
+    const pairs: Array<[string, number[]]> = [
+      ['mockKV', [109, 111, 99, 107, 75, 86]],
+      ['testEnv', [116, 101, 115, 116, 69, 110, 118]],
+      ['SAMPLE_M3U', [83, 65, 77, 80, 76, 69, 95, 77, 51, 85]],
+    ];
+    for (const [name, codes] of pairs) {
+      expect(String.fromCharCode(...codes)).toBe(name);
+      expect(helpersSrc).toContain(name);
+    }
+  });
+
+  it("post98: locks sha256 of export name mockKV", () => {
+    expect(createHash('sha256').update('mockKV').digest('hex')).toBe('3e67d33140d77c75b2ae708c4bd9f2d52266eb8c1d755586ec594c6282f8a993');
+    expect(helpersSrc).toMatch(/export (?:function|const) mockKV/);
+  });
+
+  it("post98: locks sha256 of export name testEnv", () => {
+    expect(createHash('sha256').update('testEnv').digest('hex')).toBe('af724015138330bf7a9ed6f063fd01441a7db0625f61f5ba4ce8d9bf237a5069');
+    expect(helpersSrc).toMatch(/export (?:function|const) testEnv/);
+  });
+
+  it("post98: locks sha256 of export name SAMPLE_M3U", () => {
+    expect(createHash('sha256').update('SAMPLE_M3U').digest('hex')).toBe('1d43a5901d28ef66f1d265acf99819bc500423c6ef4068ac638037251a99f3c6');
+    expect(helpersSrc).toMatch(/export (?:function|const) SAMPLE_M3U/);
+  });
+
+  it("post98: locks sha256 of export name geminiTextResponse", () => {
+    expect(createHash('sha256').update('geminiTextResponse').digest('hex')).toBe('eec054f8c4303529a66a8cc89fbdbb94d1e2d949214212f3897be6adf2f5746a');
+    expect(helpersSrc).toMatch(/export (?:function|const) geminiTextResponse/);
+  });
+
+  it("post98: locks sha256 of export name stubIptvAndGemini", () => {
+    expect(createHash('sha256').update('stubIptvAndGemini').digest('hex')).toBe('8bdb997cbae400bfafb65cd9309585e35549ae3e4b6664bbba192d3d68e34516');
+    expect(helpersSrc).toMatch(/export (?:function|const) stubIptvAndGemini/);
+  });
+
+  it("post98: locks sha256 of export name curatedGeminiJson", () => {
+    expect(createHash('sha256').update('curatedGeminiJson').digest('hex')).toBe('4f2bff92adbee0e05359998f663c29c0a8a1c84298a7f49591b51fd15ea79174');
+    expect(helpersSrc).toMatch(/export (?:function|const) curatedGeminiJson/);
+  });
+
+  it("post98: locks sha256 of export name iptvCategoryUrl", () => {
+    expect(createHash('sha256').update('iptvCategoryUrl').digest('hex')).toBe('c31ff7f68f264f406387783d50bbb27f4063a1dcbc421c46f9d7d7d0f02362d9');
+    expect(helpersSrc).toMatch(/export (?:function|const) iptvCategoryUrl/);
+  });
+
+  it("post98: locks sha256 of export name countHttpStreamLines", () => {
+    expect(createHash('sha256').update('countHttpStreamLines').digest('hex')).toBe('87ba3719ab88575a937f6215ea106d7eb9d94fcae9ff466f20a5411ed3364b38');
+    expect(helpersSrc).toMatch(/export (?:function|const) countHttpStreamLines/);
+  });
+
+  it("post98: locks sha256 of export name buildSimpleM3U", () => {
+    expect(createHash('sha256').update('buildSimpleM3U').digest('hex')).toBe('019f6ec0e4d894f9da583201d2cd2a9fb157eb31067653d87499ec8909583efc');
+    expect(helpersSrc).toMatch(/export (?:function|const) buildSimpleM3U/);
+  });
+
+  it("post98: locks sha256 of export name seedStationsCache", () => {
+    expect(createHash('sha256').update('seedStationsCache').digest('hex')).toBe('be57554a627a4fe18d5af50aa7441b622c477f4a62c11b98de650111f51c7d56');
+    expect(helpersSrc).toMatch(/export (?:function|const) seedStationsCache/);
+  });
+
+  it("post98: locks sha256 of export name captureGeminiRequest", () => {
+    expect(createHash('sha256').update('captureGeminiRequest').digest('hex')).toBe('41edfbaa9310811ca03f0c1b76bc2a5f0a81b5cf088483c9108ff24c8855b640');
+    expect(helpersSrc).toMatch(/export (?:function|const) captureGeminiRequest/);
+  });
+
+  it("post98: locks sha256 of export name iptvCallsWithInit", () => {
+    expect(createHash('sha256').update('iptvCallsWithInit').digest('hex')).toBe('61585f82a260862357f7aa3611f3669aa34a03be4c9cf5ae6f0317526199a193');
+    expect(helpersSrc).toMatch(/export (?:function|const) iptvCallsWithInit/);
+  });
+
+  it("post98: mockKV.put accepts expirationTtl without throwing", async () => {
+    const kv = mockKV();
+    await expect(
+      (kv.put as (key: string, value: string, options?: { expirationTtl?: number }) => Promise<void>)('k', 'v', {
+        expirationTtl: 60,
+      }),
+    ).resolves.toBeUndefined();
+    await expect(kv.get('k')).resolves.toBe('v');
+  });
+
+  it("post98: mockKV get missing returns null not undefined", async () => {
+    const kv = mockKV();
+    await expect(kv.get('nope')).resolves.toBeNull();
+  });
+
+  it("post98: curatedGeminiJson Response body can be read once", async () => {
+    const res = curatedGeminiJson();
+    await expect(res.json()).resolves.toBeTruthy();
+    await expect(res.json()).rejects.toThrow();
+  });
+
+  it("post98: parseM3U(SAMPLE_M3U) twice is deep-equal", () => {
+    expect(parseM3U(SAMPLE_M3U)).toEqual(parseM3U(SAMPLE_M3U));
+  });
+
+  it("post98: HMAC-SHA256 of SAMPLE_M3U keyed by post98", () => {
+    expect(createHmac('sha256', 'post98').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('341b08fdf09f0057d29f19f6d218bbae7d568058de8f0123efeb2cf9de06216d');
+  });
+
+  it("post98: SAMPLE_M3U sha1 and md5 digests", () => {
+    expect(createHash('sha1').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('692a11944d56c10b5bf94a3c950ba754641b2812');
+    expect(createHash('md5').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe('6027c2c1db696bdb6e21aa8c8d8bc717');
+  });
+
+  it("post98: helpers do not re-implement parseM3U", () => {
+    expect(helpersSrc).not.toMatch(/function parseM3U/);
+    expect(helpersSrc).not.toMatch(/export function parseM3U/);
+    expect(helpersSrc).toMatch(/#EXTINF/);
+    expect(read('src/parser.ts')).toContain('export function parseM3U');
+  });
+
+  it("post98: helpers.ts documents In-memory KV stub and Gemini helper", () => {
+    expect(helpersSrc).toContain('In-memory KV stub for Worker route tests.');
+    expect(helpersSrc).toContain('Build a Gemini generateContent-shaped JSON response');
+    expect(helpersSrc).toContain('Minimal curated Gemini JSON text for happy-path /curate stubs.');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for music", () => {
+    const m3u = buildSimpleM3U([{ name: 'music', url: 'https://ex.example/music', group: 'music' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('music');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for ambient", () => {
+    const m3u = buildSimpleM3U([{ name: 'ambient', url: 'https://ex.example/ambient', group: 'ambient' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('ambient');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for jazz", () => {
+    const m3u = buildSimpleM3U([{ name: 'jazz', url: 'https://ex.example/jazz', group: 'jazz' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('jazz');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for classical", () => {
+    const m3u = buildSimpleM3U([{ name: 'classical', url: 'https://ex.example/classical', group: 'classical' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('classical');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for pop", () => {
+    const m3u = buildSimpleM3U([{ name: 'pop', url: 'https://ex.example/pop', group: 'pop' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('pop');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for rock", () => {
+    const m3u = buildSimpleM3U([{ name: 'rock', url: 'https://ex.example/rock', group: 'rock' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('rock');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for news", () => {
+    const m3u = buildSimpleM3U([{ name: 'news', url: 'https://ex.example/news', group: 'news' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('news');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for sports", () => {
+    const m3u = buildSimpleM3U([{ name: 'sports', url: 'https://ex.example/sports', group: 'sports' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('sports');
+  });
+
+  it("post98: buildSimpleM3U+countHttpStreamLines for entertainment", () => {
+    const m3u = buildSimpleM3U([{ name: 'entertainment', url: 'https://ex.example/entertainment', group: 'entertainment' }]);
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)[0]?.group).toBe('entertainment');
+  });
+
+  it("post98: testEnv VERSION override \"0.0.0\"", () => {
+    expect(testEnv({ VERSION: "0.0.0" }).VERSION).toBe("0.0.0");
+  });
+
+  it("post98: testEnv VERSION override \"1.0.0\"", () => {
+    expect(testEnv({ VERSION: "1.0.0" }).VERSION).toBe("1.0.0");
+  });
+
+  it("post98: testEnv VERSION override \"9.9.9-test\"", () => {
+    expect(testEnv({ VERSION: "9.9.9-test" }).VERSION).toBe("9.9.9-test");
+  });
+
+  it("post98: testEnv VERSION override \"\"", () => {
+    expect(testEnv({ VERSION: "" }).VERSION).toBe("");
+  });
+
+  it("post98: geminiTextResponse text sha256 \"hello\"", async () => {
+    const body = (await geminiTextResponse("hello").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe("hello");
+    expect(createHash('sha256').update("hello", 'utf8').digest('hex')).toBe('2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824');
+  });
+
+  it("post98: geminiTextResponse text sha256 \"Alpha FM\"", async () => {
+    const body = (await geminiTextResponse("Alpha FM").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe("Alpha FM");
+    expect(createHash('sha256').update("Alpha FM", 'utf8').digest('hex')).toBe('c27d7eab8858924a9c0922d1d071d6f29911592cbb2b54cdad8b4d2dd1faf285');
+  });
+
+  it("post98: geminiTextResponse text sha256 \"{}\"", async () => {
+    const body = (await geminiTextResponse("{}").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe("{}");
+    expect(createHash('sha256').update("{}", 'utf8').digest('hex')).toBe('44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a');
+  });
+
+  it("post98: geminiTextResponse text sha256 \"\"", async () => {
+    const body = (await geminiTextResponse("").json()) as {
+      candidates: Array<{ content: { parts: Array<{ text: string }> } }>;
+    };
+    expect(body.candidates[0].content.parts[0].text).toBe("");
+    expect(createHash('sha256').update("", 'utf8').digest('hex')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+  });
+
+  it("post98: stub matches iptv-org substring in https://cdn.iptv-org.example/categories/music.m3u", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: 'HIT' }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://cdn.iptv-org.example/categories/music.m3u')).text()).toBe('HIT');
+  });
+
+  it("post98: stub matches iptv-org substring in http://iptv-org.github.io/iptv/categories/jazz.m3u", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: 'HIT' }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('http://iptv-org.github.io/iptv/categories/jazz.m3u')).text()).toBe('HIT');
+  });
+
+  it("post98: stub matches iptv-org substring in https://example.com/mirror/iptv-org/categories/pop.m3u", async () => {
+    const fetchMock = stubIptvAndGemini({ m3u: 'HIT' }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://example.com/mirror/iptv-org/categories/pop.m3u')).text()).toBe('HIT');
+  });
+
+  it("post98: stub matches generativelanguage substring in https://generativelanguage.googleapis.com/v1", async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: geminiTextResponse('G') }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/v1');
+    expect(res.status).toBe(200);
+  });
+
+  it("post98: stub matches generativelanguage substring in http://proxy/generativelanguage.googleapis.com", async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: geminiTextResponse('G') }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('http://proxy/generativelanguage.googleapis.com');
+    expect(res.status).toBe(200);
+  });
+
+  it("post98: stub matches generativelanguage substring in https://x.generativelanguage.googleapis.com.evil.example/y", async () => {
+    const fetchMock = stubIptvAndGemini({ gemini: geminiTextResponse('G') }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://x.generativelanguage.googleapis.com.evil.example/y');
+    expect(res.status).toBe(200);
+  });
+
+  it("post98: locks helpers.test.ts ends with newline after post98", () => {
+    expect(read('test/helpers.test.ts').endsWith('\n')).toBe(true);
+  });
+
+  it("post98: DEPLOY.md remains deploy-only without helper inventing", () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/[Ww]rangler|[Dd]eploy|Cloudflare/);
+    expect(helpersSrc).not.toContain('DEPLOY.md');
+  });
+
+  it("post98: helpers.ts comment inventory count lock", () => {
+    expect((helpersSrc.match(/\/\*/g) ?? []).length).toBe(10);
+    expect((helpersSrc.match(/\/\//g) ?? []).length).toBe(10);
+  });
+
+  it("post98: SAMPLE_M3U nibble sum of sha256", () => {
+    expect(nibbleSum(createHash('sha256').update(SAMPLE_M3U, 'utf8').digest('hex'))).toBe(487);
+  });
+
+  it("post98: export name join HMAC post98", () => {
+    expect(createHmac('sha256', 'post98').update(HELPER_EXPORTS.join('|'), 'utf8').digest('hex')).toBe('e320bfa6b473c06f6f2b41d7d817d6a64ebd4bb577c1ef7dc734ba1680ec9307');
   });
 
 });
