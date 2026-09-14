@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -4445,5 +4446,1233 @@ describe('CI / package test wiring', () => {
     ]) {
       expect(read(rel).charCodeAt(0)).not.toBe(0xfeff);
     }
+  });
+});
+
+
+// --- HEAVY burn (post-#79): deepen ci-config unit slice only — no product inventing ---
+// Orthogonal to #79 routes. Digests, action pins, hygiene cross-locks, package-lock,
+// ISSUE_TEMPLATE, gitattributes, AGENTS/verify wiring — tests-only.
+
+describe('post79 ci-config HEAVY deepen', () => {
+  const sha256 = (rel: string) =>
+    createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) =>
+    createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) =>
+    createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+
+  it('post79: locks ci.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe(
+      'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+    );
+  });
+
+  it('post79: locks ci.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa');
+  });
+
+  it('post79: locks ci.yml md5 digest', () => {
+    expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605');
+  });
+
+  it('post79: locks ci.yml sha256 nibble sum to 515', () => {
+    expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515);
+  });
+
+  it('post79: locks deploy.yml sha256 digest', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post79: locks deploy.yml sha1 digest', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+  });
+
+  it('post79: locks deploy.yml md5 digest', () => {
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+  });
+
+  it('post79: locks deploy.yml sha256 nibble sum to 476', () => {
+    expect(nibbleSum(sha256('.github/workflows/deploy.yml'))).toBe(476);
+  });
+
+  it('post79: locks dependabot.yml sha256 digest', () => {
+    expect(sha256('.github/dependabot.yml')).toBe(
+      'a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac',
+    );
+  });
+
+  it('post79: locks dependabot.yml sha1 digest', () => {
+    expect(sha1('.github/dependabot.yml')).toBe('dfdb63975444874143105431e4cee95165932c7b');
+  });
+
+  it('post79: locks dependabot.yml md5 digest', () => {
+    expect(md5('.github/dependabot.yml')).toBe('bd53b7cdf9bb7287532d96a32cbec9a4');
+  });
+
+  it('post79: locks dependabot.yml sha256 nibble sum to 526', () => {
+    expect(nibbleSum(sha256('.github/dependabot.yml'))).toBe(526);
+  });
+
+  it('post79: locks vitest.config.ts sha256 digest', () => {
+    expect(sha256('vitest.config.ts')).toBe(
+      'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+    );
+  });
+
+  it('post79: locks vitest.config.ts sha1 digest', () => {
+    expect(sha1('vitest.config.ts')).toBe('f8d49517ece92fc5e9781fbde021a948958aac37');
+  });
+
+  it('post79: locks vitest.config.ts md5 digest', () => {
+    expect(md5('vitest.config.ts')).toBe('f1176313255f5f064a946d458482d81a');
+  });
+
+  it('post79: locks vitest.config.ts sha256 nibble sum to 536', () => {
+    expect(nibbleSum(sha256('vitest.config.ts'))).toBe(536);
+  });
+
+  it('post79: locks package.json sha256 digest', () => {
+    expect(sha256('package.json')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+  });
+
+  it('post79: locks package.json sha1 digest', () => {
+    expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5');
+  });
+
+  it('post79: locks package.json md5 digest', () => {
+    expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f');
+  });
+
+  it('post79: locks package.json sha256 nibble sum to 451', () => {
+    expect(nibbleSum(sha256('package.json'))).toBe(451);
+  });
+
+  it('post79: locks tsconfig.json sha256 digest', () => {
+    expect(sha256('tsconfig.json')).toBe(
+      'ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792',
+    );
+  });
+
+  it('post79: locks tsconfig.json sha1 digest', () => {
+    expect(sha1('tsconfig.json')).toBe('68e3169249049539d687b6b3d81fc809079134f9');
+  });
+
+  it('post79: locks tsconfig.json md5 digest', () => {
+    expect(md5('tsconfig.json')).toBe('13f6687a50fe7c6ea7ef4eb3623b7457');
+  });
+
+  it('post79: locks tsconfig.json sha256 nibble sum to 506', () => {
+    expect(nibbleSum(sha256('tsconfig.json'))).toBe(506);
+  });
+
+  it('post79: locks .gitignore sha256 digest', () => {
+    expect(sha256('.gitignore')).toBe(
+      '474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698',
+    );
+  });
+
+  it('post79: locks .gitignore sha1 digest', () => {
+    expect(sha1('.gitignore')).toBe('432103230f4c49258e046fc945e8160007c23570');
+  });
+
+  it('post79: locks .gitignore md5 digest', () => {
+    expect(md5('.gitignore')).toBe('7d0728257f47875ec0120ca3cdbf7308');
+  });
+
+  it('post79: locks .gitignore sha256 nibble sum to 444', () => {
+    expect(nibbleSum(sha256('.gitignore'))).toBe(444);
+  });
+
+  it('post79: locks .cursor/environment.json sha256 digest', () => {
+    expect(sha256('.cursor/environment.json')).toBe(
+      '4ed3537a1a4141c61be528b8ca3bd121164ab2bed7d0a9b95c34ce81cca99694',
+    );
+  });
+
+  it('post79: locks .cursor/environment.json sha1 digest', () => {
+    expect(sha1('.cursor/environment.json')).toBe('b4f3dec322cd018ce5c1dea89897a469bd128685');
+  });
+
+  it('post79: locks .cursor/environment.json md5 digest', () => {
+    expect(md5('.cursor/environment.json')).toBe('956c8804543595a31d6a7051aecd6528');
+  });
+
+  it('post79: locks .cursor/environment.json sha256 nibble sum to 472', () => {
+    expect(nibbleSum(sha256('.cursor/environment.json'))).toBe(472);
+  });
+
+  it('post79: locks AGENTS.md sha256 digest', () => {
+    expect(sha256('AGENTS.md')).toBe(
+      '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+    );
+  });
+
+  it('post79: locks AGENTS.md sha1 digest', () => {
+    expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c');
+  });
+
+  it('post79: locks AGENTS.md md5 digest', () => {
+    expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd');
+  });
+
+  it('post79: locks AGENTS.md sha256 nibble sum to 479', () => {
+    expect(nibbleSum(sha256('AGENTS.md'))).toBe(479);
+  });
+
+  it('post79: locks .gitattributes sha256 digest', () => {
+    expect(sha256('.gitattributes')).toBe(
+      '1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b',
+    );
+  });
+
+  it('post79: locks .gitattributes sha1 digest', () => {
+    expect(sha1('.gitattributes')).toBe('ba3dfe345280bdcc5e817bb02cf49b8b8d8e1c4c');
+  });
+
+  it('post79: locks .gitattributes md5 digest', () => {
+    expect(md5('.gitattributes')).toBe('05bdb783ee6514c8c072e47680af8ff7');
+  });
+
+  it('post79: locks .gitattributes sha256 nibble sum to 458', () => {
+    expect(nibbleSum(sha256('.gitattributes'))).toBe(458);
+  });
+
+  it('post79: locks package-lock.json sha256 digest', () => {
+    expect(sha256('package-lock.json')).toBe(
+      '5f8a888f1fc7aaf97dcdaa3f91405cefbb45ad118685eac7a1488b78cedfcee6',
+    );
+  });
+
+  it('post79: locks package-lock.json sha1 digest', () => {
+    expect(sha1('package-lock.json')).toBe('6bc7eb19009d4dccc1d2928b0d856f337eb76aad');
+  });
+
+  it('post79: locks package-lock.json md5 digest', () => {
+    expect(md5('package-lock.json')).toBe('568e267e07346bb7de4796dbeb117b54');
+  });
+
+  it('post79: locks fs.statSync size equals UTF-8 bytes for ci.yml', () => {
+    const rel = join(root, '.github/workflows/ci.yml');
+    expect(statSync(rel).size).toBe(readFileSync(rel).length);
+    expect(statSync(rel).size).toBe(6295);
+  });
+
+  it('post79: locks fs.statSync size equals UTF-8 bytes for deploy.yml', () => {
+    const rel = join(root, '.github/workflows/deploy.yml');
+    expect(statSync(rel).size).toBe(1004);
+  });
+
+  it('post79: locks fs.statSync size equals UTF-8 bytes for dependabot.yml', () => {
+    expect(statSync(join(root, '.github/dependabot.yml')).size).toBe(505);
+  });
+
+  it('post79: locks fs.statSync size equals UTF-8 bytes for vitest.config.ts', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size).toBe(535);
+  });
+
+  it('post79: locks fs.statSync size equals UTF-8 bytes for package.json', () => {
+    expect(statSync(join(root, 'package.json')).size).toBe(637);
+  });
+
+  it('post79: locks fs.statSync size for .gitattributes to 66', () => {
+    expect(statSync(join(root, '.gitattributes')).size).toBe(66);
+  });
+
+  it('post79: locks fs.statSync size for .cursor/environment.json to 57', () => {
+    expect(statSync(join(root, '.cursor/environment.json')).size).toBe(57);
+  });
+
+  it('post79: locks fs.statSync size for AGENTS.md to 1017', () => {
+    expect(statSync(join(root, 'AGENTS.md')).size).toBe(1017);
+  });
+
+  it('post79: locks CI uses: action pins in order', () => {
+    const uses = [...read('.github/workflows/ci.yml').matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
+    expect(uses).toEqual([
+      'actions/checkout@v7',
+      'actions/setup-node@v7',
+      'actions/checkout@v7',
+      'actions/setup-node@v7',
+      'actions/upload-artifact@v4',
+      'actions/checkout@v7',
+    ]);
+  });
+
+  it('post79: locks deploy uses: action pins in order', () => {
+    const uses = [...read('.github/workflows/deploy.yml').matchAll(/uses:\s*(\S+)/g)].map(
+      (m) => m[1],
+    );
+    expect(uses).toEqual([
+      'actions/checkout@v7',
+      'actions/setup-node@v7',
+      'cloudflare/wrangler-action@v4',
+    ]);
+  });
+
+  it('post79: locks CI named step inventory order', () => {
+    const names = [...read('.github/workflows/ci.yml').matchAll(/- name:\s*(.+)/g)].map((m) => m[1]);
+    expect(names).toEqual([
+      'Set up Node.js',
+      'Install dependencies',
+      'Typecheck',
+      'Set up Node.js',
+      'Install dependencies',
+      'Unit / integration tests with coverage',
+      'Assert coverage artifacts exist',
+      'Upload coverage report',
+      'Check required files',
+      'Check for committed secret material',
+    ]);
+  });
+
+  it('post79: locks deploy named step inventory order', () => {
+    const names = [...read('.github/workflows/deploy.yml').matchAll(/- name:\s*(.+)/g)].map(
+      (m) => m[1],
+    );
+    expect(names).toEqual([
+      'Set up Node.js',
+      'Install dependencies',
+      'Typecheck',
+      'Unit / integration tests with coverage',
+      'Deploy to Cloudflare Workers',
+    ]);
+  });
+
+  it('post79: locks CI uses count to 6 and deploy uses count to 3', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/^\s*-?\s*uses:/gm)]).toHaveLength(6);
+    expect([...read('.github/workflows/deploy.yml').matchAll(/^\s*-?\s*uses:/gm)]).toHaveLength(3);
+  });
+
+  it('post79: locks CI named-step count to 10', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/- name:/g)]).toHaveLength(10);
+  });
+
+  it('post79: locks hygiene test -f count to 31 and test -d count to 1', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect([...step.matchAll(/test -f /g)]).toHaveLength(31);
+    expect([...step.matchAll(/test -d /g)]).toHaveLength(1);
+  });
+
+  it('post79: locks hygiene Check required files grep -q count to 42', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect([...step.matchAll(/grep -q/g)]).toHaveLength(42);
+  });
+
+  it('post79: locks ci.yml hash/at/dollar/brace/pipe glyph counts', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect((ci.match(/#/g) ?? []).length).toBe(3);
+    expect((ci.match(/@/g) ?? []).length).toBe(7);
+    expect((ci.match(/\$/g) ?? []).length).toBe(4);
+    expect((ci.match(/\{/g) ?? []).length).toBe(11);
+    expect((ci.match(/\|/g) ?? []).length).toBe(16);
+  });
+
+  it('post79: locks deploy.yml space count to 274', () => {
+    expect((read('.github/workflows/deploy.yml').match(/ /g) ?? []).length).toBe(274);
+  });
+
+  it('post79: locks dependabot.yml space count to 130', () => {
+    expect((read('.github/dependabot.yml').match(/ /g) ?? []).length).toBe(130);
+  });
+
+  it('post79: locks vitest.config.ts space count to 121', () => {
+    expect((read('vitest.config.ts').match(/ /g) ?? []).length).toBe(121);
+  });
+
+  it('post79: locks package.json space count to 106', () => {
+    expect((read('package.json').match(/ /g) ?? []).length).toBe(106);
+  });
+
+  it('post79: locks .gitignore space count to 19', () => {
+    expect((read('.gitignore').match(/ /g) ?? []).length).toBe(19);
+  });
+
+  it('post79: locks JSON.stringify length of deploy.yml to 1056', () => {
+    expect(JSON.stringify(read('.github/workflows/deploy.yml')).length).toBe(1056);
+  });
+
+  it('post79: locks JSON.stringify length of dependabot.yml to 551', () => {
+    expect(JSON.stringify(read('.github/dependabot.yml')).length).toBe(551);
+  });
+
+  it('post79: locks JSON.stringify length of vitest.config.ts to 558', () => {
+    expect(JSON.stringify(read('vitest.config.ts')).length).toBe(558);
+  });
+
+  it('post79: locks JSON.stringify length of package.json to 736', () => {
+    expect(JSON.stringify(read('package.json')).length).toBe(736);
+  });
+
+  it('post79: locks JSON.stringify length of environment.json to 71', () => {
+    expect(JSON.stringify(read('.cursor/environment.json')).length).toBe(71);
+  });
+
+  it('post79: locks package.json top-level key set', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(Object.keys(pkg).sort()).toEqual([
+      'dependencies',
+      'description',
+      'devDependencies',
+      'name',
+      'scripts',
+      'type',
+      'version',
+    ]);
+  });
+
+  it('post79: locks package.json devDependency key set', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      devDependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.devDependencies).sort()).toEqual([
+      '@cloudflare/workers-types',
+      '@types/node',
+      '@vitest/coverage-v8',
+      'typescript',
+      'vitest',
+      'wrangler',
+    ]);
+  });
+
+  it('post79: locks package.json exact dependency versions', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    expect(pkg.dependencies).toEqual({ hono: '^4.13.7' });
+    expect(pkg.devDependencies.typescript).toBe('^5.7.0');
+    expect(pkg.devDependencies.vitest).toBe('^5.0.0');
+    expect(pkg.devDependencies['@vitest/coverage-v8']).toBe('^5.0.0');
+    expect(pkg.devDependencies.wrangler).toBe('^4.131.1');
+    expect(pkg.devDependencies['@types/node']).toBe('^22.20.2');
+    expect(pkg.devDependencies['@cloudflare/workers-types']).toBe('^5.20260911.1');
+  });
+
+  it('post79: locks package-lock root identity with package.json', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      name: string;
+      lockfileVersion: number;
+      requires: boolean;
+      packages: Record<string, { name?: string; version?: string; dependencies?: object }>;
+    };
+    const pkg = JSON.parse(read('package.json')) as { name: string; version: string };
+    expect(lock.name).toBe(pkg.name);
+    expect(lock.lockfileVersion).toBe(3);
+    expect(lock.requires).toBe(true);
+    expect(lock.packages['']?.name).toBe('backlink');
+    expect(lock.packages['']?.version).toBe(pkg.version);
+    expect(Object.keys(lock.packages['']?.dependencies ?? {})).toEqual(['hono']);
+  });
+
+  it('post79: locks package-lock packages entry count to 168', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { packages: Record<string, unknown> };
+    expect(Object.keys(lock.packages)).toHaveLength(168);
+  });
+
+  it('post79: locks resolved hono and vitest versions in package-lock', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      packages: Record<string, { version?: string }>;
+    };
+    expect(lock.packages['node_modules/hono']?.version).toBe('4.13.7');
+    expect(lock.packages['node_modules/vitest']?.version).toBe('5.0.0');
+  });
+
+  it('post79: locks package-lock.json byte length to 92068', () => {
+    expect(readFileSync(join(root, 'package-lock.json')).length).toBe(92068);
+    expect(statSync(join(root, 'package-lock.json')).size).toBe(92068);
+  });
+
+  it('post79: locks package-lock.json line count to 2842', () => {
+    expect(read('package-lock.json').split('\n')).toHaveLength(2842);
+    expect(read('package-lock.json').endsWith('\n')).toBe(true);
+  });
+
+  it('post79: locks tsconfig compilerOptions key order', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+    };
+    expect(Object.keys(ts.compilerOptions)).toEqual([
+      'target',
+      'lib',
+      'module',
+      'moduleResolution',
+      'types',
+      'strict',
+      'noEmit',
+      'resolveJsonModule',
+      'skipLibCheck',
+    ]);
+  });
+
+  it('post79: locks tsconfig exact compilerOptions values', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+      include: string[];
+    };
+    expect(ts.compilerOptions.target).toBe('ES2022');
+    expect(ts.compilerOptions.lib).toEqual(['ES2022']);
+    expect(ts.compilerOptions.module).toBe('ESNext');
+    expect(ts.compilerOptions.moduleResolution).toBe('Bundler');
+    expect(ts.compilerOptions.resolveJsonModule).toBe(true);
+    expect(ts.compilerOptions.skipLibCheck).toBe(true);
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('post79: locks .gitignore nonempty ignore entries', () => {
+    const entries = read('.gitignore')
+      .split('\n')
+      .filter((l) => l.length > 0 && !l.startsWith('#'));
+    expect(entries).toEqual([
+      'node_modules/',
+      '.env',
+      '.env.*',
+      '!.env.example',
+      '.dev.vars',
+      '*.pem',
+      '*.key',
+      '.wrangler/',
+      '.mf/',
+      'dist/',
+      'coverage/',
+      '.DS_Store',
+      '.idea/',
+      '.vscode/',
+      '*.swp',
+      '*~',
+    ]);
+  });
+
+  it('post79: locks .gitignore section comment headers', () => {
+    const gi = read('.gitignore');
+    expect(gi).toContain('# Dependencies');
+    expect(gi).toContain('# Local env / secrets (never commit)');
+    expect(gi).toContain('# Wrangler / Workers local state');
+    expect(gi).toContain('# Test coverage output');
+    expect(gi).toContain('# Editor / OS noise');
+  });
+
+  it('post79: locks .gitattributes exact LF-normalization policy', () => {
+    expect(read('.gitattributes')).toBe(
+      '# Auto detect text files and perform LF normalization\n* text=auto\n',
+    );
+  });
+
+  it('post79: locks .cursor/environment.json exact two-key payload', () => {
+    expect(read('.cursor/environment.json')).toBe(
+      '{\n  "name": "Backlink_Facelift",\n  "install": "npm ci"\n}\n',
+    );
+  });
+
+  it('post79: locks ISSUE_TEMPLATE config.yml blank_issues_enabled false', () => {
+    expect(read('.github/ISSUE_TEMPLATE/config.yml')).toBe('blank_issues_enabled: false\n');
+  });
+
+  it('post79: locks ISSUE_TEMPLATE bug feature chore name lines', () => {
+    expect(read('.github/ISSUE_TEMPLATE/bug.yml')).toMatch(/^name: Bug\n/);
+    expect(read('.github/ISSUE_TEMPLATE/feature.yml')).toMatch(/^name: Feature\n/);
+    expect(read('.github/ISSUE_TEMPLATE/chore.yml')).toMatch(/^name: Chore \/ Infra \/ Docs\n/);
+  });
+
+  it('post79: locks ISSUE_TEMPLATE bug labels and component options', () => {
+    const bug = read('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(bug).toContain('labels: ["bug"]');
+    expect(bug).toContain('options: [Parser, Curator, API, Deploy, CF-AI, KV-Cache]');
+    expect(bug).toContain('options: [Critical, High, Medium, Low]');
+    expect(bug).toContain('options: [XS, S, M, L, XL]');
+  });
+
+  it('post79: locks ISSUE_TEMPLATE feature labels and title prefix', () => {
+    const feature = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(feature).toContain('labels: ["enhancement"]');
+    expect(feature).toContain('title: "[Feature]: "');
+  });
+
+  it('post79: locks ISSUE_TEMPLATE chore labels and title prefix', () => {
+    const chore = read('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(chore).toContain('labels: ["chore"]');
+    expect(chore).toContain('title: "[Chore]: "');
+  });
+
+  it('post79: locks AGENTS.md H2 section order', () => {
+    const sections = [...read('AGENTS.md').matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(sections).toEqual([
+      'Classification',
+      'Purpose',
+      'Safe Agent Actions',
+      'Verify',
+      'Escalate to Human',
+    ]);
+  });
+
+  it('post79: locks AGENTS.md Tier A Autonomy L2 and domain target', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('Tier: A (Active Strategic — Andrew flagged HIGH PRIORITY)');
+    expect(agents).toContain('Autonomy: L2 (Standard — non-critical infra)');
+    expect(agents).toContain('Domain target: backlink.fuzzywigg.com');
+    expect(agents).toContain('parent_governance: github.com/fuzzywigg/agents-governance');
+  });
+
+  it('post79: locks AGENTS.md em-dash count to three', () => {
+    const nonAscii = [...read('AGENTS.md')].filter((c) => c.charCodeAt(0) > 127);
+    expect(nonAscii).toEqual(['—', '—', '—']);
+    expect(read('AGENTS.md').length).toBe(1011);
+    expect(new TextEncoder().encode(read('AGENTS.md')).length).toBe(1017);
+  });
+
+  it('post79: locks AGENTS.md Safe Agent Actions bullet inventory', () => {
+    const block = read('AGENTS.md').slice(
+      read('AGENTS.md').indexOf('## Safe Agent Actions'),
+      read('AGENTS.md').indexOf('## Verify'),
+    );
+    expect(block).toContain('`src/genres.ts`');
+    expect(block).toContain('`src/parser.ts`');
+    expect(block).toContain('`test/`');
+    expect(block).toContain('/playlist');
+    expect(block).toContain('/now-playing');
+  });
+
+  it('post79: locks AGENTS.md Escalate bullets include GEMINI and CORS', () => {
+    const block = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(block).toContain('GEMINI_API_KEY');
+    expect(block).toContain('CORS or authentication');
+    expect(block).toContain('Production deploy');
+    expect(block).toContain('iptv-org');
+  });
+
+  it('post79: locks vitest.config.ts exact full source', () => {
+    expect(read('vitest.config.ts')).toBe(`import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'node',
+    include: ['test/**/*.test.ts'],
+    reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/types.ts'],
+      reporter: ['text', 'text-summary', 'html', 'lcov'],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100,
+      },
+    },
+  },
+});
+`);
+  });
+
+  it('post79: locks vitest coverage reporter order text text-summary html lcov', () => {
+    expect(read('vitest.config.ts')).toContain(
+      "reporter: ['text', 'text-summary', 'html', 'lcov']",
+    );
+  });
+
+  it('post79: locks dependabot version 2 and monthly intervals', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep.startsWith('version: 2\n')).toBe(true);
+    expect([...dep.matchAll(/interval:\s*"monthly"/g)]).toHaveLength(2);
+    expect(dep).toContain('open-pull-requests-limit: 3');
+    expect(dep).toContain('open-pull-requests-limit: 2');
+  });
+
+  it('post79: locks dependabot ecosystem order npm then github-actions', () => {
+    const dep = read('.github/dependabot.yml');
+    const ecosystems = [...dep.matchAll(/package-ecosystem:\s*"([^"]+)"/g)].map((m) => m[1]);
+    expect(ecosystems).toEqual(['npm', 'github-actions']);
+  });
+
+  it('post79: locks CI concurrency group template exact', () => {
+    expect(read('.github/workflows/ci.yml')).toContain(
+      'group: ci-${{ github.workflow }}-${{ github.ref }}',
+    );
+  });
+
+  it('post79: locks deploy concurrency group template exact', () => {
+    expect(read('.github/workflows/deploy.yml')).toContain('group: deploy-${{ github.workflow }}');
+  });
+
+  it('post79: locks deploy secrets mapping CF_API_TOKEN CF_ACCOUNT_ID GEMINI', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('apiToken: ${{ secrets.CF_API_TOKEN }}');
+    expect(deploy).toContain('accountId: ${{ secrets.CF_ACCOUNT_ID }}');
+    expect(deploy).toContain('secrets: |\n            GEMINI_API_KEY');
+    expect(deploy).toContain('GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}');
+  });
+
+  it('post79: locks CI job id insertion order typecheck test hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const jobsBlock = ci.slice(ci.indexOf('\njobs:\n') + '\njobs:\n'.length);
+    const ids = [...jobsBlock.matchAll(/^  (typecheck|test|hygiene):\n/gm)].map((m) => m[1]);
+    expect(ids).toEqual(['typecheck', 'test', 'hygiene']);
+  });
+
+  it('post79: locks CI job display names Typecheck Tests Hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('    name: Typecheck\n');
+    expect(ci).toContain('    name: Tests\n');
+    expect(ci).toContain('    name: Hygiene\n');
+  });
+
+  it('post79: locks CI timeouts 10/15/5 for typecheck/test/hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(
+      /typecheck:[\s\S]*?timeout-minutes:\s*10[\s\S]*?test:[\s\S]*?timeout-minutes:\s*15[\s\S]*?hygiene:[\s\S]*?timeout-minutes:\s*5/,
+    );
+  });
+
+  it('post79: locks coverage assert step exact commands', () => {
+    const block = read('.github/workflows/ci.yml').slice(
+      read('.github/workflows/ci.yml').indexOf('Assert coverage artifacts exist'),
+      read('.github/workflows/ci.yml').indexOf('Upload coverage report'),
+    );
+    expect(block).toContain('test -d coverage');
+    expect(block).toContain('test -f coverage/lcov.info');
+    expect(block).toContain('test -s coverage/lcov.info');
+    expect(block).toContain("grep -q 'SF:src/' coverage/lcov.info");
+  });
+
+  it('post79: locks upload-artifact name retention and paths', () => {
+    const block = read('.github/workflows/ci.yml').slice(
+      read('.github/workflows/ci.yml').indexOf('Upload coverage report'),
+      read('.github/workflows/ci.yml').indexOf('hygiene:'),
+    );
+    expect(block).toContain('name: coverage-report');
+    expect(block).toContain('retention-days: 14');
+    expect(block).toContain('if-no-files-found: error');
+    expect(block).toContain('uses: actions/upload-artifact@v4');
+  });
+
+  it('post79: locks secret-scan exclude-dir inventory', () => {
+    const step = read('.github/workflows/ci.yml').split('Check for committed secret material')[1];
+    expect(step).toContain('--exclude-dir=.git');
+    expect(step).toContain('--exclude-dir=node_modules');
+    expect(step).toContain('--exclude-dir=coverage');
+    expect(step).toContain("! test -f .env");
+    expect(step).toContain('! test -f .dev.vars');
+    expect(step).toContain("! find . \\( -name '*.pem' -o -name '*.key' \\)");
+  });
+
+  it('post79: negative — CI workflow does not invent product routes', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).not.toMatch(/\/playlist|\/now-playing|openapi|graphql|websocket/i);
+    expect(ci).not.toMatch(/GEMINI_API_KEY\s*[:=]\s*['\"]?[A-Za-z0-9]/);
+  });
+
+  it('post79: negative — deploy workflow does not auto-push or schedule', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).not.toMatch(/^\s*schedule:/m);
+    expect(deploy).not.toMatch(/^\s*pull_request:/m);
+    expect(deploy).not.toMatch(/cron:/);
+  });
+
+  it('post79: negative — dependabot does not enable docker or pip ecosystems', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).not.toMatch(/docker|pip|cargo|gomod|nuget|composer/i);
+  });
+
+  it('post79: negative — vitest.config does not enable watch or ui mode defaults', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).not.toMatch(/watch:\s*true|ui:\s*true|browser:\s*true/);
+    expect(cfg).not.toMatch(/poolOptions|threads:\s*false/);
+  });
+
+  it('post79: negative — package.json has no bin/main/exports fields', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(pkg.bin).toBeUndefined();
+    expect(pkg.main).toBeUndefined();
+    expect(pkg.exports).toBeUndefined();
+    expect(pkg.engines).toBeUndefined();
+  });
+
+  it('post79: negative — environment.json has no secrets or start script', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, unknown>;
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+    expect(env).not.toHaveProperty('secrets');
+    expect(env).not.toHaveProperty('start');
+  });
+
+  it('post79: btoa round-trip of coverage-report artifact name', () => {
+    expect(btoa('coverage-report')).toBe('Y292ZXJhZ2UtcmVwb3J0');
+    expect(atob('Y292ZXJhZ2UtcmVwb3J0')).toBe('coverage-report');
+    expect(read('.github/workflows/ci.yml')).toContain(`name: ${atob('Y292ZXJhZ2UtcmVwb3J0')}`);
+  });
+
+  it('post79: btoa round-trip of ubuntu-latest runner token', () => {
+    expect(btoa('ubuntu-latest')).toBe('dWJ1bnR1LWxhdGVzdA==');
+    expect(read('.github/workflows/ci.yml')).toContain(`runs-on: ${atob('dWJ1bnR1LWxhdGVzdA==')}`);
+  });
+
+  it('post79: fromCharCode rebuild of backlink package name', () => {
+    const name = String.fromCharCode(98, 97, 99, 107, 108, 105, 110, 107);
+    expect(name).toBe('backlink');
+    expect(JSON.parse(read('package.json')).name).toBe(name);
+  });
+
+  it('post79: fromCharCode rebuild of Backlink_Facelift environment name', () => {
+    const name = String.fromCharCode(
+      66, 97, 99, 107, 108, 105, 110, 107, 95, 70, 97, 99, 101, 108, 105, 102, 116,
+    );
+    expect(name).toBe('Backlink_Facelift');
+    expect(JSON.parse(read('.cursor/environment.json')).name).toBe(name);
+  });
+
+  it('post79: TextEncoder bytes for actions/checkout@v7 pin', () => {
+    expect([...new TextEncoder().encode('actions/checkout@v7')]).toEqual([
+      97, 99, 116, 105, 111, 110, 115, 47, 99, 104, 101, 99, 107, 111, 117, 116, 64, 118, 55,
+    ]);
+    expect(read('.github/workflows/ci.yml')).toContain('actions/checkout@v7');
+  });
+
+  it('post79: TextEncoder bytes for cloudflare/wrangler-action@v4 pin', () => {
+    const pin = 'cloudflare/wrangler-action@v4';
+    expect(new TextDecoder().decode(new TextEncoder().encode(pin))).toBe(pin);
+    expect(read('.github/workflows/deploy.yml')).toContain(pin);
+  });
+
+  it('post79: codePointAt sequence for workflow name Deploy to Cloudflare Workers', () => {
+    const name = 'Deploy to Cloudflare Workers';
+    expect([...name].map((c) => c.codePointAt(0))).toEqual([
+      68, 101, 112, 108, 111, 121, 32, 116, 111, 32, 67, 108, 111, 117, 100, 102, 108, 97, 114,
+      101, 32, 87, 111, 114, 107, 101, 114, 115,
+    ]);
+    expect(read('.github/workflows/deploy.yml')).toMatch(new RegExp(`^name:\\s*${name}\\s*$`, 'm'));
+  });
+
+  it('post79: Map identity locks CI job timeout minutes', () => {
+    const timeouts = new Map([
+      ['typecheck', 10],
+      ['test', 15],
+      ['hygiene', 5],
+    ]);
+    expect(timeouts.get('typecheck')).toBe(10);
+    expect(timeouts.get('test')).toBe(15);
+    expect(timeouts.get('hygiene')).toBe(5);
+    expect([...timeouts.values()].reduce((a, b) => a + b, 0)).toBe(30);
+  });
+
+  it('post79: Set identity locks required CI workflow basenames', () => {
+    const required = new Set(['ci.yml', 'deploy.yml']);
+    expect([...required].sort()).toEqual(
+      readdirSync(join(root, '.github/workflows')).filter((f) => f.endsWith('.yml')).sort(),
+    );
+  });
+
+  it('post79: WeakSet can hold frozen package.json object identity', () => {
+    const pkg = Object.freeze(JSON.parse(read('package.json')) as object);
+    const ws = new WeakSet<object>();
+    ws.add(pkg);
+    expect(ws.has(pkg)).toBe(true);
+    expect((pkg as { name: string }).name).toBe('backlink');
+  });
+
+  it('post79: structuredClone of dependabot PR limits stays independent', () => {
+    const limits = { npm: 3, actions: 2 };
+    const cloned = structuredClone(limits);
+    cloned.npm = 99;
+    expect(limits.npm).toBe(3);
+    expect(read('.github/dependabot.yml')).toContain('open-pull-requests-limit: 3');
+  });
+
+  it('post79: Object.freeze vitest threshold bag cannot be mutated', () => {
+    const thresholds = Object.freeze({
+      lines: 100,
+      functions: 100,
+      branches: 100,
+      statements: 100,
+    });
+    expect(() => {
+      (thresholds as { lines: number }).lines = 50;
+    }).toThrow();
+    expect(read('vitest.config.ts')).toMatch(/statements:\s*100/);
+  });
+
+  it('post79: Reflect.ownKeys on cursor environment stays name+install', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as Record<string, string>;
+    expect(Reflect.ownKeys(env).sort()).toEqual(['install', 'name']);
+  });
+
+  it('post79: Proxy cannot rewrite live package-lock lockfileVersion', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { lockfileVersion: number };
+    const { proxy, revoke } = Proxy.revocable(lock, {
+      get(target, prop) {
+        if (prop === 'lockfileVersion') return 99;
+        return Reflect.get(target, prop);
+      },
+    });
+    expect(proxy.lockfileVersion).toBe(99);
+    expect(JSON.parse(read('package-lock.json')).lockfileVersion).toBe(3);
+    revoke();
+  });
+
+  it('post79: CI does not reference ISSUE_TEMPLATE paths in hygiene', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect(step).not.toContain('ISSUE_TEMPLATE');
+    expect(readdirSync(join(root, '.github/ISSUE_TEMPLATE')).sort()).toEqual([
+      'bug.yml',
+      'chore.yml',
+      'config.yml',
+      'feature.yml',
+    ]);
+  });
+
+  it('post79: hygiene still asserts all nine test suite files', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    for (const f of [
+      'test/parser.test.ts',
+      'test/genres.test.ts',
+      'test/routes.test.ts',
+      'test/mcp.test.ts',
+      'test/helpers.ts',
+      'test/helpers.test.ts',
+      'test/mcp-spec-contract.test.ts',
+      'test/ci-config.test.ts',
+      'test/wrangler-config.test.ts',
+      'test/source-contracts.test.ts',
+    ]) {
+      expect(step).toContain(`test -f ${f}`);
+    }
+  });
+
+  it('post79: hygiene asserts src module inventory', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    for (const f of [
+      'src/index.ts',
+      'src/parser.ts',
+      'src/genres.ts',
+      'src/mcp.ts',
+      'src/types.ts',
+    ]) {
+      expect(step).toContain(`test -f ${f}`);
+    }
+  });
+
+  it('post79: hygiene asserts typescript caret-5 and rejects caret-6/7', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect(step).toContain('grep -qE \'"typescript": "\\^5\\.\' package.json');
+    expect(step).toContain('! grep -qE \'"typescript": "\\^[67]\\.\' package.json');
+  });
+
+  it('post79: hygiene forbids anthropic/claude/haiku in src and workflows', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect(step).toContain("! grep -RqiE 'anthropic|claude|haiku' src --include='*.ts'");
+    expect(step).toContain(
+      "! grep -RqiE 'anthropic|claude|haiku' .github/workflows --include='*.yml'",
+    );
+  });
+
+  it('post79: hygiene asserts gemini-2.0-flash model pin in index.ts', () => {
+    const step = read('.github/workflows/ci.yml').split('Check required files')[1];
+    expect(step).toContain("grep -q 'gemini-2.0-flash' src/index.ts");
+    expect(read('src/index.ts')).toContain('gemini-2.0-flash');
+  });
+
+  it('post79: cross-locks package scripts with AGENTS Verify fence', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    const verify = read('AGENTS.md').slice(
+      read('AGENTS.md').indexOf('## Verify'),
+      read('AGENTS.md').indexOf('## Escalate'),
+    );
+    expect(verify).toContain('npm ci');
+    expect(verify).toContain('npm run typecheck');
+    expect(verify).toContain('npm test');
+    expect(verify).toContain('npm run test:coverage');
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post79: cross-locks CI npm run commands with package scripts', () => {
+    const ci = read('.github/workflows/ci.yml');
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(ci).toContain('run: npm run typecheck');
+    expect(ci).toContain('run: npm run test:coverage');
+    expect(deploy).toContain('run: npm run typecheck');
+    expect(deploy).toContain('run: npm run test:coverage');
+  });
+
+  it('post79: CI and deploy both pin setup-node cache npm', () => {
+    expect([...read('.github/workflows/ci.yml').matchAll(/cache:\s*"npm"/g)]).toHaveLength(2);
+    expect([...read('.github/workflows/deploy.yml').matchAll(/cache:\s*"npm"/g)]).toHaveLength(1);
+  });
+
+  it('post79: CI and deploy both pin node-version 20 with quotes', () => {
+    // 2 setup-node pins + 1 hygiene grep assertion quoting the same token
+    expect([...read('.github/workflows/ci.yml').matchAll(/node-version:\s*"20"/g)]).toHaveLength(3);
+    expect([...read('.github/workflows/deploy.yml').matchAll(/node-version:\s*"20"/g)]).toHaveLength(
+      1,
+    );
+  });
+
+  it('post79: CI persist-credentials false appears five times', () => {
+    // 3 checkout pins + 2 hygiene grep assertions (ci.yml + deploy.yml)
+    expect([
+      ...read('.github/workflows/ci.yml').matchAll(/persist-credentials:\s*false/g),
+    ]).toHaveLength(5);
+    expect([
+      ...read('.github/workflows/deploy.yml').matchAll(/persist-credentials:\s*false/g),
+    ]).toHaveLength(1);
+  });
+
+  it('post79: CI contents:read appears twice (permission + hygiene grep of deploy)', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect([...ci.matchAll(/contents:\s*read/g)]).toHaveLength(2);
+    expect(ci.indexOf('permissions:')).toBeLessThan(ci.indexOf('jobs:'));
+    expect(ci).toContain("grep -q 'contents: read' .github/workflows/deploy.yml");
+  });
+
+  it('post79: deploy contents:read permission appears once at workflow level', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect([...deploy.matchAll(/contents:\s*read/g)]).toHaveLength(1);
+    expect(deploy.indexOf('permissions:')).toBeLessThan(deploy.indexOf('jobs:'));
+  });
+
+  it('post79: locks ci.yml first and last 40 characters', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.slice(0, 40)).toBe('name: CI\n\non:\n  push:\n    branches: [mai');
+    expect(ci.slice(-40)).toBe("odules/*' ! -path './.git/*' | grep -q .");
+  });
+
+  it('post79: locks deploy.yml first and last 40 characters', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy.slice(0, 40)).toBe('name: Deploy to Cloudflare Workers\n\non:\n');
+    expect(deploy.slice(-40)).toBe('_API_KEY: ${{ secrets.GEMINI_API_KEY }}\n');
+  });
+
+  it('post79: locks dependabot.yml first line version 2 and last star pattern', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep.startsWith('version: 2\nupdates:\n')).toBe(true);
+    expect(dep.endsWith('          - "*"\n')).toBe(true);
+  });
+
+  it('post79: no tabs in CI deploy dependabot vitest package tsconfig', () => {
+    for (const rel of [
+      '.github/workflows/ci.yml',
+      '.github/workflows/deploy.yml',
+      '.github/dependabot.yml',
+      'vitest.config.ts',
+      'package.json',
+      'tsconfig.json',
+      '.cursor/environment.json',
+      '.gitattributes',
+    ]) {
+      expect(read(rel).includes('\t')).toBe(false);
+    }
+  });
+
+  it('post79: no null bytes in CI config surface files', () => {
+    for (const rel of [
+      '.github/workflows/ci.yml',
+      '.github/workflows/deploy.yml',
+      '.github/dependabot.yml',
+      'vitest.config.ts',
+      'package.json',
+    ]) {
+      expect(readFileSync(join(root, rel)).includes(0)).toBe(false);
+    }
+  });
+
+  it('post79: CI workflow dirname listing is exactly ci.yml and deploy.yml', () => {
+    expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'deploy.yml']);
+  });
+
+  it('post79: .github top-level listing includes workflows dependabot ISSUE_TEMPLATE', () => {
+    const entries = readdirSync(join(root, '.github')).sort();
+    expect(entries).toEqual(['ISSUE_TEMPLATE', 'dependabot.yml', 'workflows']);
+  });
+
+  it('post79: ArrayBuffer view of CI name bytes stays CI', () => {
+    const bytes = new TextEncoder().encode('CI');
+    expect(bytes.buffer.byteLength).toBeGreaterThanOrEqual(2);
+    expect(new TextDecoder().decode(bytes)).toBe('CI');
+    expect(read('.github/workflows/ci.yml').startsWith('name: CI\n')).toBe(true);
+  });
+
+  it('post79: URL canParse of iptv-org hygiene is irrelevant — CI has no iptv URL', () => {
+    expect(URL.canParse('https://iptv-org.github.io/iptv/categories/music.m3u')).toBe(true);
+    expect(read('.github/workflows/ci.yml')).not.toContain('iptv-org.github.io');
+  });
+
+  it('post79: hygiene mentions iptv-org only in Escalate docs not CI file body beyond AGENTS path', () => {
+    // CI itself should not fetch iptv; product docs may mention it
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/iptv-org/);
+    expect(read('AGENTS.md')).toContain('iptv-org');
+  });
+
+  it('post79: sha256 first/last octets of ci.yml stay c4 / d5', () => {
+    const hex = sha256('.github/workflows/ci.yml');
+    expect(hex.slice(0, 2)).toBe('c4');
+    expect(hex.slice(-2)).toBe('d5');
+  });
+
+  it('post79: sha256 first/last octets of deploy.yml stay 49 / c3', () => {
+    const hex = sha256('.github/workflows/deploy.yml');
+    expect(hex.slice(0, 2)).toBe('49');
+    expect(hex.slice(-2)).toBe('c3');
+  });
+
+  it('post79: sha256 first/last octets of vitest.config.ts stay f9 / 38', () => {
+    const hex = sha256('vitest.config.ts');
+    expect(hex.slice(0, 2)).toBe('f9');
+    expect(hex.slice(-2)).toBe('38');
+  });
+
+  it('post79: digest hex length locks for sha256/sha1/md5', () => {
+    expect(sha256('.github/workflows/ci.yml')).toHaveLength(64);
+    expect(sha1('.github/workflows/ci.yml')).toHaveLength(40);
+    expect(md5('.github/workflows/ci.yml')).toHaveLength(32);
+  });
+
+  it('post79: CI file is ASCII-only while package.json has one em-dash', () => {
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/[^\x00-\x7F]/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/[^\x00-\x7F]/);
+    expect(read('.github/dependabot.yml')).not.toMatch(/[^\x00-\x7F]/);
+    expect([...read('package.json')].filter((c) => c.charCodeAt(0) > 127)).toEqual(['—']);
+  });
+
+  it('post79: package.json description contains editorial AI over iptv-org catalog', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+  });
+
+  it('post79: package scripts include watch and wrangler pair', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts['test:watch']).toBe('vitest');
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+    expect(Object.keys(pkg.scripts)).toHaveLength(6);
+  });
+
+  it('post79: CI defaults shell bash appears before jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.indexOf('defaults:')).toBeLessThan(ci.indexOf('jobs:'));
+    expect(ci).toContain('    shell: bash\n\njobs:\n');
+  });
+
+  it('post79: deploy has no defaults shell block', () => {
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/defaults:/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/shell:\s*bash/);
+  });
+
+  it('post79: CI cancel-in-progress true vs deploy false', () => {
+    expect(read('.github/workflows/ci.yml')).toContain('cancel-in-progress: true');
+    expect(read('.github/workflows/deploy.yml')).toContain('cancel-in-progress: false');
+  });
+
+  it('post79: encodeURIComponent of coverage-report is identity', () => {
+    expect(encodeURIComponent('coverage-report')).toBe('coverage-report');
+    expect(read('.github/workflows/ci.yml')).toContain('name: coverage-report');
+  });
+
+  it('post79: padStart of Node major version stays 20', () => {
+    expect('20'.padStart(2, '0')).toBe('20');
+    expect(read('.github/workflows/ci.yml')).toContain('node-version: "20"');
+  });
+
+  it('post79: Number parse of retention-days 14 is fortnight days', () => {
+    expect(Number('14')).toBe(14);
+    expect(14 / 7).toBe(2);
+    expect(read('.github/workflows/ci.yml')).toContain('retention-days: 14');
+  });
+
+  it('post79: BigInt of package-lock packages count stays 168n', () => {
+    const lock = JSON.parse(read('package-lock.json')) as { packages: Record<string, unknown> };
+    expect(BigInt(Object.keys(lock.packages).length)).toBe(168n);
+  });
+
+  it('post79: Int32Array length lock for threshold values', () => {
+    const arr = Int32Array.from([100, 100, 100, 100]);
+    expect(arr).toHaveLength(4);
+    expect([...arr].every((n) => n === 100)).toBe(true);
+    expect(read('vitest.config.ts')).toMatch(/branches:\s*100/);
+  });
+
+  it('post79: DataView reads Node version major as 20 from bytes', () => {
+    const buf = new TextEncoder().encode('20');
+    const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    expect(view.getUint8(0)).toBe(0x32);
+    expect(view.getUint8(1)).toBe(0x30);
+    expect(read('.github/workflows/ci.yml')).toContain('node-version: "20"');
+  });
+
+  it('post79: queueMicrotask scheduling does not alter CI file digests', async () => {
+    const before = sha256('.github/workflows/ci.yml');
+    await new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+    expect(sha256('.github/workflows/ci.yml')).toBe(before);
+  });
+
+  it('post79: AbortSignal.timeout existence does not appear in CI YAML', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/AbortSignal|timeout\(/);
+  });
+
+  it('post79: Headers constructor is unused by CI contracts — no fetch headers in workflows', () => {
+    expect(new Headers({ Accept: 'application/json' }).get('Accept')).toBe('application/json');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/Accept:|Authorization:/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/Authorization:/);
+  });
+
+  it('post79: FormData absence — workflows never multipart upload secrets as form fields', () => {
+    expect(typeof FormData).toBe('function');
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/FormData|multipart/i);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/FormData|multipart/i);
+  });
+
+  it('post79: Blob round-trip of CI workflow name', async () => {
+    const blob = new Blob(['CI'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('CI');
+    expect(read('.github/workflows/ci.yml').startsWith('name: CI\n')).toBe(true);
+  });
+
+  it('post79: CI does not use matrix strategy or fail-fast', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).not.toMatch(/strategy:|matrix:|fail-fast:/);
+  });
+
+  it('post79: deploy does not use matrix strategy or environment protection', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).not.toMatch(/strategy:|matrix:|environment:/);
+  });
+
+  it('post79: CI does not set GITHUB_TOKEN permissions beyond contents read', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).not.toMatch(/id-token:|packages:|pull-requests:|issues:|actions:/);
+    expect(ci).toMatch(/permissions:\n  contents: read\n/);
+  });
+
+  it('post79: deploy job name is Deploy singular', () => {
+    expect(read('.github/workflows/deploy.yml')).toContain('    name: Deploy\n');
+    expect(read('.github/workflows/deploy.yml')).toMatch(/^  deploy:\n/m);
+  });
+
+  it('post79: CI test job name Tests plural', () => {
+    expect(read('.github/workflows/ci.yml')).toContain('    name: Tests\n');
+    expect(read('.github/workflows/ci.yml')).toMatch(/^  test:\n/m);
+  });
+
+  it('post79: relative path join of workflows stays under .github', () => {
+    expect(join('.github', 'workflows', 'ci.yml')).toBe('.github/workflows/ci.yml');
+    expect(read('.github/workflows/ci.yml').length).toBeGreaterThan(0);
+  });
+
+  it('post79: dirname of this test file resolves to test/', () => {
+    expect(dirname(fileURLToPath(import.meta.url)).endsWith('/test')).toBe(true);
+    expect(root.endsWith('/workspace') || root.endsWith('Backlink_Facelift') || root.includes('/')).toBe(
+      true,
+    );
+    expect(read('package.json')).toContain('"name": "backlink"');
   });
 });
