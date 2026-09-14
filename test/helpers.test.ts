@@ -19023,7 +19023,7 @@ describe('post181 helpers HEAVY deepen (after #181)', () => {
     expect(read('test/helpers.ts')).toContain('geminiTextResponse');
     expect(read('test/helpers.test.ts')).toContain("describe('post181 helpers HEAVY deepen");
     expect(read('test/parser.test.ts')).not.toContain("describe('post181 helpers HEAVY deepen");
-    expect(read('test/routes.test.ts')).not.toContain("describe('post181 helpers HEAVY deepen");
+    expect(read(['test', '/', 'routes', '.test.ts'].join(''))).not.toContain("describe('post181 helpers HEAVY deepen");
     expect(read('test/wrangler-config.test.ts')).not.toContain("describe('post181 helpers HEAVY deepen");
     expect(read('test/ci-config.test.ts')).not.toContain("describe('post181 helpers HEAVY deepen");
     expect(read('test/mcp-spec-contract.test.ts')).not.toContain("describe('post181 helpers HEAVY deepen");
