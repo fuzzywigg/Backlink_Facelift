@@ -9169,3 +9169,2170 @@ describe('post104 helpers HEAVY deepen', () => {
   });
 
 });
+
+describe('post111 helpers HEAVY deepen', () => {
+  // TOKENMAXX tests-only deepen after parser #110 / wrangler #111.
+  // Complementary leftovers on test/helpers.ts — fingerprints, export matrices,
+  // mockKV/testEnv/stub/build/seed/capture locks. No product/credentials/DNS inventing.
+
+  const helpersPath = join(helpersRoot, 'test/helpers.ts');
+  const helpersSrc = () => readFileSync(helpersPath, 'utf8');
+  const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
+  const sha1 = (data: string | Buffer) => createHash('sha1').update(data).digest('hex');
+  const md5 = (data: string | Buffer) => createHash('md5').update(data).digest('hex');
+  const sha512 = (data: string | Buffer) => createHash('sha512').update(data).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const EXPORT_NAMES = ["mockKV", "testEnv", "SAMPLE_M3U", "geminiTextResponse", "stubIptvAndGemini", "curatedGeminiJson", "iptvCategoryUrl", "countHttpStreamLines", "buildSimpleM3U", "seedStationsCache", "captureGeminiRequest", "iptvCallsWithInit"] as const;
+  const GREEK = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"] as const;
+  const GENRE_SLUGS = ["music", "ambient", "jazz", "classical", "pop", "rock", "news", "sports", "entertainment"] as const;
+
+  it("post111: helpers.ts sha256 fingerprint reaffirm", () => {
+
+    expect(sha256(helpersSrc())).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+    expect(sha256(readFileSync(helpersPath, 'utf8'))).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+
+  });
+  it("post111: helpers.ts sha1 fingerprint reaffirm", () => {
+
+    expect(sha1(helpersSrc())).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+
+  });
+  it("post111: helpers.ts md5 fingerprint reaffirm", () => {
+
+    expect(md5(helpersSrc())).toBe("004bbc8741017d8dd45bee28a29b46e1");
+
+  });
+  it("post111: helpers.ts sha512 fingerprint lock", () => {
+
+    expect(sha512(helpersSrc())).toBe("153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91");
+
+  });
+  it("post111: helpers.ts sha384 fingerprint lock", () => {
+
+    expect(createHash('sha384').update(helpersSrc(), 'utf8').digest('hex')).toBe("1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167");
+
+  });
+  it("post111: helpers.ts HMAC-SHA256(post111) lock", () => {
+
+    expect(createHmac('sha256', 'post111').update(helpersSrc(), 'utf8').digest('hex')).toBe(
+      "2b3e2749b53346fe84b3b1f3c167c4f98ead1435c0f7e60aa942b635019518ab",
+    );
+
+  });
+  it("post111: helpers.ts sha256 nibble sum 487", () => {
+
+    expect(nibbleSum(sha256(helpersSrc()))).toBe(487);
+
+  });
+  it("post111: helpers.ts first/last sha256 octets 0x24 / 0x29", () => {
+
+    const dig = sha256(helpersSrc());
+    expect(parseInt(dig.slice(0, 2), 16)).toBe(0x24);
+    expect(parseInt(dig.slice(-2), 16)).toBe(0x29);
+
+  });
+  it("post111: helpers.ts byte size 6078 via string/stat/Buffer/TextEncoder", () => {
+
+    expect(helpersSrc().length).toBe(6078);
+    expect(Buffer.byteLength(helpersSrc(), 'utf8')).toBe(6078);
+    expect(new TextEncoder().encode(helpersSrc()).length).toBe(6078);
+    expect(statSync(helpersPath).size).toBe(6078);
+
+  });
+  it("post111: helpers.ts newline count 163 / split 164", () => {
+
+    expect((helpersSrc().match(/\n/g) ?? []).length).toBe(163);
+    expect(helpersSrc().split('\n')).toHaveLength(164);
+
+  });
+  it("post111: helpers.ts nonempty line count and length sum", () => {
+
+    const ls = helpersSrc().split('\n');
+    expect(ls.filter((l) => l.length > 0)).toHaveLength(151);
+    expect(ls.filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(5915);
+
+  });
+  it("post111: helpers.ts line length vector lock", () => {
+
+    expect(helpersSrc().split('\n').map((l) => l.length)).toEqual([28, 40, 0, 48, 72, 46, 10, 62, 54, 28, 7, 42, 24, 7, 84, 93, 30, 1, 0, 60, 10, 28, 26, 17, 4, 1, 0, 34, 59, 30, 57, 29, 59, 30, 59, 30, 63, 32, 57, 29, 2, 0, 85, 60, 24, 53, 5, 1, 0, 41, 22, 75, 46, 39, 22, 30, 61, 52, 30, 35, 66, 36, 103, 45, 91, 51, 7, 88, 48, 5, 60, 66, 42, 51, 5, 49, 5, 1, 0, 69, 34, 101, 5, 23, 44, 41, 21, 6, 4, 13, 54, 1, 0, 80, 56, 67, 1, 0, 71, 59, 12, 16, 25, 79, 1, 0, 75, 31, 117, 11, 28, 29, 19, 29, 59, 64, 71, 68, 5, 22, 17, 48, 22, 3, 33, 1, 0, 73, 34, 16, 17, 40, 27, 79, 60, 1, 0, 3, 81, 42, 3, 37, 46, 108, 108, 25, 30, 50, 92, 10, 8, 61, 27, 9, 4, 1, 0, 85, 93, 37, 76, 4, 1, 0]);
+
+  });
+  it("post111: helpers.ts first 40 char codes lock", () => {
+
+    expect([...helpersSrc().slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([105, 109, 112, 111, 114, 116, 32, 123, 32, 118, 105, 32, 125, 32, 102, 114, 111, 109, 32, 39, 118, 105, 116, 101, 115, 116, 39, 59, 10, 105, 109, 112, 111, 114, 116, 32, 116, 121, 112, 101]);
+
+  });
+  it("post111: helpers.ts last 40 char codes lock", () => {
+
+    expect([...helpersSrc().slice(-40)].map((c) => c.charCodeAt(0))).toEqual([45, 111, 114, 103, 39, 41, 32, 38, 38, 32, 99, 97, 108, 108, 91, 49, 93, 32, 33, 61, 61, 32, 117, 110, 100, 101, 102, 105, 110, 101, 100, 44, 10, 32, 32, 41, 59, 10, 125, 10]);
+
+  });
+  it("post111: digit/upper/lower counts", () => {
+
+    expect([...helpersSrc()].filter((c) => /\d/.test(c))).toHaveLength(65);
+    expect([...helpersSrc()].filter((c) => /[A-Z]/.test(c))).toHaveLength(307);
+    expect([...helpersSrc()].filter((c) => /[a-z]/.test(c))).toHaveLength(3531);
+
+  });
+  it("post111: punctuation inventory", () => {
+
+    const s = helpersSrc();
+    expect((s.match(/ /g) ?? []).length).toBe(919);
+    expect((s.match(/"/g) ?? []).length).toBe(34);
+    expect((s.match(/'/g) ?? []).length).toBe(48);
+    expect((s.match(/`/g) ?? []).length).toBe(20);
+    expect((s.match(/;/g) ?? []).length).toBe(56);
+    expect((s.match(/=>/g) ?? []).length).toBe(11);
+    expect((s.match(/async /g) ?? []).length).toBe(6);
+    expect((s.match(/vi\.fn/g) ?? []).length).toBe(7);
+
+  });
+  it("post111: host/token substring counts", () => {
+
+    const s = helpersSrc();
+    expect((s.match(/iptv-org/g) ?? []).length).toBe(6);
+    expect((s.match(/generativelanguage\.googleapis\.com/g) ?? []).length).toBe(3);
+    expect((s.match(/stations:/g) ?? []).length).toBe(3);
+
+  });
+  it("post111: unique char set lock", () => {
+
+    expect([...new Set(helpersSrc())].sort().join('')).toBe("\n !\"#$&'()*+,-./0123458:;<=>?ABCDEFGHIJKLMNOPRSTUVWXZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}");
+
+  });
+  it("post111: word token vector sha256 lock", () => {
+
+    const words = helpersSrc().match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words).toHaveLength(730);
+    expect(createHash('sha256').update(words.join('|'), 'utf8').digest('hex')).toBe("b5aadc9918a45e436d73b0d9a3ab5fb28f55e530f8b3c4e38765525d9d93e666");
+
+  });
+  it("post111: unique word inventory lock", () => {
+
+    const words = helpersSrc().match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    const unique = [...new Set(words)].sort();
+    expect(unique).toEqual(["Alpha", "Array", "Beta", "Boolean", "Build", "CATALOG_CACHE", "Count", "Default", "Delta", "EXTINF", "EXTM3U", "Env", "Epsilon", "Extract", "FM", "GET", "Gamma", "Gemini", "HeadersInit", "In", "JSON", "KV", "KVNamespace", "M3U", "Map", "Minimal", "Music", "Object", "Partial", "Per", "Record", "RequestInfo", "RequestInit", "Response", "Return", "ReturnType", "Returns", "SAMPLE_M3U", "Seed", "String", "URL", "VERSION", "Worker", "Zeta", "a", "alpha", "an", "arg", "as", "async", "attrs", "beta", "bodies", "body", "boom", "buildSimpleM3U", "builder", "by", "c", "cache", "cacheStatus", "call", "calls", "candidates", "captureGeminiRequest", "case", "categories", "category", "com", "const", "content", "countHttpStreamLines", "country", "curate", "curated", "curatedGeminiJson", "delete", "delta", "down", "e", "edge", "editorial", "entries", "epsilon", "example", "existing", "export", "fetch", "fetchMock", "fetchStations", "filter", "find", "first", "fixture", "fn", "for", "from", "function", "g", "gamma", "gemini", "geminiTextResponse", "generateContent", "generativelanguage", "genre", "genreMatch", "get", "getWithMetadata", "github", "given", "googleapis", "group", "happy", "hasOwnProperty", "headers", "helper", "hit", "http", "https", "if", "import", "in", "includes", "init", "input", "io", "iptv", "iptvByGenre", "iptvCallsWithInit", "iptvCategoryUrl", "iptvStatus", "jazz", "join", "json", "key", "keyed", "keys", "l", "language", "length", "lines", "list", "list_complete", "logo", "m3u", "m3u8", "map", "match", "memory", "metadata", "method", "mock", "mockKV", "model", "music", "n", "name", "never", "new", "nope", "null", "number", "of", "opts", "or", "org", "overrides", "parse", "parser", "parts", "passed", "path", "pick", "post", "prototype", "push", "put", "raw", "response", "return", "route", "s", "second", "seed", "seedStationsCache", "serialized", "set", "shaped", "slug", "split", "src", "startsWith", "stations", "status", "store", "stream", "string", "stringify", "stub", "stubIptvAndGemini", "stubs", "test", "testEnv", "tests", "text", "that", "the", "title", "toString", "toUpperCase", "trim", "true", "tvg", "type", "typeof", "types", "undefined", "unexpectedly", "unknown", "url", "value", "vi", "vitest", "was", "when", "with", "would", "zeta"]);
+    expect(createHash('sha256').update(unique.join('|'), 'utf8').digest('hex')).toBe("7644491a4dcfe8a28e36ea32cd1520503440f507c615885093470b844454ce7f");
+
+  });
+  it("post111: export inventory 11 functions + 1 const", () => {
+
+    expect((helpersSrc().match(/^export function /gm) ?? []).length).toBe(11);
+    expect((helpersSrc().match(/^export const /gm) ?? []).length).toBe(1);
+    expect(EXPORT_NAMES).toEqual(["mockKV", "testEnv", "SAMPLE_M3U", "geminiTextResponse", "stubIptvAndGemini", "curatedGeminiJson", "iptvCategoryUrl", "countHttpStreamLines", "buildSimpleM3U", "seedStationsCache", "captureGeminiRequest", "iptvCallsWithInit"]);
+
+  });
+  it("post111: import inventory two top-level imports", () => {
+
+    expect((helpersSrc().match(/^import /gm) ?? []).length).toBe(2);
+    expect(helpersSrc()).toMatch(/^import \{ vi \} from 'vitest';/m);
+    expect(helpersSrc()).toMatch(/^import type \{ Env \} from '\.\.\/src\/types';/m);
+
+  });
+  it("post111: no BOM / tab / CR", () => {
+
+    const s = helpersSrc();
+    expect(s.charCodeAt(0)).not.toBe(0xfeff);
+    expect(s.includes('\t')).toBe(false);
+    expect(s.includes('\r')).toBe(false);
+
+  });
+  it("post111: ends with single trailing newline", () => {
+
+    expect(helpersSrc().endsWith('\n')).toBe(true);
+    expect(helpersSrc().endsWith('}\n')).toBe(true);
+    expect(helpersSrc().endsWith('}\n\n')).toBe(false);
+
+  });
+  it("post111: NFC/NFD/NFKC/NFKD identity", () => {
+
+    const s = helpersSrc();
+    expect(s.normalize('NFC')).toBe(s);
+    expect(s.normalize('NFD')).toBe(s);
+    expect(s.normalize('NFKC')).toBe(s);
+    expect(s.normalize('NFKD')).toBe(s);
+
+  });
+  it("post111: re-read equals module snapshot", () => {
+
+    expect(readFileSync(helpersPath, 'utf8')).toBe(helpersSrc());
+
+  });
+  it("post111: sha256 of export name mockKV", () => {
+
+    expect(sha256("mockKV")).toBe("3e67d33140d77c75b2ae708c4bd9f2d52266eb8c1d755586ec594c6282f8a993");
+    expect(nibbleSum(sha256("mockKV"))).toBe(480);
+
+  });
+  it("post111: helpers.ts still exports mockKV at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) mockKV\b/);
+    expect(helpersSrc().indexOf("mockKV")).toBe(136);
+
+  });
+  it("post111: sha256 of export name testEnv", () => {
+
+    expect(sha256("testEnv")).toBe("af724015138330bf7a9ed6f063fd01441a7db0625f61f5ba4ce8d9bf237a5069");
+    expect(nibbleSum(sha256("testEnv"))).toBe(454);
+
+  });
+  it("post111: helpers.ts still exports testEnv at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) testEnv\b/);
+    expect(helpersSrc().indexOf("testEnv")).toBe(711);
+
+  });
+  it("post111: sha256 of export name SAMPLE_M3U", () => {
+
+    expect(sha256("SAMPLE_M3U")).toBe("1d43a5901d28ef66f1d265acf99819bc500423c6ef4068ac638037251a99f3c6");
+    expect(nibbleSum(sha256("SAMPLE_M3U"))).toBe(448);
+
+  });
+  it("post111: helpers.ts still exports SAMPLE_M3U at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) SAMPLE_M3U\b/);
+    expect(helpersSrc().indexOf("SAMPLE_M3U")).toBe(862);
+
+  });
+  it("post111: sha256 of export name geminiTextResponse", () => {
+
+    expect(sha256("geminiTextResponse")).toBe("eec054f8c4303529a66a8cc89fbdbb94d1e2d949214212f3897be6adf2f5746a");
+    expect(nibbleSum(sha256("geminiTextResponse"))).toBe(502);
+
+  });
+  it("post111: helpers.ts still exports geminiTextResponse at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) geminiTextResponse\b/);
+    expect(helpersSrc().indexOf("geminiTextResponse")).toBe(1536);
+
+  });
+  it("post111: sha256 of export name stubIptvAndGemini", () => {
+
+    expect(sha256("stubIptvAndGemini")).toBe("8bdb997cbae400bfafb65cd9309585e35549ae3e4b6664bbba192d3d68e34516");
+    expect(nibbleSum(sha256("stubIptvAndGemini"))).toBe(505);
+
+  });
+  it("post111: helpers.ts still exports stubIptvAndGemini at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) stubIptvAndGemini\b/);
+    expect(helpersSrc().indexOf("stubIptvAndGemini")).toBe(1685);
+
+  });
+  it("post111: sha256 of export name curatedGeminiJson", () => {
+
+    expect(sha256("curatedGeminiJson")).toBe("4f2bff92adbee0e05359998f663c29c0a8a1c84298a7f49591b51fd15ea79174");
+    expect(nibbleSum(sha256("curatedGeminiJson"))).toBe(497);
+
+  });
+  it("post111: helpers.ts still exports curatedGeminiJson at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) curatedGeminiJson\b/);
+    expect(helpersSrc().indexOf("curatedGeminiJson")).toBe(3057);
+
+  });
+  it("post111: sha256 of export name iptvCategoryUrl", () => {
+
+    expect(sha256("iptvCategoryUrl")).toBe("c31ff7f68f264f406387783d50bbb27f4063a1dcbc421c46f9d7d7d0f02362d9");
+    expect(nibbleSum(sha256("iptvCategoryUrl"))).toBe(473);
+
+  });
+  it("post111: helpers.ts still exports iptvCategoryUrl at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) iptvCategoryUrl\b/);
+    expect(helpersSrc().indexOf("iptvCategoryUrl")).toBe(3498);
+
+  });
+  it("post111: sha256 of export name countHttpStreamLines", () => {
+
+    expect(sha256("countHttpStreamLines")).toBe("87ba3719ab88575a937f6215ea106d7eb9d94fcae9ff466f20a5411ed3364b38");
+    expect(nibbleSum(sha256("countHttpStreamLines"))).toBe(488);
+
+  });
+  it("post111: helpers.ts still exports countHttpStreamLines at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) countHttpStreamLines\b/);
+    expect(helpersSrc().indexOf("countHttpStreamLines")).toBe(3698);
+
+  });
+  it("post111: sha256 of export name buildSimpleM3U", () => {
+
+    expect(sha256("buildSimpleM3U")).toBe("019f6ec0e4d894f9da583201d2cd2a9fb157eb31067653d87499ec8909583efc");
+    expect(nibbleSum(sha256("buildSimpleM3U"))).toBe(490);
+
+  });
+  it("post111: helpers.ts still exports buildSimpleM3U at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) buildSimpleM3U\b/);
+    expect(helpersSrc().indexOf("buildSimpleM3U")).toBe(3973);
+
+  });
+  it("post111: sha256 of export name seedStationsCache", () => {
+
+    expect(sha256("seedStationsCache")).toBe("be57554a627a4fe18d5af50aa7441b622c477f4a62c11b98de650111f51c7d56");
+    expect(nibbleSum(sha256("seedStationsCache"))).toBe(447);
+
+  });
+  it("post111: helpers.ts still exports seedStationsCache at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) seedStationsCache\b/);
+    expect(helpersSrc().indexOf("seedStationsCache")).toBe(4744);
+
+  });
+  it("post111: sha256 of export name captureGeminiRequest", () => {
+
+    expect(sha256("captureGeminiRequest")).toBe("41edfbaa9310811ca03f0c1b76bc2a5f0a81b5cf088483c9108ff24c8855b640");
+    expect(nibbleSum(sha256("captureGeminiRequest"))).toBe(451);
+
+  });
+  it("post111: helpers.ts still exports captureGeminiRequest at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) captureGeminiRequest\b/);
+    expect(helpersSrc().indexOf("captureGeminiRequest")).toBe(5160);
+
+  });
+  it("post111: sha256 of export name iptvCallsWithInit", () => {
+
+    expect(sha256("iptvCallsWithInit")).toBe("61585f82a260862357f7aa3611f3669aa34a03be4c9cf5ae6f0317526199a193");
+    expect(nibbleSum(sha256("iptvCallsWithInit"))).toBe(424);
+
+  });
+  it("post111: helpers.ts still exports iptvCallsWithInit at known index", () => {
+
+    expect(helpersSrc()).toMatch(/export (?:function|const) iptvCallsWithInit\b/);
+    expect(helpersSrc().indexOf("iptvCallsWithInit")).toBe(5878);
+
+  });
+  it("post111: helpers.ts line 0 exact content", () => {
+
+    expect(helpersSrc().split('\n')[0]).toBe("import { vi } from 'vitest';");
+
+  });
+  it("post111: helpers.ts line 1 exact content", () => {
+
+    expect(helpersSrc().split('\n')[1]).toBe("import type { Env } from '../src/types';");
+
+  });
+  it("post111: helpers.ts line 2 exact content", () => {
+
+    expect(helpersSrc().split('\n')[2]).toBe("");
+
+  });
+  it("post111: helpers.ts line 3 exact content", () => {
+
+    expect(helpersSrc().split('\n')[3]).toBe("/** In-memory KV stub for Worker route tests. */");
+
+  });
+  it("post111: helpers.ts line 4 exact content", () => {
+
+    expect(helpersSrc().split('\n')[4]).toBe("export function mockKV(seed: Record<string, string> = {}): KVNamespace {");
+
+  });
+  it("post111: helpers.ts line 5 exact content", () => {
+
+    expect(helpersSrc().split('\n')[5]).toBe("  const store = new Map(Object.entries(seed));");
+
+  });
+  it("post111: helpers.ts line 6 exact content", () => {
+
+    expect(helpersSrc().split('\n')[6]).toBe("  return {");
+
+  });
+  it("post111: helpers.ts line 7 exact content", () => {
+
+    expect(helpersSrc().split('\n')[7]).toBe("    get: vi.fn(async (key: string) => store.get(key) ?? null),");
+
+  });
+  it("post111: helpers.ts line 8 exact content", () => {
+
+    expect(helpersSrc().split('\n')[8]).toBe("    put: vi.fn(async (key: string, value: string) => {");
+
+  });
+  it("post111: helpers.ts line 9 exact content", () => {
+
+    expect(helpersSrc().split('\n')[9]).toBe("      store.set(key, value);");
+
+  });
+  it("post111: helpers.ts line 10 exact content", () => {
+
+    expect(helpersSrc().split('\n')[10]).toBe("    }),");
+
+  });
+  it("post111: helpers.ts line 11 exact content", () => {
+
+    expect(helpersSrc().split('\n')[11]).toBe("    delete: vi.fn(async (key: string) => {");
+
+  });
+  it("post111: helpers.ts line 12 exact content", () => {
+
+    expect(helpersSrc().split('\n')[12]).toBe("      store.delete(key);");
+
+  });
+  it("post111: helpers.ts line 13 exact content", () => {
+
+    expect(helpersSrc().split('\n')[13]).toBe("    }),");
+
+  });
+  it("post111: helpers.ts line 14 exact content", () => {
+
+    expect(helpersSrc().split('\n')[14]).toBe("    list: vi.fn(async () => ({ keys: [], list_complete: true, cacheStatus: null })),");
+
+  });
+  it("post111: helpers.ts line 15 exact content", () => {
+
+    expect(helpersSrc().split('\n')[15]).toBe("    getWithMetadata: vi.fn(async () => ({ value: null, metadata: null, cacheStatus: null })),");
+
+  });
+  it("post111: helpers.ts line 16 exact content", () => {
+
+    expect(helpersSrc().split('\n')[16]).toBe("  } as unknown as KVNamespace;");
+
+  });
+  it("post111: helpers.ts line 17 exact content", () => {
+
+    expect(helpersSrc().split('\n')[17]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 18 exact content", () => {
+
+    expect(helpersSrc().split('\n')[18]).toBe("");
+
+  });
+  it("post111: helpers.ts line 19 exact content", () => {
+
+    expect(helpersSrc().split('\n')[19]).toBe("export function testEnv(overrides: Partial<Env> = {}): Env {");
+
+  });
+  it("post111: helpers.ts line 20 exact content", () => {
+
+    expect(helpersSrc().split('\n')[20]).toBe("  return {");
+
+  });
+  it("post111: helpers.ts line 21 exact content", () => {
+
+    expect(helpersSrc().split('\n')[21]).toBe("    CATALOG_CACHE: mockKV(),");
+
+  });
+  it("post111: helpers.ts line 22 exact content", () => {
+
+    expect(helpersSrc().split('\n')[22]).toBe("    VERSION: '0.1.0-test',");
+
+  });
+  it("post111: helpers.ts line 23 exact content", () => {
+
+    expect(helpersSrc().split('\n')[23]).toBe("    ...overrides,");
+
+  });
+  it("post111: helpers.ts line 24 exact content", () => {
+
+    expect(helpersSrc().split('\n')[24]).toBe("  };");
+
+  });
+  it("post111: helpers.ts line 25 exact content", () => {
+
+    expect(helpersSrc().split('\n')[25]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 26 exact content", () => {
+
+    expect(helpersSrc().split('\n')[26]).toBe("");
+
+  });
+  it("post111: helpers.ts line 27 exact content", () => {
+
+    expect(helpersSrc().split('\n')[27]).toBe("export const SAMPLE_M3U = `#EXTM3U");
+
+  });
+  it("post111: helpers.ts line 28 exact content", () => {
+
+    expect(helpersSrc().split('\n')[28]).toBe("#EXTINF:-1 tvg-name=\"Alpha FM\" group-title=\"Music\",Alpha FM");
+
+  });
+  it("post111: helpers.ts line 29 exact content", () => {
+
+    expect(helpersSrc().split('\n')[29]).toBe("https://example.com/alpha.m3u8");
+
+  });
+  it("post111: helpers.ts line 30 exact content", () => {
+
+    expect(helpersSrc().split('\n')[30]).toBe("#EXTINF:-1 tvg-name=\"Beta FM\" group-title=\"Music\",Beta FM");
+
+  });
+  it("post111: helpers.ts line 31 exact content", () => {
+
+    expect(helpersSrc().split('\n')[31]).toBe("https://example.com/beta.m3u8");
+
+  });
+  it("post111: helpers.ts line 32 exact content", () => {
+
+    expect(helpersSrc().split('\n')[32]).toBe("#EXTINF:-1 tvg-name=\"Gamma FM\" group-title=\"Music\",Gamma FM");
+
+  });
+  it("post111: helpers.ts line 33 exact content", () => {
+
+    expect(helpersSrc().split('\n')[33]).toBe("https://example.com/gamma.m3u8");
+
+  });
+  it("post111: helpers.ts line 34 exact content", () => {
+
+    expect(helpersSrc().split('\n')[34]).toBe("#EXTINF:-1 tvg-name=\"Delta FM\" group-title=\"Music\",Delta FM");
+
+  });
+  it("post111: helpers.ts line 35 exact content", () => {
+
+    expect(helpersSrc().split('\n')[35]).toBe("https://example.com/delta.m3u8");
+
+  });
+  it("post111: helpers.ts line 36 exact content", () => {
+
+    expect(helpersSrc().split('\n')[36]).toBe("#EXTINF:-1 tvg-name=\"Epsilon FM\" group-title=\"Music\",Epsilon FM");
+
+  });
+  it("post111: helpers.ts line 37 exact content", () => {
+
+    expect(helpersSrc().split('\n')[37]).toBe("https://example.com/epsilon.m3u8");
+
+  });
+  it("post111: helpers.ts line 38 exact content", () => {
+
+    expect(helpersSrc().split('\n')[38]).toBe("#EXTINF:-1 tvg-name=\"Zeta FM\" group-title=\"Music\",Zeta FM");
+
+  });
+  it("post111: helpers.ts line 39 exact content", () => {
+
+    expect(helpersSrc().split('\n')[39]).toBe("https://example.com/zeta.m3u8");
+
+  });
+  it("post111: helpers.ts line 40 exact content", () => {
+
+    expect(helpersSrc().split('\n')[40]).toBe("`;");
+
+  });
+  it("post111: helpers.ts line 41 exact content", () => {
+
+    expect(helpersSrc().split('\n')[41]).toBe("");
+
+  });
+  it("post111: helpers.ts line 42 exact content", () => {
+
+    expect(helpersSrc().split('\n')[42]).toBe("/** Build a Gemini generateContent-shaped JSON response with the given model text. */");
+
+  });
+  it("post111: helpers.ts line 43 exact content", () => {
+
+    expect(helpersSrc().split('\n')[43]).toBe("export function geminiTextResponse(text: string): Response {");
+
+  });
+  it("post111: helpers.ts line 44 exact content", () => {
+
+    expect(helpersSrc().split('\n')[44]).toBe("  return Response.json({");
+
+  });
+  it("post111: helpers.ts line 45 exact content", () => {
+
+    expect(helpersSrc().split('\n')[45]).toBe("    candidates: [{ content: { parts: [{ text }] } }],");
+
+  });
+  it("post111: helpers.ts line 46 exact content", () => {
+
+    expect(helpersSrc().split('\n')[46]).toBe("  });");
+
+  });
+  it("post111: helpers.ts line 47 exact content", () => {
+
+    expect(helpersSrc().split('\n')[47]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 48 exact content", () => {
+
+    expect(helpersSrc().split('\n')[48]).toBe("");
+
+  });
+  it("post111: helpers.ts line 49 exact content", () => {
+
+    expect(helpersSrc().split('\n')[49]).toBe("export function stubIptvAndGemini(opts: {");
+
+  });
+  it("post111: helpers.ts line 50 exact content", () => {
+
+    expect(helpersSrc().split('\n')[50]).toBe("  m3u?: string | null;");
+
+  });
+  it("post111: helpers.ts line 51 exact content", () => {
+
+    expect(helpersSrc().split('\n')[51]).toBe("  /** Per-category M3U bodies keyed by iptv-org slug (e.g. jazz, music). */");
+
+  });
+  it("post111: helpers.ts line 52 exact content", () => {
+
+    expect(helpersSrc().split('\n')[52]).toBe("  iptvByGenre?: Record<string, string | null>;");
+
+  });
+  it("post111: helpers.ts line 53 exact content", () => {
+
+    expect(helpersSrc().split('\n')[53]).toBe("  gemini?: Response | (() => Response);");
+
+  });
+  it("post111: helpers.ts line 54 exact content", () => {
+
+    expect(helpersSrc().split('\n')[54]).toBe("  iptvStatus?: number;");
+
+  });
+  it("post111: helpers.ts line 55 exact content", () => {
+
+    expect(helpersSrc().split('\n')[55]).toBe("}): ReturnType<typeof vi.fn> {");
+
+  });
+  it("post111: helpers.ts line 56 exact content", () => {
+
+    expect(helpersSrc().split('\n')[56]).toBe("  const m3u = opts.m3u === undefined ? SAMPLE_M3U : opts.m3u;");
+
+  });
+  it("post111: helpers.ts line 57 exact content", () => {
+
+    expect(helpersSrc().split('\n')[57]).toBe("  return vi.fn(async (input: RequestInfo | URL) => {");
+
+  });
+  it("post111: helpers.ts line 58 exact content", () => {
+
+    expect(helpersSrc().split('\n')[58]).toBe("    const url = String(input);");
+
+  });
+  it("post111: helpers.ts line 59 exact content", () => {
+
+    expect(helpersSrc().split('\n')[59]).toBe("    if (url.includes('iptv-org')) {");
+
+  });
+  it("post111: helpers.ts line 60 exact content", () => {
+
+    expect(helpersSrc().split('\n')[60]).toBe("      const genreMatch = url.match(/\\/categories\\/([^/.]+)\\.m3u/);");
+
+  });
+  it("post111: helpers.ts line 61 exact content", () => {
+
+    expect(helpersSrc().split('\n')[61]).toBe("      const genre = genreMatch?.[1];");
+
+  });
+  it("post111: helpers.ts line 62 exact content", () => {
+
+    expect(helpersSrc().split('\n')[62]).toBe("      if (genre && opts.iptvByGenre && Object.prototype.hasOwnProperty.call(opts.iptvByGenre, genre)) {");
+
+  });
+  it("post111: helpers.ts line 63 exact content", () => {
+
+    expect(helpersSrc().split('\n')[63]).toBe("        const body = opts.iptvByGenre[genre];");
+
+  });
+  it("post111: helpers.ts line 64 exact content", () => {
+
+    expect(helpersSrc().split('\n')[64]).toBe("        if (body === null) return new Response('down', { status: opts.iptvStatus ?? 503 });");
+
+  });
+  it("post111: helpers.ts line 65 exact content", () => {
+
+    expect(helpersSrc().split('\n')[65]).toBe("        return new Response(body, { status: 200 });");
+
+  });
+  it("post111: helpers.ts line 66 exact content", () => {
+
+    expect(helpersSrc().split('\n')[66]).toBe("      }");
+
+  });
+  it("post111: helpers.ts line 67 exact content", () => {
+
+    expect(helpersSrc().split('\n')[67]).toBe("      if (m3u === null) return new Response('down', { status: opts.iptvStatus ?? 503 });");
+
+  });
+  it("post111: helpers.ts line 68 exact content", () => {
+
+    expect(helpersSrc().split('\n')[68]).toBe("      return new Response(m3u, { status: 200 });");
+
+  });
+  it("post111: helpers.ts line 69 exact content", () => {
+
+    expect(helpersSrc().split('\n')[69]).toBe("    }");
+
+  });
+  it("post111: helpers.ts line 70 exact content", () => {
+
+    expect(helpersSrc().split('\n')[70]).toBe("    if (url.includes('generativelanguage.googleapis.com')) {");
+
+  });
+  it("post111: helpers.ts line 71 exact content", () => {
+
+    expect(helpersSrc().split('\n')[71]).toBe("      if (typeof opts.gemini === 'function') return opts.gemini();");
+
+  });
+  it("post111: helpers.ts line 72 exact content", () => {
+
+    expect(helpersSrc().split('\n')[72]).toBe("      if (opts.gemini) return opts.gemini;");
+
+  });
+  it("post111: helpers.ts line 73 exact content", () => {
+
+    expect(helpersSrc().split('\n')[73]).toBe("      return new Response('boom', { status: 500 });");
+
+  });
+  it("post111: helpers.ts line 74 exact content", () => {
+
+    expect(helpersSrc().split('\n')[74]).toBe("    }");
+
+  });
+  it("post111: helpers.ts line 75 exact content", () => {
+
+    expect(helpersSrc().split('\n')[75]).toBe("    return new Response('nope', { status: 404 });");
+
+  });
+  it("post111: helpers.ts line 76 exact content", () => {
+
+    expect(helpersSrc().split('\n')[76]).toBe("  });");
+
+  });
+  it("post111: helpers.ts line 77 exact content", () => {
+
+    expect(helpersSrc().split('\n')[77]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 78 exact content", () => {
+
+    expect(helpersSrc().split('\n')[78]).toBe("");
+
+  });
+  it("post111: helpers.ts line 79 exact content", () => {
+
+    expect(helpersSrc().split('\n')[79]).toBe("/** Minimal curated Gemini JSON text for happy-path /curate stubs. */");
+
+  });
+  it("post111: helpers.ts line 80 exact content", () => {
+
+    expect(helpersSrc().split('\n')[80]).toBe("export function curatedGeminiJson(");
+
+  });
+  it("post111: helpers.ts line 81 exact content", () => {
+
+    expect(helpersSrc().split('\n')[81]).toBe("  stations: Array<{ name: string; url: string; editorial: string; genre: string; logo?: string }> = [");
+
+  });
+  it("post111: helpers.ts line 82 exact content", () => {
+
+    expect(helpersSrc().split('\n')[82]).toBe("    {");
+
+  });
+  it("post111: helpers.ts line 83 exact content", () => {
+
+    expect(helpersSrc().split('\n')[83]).toBe("      name: 'Alpha FM',");
+
+  });
+  it("post111: helpers.ts line 84 exact content", () => {
+
+    expect(helpersSrc().split('\n')[84]).toBe("      url: 'https://example.com/alpha.m3u8',");
+
+  });
+  it("post111: helpers.ts line 85 exact content", () => {
+
+    expect(helpersSrc().split('\n')[85]).toBe("      editorial: 'Default curated pick.',");
+
+  });
+  it("post111: helpers.ts line 86 exact content", () => {
+
+    expect(helpersSrc().split('\n')[86]).toBe("      genre: 'music',");
+
+  });
+  it("post111: helpers.ts line 87 exact content", () => {
+
+    expect(helpersSrc().split('\n')[87]).toBe("    },");
+
+  });
+  it("post111: helpers.ts line 88 exact content", () => {
+
+    expect(helpersSrc().split('\n')[88]).toBe("  ],");
+
+  });
+  it("post111: helpers.ts line 89 exact content", () => {
+
+    expect(helpersSrc().split('\n')[89]).toBe("): Response {");
+
+  });
+  it("post111: helpers.ts line 90 exact content", () => {
+
+    expect(helpersSrc().split('\n')[90]).toBe("  return geminiTextResponse(JSON.stringify(stations));");
+
+  });
+  it("post111: helpers.ts line 91 exact content", () => {
+
+    expect(helpersSrc().split('\n')[91]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 92 exact content", () => {
+
+    expect(helpersSrc().split('\n')[92]).toBe("");
+
+  });
+  it("post111: helpers.ts line 93 exact content", () => {
+
+    expect(helpersSrc().split('\n')[93]).toBe("/** Build an iptv-org category URL the Worker fetchStations helper would hit. */");
+
+  });
+  it("post111: helpers.ts line 94 exact content", () => {
+
+    expect(helpersSrc().split('\n')[94]).toBe("export function iptvCategoryUrl(genre: string): string {");
+
+  });
+  it("post111: helpers.ts line 95 exact content", () => {
+
+    expect(helpersSrc().split('\n')[95]).toBe("  return `https://iptv-org.github.io/iptv/categories/${genre}.m3u`;");
+
+  });
+  it("post111: helpers.ts line 96 exact content", () => {
+
+    expect(helpersSrc().split('\n')[96]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 97 exact content", () => {
+
+    expect(helpersSrc().split('\n')[97]).toBe("");
+
+  });
+  it("post111: helpers.ts line 98 exact content", () => {
+
+    expect(helpersSrc().split('\n')[98]).toBe("/** Count http(s) stream URL lines in an M3U body (post-trim lines). */");
+
+  });
+  it("post111: helpers.ts line 99 exact content", () => {
+
+    expect(helpersSrc().split('\n')[99]).toBe("export function countHttpStreamLines(m3u: string): number {");
+
+  });
+  it("post111: helpers.ts line 100 exact content", () => {
+
+    expect(helpersSrc().split('\n')[100]).toBe("  return m3u");
+
+  });
+  it("post111: helpers.ts line 101 exact content", () => {
+
+    expect(helpersSrc().split('\n')[101]).toBe("    .split('\\n')");
+
+  });
+  it("post111: helpers.ts line 102 exact content", () => {
+
+    expect(helpersSrc().split('\n')[102]).toBe("    .map((l) => l.trim())");
+
+  });
+  it("post111: helpers.ts line 103 exact content", () => {
+
+    expect(helpersSrc().split('\n')[103]).toBe("    .filter((l) => l.startsWith('http://') || l.startsWith('https://')).length;");
+
+  });
+  it("post111: helpers.ts line 104 exact content", () => {
+
+    expect(helpersSrc().split('\n')[104]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 105 exact content", () => {
+
+    expect(helpersSrc().split('\n')[105]).toBe("");
+
+  });
+  it("post111: helpers.ts line 106 exact content", () => {
+
+    expect(helpersSrc().split('\n')[106]).toBe("/** Minimal EXTINF+URL fixture builder for edge-case route/parser tests. */");
+
+  });
+  it("post111: helpers.ts line 107 exact content", () => {
+
+    expect(helpersSrc().split('\n')[107]).toBe("export function buildSimpleM3U(");
+
+  });
+  it("post111: helpers.ts line 108 exact content", () => {
+
+    expect(helpersSrc().split('\n')[108]).toBe("  stations: Array<{ name: string; url: string; group?: string; language?: string; country?: string; logo?: string }>,");
+
+  });
+  it("post111: helpers.ts line 109 exact content", () => {
+
+    expect(helpersSrc().split('\n')[109]).toBe("): string {");
+
+  });
+  it("post111: helpers.ts line 110 exact content", () => {
+
+    expect(helpersSrc().split('\n')[110]).toBe("  const lines = ['#EXTM3U'];");
+
+  });
+  it("post111: helpers.ts line 111 exact content", () => {
+
+    expect(helpersSrc().split('\n')[111]).toBe("  for (const s of stations) {");
+
+  });
+  it("post111: helpers.ts line 112 exact content", () => {
+
+    expect(helpersSrc().split('\n')[112]).toBe("    const attrs = [");
+
+  });
+  it("post111: helpers.ts line 113 exact content", () => {
+
+    expect(helpersSrc().split('\n')[113]).toBe("      `tvg-name=\"${s.name}\"`,");
+
+  });
+  it("post111: helpers.ts line 114 exact content", () => {
+
+    expect(helpersSrc().split('\n')[114]).toBe("      s.logo !== undefined ? `tvg-logo=\"${s.logo}\"` : null,");
+
+  });
+  it("post111: helpers.ts line 115 exact content", () => {
+
+    expect(helpersSrc().split('\n')[115]).toBe("      s.group !== undefined ? `group-title=\"${s.group}\"` : null,");
+
+  });
+  it("post111: helpers.ts line 116 exact content", () => {
+
+    expect(helpersSrc().split('\n')[116]).toBe("      s.language !== undefined ? `tvg-language=\"${s.language}\"` : null,");
+
+  });
+  it("post111: helpers.ts line 117 exact content", () => {
+
+    expect(helpersSrc().split('\n')[117]).toBe("      s.country !== undefined ? `tvg-country=\"${s.country}\"` : null,");
+
+  });
+  it("post111: helpers.ts line 118 exact content", () => {
+
+    expect(helpersSrc().split('\n')[118]).toBe("    ]");
+
+  });
+  it("post111: helpers.ts line 119 exact content", () => {
+
+    expect(helpersSrc().split('\n')[119]).toBe("      .filter(Boolean)");
+
+  });
+  it("post111: helpers.ts line 120 exact content", () => {
+
+    expect(helpersSrc().split('\n')[120]).toBe("      .join(' ');");
+
+  });
+  it("post111: helpers.ts line 121 exact content", () => {
+
+    expect(helpersSrc().split('\n')[121]).toBe("    lines.push(`#EXTINF:-1 ${attrs},${s.name}`);");
+
+  });
+  it("post111: helpers.ts line 122 exact content", () => {
+
+    expect(helpersSrc().split('\n')[122]).toBe("    lines.push(s.url);");
+
+  });
+  it("post111: helpers.ts line 123 exact content", () => {
+
+    expect(helpersSrc().split('\n')[123]).toBe("  }");
+
+  });
+  it("post111: helpers.ts line 124 exact content", () => {
+
+    expect(helpersSrc().split('\n')[124]).toBe("  return `${lines.join('\\n')}\\n`;");
+
+  });
+  it("post111: helpers.ts line 125 exact content", () => {
+
+    expect(helpersSrc().split('\n')[125]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 126 exact content", () => {
+
+    expect(helpersSrc().split('\n')[126]).toBe("");
+
+  });
+  it("post111: helpers.ts line 127 exact content", () => {
+
+    expect(helpersSrc().split('\n')[127]).toBe("/** Seed a genre cache key with a JSON-serialized or raw string value. */");
+
+  });
+  it("post111: helpers.ts line 128 exact content", () => {
+
+    expect(helpersSrc().split('\n')[128]).toBe("export function seedStationsCache(");
+
+  });
+  it("post111: helpers.ts line 129 exact content", () => {
+
+    expect(helpersSrc().split('\n')[129]).toBe("  genre: string,");
+
+  });
+  it("post111: helpers.ts line 130 exact content", () => {
+
+    expect(helpersSrc().split('\n')[130]).toBe("  value: unknown,");
+
+  });
+  it("post111: helpers.ts line 131 exact content", () => {
+
+    expect(helpersSrc().split('\n')[131]).toBe("  existing: Record<string, string> = {},");
+
+  });
+  it("post111: helpers.ts line 132 exact content", () => {
+
+    expect(helpersSrc().split('\n')[132]).toBe("): Record<string, string> {");
+
+  });
+  it("post111: helpers.ts line 133 exact content", () => {
+
+    expect(helpersSrc().split('\n')[133]).toBe("  const serialized = typeof value === 'string' ? value : JSON.stringify(value);");
+
+  });
+  it("post111: helpers.ts line 134 exact content", () => {
+
+    expect(helpersSrc().split('\n')[134]).toBe("  return { ...existing, [`stations:${genre}`]: serialized };");
+
+  });
+  it("post111: helpers.ts line 135 exact content", () => {
+
+    expect(helpersSrc().split('\n')[135]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 136 exact content", () => {
+
+    expect(helpersSrc().split('\n')[136]).toBe("");
+
+  });
+  it("post111: helpers.ts line 137 exact content", () => {
+
+    expect(helpersSrc().split('\n')[137]).toBe("/**");
+
+  });
+  it("post111: helpers.ts line 138 exact content", () => {
+
+    expect(helpersSrc().split('\n')[138]).toBe(" * Extract the first generativelanguage.googleapis.com call from a vi fetch mock.");
+
+  });
+  it("post111: helpers.ts line 139 exact content", () => {
+
+    expect(helpersSrc().split('\n')[139]).toBe(" * Returns null when Gemini was never hit.");
+
+  });
+  it("post111: helpers.ts line 140 exact content", () => {
+
+    expect(helpersSrc().split('\n')[140]).toBe(" */");
+
+  });
+  it("post111: helpers.ts line 141 exact content", () => {
+
+    expect(helpersSrc().split('\n')[141]).toBe("export function captureGeminiRequest(");
+
+  });
+  it("post111: helpers.ts line 142 exact content", () => {
+
+    expect(helpersSrc().split('\n')[142]).toBe("  fetchMock: { mock: { calls: unknown[][] } },");
+
+  });
+  it("post111: helpers.ts line 143 exact content", () => {
+
+    expect(helpersSrc().split('\n')[143]).toBe("): { url: string; method: string; headers: HeadersInit | undefined; body: Record<string, unknown> } | null {");
+
+  });
+  it("post111: helpers.ts line 144 exact content", () => {
+
+    expect(helpersSrc().split('\n')[144]).toBe("  const call = fetchMock.mock.calls.find((c) => String(c[0]).includes('generativelanguage.googleapis.com'));");
+
+  });
+  it("post111: helpers.ts line 145 exact content", () => {
+
+    expect(helpersSrc().split('\n')[145]).toBe("  if (!call) return null;");
+
+  });
+  it("post111: helpers.ts line 146 exact content", () => {
+
+    expect(helpersSrc().split('\n')[146]).toBe("  const url = String(call[0]);");
+
+  });
+  it("post111: helpers.ts line 147 exact content", () => {
+
+    expect(helpersSrc().split('\n')[147]).toBe("  const init = call[1] as RequestInit | undefined;");
+
+  });
+  it("post111: helpers.ts line 148 exact content", () => {
+
+    expect(helpersSrc().split('\n')[148]).toBe("  const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};");
+
+  });
+  it("post111: helpers.ts line 149 exact content", () => {
+
+    expect(helpersSrc().split('\n')[149]).toBe("  return {");
+
+  });
+  it("post111: helpers.ts line 150 exact content", () => {
+
+    expect(helpersSrc().split('\n')[150]).toBe("    url,");
+
+  });
+  it("post111: helpers.ts line 151 exact content", () => {
+
+    expect(helpersSrc().split('\n')[151]).toBe("    method: (init?.method ?? 'GET').toString().toUpperCase(),");
+
+  });
+  it("post111: helpers.ts line 152 exact content", () => {
+
+    expect(helpersSrc().split('\n')[152]).toBe("    headers: init?.headers,");
+
+  });
+  it("post111: helpers.ts line 153 exact content", () => {
+
+    expect(helpersSrc().split('\n')[153]).toBe("    body,");
+
+  });
+  it("post111: helpers.ts line 154 exact content", () => {
+
+    expect(helpersSrc().split('\n')[154]).toBe("  };");
+
+  });
+  it("post111: helpers.ts line 155 exact content", () => {
+
+    expect(helpersSrc().split('\n')[155]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 156 exact content", () => {
+
+    expect(helpersSrc().split('\n')[156]).toBe("");
+
+  });
+  it("post111: helpers.ts line 157 exact content", () => {
+
+    expect(helpersSrc().split('\n')[157]).toBe("/** Return iptv-org fetch calls that unexpectedly passed a RequestInit second arg. */");
+
+  });
+  it("post111: helpers.ts line 158 exact content", () => {
+
+    expect(helpersSrc().split('\n')[158]).toBe("export function iptvCallsWithInit(fetchMock: { mock: { calls: unknown[][] } }): unknown[][] {");
+
+  });
+  it("post111: helpers.ts line 159 exact content", () => {
+
+    expect(helpersSrc().split('\n')[159]).toBe("  return fetchMock.mock.calls.filter(");
+
+  });
+  it("post111: helpers.ts line 160 exact content", () => {
+
+    expect(helpersSrc().split('\n')[160]).toBe("    (call) => String(call[0]).includes('iptv-org') && call[1] !== undefined,");
+
+  });
+  it("post111: helpers.ts line 161 exact content", () => {
+
+    expect(helpersSrc().split('\n')[161]).toBe("  );");
+
+  });
+  it("post111: helpers.ts line 162 exact content", () => {
+
+    expect(helpersSrc().split('\n')[162]).toBe("}");
+
+  });
+  it("post111: helpers.ts line 163 exact content", () => {
+
+    expect(helpersSrc().split('\n')[163]).toBe("");
+
+  });
+  it("post111: negative \u2014 no wrangler/DNS/credentials inventing", () => {
+
+    expect(helpersSrc()).not.toMatch(/wrangler\.toml|custom_domain|fuzzywigg\.com|GEMINI_API_KEY\s*=|ANTHROPIC|cloudflare\.com\/dns/i);
+
+  });
+  it("post111: negative \u2014 no git history / deploy inventing", () => {
+
+    expect(helpersSrc()).not.toMatch(/git (rebase|push|commit)|gh pr|workflow_dispatch|wrangler deploy/i);
+
+  });
+  it("post111: negative \u2014 no product route inventing", () => {
+
+    // Comment may mention /curate stubs; lock against real product surfaces only.
+    expect(helpersSrc()).not.toMatch(/\bHono\b|\bresolveGenre\b|\bGENRE_MAP\b|\bMCP_MANIFEST\b|app\.(get|post)\(|new Hono/);
+    expect(helpersSrc()).not.toMatch(/['"`]\/stations['"`]|['"`]\/curate['"`]/);
+
+  });
+  it("post111: SAMPLE_M3U sha256 and HMAC(post111)", () => {
+
+    expect(sha256(SAMPLE_M3U)).toBe("d333f382d92be92d05fc76ff08d56269b7a5f305770748fc8cdf68506169c45e");
+    expect(createHmac('sha256', 'post111').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe(
+      "79378d0ed2adb8c72be813e36ac146cedc67ab6d0f0086d017bf72b3515bfc25",
+    );
+    expect(Buffer.byteLength(SAMPLE_M3U, 'utf8')).toBe(554);
+    expect(SAMPLE_M3U.split('\n')).toHaveLength(14);
+
+  });
+  it("post111: SAMPLE_M3U greek FM names and stems", () => {
+
+    const names = [...SAMPLE_M3U.matchAll(/tvg-name="([^"]+)"/g)].map((m) => m[1]);
+    expect(names).toEqual(GREEK.map((g) => `${g} FM`));
+    const urls = [...SAMPLE_M3U.matchAll(/^https:\/\/example\.com\/([a-z]+)\.m3u8$/gm)].map((m) => m[1]);
+    expect(urls).toEqual(['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta']);
+
+  });
+  it("post111: SAMPLE_M3U all Music group + parse uniqueness", () => {
+
+    const groups = [...SAMPLE_M3U.matchAll(/group-title="([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(groups)).toEqual(new Set(['Music']));
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations).toHaveLength(6);
+    expect(new Set(stations.map((s) => s.url)).size).toBe(6);
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+
+  });
+  it("post111: GENRE_SLUGS matches VALID_GENRES from genres.ts", () => {
+
+    expect(GENRE_SLUGS).toHaveLength(9);
+    expect([...GENRE_SLUGS]).toEqual([
+      'music', 'ambient', 'jazz', 'classical', 'pop', 'rock', 'news', 'sports', 'entertainment',
+    ]);
+    const genres = readFileSync(join(helpersRoot, 'src/genres.ts'), 'utf8');
+    for (const g of GENRE_SLUGS) {
+      expect(genres).toContain(`'${g}'`);
+    }
+
+  });
+  it("post111: genres.ts sha256 cross-lock (no invent)", () => {
+
+    expect(sha256(readFileSync(join(helpersRoot, 'src/genres.ts'), 'utf8'))).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+
+  });
+  it("post111: mockKV empty seed returns null for missing keys", async () => {
+
+    const kv = mockKV();
+    expect(await kv.get('missing')).toBeNull();
+
+  });
+  it("post111: mockKV seed round-trips get", async () => {
+
+    const kv = mockKV({ a: '1', b: '2' });
+    expect(await kv.get('a')).toBe('1');
+    expect(await kv.get('b')).toBe('2');
+
+  });
+  it("post111: mockKV put overwrites seed", async () => {
+
+    const kv = mockKV({ k: 'old' });
+    await kv.put('k', 'new');
+    expect(await kv.get('k')).toBe('new');
+
+  });
+  it("post111: mockKV delete then get is null", async () => {
+
+    const kv = mockKV({ k: 'v' });
+    await kv.delete('k');
+    expect(await kv.get('k')).toBeNull();
+
+  });
+  it("post111: mockKV list returns empty keys shape", async () => {
+
+    const kv = mockKV({ a: '1' });
+    expect(await kv.list()).toEqual({ keys: [], list_complete: true, cacheStatus: null });
+
+  });
+  it("post111: mockKV getWithMetadata always nulls", async () => {
+
+    const kv = mockKV({ a: '1' });
+    expect(await kv.getWithMetadata('a')).toEqual({ value: null, metadata: null, cacheStatus: null });
+
+  });
+  it("post111: mockKV methods are vitest mocks with call counts", async () => {
+
+    const kv = mockKV({ x: '1' });
+    await kv.get('x');
+    await kv.put('y', '2');
+    await kv.delete('x');
+    expect(vi.isMockFunction(kv.get)).toBe(true);
+    expect(kv.get).toHaveBeenCalledTimes(1);
+    expect(kv.put).toHaveBeenCalledTimes(1);
+    expect(kv.delete).toHaveBeenCalledTimes(1);
+
+  });
+  it("post111: two mockKV instances do not share store", async () => {
+
+    const a = mockKV({ k: 'a' });
+    const b = mockKV({ k: 'b' });
+    await a.put('k', 'A');
+    expect(await b.get('k')).toBe('b');
+
+  });
+  it("post111: mockKV stores unicode and empty string values", async () => {
+
+    const kv = mockKV();
+    await kv.put('u', 'ラジオ');
+    await kv.put('e', '');
+    expect(await kv.get('u')).toBe('ラジオ');
+    expect(await kv.get('e')).toBe('');
+
+  });
+  it("post111: mockKV key with stations: prefix preserved", async () => {
+
+    const kv = mockKV();
+    await kv.put('stations:jazz', '[]');
+    expect(await kv.get('stations:jazz')).toBe('[]');
+
+  });
+  it("post111: mockKV 100 put/get pairs", async () => {
+
+    const kv = mockKV();
+    for (let i = 0; i < 100; i++) await kv.put(`k${i}`, `v${i}`);
+    for (let i = 0; i < 100; i++) expect(await kv.get(`k${i}`)).toBe(`v${i}`);
+
+  });
+  it("post111: testEnv default VERSION and fresh mockKV", async () => {
+
+    const env = testEnv();
+    expect(env.VERSION).toBe('0.1.0-test');
+    expect(await env.CATALOG_CACHE.get('x')).toBeNull();
+
+  });
+  it("post111: testEnv override VERSION", () => {
+
+    expect(testEnv({ VERSION: '9.9.9' }).VERSION).toBe('9.9.9');
+
+  });
+  it("post111: testEnv override CATALOG_CACHE seed", async () => {
+
+    const kv = mockKV({ 'stations:music': '[]' });
+    const env = testEnv({ CATALOG_CACHE: kv });
+    expect(await env.CATALOG_CACHE.get('stations:music')).toBe('[]');
+
+  });
+  it("post111: testEnv override does not leak across calls", () => {
+
+    testEnv({ VERSION: 'x' });
+    expect(testEnv().VERSION).toBe('0.1.0-test');
+
+  });
+  it("post111: testEnv keys only VERSION and CATALOG_CACHE by default", () => {
+
+    expect(Object.keys(testEnv()).sort()).toEqual(['CATALOG_CACHE', 'VERSION']);
+
+  });
+  it("post111: geminiTextResponse shape candidates.parts.text", async () => {
+
+    const res = geminiTextResponse('hello');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json).toEqual({ candidates: [{ content: { parts: [{ text: 'hello' }] } }] });
+
+  });
+  it("post111: geminiTextResponse empty string text", async () => {
+
+    const json = await geminiTextResponse('').json();
+    expect(json.candidates[0].content.parts[0].text).toBe('');
+
+  });
+  it("post111: geminiTextResponse unicode text", async () => {
+
+    const json = await geminiTextResponse('東京').json();
+    expect(json.candidates[0].content.parts[0].text).toBe('東京');
+
+  });
+  it("post111: curatedGeminiJson default Alpha FM music", async () => {
+
+    const json = await curatedGeminiJson().json();
+    const text = json.candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual([
+      {
+        name: 'Alpha FM',
+        url: 'https://example.com/alpha.m3u8',
+        editorial: 'Default curated pick.',
+        genre: 'music',
+      },
+    ]);
+
+  });
+  it("post111: curatedGeminiJson custom stations with logo", async () => {
+
+    const stations = [
+      { name: 'A', url: 'https://a', editorial: 'e', genre: 'jazz', logo: 'https://l' },
+    ];
+    const text = (await curatedGeminiJson(stations).json()).candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual(stations);
+
+  });
+  it("post111: curatedGeminiJson empty array", async () => {
+
+    const text = (await curatedGeminiJson([]).json()).candidates[0].content.parts[0].text;
+    expect(JSON.parse(text)).toEqual([]);
+
+  });
+  it("post111: iptvCategoryUrl music", () => {
+
+    expect(iptvCategoryUrl("music")).toBe(
+      "https://iptv-org.github.io/iptv/categories/music.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl ambient", () => {
+
+    expect(iptvCategoryUrl("ambient")).toBe(
+      "https://iptv-org.github.io/iptv/categories/ambient.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl jazz", () => {
+
+    expect(iptvCategoryUrl("jazz")).toBe(
+      "https://iptv-org.github.io/iptv/categories/jazz.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl classical", () => {
+
+    expect(iptvCategoryUrl("classical")).toBe(
+      "https://iptv-org.github.io/iptv/categories/classical.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl pop", () => {
+
+    expect(iptvCategoryUrl("pop")).toBe(
+      "https://iptv-org.github.io/iptv/categories/pop.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl rock", () => {
+
+    expect(iptvCategoryUrl("rock")).toBe(
+      "https://iptv-org.github.io/iptv/categories/rock.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl news", () => {
+
+    expect(iptvCategoryUrl("news")).toBe(
+      "https://iptv-org.github.io/iptv/categories/news.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl sports", () => {
+
+    expect(iptvCategoryUrl("sports")).toBe(
+      "https://iptv-org.github.io/iptv/categories/sports.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl entertainment", () => {
+
+    expect(iptvCategoryUrl("entertainment")).toBe(
+      "https://iptv-org.github.io/iptv/categories/entertainment.m3u",
+    );
+
+  });
+  it("post111: iptvCategoryUrl does not encode slashes", () => {
+
+    expect(iptvCategoryUrl('a/b')).toBe('https://iptv-org.github.io/iptv/categories/a/b.m3u');
+
+  });
+  it("post111: iptvCategoryUrl empty genre still builds path", () => {
+
+    expect(iptvCategoryUrl('')).toBe('https://iptv-org.github.io/iptv/categories/.m3u');
+
+  });
+  it("post111: countHttpStreamLines empty / header-only", () => {
+
+    expect(countHttpStreamLines('')).toBe(0);
+    expect(countHttpStreamLines('#EXTM3U\n')).toBe(0);
+
+  });
+  it("post111: countHttpStreamLines counts http and https", () => {
+
+    expect(countHttpStreamLines('#EXTM3U\nhttp://a\nhttps://b\nrtmp://c\n')).toBe(2);
+
+  });
+  it("post111: countHttpStreamLines trims before scheme check", () => {
+
+    expect(countHttpStreamLines('  https://a  \n\thttp://b\n')).toBe(2);
+
+  });
+  it("post111: countHttpStreamLines ignores uppercase HTTP", () => {
+
+    expect(countHttpStreamLines('HTTP://A\nHTTPS://B\nhttps://c\n')).toBe(1);
+
+  });
+  it("post111: countHttpStreamLines matches buildSimpleM3U length", () => {
+
+    const m3u = buildSimpleM3U([
+      { name: 'A', url: 'https://a' },
+      { name: 'B', url: 'http://b' },
+      { name: 'C', url: 'rtmp://c' },
+    ]);
+    expect(countHttpStreamLines(m3u)).toBe(2);
+
+  });
+  it("post111: countHttpStreamLines equals parseM3U length for SAMPLE_M3U", () => {
+
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(parseM3U(SAMPLE_M3U).length);
+
+  });
+  it("post111: countHttpStreamLines does not count scheme in comments", () => {
+
+    expect(countHttpStreamLines('# see https://example.com\nhttps://real\n')).toBe(1);
+
+  });
+  it("post111: countHttpStreamLines CRLF trimmed lines", () => {
+
+    expect(countHttpStreamLines('https://a\r\nhttp://b\r\n')).toBe(2);
+
+  });
+  it("post111: buildSimpleM3U empty is header-only newline", () => {
+
+    expect(buildSimpleM3U([])).toBe('#EXTM3U\n');
+
+  });
+  it("post111: buildSimpleM3U name-only attrs", () => {
+
+    expect(buildSimpleM3U([{ name: 'A', url: 'https://a' }])).toBe(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A",A\nhttps://a\n',
+    );
+
+  });
+  it("post111: buildSimpleM3U all optional attrs order", () => {
+
+    const m3u = buildSimpleM3U([
+      {
+        name: 'N',
+        url: 'https://u',
+        logo: 'https://l',
+        group: 'G',
+        language: 'en',
+        country: 'US',
+      },
+    ]);
+    expect(m3u).toBe(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo="https://l" group-title="G" tvg-language="en" tvg-country="US",N\nhttps://u\n',
+    );
+
+  });
+  it("post111: buildSimpleM3U omits undefined optionals but keeps empty strings", () => {
+
+    const m3u = buildSimpleM3U([
+      { name: 'N', url: 'https://u', logo: '', group: undefined, language: '', country: undefined },
+    ]);
+    expect(m3u).toContain('tvg-logo=""');
+    expect(m3u).toContain('tvg-language=""');
+    expect(m3u).not.toContain('group-title=');
+    expect(m3u).not.toContain('tvg-country=');
+
+  });
+  it("post111: buildSimpleM3U round-trips through parseM3U for 50 stations", () => {
+
+    const input = Array.from({ length: 50 }, (_, i) => ({
+      name: `S${i}`,
+      url: `https://s/${i}`,
+      group: i % 2 ? 'Odd' : 'Even',
+    }));
+    const stations = parseM3U(buildSimpleM3U(input));
+    expect(stations).toHaveLength(50);
+    expect(stations[0]).toMatchObject({ name: 'S0', group: 'Even' });
+    expect(stations[49]).toMatchObject({ name: 'S49', group: 'Odd' });
+
+  });
+  it("post111: buildSimpleM3U scale 200 countHttpStreamLines", () => {
+
+    const input = Array.from({ length: 200 }, (_, i) => ({ name: `N${i}`, url: `https://n/${i}` }));
+    expect(countHttpStreamLines(buildSimpleM3U(input))).toBe(200);
+
+  });
+  it("post111: seedStationsCache string value passthrough", () => {
+
+    expect(seedStationsCache('jazz', 'raw')).toEqual({ 'stations:jazz': 'raw' });
+
+  });
+  it("post111: seedStationsCache object JSON serialized", () => {
+
+    expect(seedStationsCache('music', [{ a: 1 }])).toEqual({
+      'stations:music': '[{"a":1}]',
+    });
+
+  });
+  it("post111: seedStationsCache merges existing without mutating", () => {
+
+    const existing = { 'stations:pop': '[]' };
+    const next = seedStationsCache('rock', [], existing);
+    expect(next).toEqual({ 'stations:pop': '[]', 'stations:rock': '[]' });
+    expect(existing).toEqual({ 'stations:pop': '[]' });
+
+  });
+  it("post111: seedStationsCache overwrites same genre key", () => {
+
+    expect(seedStationsCache('jazz', 'new', { 'stations:jazz': 'old' })).toEqual({
+      'stations:jazz': 'new',
+    });
+
+  });
+  it("post111: seedStationsCache key stations:music", () => {
+
+    expect(Object.keys(seedStationsCache("music", []))).toEqual([
+      "stations:music",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip music", async () => {
+
+    const seed = seedStationsCache("music", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:music")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group music round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "music" }]);
+    expect(parseM3U(m3u)[0].group).toBe("music");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(music)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("music"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:ambient", () => {
+
+    expect(Object.keys(seedStationsCache("ambient", []))).toEqual([
+      "stations:ambient",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip ambient", async () => {
+
+    const seed = seedStationsCache("ambient", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:ambient")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group ambient round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "ambient" }]);
+    expect(parseM3U(m3u)[0].group).toBe("ambient");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(ambient)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("ambient"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:jazz", () => {
+
+    expect(Object.keys(seedStationsCache("jazz", []))).toEqual([
+      "stations:jazz",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip jazz", async () => {
+
+    const seed = seedStationsCache("jazz", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:jazz")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group jazz round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "jazz" }]);
+    expect(parseM3U(m3u)[0].group).toBe("jazz");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(jazz)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("jazz"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:classical", () => {
+
+    expect(Object.keys(seedStationsCache("classical", []))).toEqual([
+      "stations:classical",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip classical", async () => {
+
+    const seed = seedStationsCache("classical", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:classical")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group classical round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "classical" }]);
+    expect(parseM3U(m3u)[0].group).toBe("classical");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(classical)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("classical"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:pop", () => {
+
+    expect(Object.keys(seedStationsCache("pop", []))).toEqual([
+      "stations:pop",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip pop", async () => {
+
+    const seed = seedStationsCache("pop", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:pop")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group pop round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "pop" }]);
+    expect(parseM3U(m3u)[0].group).toBe("pop");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(pop)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("pop"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:rock", () => {
+
+    expect(Object.keys(seedStationsCache("rock", []))).toEqual([
+      "stations:rock",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip rock", async () => {
+
+    const seed = seedStationsCache("rock", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:rock")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group rock round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "rock" }]);
+    expect(parseM3U(m3u)[0].group).toBe("rock");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(rock)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("rock"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:news", () => {
+
+    expect(Object.keys(seedStationsCache("news", []))).toEqual([
+      "stations:news",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip news", async () => {
+
+    const seed = seedStationsCache("news", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:news")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group news round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "news" }]);
+    expect(parseM3U(m3u)[0].group).toBe("news");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(news)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("news"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:sports", () => {
+
+    expect(Object.keys(seedStationsCache("sports", []))).toEqual([
+      "stations:sports",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip sports", async () => {
+
+    const seed = seedStationsCache("sports", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:sports")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group sports round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "sports" }]);
+    expect(parseM3U(m3u)[0].group).toBe("sports");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(sports)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("sports"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: seedStationsCache key stations:entertainment", () => {
+
+    expect(Object.keys(seedStationsCache("entertainment", []))).toEqual([
+      "stations:entertainment",
+    ]);
+
+  });
+  it("post111: seedStationsCache+mockKV round-trip entertainment", async () => {
+
+    const seed = seedStationsCache("entertainment", [{ name: 'X' }]);
+    const kv = mockKV(seed);
+    expect(await kv.get("stations:entertainment")).toBe('[{"name":"X"}]');
+
+  });
+  it("post111: buildSimpleM3U group entertainment round-trips parse", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "entertainment" }]);
+    expect(parseM3U(m3u)[0].group).toBe("entertainment");
+    expect(countHttpStreamLines(m3u)).toBe(1);
+
+  });
+  it("post111: stub default SAMPLE via iptvCategoryUrl(entertainment)", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock(iptvCategoryUrl("entertainment"));
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: stub default SAMPLE for music category", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(SAMPLE_M3U);
+
+  });
+  it("post111: stub m3u null defaults 503 down", async () => {
+
+    const fetchMock = stubIptvAndGemini({ m3u: null }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://iptv-org.github.io/iptv/categories/music.m3u');
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('down');
+
+  });
+  it("post111: stub m3u null custom iptvStatus 502", async () => {
+
+    const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 502 }) as unknown as (
+      u: string,
+    ) => Promise<Response>;
+    expect((await fetchMock('https://iptv-org.github.io/x')).status).toBe(502);
+
+  });
+  it("post111: stub gemini Response object returned as-is", async () => {
+
+    const canned = new Response('ok', { status: 201 });
+    const fetchMock = stubIptvAndGemini({ gemini: canned }) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://generativelanguage.googleapis.com/v1');
+    expect(res.status).toBe(201);
+    expect(await res.text()).toBe('ok');
+
+  });
+  it("post111: stub gemini factory increments", async () => {
+
+    let n = 0;
+    const fetchMock = stubIptvAndGemini({
+      gemini: () => new Response(String(++n)),
+    }) as unknown as (u: string) => Promise<Response>;
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/a')).text()).toBe('1');
+    expect(await (await fetchMock('https://generativelanguage.googleapis.com/b')).text()).toBe('2');
+
+  });
+  it("post111: stub iptvByGenre per-slug matrix for all GENRE_SLUGS", async () => {
+
+    const iptvByGenre = Object.fromEntries(GENRE_SLUGS.map((g) => [g, `#EXTM3U\n${g}\n`]));
+    const fetchMock = stubIptvAndGemini({ iptvByGenre }) as unknown as (u: string) => Promise<Response>;
+    for (const g of GENRE_SLUGS) {
+      const res = await fetchMock(`https://iptv-org.github.io/iptv/categories/${g}.m3u`);
+      expect(await res.text()).toBe(`#EXTM3U\n${g}\n`);
+    }
+
+  });
+  it("post111: stub iptvByGenre null per slug uses status", async () => {
+
+    const fetchMock = stubIptvAndGemini({
+      iptvByGenre: { jazz: null },
+      iptvStatus: 419,
+    }) as unknown as (u: string) => Promise<Response>;
+    expect((await fetchMock('https://iptv-org.github.io/iptv/categories/jazz.m3u')).status).toBe(419);
+
+  });
+  it("post111: stub non-matching host 404 nope", async () => {
+
+    const fetchMock = stubIptvAndGemini({}) as unknown as (u: string) => Promise<Response>;
+    const res = await fetchMock('https://example.org/other');
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('nope');
+
+  });
+  it("post111: stub URL object for gemini host", async () => {
+
+    const fetchMock = stubIptvAndGemini({ gemini: new Response('g') }) as unknown as (
+      u: RequestInfo | URL,
+    ) => Promise<Response>;
+    const res = await fetchMock(new URL('https://generativelanguage.googleapis.com/x'));
+    expect(await res.text()).toBe('g');
+
+  });
+  it("post111: stub Request object stringifies to non-url \u2192 404", async () => {
+
+    const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U }) as unknown as (
+      u: RequestInfo,
+    ) => Promise<Response>;
+    const res = await fetchMock(new Request('https://iptv-org.github.io/iptv/categories/music.m3u'));
+    expect(res.status).toBe(404);
+
+  });
+  it("post111: captureGeminiRequest null when no gemini call", () => {
+
+    expect(captureGeminiRequest({ mock: { calls: [['https://iptv-org.github.io/x']] } })).toBeNull();
+
+  });
+  it("post111: captureGeminiRequest extracts first gemini call", () => {
+
+    const body = { contents: [{ parts: [{ text: 'hi' }] }] };
+    const got = captureGeminiRequest({
+      mock: {
+        calls: [
+          ['https://iptv-org.github.io/x'],
+          [
+            'https://generativelanguage.googleapis.com/v1beta/models/x:generateContent',
+            { method: 'post', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) },
+          ],
+        ],
+      },
+    });
+    expect(got?.method).toBe('POST');
+    expect(got?.body).toEqual(body);
+    expect(got?.url).toContain('generativelanguage.googleapis.com');
+
+  });
+  it("post111: captureGeminiRequest defaults method GET when init missing", () => {
+
+    const got = captureGeminiRequest({
+      mock: { calls: [['https://generativelanguage.googleapis.com/x']] },
+    });
+    expect(got?.method).toBe('GET');
+    expect(got?.body).toEqual({});
+    expect(got?.headers).toBeUndefined();
+
+  });
+  it("post111: captureGeminiRequest ignores later gemini calls", () => {
+
+    const got = captureGeminiRequest({
+      mock: {
+        calls: [
+          ['https://generativelanguage.googleapis.com/first', { method: 'GET' }],
+          ['https://generativelanguage.googleapis.com/second', { method: 'POST', body: '{}' }],
+        ],
+      },
+    });
+    expect(got?.url).toContain('first');
+    expect(got?.method).toBe('GET');
+
+  });
+  it("post111: captureGeminiRequest works on live stub mock history", async () => {
+
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    const call = fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>;
+    await call('https://generativelanguage.googleapis.com/v1', {
+      method: 'POST',
+      body: JSON.stringify({ q: 1 }),
+    });
+    const got = captureGeminiRequest(fetchMock);
+    expect(got?.body).toEqual({ q: 1 });
+    expect(got?.method).toBe('POST');
+
+  });
+  it("post111: iptvCallsWithInit empty when no calls", () => {
+
+    expect(iptvCallsWithInit({ mock: { calls: [] } })).toEqual([]);
+
+  });
+  it("post111: iptvCallsWithInit ignores gemini with init", () => {
+
+    expect(
+      iptvCallsWithInit({
+        mock: { calls: [['https://generativelanguage.googleapis.com/x', { method: 'POST' }]] },
+      }),
+    ).toEqual([]);
+
+  });
+  it("post111: iptvCallsWithInit keeps only iptv with defined init", () => {
+
+    const calls = [
+      ['https://iptv-org.github.io/a', undefined],
+      ['https://iptv-org.github.io/b', { method: 'GET' }],
+      ['https://example.com', { method: 'GET' }],
+    ];
+    expect(iptvCallsWithInit({ mock: { calls } })).toEqual([calls[1]]);
+
+  });
+  it("post111: iptvCallsWithInit live stub with mixed inits", async () => {
+
+    const fetchMock = stubIptvAndGemini({});
+    const call = fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>;
+    await call(iptvCategoryUrl('music'));
+    await call(iptvCategoryUrl('jazz'), { method: 'GET' });
+    await call('https://generativelanguage.googleapis.com/x', { method: 'POST', body: '{}' });
+    expect(iptvCallsWithInit(fetchMock)).toHaveLength(1);
+    expect(String(iptvCallsWithInit(fetchMock)[0][0])).toContain('jazz');
+
+  });
+  it("post111: EXPORT_NAMES join HMAC post111", () => {
+
+    expect(createHmac('sha256', 'post111').update(EXPORT_NAMES.join('|'), 'utf8').digest('hex')).toBe(
+      "fd19f0e91c3528468d471d8f02243e9458e4bd32e8bbf8f30f43d7dc9e0761b8",
+    );
+
+  });
+  it("post111: GREEK join sha256", () => {
+
+    expect(sha256(GREEK.join(','))).toBe("10ac8d018205edf425b93aa552770d8ef670574c376fce3844e79e2d6bfe55f7");
+
+  });
+  it("post111: structuredClone SAMPLE_M3U stations equals parse", () => {
+
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(structuredClone(stations)).toEqual(stations);
+
+  });
+  it("post111: Promise.allSettled over GENRE_SLUGS iptvCategoryUrl", async () => {
+
+    const results = await Promise.allSettled(GENRE_SLUGS.map(async (g) => iptvCategoryUrl(g)));
+    expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
+    expect(results).toHaveLength(9);
+
+  });
+  it("post111: curatedGeminiJson body survives JSON round-trip via capture", async () => {
+
+    const fetchMock = stubIptvAndGemini({ gemini: curatedGeminiJson() });
+    const call = fetchMock as unknown as (u: string, i?: RequestInit) => Promise<Response>;
+    const stations = [{ name: 'Z', url: 'https://z', editorial: 'e', genre: 'rock' }];
+    await call('https://generativelanguage.googleapis.com/v1', {
+      method: 'POST',
+      body: JSON.stringify({ stations }),
+    });
+    expect(captureGeminiRequest(fetchMock)?.body).toEqual({ stations });
+
+  });
+  it("post111: testEnv with seeded stations cache for each genre", async () => {
+
+    let existing: Record<string, string> = {};
+    for (const g of GENRE_SLUGS) {
+      existing = seedStationsCache(g, [], existing);
+    }
+    const env = testEnv({ CATALOG_CACHE: mockKV(existing) });
+    for (const g of GENRE_SLUGS) {
+      expect(await env.CATALOG_CACHE.get(`stations:${g}`)).toBe('[]');
+    }
+
+  });
+  it("post111: geminiTextResponse genre token music", async () => {
+
+    const json = await geminiTextResponse("music").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("music");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single music", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "music", url: 'https://u/0' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token ambient", async () => {
+
+    const json = await geminiTextResponse("ambient").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("ambient");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single ambient", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "ambient", url: 'https://u/1' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token jazz", async () => {
+
+    const json = await geminiTextResponse("jazz").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("jazz");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single jazz", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "jazz", url: 'https://u/2' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token classical", async () => {
+
+    const json = await geminiTextResponse("classical").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("classical");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single classical", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "classical", url: 'https://u/3' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token pop", async () => {
+
+    const json = await geminiTextResponse("pop").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("pop");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single pop", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "pop", url: 'https://u/4' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token rock", async () => {
+
+    const json = await geminiTextResponse("rock").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("rock");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single rock", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "rock", url: 'https://u/5' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token news", async () => {
+
+    const json = await geminiTextResponse("news").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("news");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single news", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "news", url: 'https://u/6' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token sports", async () => {
+
+    const json = await geminiTextResponse("sports").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("sports");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single sports", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "sports", url: 'https://u/7' }]))).toBe(1);
+
+  });
+  it("post111: geminiTextResponse genre token entertainment", async () => {
+
+    const json = await geminiTextResponse("entertainment").json();
+    expect(json.candidates[0].content.parts[0].text).toBe("entertainment");
+
+  });
+  it("post111: countHttpStreamLines buildSimpleM3U single entertainment", () => {
+
+    expect(countHttpStreamLines(buildSimpleM3U([{ name: "entertainment", url: 'https://u/8' }]))).toBe(1);
+
+  });
+});
+
