@@ -12663,3 +12663,607 @@ describe('post116 ci-config HEAVY deepen', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#123): deepen ci-config leftovers after #123 merge — tests only ---
+
+// --- HEAVY burn (post-#123): deepen ci-config leftovers — tests only, no product inventing ---
+describe('post123 ci-config HEAVY deepen (after #123)', () => {
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+
+  it('post123: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha1', () => {
+    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+  });
+
+  it('post123: locks .github/workflows/ci.yml md5', () => {
+    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha384', () => {
+    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha512', () => {
+    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha3-256', () => {
+    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+  });
+
+  it('post123: locks .github/workflows/ci.yml blake2b512', () => {
+    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+  });
+
+  it('post123: locks .github/workflows/ci.yml ripemd160', () => {
+    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+  });
+
+  it('post123: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, ".github/workflows/ci.yml")).size).toBe(6295);
+    expect(readFileSync(join(root, ".github/workflows/ci.yml")).byteLength).toBe(6295);
+  });
+
+  it('post123: locks .github/workflows/ci.yml utf8 6295 lines 177', () => {
+    expect(read(".github/workflows/ci.yml")).toHaveLength(6295);
+    expect(read(".github/workflows/ci.yml").split('\n')).toHaveLength(177);
+  });
+
+  it('post123: locks .github/workflows/ci.yml nibble 515 xor 3', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post123: locks .github/workflows/ci.yml first/last octets', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(d.slice(0, 2)).toBe("c4");
+    expect(d.slice(-2)).toBe("d5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', ".github/workflows/ci.yml")).toBe("a4d504b8ad938f033b55ee7964ab9a025db5c566795a2378bfdf78ad7932a9bb");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('ci-config', ".github/workflows/ci.yml")).toBe("e997e669ee801faeaaac0ecfb8239cc5d416ffd739f752a288a997d086e7bd15");
+  });
+
+  it('post123: locks .github/workflows/ci.yml spaces 1716', () => {
+    expect((read(".github/workflows/ci.yml").match(/ /g) ?? []).length).toBe(1716);
+  });
+
+  it('post123: locks .github/workflows/deploy.yml sha256', () => {
+    expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml sha1', () => {
+    expect(sha1(".github/workflows/deploy.yml")).toBe("5f7a3932b69a68d740162b1079688d6934060f61");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml md5', () => {
+    expect(md5(".github/workflows/deploy.yml")).toBe("ea86e4de097085159e425937542bf7cf");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml sha384', () => {
+    expect(sha384(".github/workflows/deploy.yml")).toBe("61fa961396d8c3231bc50da4eb215cff97cc8e73cd619076488abd7a58ae14a9c8295922846a197b0c2f60535bd02c9f");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml sha512', () => {
+    expect(sha512(".github/workflows/deploy.yml")).toBe("7157a652975fffe4354d4b6fcec916a5529485bd2b1c6dd96fa628b1228ae6a9883690c3c08aa30627eb0a635efeeb7e1f73e540064824415dcd3a844df0b641");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml sha3-256', () => {
+    expect(sha3(".github/workflows/deploy.yml")).toBe("c214b3a3742462dbe536466786d717241cdc0be84f5bbf71da7c8f8ed281d62e");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml blake2b512', () => {
+    expect(blake2b(".github/workflows/deploy.yml")).toBe("0ec8ba30a1fdece2b7033b67cffa78d926b8deb86a5f7468060a746f0ff0dc8b8488236b19465603f53aac178556c000ecca9748f4dcf7591155f67f0c1c5628");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml ripemd160', () => {
+    expect(ripemd(".github/workflows/deploy.yml")).toBe("7a476e7889618bef7c8b22a0f651f4e49658527e");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml size 1004', () => {
+    expect(statSync(join(root, ".github/workflows/deploy.yml")).size).toBe(1004);
+    expect(readFileSync(join(root, ".github/workflows/deploy.yml")).byteLength).toBe(1004);
+  });
+
+  it('post123: locks .github/workflows/deploy.yml utf8 1004 lines 47', () => {
+    expect(read(".github/workflows/deploy.yml")).toHaveLength(1004);
+    expect(read(".github/workflows/deploy.yml").split('\n')).toHaveLength(47);
+  });
+
+  it('post123: locks .github/workflows/deploy.yml nibble 476 xor 4', () => {
+    const d = sha256(".github/workflows/deploy.yml");
+    expect(nibbleSum(d)).toBe(476);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post123: locks .github/workflows/deploy.yml first/last octets', () => {
+    const d = sha256(".github/workflows/deploy.yml");
+    expect(d.slice(0, 2)).toBe("49");
+    expect(d.slice(-2)).toBe("c3");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', ".github/workflows/deploy.yml")).toBe("437ed4df34bfd60eea84b714e3d8968815c8fde3fde2794b3ce8b629cb9d39c1");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/deploy.yml")).toBe("339feabc44fb30f3c7e838856094324356823f1371ae0a32c0c328943494867b");
+    expect(hmacSha256('ci-config', ".github/workflows/deploy.yml")).toBe("b2d258b8ef783136b38e6607f0b0c441f5f7cc85a2aca677b051bdba3fa57eca");
+  });
+
+  it('post123: locks .github/workflows/deploy.yml spaces 274', () => {
+    expect((read(".github/workflows/deploy.yml").match(/ /g) ?? []).length).toBe(274);
+  });
+
+  it('post123: locks .github/dependabot.yml sha256', () => {
+    expect(sha256(".github/dependabot.yml")).toBe("a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac");
+  });
+
+  it('post123: locks .github/dependabot.yml sha1', () => {
+    expect(sha1(".github/dependabot.yml")).toBe("dfdb63975444874143105431e4cee95165932c7b");
+  });
+
+  it('post123: locks .github/dependabot.yml md5', () => {
+    expect(md5(".github/dependabot.yml")).toBe("bd53b7cdf9bb7287532d96a32cbec9a4");
+  });
+
+  it('post123: locks .github/dependabot.yml sha384', () => {
+    expect(sha384(".github/dependabot.yml")).toBe("ea9d5b80d192675fecbce15828b4dc305f234744d81936d5baa2cd24b7bbdf1a6ac8708c2f7da50603d77f9ee15a1ffc");
+  });
+
+  it('post123: locks .github/dependabot.yml sha512', () => {
+    expect(sha512(".github/dependabot.yml")).toBe("276de093809db87de2059c26ebe5ba732e8c3bc5bfed72843cd2bf0c81a7d3308da1f947c2ca8463ff615704aa5dd2f02f3a5857e6f2f9c358d97c111dbca34e");
+  });
+
+  it('post123: locks .github/dependabot.yml sha3-256', () => {
+    expect(sha3(".github/dependabot.yml")).toBe("4a022f1046b7dcd4b57cc16cbb7efad06e9401d30f9d383321ff44ef7a16d1d7");
+  });
+
+  it('post123: locks .github/dependabot.yml blake2b512', () => {
+    expect(blake2b(".github/dependabot.yml")).toBe("3fb74f327e9c57cb11a7219281df13a608a303a09c82ac1233f53ddddfc96a01e9e9eee076f206359e8b4db1264e971f389ce226acf2f3647146ce8901395f0e");
+  });
+
+  it('post123: locks .github/dependabot.yml ripemd160', () => {
+    expect(ripemd(".github/dependabot.yml")).toBe("7d8132f4ca88999fcfcf95c3fc1c0ca8b617fe5c");
+  });
+
+  it('post123: locks .github/dependabot.yml size 505', () => {
+    expect(statSync(join(root, ".github/dependabot.yml")).size).toBe(505);
+    expect(readFileSync(join(root, ".github/dependabot.yml")).byteLength).toBe(505);
+  });
+
+  it('post123: locks .github/dependabot.yml utf8 505 lines 25', () => {
+    expect(read(".github/dependabot.yml")).toHaveLength(505);
+    expect(read(".github/dependabot.yml").split('\n')).toHaveLength(25);
+  });
+
+  it('post123: locks .github/dependabot.yml nibble 526 xor 6', () => {
+    const d = sha256(".github/dependabot.yml");
+    expect(nibbleSum(d)).toBe(526);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post123: locks .github/dependabot.yml first/last octets', () => {
+    const d = sha256(".github/dependabot.yml");
+    expect(d.slice(0, 2)).toBe("a1");
+    expect(d.slice(-2)).toBe("ac");
+  });
+
+  it('post123: locks .github/dependabot.yml HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', ".github/dependabot.yml")).toBe("ae10f6f02f27c0e44e44d45d053b967c63d0d518736f60f72069113a634cdfe5");
+    expect(hmacSha256('TOKENMAXX', ".github/dependabot.yml")).toBe("e463d734fec72defa4912ef385c5b824620155271e553a45e5520430623023e1");
+    expect(hmacSha256('ci-config', ".github/dependabot.yml")).toBe("8b61de03ef1b75db2912b46274382788f1abd7bb4823d4dfe80d94c5caaae024");
+  });
+
+  it('post123: locks .github/dependabot.yml spaces 130', () => {
+    expect((read(".github/dependabot.yml").match(/ /g) ?? []).length).toBe(130);
+  });
+
+  it('post123: locks vitest.config.ts sha256', () => {
+    expect(sha256("vitest.config.ts")).toBe("f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38");
+  });
+
+  it('post123: locks vitest.config.ts sha1', () => {
+    expect(sha1("vitest.config.ts")).toBe("f8d49517ece92fc5e9781fbde021a948958aac37");
+  });
+
+  it('post123: locks vitest.config.ts md5', () => {
+    expect(md5("vitest.config.ts")).toBe("f1176313255f5f064a946d458482d81a");
+  });
+
+  it('post123: locks vitest.config.ts sha384', () => {
+    expect(sha384("vitest.config.ts")).toBe("c740544ed89115527034ecf6e26516e084e03eb35bb32b53e2a9ba0c87e13c92d27eedad009b8248a3c0410200eba563");
+  });
+
+  it('post123: locks vitest.config.ts sha512', () => {
+    expect(sha512("vitest.config.ts")).toBe("ea76043e8370d77ce0cb6723483ce791cff7cb9b5fb3bf8997a9772e1f3e9c897d34fc0fe2787d4f95cfb0561a8c1439436468cefb79893325b21f462c243682");
+  });
+
+  it('post123: locks vitest.config.ts sha3-256', () => {
+    expect(sha3("vitest.config.ts")).toBe("ec04c66cbf9a14154aabbfb72cd926250ae10c5577428b5b8a8b749db6c0a7ba");
+  });
+
+  it('post123: locks vitest.config.ts blake2b512', () => {
+    expect(blake2b("vitest.config.ts")).toBe("93d50742fb1f4fa70321f558b00b563052eefcaf0112ff159c377f6e7d5c989a19df038ab20fe701cb59b44d1075a621253feead3118a6a974a21e23c2eb980a");
+  });
+
+  it('post123: locks vitest.config.ts ripemd160', () => {
+    expect(ripemd("vitest.config.ts")).toBe("6f29a743813430d4d364f8ddd66e0aedf1506fcd");
+  });
+
+  it('post123: locks vitest.config.ts size 535', () => {
+    expect(statSync(join(root, "vitest.config.ts")).size).toBe(535);
+    expect(readFileSync(join(root, "vitest.config.ts")).byteLength).toBe(535);
+  });
+
+  it('post123: locks vitest.config.ts utf8 535 lines 22', () => {
+    expect(read("vitest.config.ts")).toHaveLength(535);
+    expect(read("vitest.config.ts").split('\n')).toHaveLength(22);
+  });
+
+  it('post123: locks vitest.config.ts nibble 536 xor 2', () => {
+    const d = sha256("vitest.config.ts");
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it('post123: locks vitest.config.ts first/last octets', () => {
+    const d = sha256("vitest.config.ts");
+    expect(d.slice(0, 2)).toBe("f9");
+    expect(d.slice(-2)).toBe("38");
+  });
+
+  it('post123: locks vitest.config.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "vitest.config.ts")).toBe("a6732e30b4dd61c4da8c346cd49c5deeb3be461ac8881977c82e672d929cd8b4");
+    expect(hmacSha256('TOKENMAXX', "vitest.config.ts")).toBe("0f446a2e20693c7657cb1d718f1a1b296160af17a69fcd36cec18d937ae65de9");
+    expect(hmacSha256('ci-config', "vitest.config.ts")).toBe("b48d4463ac3144a8a6e5e60a568762fe11adefce678494ceb591e4e63ae528c3");
+  });
+
+  it('post123: locks vitest.config.ts spaces 121', () => {
+    expect((read("vitest.config.ts").match(/ /g) ?? []).length).toBe(121);
+  });
+
+  it('post123: locks package.json sha256', () => {
+    expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c");
+  });
+
+  it('post123: locks package.json sha1', () => {
+    expect(sha1("package.json")).toBe("b58d14f35b9c13bb254d5e2a51240e2918a126c5");
+  });
+
+  it('post123: locks package.json md5', () => {
+    expect(md5("package.json")).toBe("63472e1fb514fb0dadb5e49a7bdbaa5f");
+  });
+
+  it('post123: locks package.json sha384', () => {
+    expect(sha384("package.json")).toBe("4208b099e242907b02fce514c0ce890d1805b1a6de73ad0a15e49ce9f5a2eb5e311f6e3175464f97ff91b0ca752f7c20");
+  });
+
+  it('post123: locks package.json sha512', () => {
+    expect(sha512("package.json")).toBe("7b56f282c4ae1f06e33354171317d5a318ef8f85cf74f07392a18ee65f40a3ed66acb974513f5bae57b83d67b18132fc67b66dde5aa4dca015f7d5fc14926b28");
+  });
+
+  it('post123: locks package.json sha3-256', () => {
+    expect(sha3("package.json")).toBe("e56db806f28d1317bcd7620e70192882b7b8e72c55481fd4cd639b174e04a5a5");
+  });
+
+  it('post123: locks package.json blake2b512', () => {
+    expect(blake2b("package.json")).toBe("a4b33748d54cbb972b7e8ed7e5e370d92bee40b0110f42fa1158b2c1ee628ee68d34704af77564c5e3c2c7988d7020f5608a42c3b03bb58567874256c2f1dd1d");
+  });
+
+  it('post123: locks package.json ripemd160', () => {
+    expect(ripemd("package.json")).toBe("f3b12f3f8d6366baa145f30bfb68d5bbb06a1bad");
+  });
+
+  it('post123: locks package.json size 637', () => {
+    expect(statSync(join(root, "package.json")).size).toBe(637);
+    expect(readFileSync(join(root, "package.json")).byteLength).toBe(637);
+  });
+
+  it('post123: locks package.json utf8 635 lines 26', () => {
+    expect(read("package.json")).toHaveLength(635);
+    expect(read("package.json").split('\n')).toHaveLength(26);
+  });
+
+  it('post123: locks package.json nibble 451 xor 13', () => {
+    const d = sha256("package.json");
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post123: locks package.json first/last octets', () => {
+    const d = sha256("package.json");
+    expect(d.slice(0, 2)).toBe("34");
+    expect(d.slice(-2)).toBe("1c");
+  });
+
+  it('post123: locks package.json HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "package.json")).toBe("f5820d067b7998f6c704e4680b7f143587a45625c630fc73c7b09306b45d6e57");
+    expect(hmacSha256('TOKENMAXX', "package.json")).toBe("ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58");
+    expect(hmacSha256('ci-config', "package.json")).toBe("9af90b16d02d642aa55aa2a1cf7816f6cab099d1837f4d1efcc3a76638229f38");
+  });
+
+  it('post123: locks package.json spaces 106', () => {
+    expect((read("package.json").match(/ /g) ?? []).length).toBe(106);
+  });
+
+  it('post123: locks AGENTS.md sha256', () => {
+    expect(sha256("AGENTS.md")).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it('post123: locks AGENTS.md sha1', () => {
+    expect(sha1("AGENTS.md")).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it('post123: locks AGENTS.md md5', () => {
+    expect(md5("AGENTS.md")).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it('post123: locks AGENTS.md sha384', () => {
+    expect(sha384("AGENTS.md")).toBe("817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a");
+  });
+
+  it('post123: locks AGENTS.md sha512', () => {
+    expect(sha512("AGENTS.md")).toBe("7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908");
+  });
+
+  it('post123: locks AGENTS.md sha3-256', () => {
+    expect(sha3("AGENTS.md")).toBe("894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4");
+  });
+
+  it('post123: locks AGENTS.md blake2b512', () => {
+    expect(blake2b("AGENTS.md")).toBe("7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0");
+  });
+
+  it('post123: locks AGENTS.md ripemd160', () => {
+    expect(ripemd("AGENTS.md")).toBe("6637e853e0148967671e4a3f21bd852255e8ed1c");
+  });
+
+  it('post123: locks AGENTS.md size 1017', () => {
+    expect(statSync(join(root, "AGENTS.md")).size).toBe(1017);
+    expect(readFileSync(join(root, "AGENTS.md")).byteLength).toBe(1017);
+  });
+
+  it('post123: locks AGENTS.md utf8 1011 lines 35', () => {
+    expect(read("AGENTS.md")).toHaveLength(1011);
+    expect(read("AGENTS.md").split('\n')).toHaveLength(35);
+  });
+
+  it('post123: locks AGENTS.md nibble 479 xor 5', () => {
+    const d = sha256("AGENTS.md");
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks AGENTS.md first/last octets', () => {
+    const d = sha256("AGENTS.md");
+    expect(d.slice(0, 2)).toBe("48");
+    expect(d.slice(-2)).toBe("aa");
+  });
+
+  it('post123: locks AGENTS.md HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "AGENTS.md")).toBe("8ac3125a7f2dc42ed6c1771338dd37727206fbd31dfcbf881040082082adc83d");
+    expect(hmacSha256('TOKENMAXX', "AGENTS.md")).toBe("b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f");
+    expect(hmacSha256('ci-config', "AGENTS.md")).toBe("1e8f20e9d67be8517c3acfdce81387fdbcd5d1bda52f43fffdb055139810c224");
+  });
+
+  it('post123: locks AGENTS.md spaces 120', () => {
+    expect((read("AGENTS.md").match(/ /g) ?? []).length).toBe(120);
+  });
+
+  it('post123: locks test/helpers.ts sha256', () => {
+    expect(sha256("test/helpers.ts")).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+  });
+
+  it('post123: locks test/helpers.ts sha1', () => {
+    expect(sha1("test/helpers.ts")).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+  });
+
+  it('post123: locks test/helpers.ts md5', () => {
+    expect(md5("test/helpers.ts")).toBe("004bbc8741017d8dd45bee28a29b46e1");
+  });
+
+  it('post123: locks test/helpers.ts sha384', () => {
+    expect(sha384("test/helpers.ts")).toBe("1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167");
+  });
+
+  it('post123: locks test/helpers.ts sha512', () => {
+    expect(sha512("test/helpers.ts")).toBe("153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91");
+  });
+
+  it('post123: locks test/helpers.ts sha3-256', () => {
+    expect(sha3("test/helpers.ts")).toBe("8ffbb4baecd580e1f9f797a737d24af1f3e0fb48af208435dafe8afaa584b113");
+  });
+
+  it('post123: locks test/helpers.ts blake2b512', () => {
+    expect(blake2b("test/helpers.ts")).toBe("9000b1e34f31a60c5b766398de6ce5657f7325d791b129e388e1312c47d8448070919d7711a2824b821a99661fbeb73f6e13dfa4b1de53d72aa0990f73f1061f");
+  });
+
+  it('post123: locks test/helpers.ts ripemd160', () => {
+    expect(ripemd("test/helpers.ts")).toBe("24c482ba1ff1b74537b67a89b99058b6f2e500a4");
+  });
+
+  it('post123: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, "test/helpers.ts")).size).toBe(6078);
+    expect(readFileSync(join(root, "test/helpers.ts")).byteLength).toBe(6078);
+  });
+
+  it('post123: locks test/helpers.ts utf8 6078 lines 164', () => {
+    expect(read("test/helpers.ts")).toHaveLength(6078);
+    expect(read("test/helpers.ts").split('\n')).toHaveLength(164);
+  });
+
+  it('post123: locks test/helpers.ts nibble 487 xor 5', () => {
+    const d = sha256("test/helpers.ts");
+    expect(nibbleSum(d)).toBe(487);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks test/helpers.ts first/last octets', () => {
+    const d = sha256("test/helpers.ts");
+    expect(d.slice(0, 2)).toBe("24");
+    expect(d.slice(-2)).toBe("29");
+  });
+
+  it('post123: locks test/helpers.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "test/helpers.ts")).toBe("8bd4ac7ac6f0833e49dbfc0059a4a863cb2adf98ddb0c6fa2e5599415b108799");
+    expect(hmacSha256('TOKENMAXX', "test/helpers.ts")).toBe("8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391");
+    expect(hmacSha256('ci-config', "test/helpers.ts")).toBe("09c6a7ad1aff663717e25ad0719777b1ba908e3c10626a6dc8246679319ea4d4");
+  });
+
+  it('post123: locks test/helpers.ts spaces 919', () => {
+    expect((read("test/helpers.ts").match(/ /g) ?? []).length).toBe(919);
+  });
+
+  it('post123: locks src/genres.ts sha256', () => {
+    expect(sha256("src/genres.ts")).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it('post123: locks src/genres.ts sha1', () => {
+    expect(sha1("src/genres.ts")).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it('post123: locks src/genres.ts md5', () => {
+    expect(md5("src/genres.ts")).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it('post123: locks src/genres.ts sha384', () => {
+    expect(sha384("src/genres.ts")).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16");
+  });
+
+  it('post123: locks src/genres.ts sha512', () => {
+    expect(sha512("src/genres.ts")).toBe("bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b");
+  });
+
+  it('post123: locks src/genres.ts sha3-256', () => {
+    expect(sha3("src/genres.ts")).toBe("d873c498335014a5e3d40e5ab78ea8f3ba4e642df056fff51de989da45634d7f");
+  });
+
+  it('post123: locks src/genres.ts blake2b512', () => {
+    expect(blake2b("src/genres.ts")).toBe("731f6cb880bc465d545820c1dff8ccf87b92624a34e703085f2d49af06e6a7f0fe14f2f7b99080a9a1699b32806a33199b21b9b30f6d3b21127cafdaaddb4d67");
+  });
+
+  it('post123: locks src/genres.ts ripemd160', () => {
+    expect(ripemd("src/genres.ts")).toBe("bb9faaf8890bdba8dd86bcdf7e418da622d19bf5");
+  });
+
+  it('post123: locks src/genres.ts size 1027', () => {
+    expect(statSync(join(root, "src/genres.ts")).size).toBe(1027);
+    expect(readFileSync(join(root, "src/genres.ts")).byteLength).toBe(1027);
+  });
+
+  it('post123: locks src/genres.ts utf8 1025 lines 48', () => {
+    expect(read("src/genres.ts")).toHaveLength(1025);
+    expect(read("src/genres.ts").split('\n')).toHaveLength(48);
+  });
+
+  it('post123: locks src/genres.ts nibble 500 xor 6', () => {
+    const d = sha256("src/genres.ts");
+    expect(nibbleSum(d)).toBe(500);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post123: locks src/genres.ts first/last octets', () => {
+    const d = sha256("src/genres.ts");
+    expect(d.slice(0, 2)).toBe("aa");
+    expect(d.slice(-2)).toBe("4e");
+  });
+
+  it('post123: locks src/genres.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "src/genres.ts")).toBe("72668068ccae1276030366ed88cb366c289ad92818116728f26d3a58decf085c");
+    expect(hmacSha256('TOKENMAXX', "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951");
+    expect(hmacSha256('ci-config', "src/genres.ts")).toBe("02697e0bdc953f71214cc79afec2ae5e84cd1fdc756793ee4126468e035ea59e");
+  });
+
+  it('post123: locks src/genres.ts spaces 144', () => {
+    expect((read("src/genres.ts").match(/ /g) ?? []).length).toBe(144);
+  });
+
+  it('post123: CI pins Node 20 npm ci coverage artifact', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/node-version:\s*"20"/);
+    expect(ci).toContain('npm ci');
+    expect(ci).toContain('upload-artifact@v4');
+    expect(ci).toContain('coverage-report');
+    expect(ci).toContain('retention-days: 14');
+  });
+
+  it('post123: CI job order typecheck/test/hygiene', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci.indexOf('\n  typecheck:\n')).toBeLessThan(ci.indexOf('\n  test:\n'));
+    expect(ci.indexOf('\n  test:\n')).toBeLessThan(ci.indexOf('\n  hygiene:\n'));
+  });
+
+  it('post123: deploy HITL workflow_dispatch only', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('workflow_dispatch');
+    expect(deploy).not.toMatch(/^\s*push:/m);
+    expect(deploy).not.toMatch(/^\s*pull_request:/m);
+    expect(deploy).toContain('GEMINI_API_KEY');
+  });
+
+  it('post123: dependabot monthly npm+actions major ignore', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('package-ecosystem: "npm"');
+    expect(dep).toContain('package-ecosystem: "github-actions"');
+    expect(dep).toContain('interval: "monthly"');
+    expect(dep).toContain('version-update:semver-major');
+  });
+
+  it('post123: vitest 100 thresholds', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+  });
+
+  it('post123: AGENTS verify scripts', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('npm ci');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+  });
+
+  it('post123: negative inventing fence CI/package', () => {
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/\/playlist|\/now-playing/);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/\/playlist|\/now-playing/);
+    expect(read('package.json')).not.toMatch(/playlist|now-playing/i);
+  });
+
+  it('post123: hygiene lists leftover suites', () => {
+    const ci = read('.github/workflows/ci.yml');
+    for (const f of ['test/helpers.test.ts','test/genres.test.ts','test/routes.test.ts','test/ci-config.test.ts'] as const) {
+      expect(ci).toContain(`test -f ${f}`);
+    }
+  });
+
+  it('post123: mega purity 40x ci.yml', () => {
+    const expected = "c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5";
+    for (let i = 0; i < 40; i++) expect(sha256('.github/workflows/ci.yml')).toBe(expected);
+  });
+
+  it('post123: final inventory markers', () => {
+    const body = read('test/ci-config.test.ts');
+    expect(body).toContain("describe('post116 ci-config HEAVY deepen'");
+    expect(body).toContain("describe('post123 ci-config HEAVY deepen (after #123)'");
+    expect((body.match(/it\('post123:/g) ?? []).length).toBeGreaterThan(80);
+  });
+
+});

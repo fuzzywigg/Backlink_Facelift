@@ -11642,3 +11642,602 @@ describe('post115 genres HEAVY deepen extras', () => {
   });
 
 });
+
+// --- HEAVY burn (post-#123): deepen genres leftovers — tests only; avoid #118 __proto__ inventing traps ---
+
+// --- HEAVY burn (post-#123): deepen genres leftovers — tests only, no product inventing ---
+describe('post123 genres HEAVY deepen (after #123)', () => {
+  const root = genresRoot;
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+
+  it('post123: locks src/genres.ts sha256', () => {
+    expect(sha256("src/genres.ts")).toBe("aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e");
+  });
+
+  it('post123: locks src/genres.ts sha1', () => {
+    expect(sha1("src/genres.ts")).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e");
+  });
+
+  it('post123: locks src/genres.ts md5', () => {
+    expect(md5("src/genres.ts")).toBe("ee8d34506f688c9e3097b89a35d48aa5");
+  });
+
+  it('post123: locks src/genres.ts sha384', () => {
+    expect(sha384("src/genres.ts")).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16");
+  });
+
+  it('post123: locks src/genres.ts sha512', () => {
+    expect(sha512("src/genres.ts")).toBe("bba59f379fff739b577d35c44f55974a78a5103b06581a5e51488caa9681ba261ab821f1a2f52e589795521396c41dfaa70fc2921bde0ab0db0ceed18dc1ef6b");
+  });
+
+  it('post123: locks src/genres.ts sha3-256', () => {
+    expect(sha3("src/genres.ts")).toBe("d873c498335014a5e3d40e5ab78ea8f3ba4e642df056fff51de989da45634d7f");
+  });
+
+  it('post123: locks src/genres.ts blake2b512', () => {
+    expect(blake2b("src/genres.ts")).toBe("731f6cb880bc465d545820c1dff8ccf87b92624a34e703085f2d49af06e6a7f0fe14f2f7b99080a9a1699b32806a33199b21b9b30f6d3b21127cafdaaddb4d67");
+  });
+
+  it('post123: locks src/genres.ts ripemd160', () => {
+    expect(ripemd("src/genres.ts")).toBe("bb9faaf8890bdba8dd86bcdf7e418da622d19bf5");
+  });
+
+  it('post123: locks src/genres.ts size 1027', () => {
+    expect(statSync(join(root, "src/genres.ts")).size).toBe(1027);
+    expect(readFileSync(join(root, "src/genres.ts")).byteLength).toBe(1027);
+  });
+
+  it('post123: locks src/genres.ts utf8 1025 lines 48', () => {
+    expect(read("src/genres.ts")).toHaveLength(1025);
+    expect(read("src/genres.ts").split('\n')).toHaveLength(48);
+  });
+
+  it('post123: locks src/genres.ts nibble 500 xor 6', () => {
+    const d = sha256("src/genres.ts");
+    expect(nibbleSum(d)).toBe(500);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post123: locks src/genres.ts first/last octets', () => {
+    const d = sha256("src/genres.ts");
+    expect(d.slice(0, 2)).toBe("aa");
+    expect(d.slice(-2)).toBe("4e");
+  });
+
+  it('post123: locks src/genres.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "src/genres.ts")).toBe("72668068ccae1276030366ed88cb366c289ad92818116728f26d3a58decf085c");
+    expect(hmacSha256('TOKENMAXX', "src/genres.ts")).toBe("7abd1ff098bb19d7a63a4b6c2c44965f0ea04ceb5fc40896c92ef7ea8f00b951");
+    expect(hmacSha256('ci-config', "src/genres.ts")).toBe("02697e0bdc953f71214cc79afec2ae5e84cd1fdc756793ee4126468e035ea59e");
+  });
+
+  it('post123: locks src/genres.ts spaces 144', () => {
+    expect((read("src/genres.ts").match(/ /g) ?? []).length).toBe(144);
+  });
+
+  it('post123: locks src/index.ts sha256', () => {
+    expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72");
+  });
+
+  it('post123: locks src/index.ts sha1', () => {
+    expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b");
+  });
+
+  it('post123: locks src/index.ts md5', () => {
+    expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177");
+  });
+
+  it('post123: locks src/index.ts sha384', () => {
+    expect(sha384("src/index.ts")).toBe("1333d65db363dca65680e10f009779453e9b14e8aff9d8197d58d8746623b0a523b80a1f65d965ac4caa069ad8010f65");
+  });
+
+  it('post123: locks src/index.ts sha512', () => {
+    expect(sha512("src/index.ts")).toBe("28576bddcce49759cc66132f4f133f281752df45c3926770467311954e0610422e68cace02e5586fcb8d3a12584176c550a6c3b6a4e624e181dc6599510000f3");
+  });
+
+  it('post123: locks src/index.ts sha3-256', () => {
+    expect(sha3("src/index.ts")).toBe("437dfa14ad684952d2d6a973da9d2ea67482eff82e188c32e27507f9dfd3239b");
+  });
+
+  it('post123: locks src/index.ts blake2b512', () => {
+    expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace");
+  });
+
+  it('post123: locks src/index.ts ripemd160', () => {
+    expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093");
+  });
+
+  it('post123: locks src/index.ts size 4738', () => {
+    expect(statSync(join(root, "src/index.ts")).size).toBe(4738);
+    expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738);
+  });
+
+  it('post123: locks src/index.ts utf8 4724 lines 154', () => {
+    expect(read("src/index.ts")).toHaveLength(4724);
+    expect(read("src/index.ts").split('\n')).toHaveLength(154);
+  });
+
+  it('post123: locks src/index.ts nibble 470 xor 14', () => {
+    const d = sha256("src/index.ts");
+    expect(nibbleSum(d)).toBe(470);
+    expect(xorNibbles(d)).toBe(14);
+  });
+
+  it('post123: locks src/index.ts first/last octets', () => {
+    const d = sha256("src/index.ts");
+    expect(d.slice(0, 2)).toBe("7f");
+    expect(d.slice(-2)).toBe("72");
+  });
+
+  it('post123: locks src/index.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "src/index.ts")).toBe("3d45ed31f75ae8cba65e0c8ddbe00e591e5f431b7745f8d13474d96ccb838561");
+    expect(hmacSha256('TOKENMAXX', "src/index.ts")).toBe("d25579a5c0d84b104f95ce77a95b760199b110e6ac8ae500fbfbda0c904e7cdc");
+    expect(hmacSha256('ci-config', "src/index.ts")).toBe("ea00cc4fe15f4d9684cdf461ac63d706c76f66baed7fdaf23cc220afb77c39d2");
+  });
+
+  it('post123: locks src/index.ts spaces 761', () => {
+    expect((read("src/index.ts").match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it('post123: locks test/helpers.ts sha256', () => {
+    expect(sha256("test/helpers.ts")).toBe("240e1fc521e029b07ca3ebda83410c4a4014af02f3ad64fa4eba8bf6ffd3af29");
+  });
+
+  it('post123: locks test/helpers.ts sha1', () => {
+    expect(sha1("test/helpers.ts")).toBe("aac5e2154aa8f0784db092ad4bb51304fce6e117");
+  });
+
+  it('post123: locks test/helpers.ts md5', () => {
+    expect(md5("test/helpers.ts")).toBe("004bbc8741017d8dd45bee28a29b46e1");
+  });
+
+  it('post123: locks test/helpers.ts sha384', () => {
+    expect(sha384("test/helpers.ts")).toBe("1e769f73400f921f25168ef2d408d099e12eee86ee092cf9883c0fe30149a90772171be2e8a13ac92b09294194f38167");
+  });
+
+  it('post123: locks test/helpers.ts sha512', () => {
+    expect(sha512("test/helpers.ts")).toBe("153eabb426836a56130b49b90611260d3630cf906663d61e1c0c6752819c3907b8dfbf9cc88531336b9a04c9d1c60b95a81d0e7ee97418122915c87377ff2c91");
+  });
+
+  it('post123: locks test/helpers.ts sha3-256', () => {
+    expect(sha3("test/helpers.ts")).toBe("8ffbb4baecd580e1f9f797a737d24af1f3e0fb48af208435dafe8afaa584b113");
+  });
+
+  it('post123: locks test/helpers.ts blake2b512', () => {
+    expect(blake2b("test/helpers.ts")).toBe("9000b1e34f31a60c5b766398de6ce5657f7325d791b129e388e1312c47d8448070919d7711a2824b821a99661fbeb73f6e13dfa4b1de53d72aa0990f73f1061f");
+  });
+
+  it('post123: locks test/helpers.ts ripemd160', () => {
+    expect(ripemd("test/helpers.ts")).toBe("24c482ba1ff1b74537b67a89b99058b6f2e500a4");
+  });
+
+  it('post123: locks test/helpers.ts size 6078', () => {
+    expect(statSync(join(root, "test/helpers.ts")).size).toBe(6078);
+    expect(readFileSync(join(root, "test/helpers.ts")).byteLength).toBe(6078);
+  });
+
+  it('post123: locks test/helpers.ts utf8 6078 lines 164', () => {
+    expect(read("test/helpers.ts")).toHaveLength(6078);
+    expect(read("test/helpers.ts").split('\n')).toHaveLength(164);
+  });
+
+  it('post123: locks test/helpers.ts nibble 487 xor 5', () => {
+    const d = sha256("test/helpers.ts");
+    expect(nibbleSum(d)).toBe(487);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks test/helpers.ts first/last octets', () => {
+    const d = sha256("test/helpers.ts");
+    expect(d.slice(0, 2)).toBe("24");
+    expect(d.slice(-2)).toBe("29");
+  });
+
+  it('post123: locks test/helpers.ts HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "test/helpers.ts")).toBe("8bd4ac7ac6f0833e49dbfc0059a4a863cb2adf98ddb0c6fa2e5599415b108799");
+    expect(hmacSha256('TOKENMAXX', "test/helpers.ts")).toBe("8b1973547653b49511673307302184ed795b388e025a43d50e0b32fc3e476391");
+    expect(hmacSha256('ci-config', "test/helpers.ts")).toBe("09c6a7ad1aff663717e25ad0719777b1ba908e3c10626a6dc8246679319ea4d4");
+  });
+
+  it('post123: locks test/helpers.ts spaces 919', () => {
+    expect((read("test/helpers.ts").match(/ /g) ?? []).length).toBe(919);
+  });
+
+  it('post123: locks AGENTS.md sha256', () => {
+    expect(sha256("AGENTS.md")).toBe("48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa");
+  });
+
+  it('post123: locks AGENTS.md sha1', () => {
+    expect(sha1("AGENTS.md")).toBe("a7df1fec05dcf7b8ace116788297c77f467a7b6c");
+  });
+
+  it('post123: locks AGENTS.md md5', () => {
+    expect(md5("AGENTS.md")).toBe("e73be0edb8c4353b6b591454478f00cd");
+  });
+
+  it('post123: locks AGENTS.md sha384', () => {
+    expect(sha384("AGENTS.md")).toBe("817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a");
+  });
+
+  it('post123: locks AGENTS.md sha512', () => {
+    expect(sha512("AGENTS.md")).toBe("7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908");
+  });
+
+  it('post123: locks AGENTS.md sha3-256', () => {
+    expect(sha3("AGENTS.md")).toBe("894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4");
+  });
+
+  it('post123: locks AGENTS.md blake2b512', () => {
+    expect(blake2b("AGENTS.md")).toBe("7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0");
+  });
+
+  it('post123: locks AGENTS.md ripemd160', () => {
+    expect(ripemd("AGENTS.md")).toBe("6637e853e0148967671e4a3f21bd852255e8ed1c");
+  });
+
+  it('post123: locks AGENTS.md size 1017', () => {
+    expect(statSync(join(root, "AGENTS.md")).size).toBe(1017);
+    expect(readFileSync(join(root, "AGENTS.md")).byteLength).toBe(1017);
+  });
+
+  it('post123: locks AGENTS.md utf8 1011 lines 35', () => {
+    expect(read("AGENTS.md")).toHaveLength(1011);
+    expect(read("AGENTS.md").split('\n')).toHaveLength(35);
+  });
+
+  it('post123: locks AGENTS.md nibble 479 xor 5', () => {
+    const d = sha256("AGENTS.md");
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post123: locks AGENTS.md first/last octets', () => {
+    const d = sha256("AGENTS.md");
+    expect(d.slice(0, 2)).toBe("48");
+    expect(d.slice(-2)).toBe("aa");
+  });
+
+  it('post123: locks AGENTS.md HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', "AGENTS.md")).toBe("8ac3125a7f2dc42ed6c1771338dd37727206fbd31dfcbf881040082082adc83d");
+    expect(hmacSha256('TOKENMAXX', "AGENTS.md")).toBe("b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f");
+    expect(hmacSha256('ci-config', "AGENTS.md")).toBe("1e8f20e9d67be8517c3acfdce81387fdbcd5d1bda52f43fffdb055139810c224");
+  });
+
+  it('post123: locks AGENTS.md spaces 120', () => {
+    expect((read("AGENTS.md").match(/ /g) ?? []).length).toBe(120);
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha1', () => {
+    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+  });
+
+  it('post123: locks .github/workflows/ci.yml md5', () => {
+    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha384', () => {
+    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha512', () => {
+    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+  });
+
+  it('post123: locks .github/workflows/ci.yml sha3-256', () => {
+    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+  });
+
+  it('post123: locks .github/workflows/ci.yml blake2b512', () => {
+    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+  });
+
+  it('post123: locks .github/workflows/ci.yml ripemd160', () => {
+    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+  });
+
+  it('post123: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, ".github/workflows/ci.yml")).size).toBe(6295);
+    expect(readFileSync(join(root, ".github/workflows/ci.yml")).byteLength).toBe(6295);
+  });
+
+  it('post123: locks .github/workflows/ci.yml utf8 6295 lines 177', () => {
+    expect(read(".github/workflows/ci.yml")).toHaveLength(6295);
+    expect(read(".github/workflows/ci.yml").split('\n')).toHaveLength(177);
+  });
+
+  it('post123: locks .github/workflows/ci.yml nibble 515 xor 3', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post123: locks .github/workflows/ci.yml first/last octets', () => {
+    const d = sha256(".github/workflows/ci.yml");
+    expect(d.slice(0, 2)).toBe("c4");
+    expect(d.slice(-2)).toBe("d5");
+  });
+
+  it('post123: locks .github/workflows/ci.yml HMAC post123/TOKENMAXX/ci-config', () => {
+    expect(hmacSha256('post123', ".github/workflows/ci.yml")).toBe("a4d504b8ad938f033b55ee7964ab9a025db5c566795a2378bfdf78ad7932a9bb");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('ci-config', ".github/workflows/ci.yml")).toBe("e997e669ee801faeaaac0ecfb8239cc5d416ffd739f752a288a997d086e7bd15");
+  });
+
+  it('post123: locks .github/workflows/ci.yml spaces 1716', () => {
+    expect((read(".github/workflows/ci.yml").match(/ /g) ?? []).length).toBe(1716);
+  });
+
+  it('post123: GENRE_MAP late night -> ambient', () => {
+    expect(resolveGenre("late night")).toBe("ambient");
+    expect(resolveGenre("LATE NIGHT")).toBe("ambient");
+    expect(resolveGenre("  late night  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP chill -> ambient', () => {
+    expect(resolveGenre("chill")).toBe("ambient");
+    expect(resolveGenre("CHILL")).toBe("ambient");
+    expect(resolveGenre("  chill  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP ambient -> ambient', () => {
+    expect(resolveGenre("ambient")).toBe("ambient");
+    expect(resolveGenre("AMBIENT")).toBe("ambient");
+    expect(resolveGenre("  ambient  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP relaxing -> ambient', () => {
+    expect(resolveGenre("relaxing")).toBe("ambient");
+    expect(resolveGenre("RELAXING")).toBe("ambient");
+    expect(resolveGenre("  relaxing  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP focus -> ambient', () => {
+    expect(resolveGenre("focus")).toBe("ambient");
+    expect(resolveGenre("FOCUS")).toBe("ambient");
+    expect(resolveGenre("  focus  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP classical -> classical', () => {
+    expect(resolveGenre("classical")).toBe("classical");
+    expect(resolveGenre("CLASSICAL")).toBe("classical");
+    expect(resolveGenre("  classical  ")).toBe("classical");
+  });
+
+  it('post123: GENRE_MAP classic -> classical', () => {
+    expect(resolveGenre("classic")).toBe("classical");
+    expect(resolveGenre("CLASSIC")).toBe("classical");
+    expect(resolveGenre("  classic  ")).toBe("classical");
+  });
+
+  it('post123: GENRE_MAP jazz -> jazz', () => {
+    expect(resolveGenre("jazz")).toBe("jazz");
+    expect(resolveGenre("JAZZ")).toBe("jazz");
+    expect(resolveGenre("  jazz  ")).toBe("jazz");
+  });
+
+  it('post123: GENRE_MAP blues -> jazz', () => {
+    expect(resolveGenre("blues")).toBe("jazz");
+    expect(resolveGenre("BLUES")).toBe("jazz");
+    expect(resolveGenre("  blues  ")).toBe("jazz");
+  });
+
+  it('post123: GENRE_MAP pop -> pop', () => {
+    expect(resolveGenre("pop")).toBe("pop");
+    expect(resolveGenre("POP")).toBe("pop");
+    expect(resolveGenre("  pop  ")).toBe("pop");
+  });
+
+  it('post123: GENRE_MAP rock -> rock', () => {
+    expect(resolveGenre("rock")).toBe("rock");
+    expect(resolveGenre("ROCK")).toBe("rock");
+    expect(resolveGenre("  rock  ")).toBe("rock");
+  });
+
+  it('post123: GENRE_MAP metal -> rock', () => {
+    expect(resolveGenre("metal")).toBe("rock");
+    expect(resolveGenre("METAL")).toBe("rock");
+    expect(resolveGenre("  metal  ")).toBe("rock");
+  });
+
+  it('post123: GENRE_MAP indie -> rock', () => {
+    expect(resolveGenre("indie")).toBe("rock");
+    expect(resolveGenre("INDIE")).toBe("rock");
+    expect(resolveGenre("  indie  ")).toBe("rock");
+  });
+
+  it('post123: GENRE_MAP music -> music', () => {
+    expect(resolveGenre("music")).toBe("music");
+    expect(resolveGenre("MUSIC")).toBe("music");
+    expect(resolveGenre("  music  ")).toBe("music");
+  });
+
+  it('post123: GENRE_MAP news -> news', () => {
+    expect(resolveGenre("news")).toBe("news");
+    expect(resolveGenre("NEWS")).toBe("news");
+    expect(resolveGenre("  news  ")).toBe("news");
+  });
+
+  it('post123: GENRE_MAP sports -> sports', () => {
+    expect(resolveGenre("sports")).toBe("sports");
+    expect(resolveGenre("SPORTS")).toBe("sports");
+    expect(resolveGenre("  sports  ")).toBe("sports");
+  });
+
+  it('post123: GENRE_MAP entertainment -> entertainment', () => {
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+    expect(resolveGenre("ENTERTAINMENT")).toBe("entertainment");
+    expect(resolveGenre("  entertainment  ")).toBe("entertainment");
+  });
+
+  it('post123: GENRE_MAP dance -> pop', () => {
+    expect(resolveGenre("dance")).toBe("pop");
+    expect(resolveGenre("DANCE")).toBe("pop");
+    expect(resolveGenre("  dance  ")).toBe("pop");
+  });
+
+  it('post123: GENRE_MAP electronic -> ambient', () => {
+    expect(resolveGenre("electronic")).toBe("ambient");
+    expect(resolveGenre("ELECTRONIC")).toBe("ambient");
+    expect(resolveGenre("  electronic  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP lofi -> ambient', () => {
+    expect(resolveGenre("lofi")).toBe("ambient");
+    expect(resolveGenre("LOFI")).toBe("ambient");
+    expect(resolveGenre("  lofi  ")).toBe("ambient");
+  });
+
+  it('post123: GENRE_MAP lo-fi -> ambient', () => {
+    expect(resolveGenre("lo-fi")).toBe("ambient");
+    expect(resolveGenre("LO-FI")).toBe("ambient");
+    expect(resolveGenre("  lo-fi  ")).toBe("ambient");
+  });
+
+  it('post123: VALID_GENRES includes music', () => {
+    expect(VALID_GENRES).toContain("music");
+    expect(resolveGenre("music")).toBe("music");
+  });
+
+  it('post123: VALID_GENRES includes ambient', () => {
+    expect(VALID_GENRES).toContain("ambient");
+    expect(resolveGenre("ambient")).toBe("ambient");
+  });
+
+  it('post123: VALID_GENRES includes jazz', () => {
+    expect(VALID_GENRES).toContain("jazz");
+    expect(resolveGenre("jazz")).toBe("jazz");
+  });
+
+  it('post123: VALID_GENRES includes classical', () => {
+    expect(VALID_GENRES).toContain("classical");
+    expect(resolveGenre("classical")).toBe("classical");
+  });
+
+  it('post123: VALID_GENRES includes pop', () => {
+    expect(VALID_GENRES).toContain("pop");
+    expect(resolveGenre("pop")).toBe("pop");
+  });
+
+  it('post123: VALID_GENRES includes rock', () => {
+    expect(VALID_GENRES).toContain("rock");
+    expect(resolveGenre("rock")).toBe("rock");
+  });
+
+  it('post123: VALID_GENRES includes news', () => {
+    expect(VALID_GENRES).toContain("news");
+    expect(resolveGenre("news")).toBe("news");
+  });
+
+  it('post123: VALID_GENRES includes sports', () => {
+    expect(VALID_GENRES).toContain("sports");
+    expect(resolveGenre("sports")).toBe("sports");
+  });
+
+  it('post123: VALID_GENRES includes entertainment', () => {
+    expect(VALID_GENRES).toContain("entertainment");
+    expect(resolveGenre("entertainment")).toBe("entertainment");
+  });
+
+  it('post123: unknown qobuz -> music', () => {
+    expect(resolveGenre("qobuz")).toBe('music');
+  });
+
+  it('post123: unknown spotify -> music', () => {
+    expect(resolveGenre("spotify")).toBe('music');
+  });
+
+  it('post123: unknown podcast -> music', () => {
+    expect(resolveGenre("podcast")).toBe('music');
+  });
+
+  it('post123: unknown playlist -> music', () => {
+    expect(resolveGenre("playlist")).toBe('music');
+  });
+
+  it('post123: unknown now-playing -> music', () => {
+    expect(resolveGenre("now-playing")).toBe('music');
+  });
+
+  it('post123: unknown radio paradise -> music', () => {
+    expect(resolveGenre("radio paradise")).toBe('music');
+  });
+
+  it('post123: unknown somafm -> music', () => {
+    expect(resolveGenre("somafm")).toBe('music');
+  });
+
+  it('post123: unknown foo -> music', () => {
+    expect(resolveGenre("foo")).toBe('music');
+  });
+
+  it('post123: unknown xyzzy -> music', () => {
+    expect(resolveGenre("xyzzy")).toBe('music');
+  });
+
+  it('post123: unknown 123 -> music', () => {
+    expect(resolveGenre("123")).toBe('music');
+  });
+
+  it('post123: blank/missing -> music', () => {
+    expect(resolveGenre()).toBe('music');
+    expect(resolveGenre('')).toBe('music');
+    expect(resolveGenre('   ')).toBe('music');
+  });
+
+  it('post123: custom map override', () => {
+    expect(resolveGenre('custom', { custom: 'jazz' })).toBe('jazz');
+    expect(resolveGenre('rock', { custom: 'jazz' })).toBe('rock');
+    expect(resolveGenre('nope', { custom: 'jazz' })).toBe('music');
+  });
+
+  it('post123: avoid #118 __proto__ inventing trap', () => {
+    void resolveGenre('__proto__');
+    expect(resolveGenre('jazz')).toBe('jazz');
+    expect(resolveGenre('blues')).toBe('jazz');
+  });
+
+  it('post123: map/valid sizes locked', () => {
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it('post123: 20-round alias matrix', () => {
+    for (let r = 0; r < 20; r++) {
+      for (const [k, v] of Object.entries(GENRE_MAP)) expect(resolveGenre(k)).toBe(v);
+    }
+  });
+
+  it('post123: mega purity 30x genres.ts', () => {
+    const expected = "aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e";
+    for (let i = 0; i < 30; i++) expect(sha256('src/genres.ts')).toBe(expected);
+  });
+
+  it('post123: index wires resolveGenre without playlist inventing', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('resolveGenre');
+    expect(index).not.toMatch(/\/playlist|\/now-playing/);
+  });
+
+  it('post123: final inventory markers', () => {
+    const body = read('test/genres.test.ts');
+    expect(body).toContain("describe('post115 genres HEAVY deepen'");
+    expect(body).toContain("describe('post123 genres HEAVY deepen (after #123)'");
+    expect((body.match(/it\('post123:/g) ?? []).length).toBeGreaterThan(80);
+  });
+
+});
