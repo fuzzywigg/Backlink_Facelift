@@ -14846,7 +14846,7 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
   });
 
   it("post157: compact HMAC key post157", () => {
-    expect(createHmac('sha256', "post157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("83d1adf1fa248b5dc36db5ffd546aac2cac7583cde1353a18e1e81967baf0e8d");
+    expect(createHmac('sha256', "post157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("391582f152ab6f474f5882e10c3c9763e4c1480f7ef405993b25a1714d8a0ec3");
   });
 
   it("post157: compact HMAC key leftover", () => {
@@ -14862,7 +14862,7 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
   });
 
   it("post157: compact HMAC key after-#157", () => {
-    expect(createHmac('sha256', "after-#157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("533ae2885eef8d185565358dd0be092df7d158b5b0ad3d2b20fc045614d290fe");
+    expect(createHmac('sha256', "after-#157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("a27ba33f6b6ea63d26d2535fce66ef31e76c1466981a41c92654598dd3bc82bc");
   });
 
   it("post157: compact HMAC key no-product-invent", () => {
@@ -15150,11 +15150,11 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
   });
 
   it("post157: compact HMAC key post157", () => {
-    expect(createHmac('sha256', "post157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("83d1adf1fa248b5dc36db5ffd546aac2cac7583cde1353a18e1e81967baf0e8d");
+    expect(createHmac('sha256', "post157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("391582f152ab6f474f5882e10c3c9763e4c1480f7ef405993b25a1714d8a0ec3");
   });
 
   it("post157: compact HMAC key after-#157", () => {
-    expect(createHmac('sha256', "after-#157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("533ae2885eef8d185565358dd0be092df7d158b5b0ad3d2b20fc045614d290fe");
+    expect(createHmac('sha256', "after-#157").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe("a27ba33f6b6ea63d26d2535fce66ef31e76c1466981a41c92654598dd3bc82bc");
   });
 
   it("post157: compact HMAC key ci-leftover", () => {

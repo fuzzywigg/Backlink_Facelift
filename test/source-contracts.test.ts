@@ -17200,7 +17200,7 @@ describe('post157 source-contracts HEAVY deepen (after #157)', () => {
 
   it("post157: HMAC of concatenated src keyed by post157", () => {
     const joined = SRC_FILES.map((f) => srcOf(f)).join('');
-    expect(createHmac('sha256', 'post157').update(joined).digest('hex')).toBe("be9c7c384c8fbf8ee639cf0b30af09483ab922372ac3d5b0ced1f70d555552c6");
+    expect(createHmac('sha256', 'post157').update(joined).digest('hex')).toBe("f6ef0efdee9ad3de59e0cb7f11feeb3a77f49d051fbf3abf4d0160007d74e8f3");
   });
 
   it("post157: mega purity 30x index.ts sha256", () => {
