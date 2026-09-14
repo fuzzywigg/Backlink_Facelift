@@ -35365,7 +35365,7 @@ describe('post287 mcp-spec-contract HEAVY deepen (after #287 tip leftover / genr
     expect(keys).toContain('beyond-post287');
     expect(keys).toContain('tip-relaunch-leftover');
     expect(keys).toContain('tip-287');
-    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("8adf5285bedb1a1b3554e22dde2cf712bfa78dda36c0f53651ed847c0e256be2");
+    expect(createHash('sha256').update(keys.join('|')).digest('hex')).toBe("94cc686f1ee730d8881bf81f81810b24db7a9bd0179108c4412e6f49ce5f1e4f");
   });
   it('post287: final inventory markers', () => {
     const body = read("test/mcp-spec-contract.test.ts");
@@ -35454,9 +35454,9 @@ describe('post287 mcp-spec-contract extras HEAVY deepen (after #287 leftover sli
   it('post287-extras: HMAC no-creds docs/mcp-spec.md', () => { expect(hmacSha256("no-creds", "docs/mcp-spec.md")).toBe("0b1a3d9791f6d0c02ad0cac98ae5723d8b0e6d29ffb3543b87a9dde980aaa4cd"); });
   it('post287-extras: HMAC iptv-org docs/mcp-spec.md', () => { expect(hmacSha256("iptv-org", "docs/mcp-spec.md")).toBe("f0cc92feffdc00412074b061f650d4216738d7f8e9eb260b8822500b0d7445cf"); });
   it('post287-extras: HMAC fuzzywigg docs/mcp-spec.md', () => { expect(hmacSha256("fuzzywigg", "docs/mcp-spec.md")).toBe("8e0caed7ef994c374b52d69005d69324d5af51ef97c49c876613cf9ed1b93d4d"); });
-  it('post287-extras: HMAC-SHA1 post287 docs/mcp-spec.md', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("9eb4cf962adccab934a0f6d3c0a43b1c52dee75b"); });
-  it('post287-extras: HMAC-MD5 post287 docs/mcp-spec.md', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("9bc269998c3ae070a4c3f1f87e966053"); });
-  it('post287-extras: utf16le-HMAC post287 docs/mcp-spec.md', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("docs/mcp-spec.md"),'utf16le')).digest('hex')).toBe("b6293dc6e210e40070d544c0faeb7f8eeb5fea8d0a8f3f0b5793d70fbac36c85"); });
+  it('post287-extras: HMAC-SHA1 post287 docs/mcp-spec.md', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("24409ed34ffd0856f03975153e5cd3c89dde406d"); });
+  it('post287-extras: HMAC-MD5 post287 docs/mcp-spec.md', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("06d69f689eddd1aeafbe8767ef2ab104"); });
+  it('post287-extras: utf16le-HMAC post287 docs/mcp-spec.md', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("docs/mcp-spec.md"),'utf16le')).digest('hex')).toBe("c62f5091f006ea716104456e58529c210819428f51c4c8f6b1c08dc8f42531a6"); });
   it('post287-extras: sha1 docs/mcp-spec.md', () => { expect(createHash('sha1').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a"); });
   it('post287-extras: md5 docs/mcp-spec.md', () => { expect(createHash('md5').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("ee7881030c338c1773659cc6378c392c"); });
   it('post287-extras: sha384 docs/mcp-spec.md', () => { expect(createHash('sha384').update(readFileSync(join(repo, "docs/mcp-spec.md"))).digest('hex')).toBe("b32096b74bacd48065f014d2695673b3bfad3cb9118b855899a92a849cd38a7dd751db7c9e0705d6d6569d5f05f61227"); });
@@ -35589,9 +35589,9 @@ describe('post287 mcp-spec-contract extras HEAVY deepen (after #287 leftover sli
   it('post287-extras: HMAC no-creds src/mcp.ts', () => { expect(hmacSha256("no-creds", "src/mcp.ts")).toBe("913b75612a46d4953e5fcc7f1d80ecb84b79087529ab3d8b0e7ec6dc7e3a5468"); });
   it('post287-extras: HMAC iptv-org src/mcp.ts', () => { expect(hmacSha256("iptv-org", "src/mcp.ts")).toBe("dcaf0c454cf3ee0bbaba12121ffe1183726881c6eb0f1f0714218d84c63cd1d7"); });
   it('post287-extras: HMAC fuzzywigg src/mcp.ts', () => { expect(hmacSha256("fuzzywigg", "src/mcp.ts")).toBe("93171a03382e2488888b170abdf10cc84dbd7ec7e77448b36c60d6758faac830"); });
-  it('post287-extras: HMAC-SHA1 post287 src/mcp.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("bc175de75c0007df8429e1e2291ab3bbcf39b78e"); });
-  it('post287-extras: HMAC-MD5 post287 src/mcp.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("e935d1ec2be3b85209799c6586cefb49"); });
-  it('post287-extras: utf16le-HMAC post287 src/mcp.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/mcp.ts"),'utf16le')).digest('hex')).toBe("3bdbead5121d093d75654b6ef1808c17cdbf60f163adec6b9e47c7bc49e0b2a8"); });
+  it('post287-extras: HMAC-SHA1 post287 src/mcp.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("2b6c6c47ca97b61f63127f3e034eea349c917999"); });
+  it('post287-extras: HMAC-MD5 post287 src/mcp.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("3a721a83a9b01e2f8266c396840601ec"); });
+  it('post287-extras: utf16le-HMAC post287 src/mcp.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/mcp.ts"),'utf16le')).digest('hex')).toBe("2a526adc1529da5de745e8d1cbd93732dfb6b3cc8da8561d30da6a2cd20c8791"); });
   it('post287-extras: sha1 src/mcp.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("848b3977365809fda54fcb74a7d09affe685ea82"); });
   it('post287-extras: md5 src/mcp.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("52e71c72e32e3d95b8b8d61ff4a2cf46"); });
   it('post287-extras: sha384 src/mcp.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/mcp.ts"))).digest('hex')).toBe("a95bef5fcb3b93e9c05aac94aaa6a49adb47a360bfaf046e65f7254c2249fd1f34ff923ec401752e2701b7260d9949d2"); });
@@ -35686,9 +35686,9 @@ describe('post287 mcp-spec-contract extras HEAVY deepen (after #287 leftover sli
   it('post287-extras: HMAC no-creds src/genres.ts', () => { expect(hmacSha256("no-creds", "src/genres.ts")).toBe("1efc2476ef5f97e1e8c79cad25705654ca7544c4dfe8dbf123c6ecc6d08a143d"); });
   it('post287-extras: HMAC iptv-org src/genres.ts', () => { expect(hmacSha256("iptv-org", "src/genres.ts")).toBe("1493d15bc7d59b37d840b00afdadc42f8b5d087e532feedd20fccd557a198a5e"); });
   it('post287-extras: HMAC fuzzywigg src/genres.ts', () => { expect(hmacSha256("fuzzywigg", "src/genres.ts")).toBe("449f90c50ae8bb525d12e1afc61f2c9676d4df314072ddd9d39da78f5b3386d5"); });
-  it('post287-extras: HMAC-SHA1 post287 src/genres.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("d5e94a8a9df5bd634f8748f1631bc6bb4f78001e"); });
-  it('post287-extras: HMAC-MD5 post287 src/genres.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("59c024a3f72d0c13659a65e97d6ad208"); });
-  it('post287-extras: utf16le-HMAC post287 src/genres.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/genres.ts"),'utf16le')).digest('hex')).toBe("36ae933775033f2e0fe88afff9564f60e0b85a751ee497294eabe50ce919781d"); });
+  it('post287-extras: HMAC-SHA1 post287 src/genres.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("ff3313b7f3aad510c2429b4ae51f48b6e2941a70"); });
+  it('post287-extras: HMAC-MD5 post287 src/genres.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("86e2d428ec7dadcd8d0a9db7d8de3df4"); });
+  it('post287-extras: utf16le-HMAC post287 src/genres.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/genres.ts"),'utf16le')).digest('hex')).toBe("a3b8b32a6bfa052712bf4240fb88b7a5efcee03bfbb619152258895f3571be42"); });
   it('post287-extras: sha1 src/genres.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("3dd586bfd23c91e9719b56c90c8cbfe038aebc3e"); });
   it('post287-extras: md5 src/genres.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("ee8d34506f688c9e3097b89a35d48aa5"); });
   it('post287-extras: sha384 src/genres.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/genres.ts"))).digest('hex')).toBe("ba84fb097988f01bc57a7ee5cb039c2988714d4c8d8d20d2734c0ce701b427e25330052b622bcf0dedaebc7c5d8b4d16"); });
@@ -35773,9 +35773,9 @@ describe('post287 mcp-spec-contract extras HEAVY deepen (after #287 leftover sli
   it('post287-extras: HMAC no-creds src/types.ts', () => { expect(hmacSha256("no-creds", "src/types.ts")).toBe("54a003b7f2d60b6b8cf47b21fd8a0b8044b12fa7a9296db10bf8186e17cb0d47"); });
   it('post287-extras: HMAC iptv-org src/types.ts', () => { expect(hmacSha256("iptv-org", "src/types.ts")).toBe("ca5f1e1fd976bb3fe291c6a55c65ddeff53de41b4fc58212755883dc30307874"); });
   it('post287-extras: HMAC fuzzywigg src/types.ts', () => { expect(hmacSha256("fuzzywigg", "src/types.ts")).toBe("9318202ab26e14c853a66c82681f61370e99b88948d0cb0daced2f0fae39cf07"); });
-  it('post287-extras: HMAC-SHA1 post287 src/types.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("8c0f9559794a28a167186c36c4194de77fda3279"); });
-  it('post287-extras: HMAC-MD5 post287 src/types.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("c231a1ab985ad9dadb9be14623b460c6"); });
-  it('post287-extras: utf16le-HMAC post287 src/types.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/types.ts"),'utf16le')).digest('hex')).toBe("1cb77c436c121d06ae0132954cadcae484afb315b46e9a93d40ab3253f8ff4b8"); });
+  it('post287-extras: HMAC-SHA1 post287 src/types.ts', () => { expect(createHmac('sha1','post287').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("94f2838bf9e0d7b93b286ef145c8b77dc41b4df6"); });
+  it('post287-extras: HMAC-MD5 post287 src/types.ts', () => { expect(createHmac('md5','post287').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("64a9ac9287b3a98e3f8212b14ebb7def"); });
+  it('post287-extras: utf16le-HMAC post287 src/types.ts', () => { expect(createHmac('sha256','post287').update(Buffer.from(read("src/types.ts"),'utf16le')).digest('hex')).toBe("827e1d38dcc8f1b643a74b580068df62900013dbf13e7e5be099c284dfe2f26e"); });
   it('post287-extras: sha1 src/types.ts', () => { expect(createHash('sha1').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("1e8906673dc0d140ee5c3d40839c88a1eeca03d8"); });
   it('post287-extras: md5 src/types.ts', () => { expect(createHash('md5').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("ecba663d21928622be656805ad27d0a3"); });
   it('post287-extras: sha384 src/types.ts', () => { expect(createHash('sha384').update(readFileSync(join(repo, "src/types.ts"))).digest('hex')).toBe("40618d8902640e6ce24d5caf0b9daf86c4d5f962832b1835a86bb10ad7c37455cc60aa9f965ffd9a98f9a5967048b01c"); });
