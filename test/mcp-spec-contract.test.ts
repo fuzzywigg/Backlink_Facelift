@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -2117,5 +2118,245 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
 
   it('spec file path docs/mcp-spec.md is the only markdown under docs/', () => {
     expect(readdirSync(join(root, 'docs'))).toEqual(['mcp-spec.md']);
+  });
+
+  // --- HEAVY burn (post-#65): mcp-spec contracts deepen (orthogonal to wrangler/genres/parser) ---
+
+  it('post65: locks docs/mcp-spec.md sha256 sha1 md5 digests', () => {
+    expect(createHash('sha256').update(spec).digest('hex')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+    expect(createHash('sha1').update(spec).digest('hex')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+    expect(createHash('md5').update(spec).digest('hex')).toBe('ee7881030c338c1773659cc6378c392c');
+    expect(spec.length).toBe(3544);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+  });
+
+  it('post65: locks docs/mcp-spec.md sha256 nibble sum to 514', () => {
+    const hex = createHash('sha256').update(spec).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(514);
+  });
+
+  it('post65: locks fs.statSync size equals UTF-8 byte length of mcp-spec', () => {
+    expect(statSync(join(root, 'docs/mcp-spec.md')).size).toBe(3552);
+  });
+
+  it('post65: locks title exact Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('post65: locks H2 headings Tools then Integration Notes only', () => {
+    expect([...spec.matchAll(/^## /gm)].map((m) => m[0])).toEqual(['## ', '## ']);
+    expect([...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1])).toEqual([
+      'Tools',
+      'Integration Notes',
+    ]);
+  });
+
+  it('post65: locks claw-mcp phrase in intro sentence', () => {
+    expect(spec).toContain('claw-mcp tool set');
+    expect(spec.split('\n')[2]).toContain('claw-mcp');
+  });
+
+  it('post65: locks exactly three backlink_ tool ids in headings', () => {
+    expect([...spec.matchAll(/^### `backlink_/gm)]).toHaveLength(3);
+  });
+
+  it('post65: locks Output label count — curate and now_playing only (genres has Output without Array intro variance)', () => {
+    expect([...spec.matchAll(/\*\*Output:\*\*/g)]).toHaveLength(3);
+  });
+
+  it('post65: locks JSON fence count and parseable property sets', () => {
+    const blocks = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(blocks).toHaveLength(6);
+    const parsed = blocks.map((b) => JSON.parse(b));
+    expect(parsed.every((p) => p.type === 'object')).toBe(true);
+  });
+
+  it('post65: locks curate input genre description mentions jazz classical ambient rock pop', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_curate`'), spec.indexOf('### `backlink_genres`'));
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop']) {
+      expect(section).toContain(`'${g}'`);
+    }
+  });
+
+  it('post65: locks now_playing input examples ambient late night jazz order', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    const ambient = section.indexOf("'ambient'");
+    const late = section.indexOf("'late night'");
+    const jazz = section.indexOf("'jazz'");
+    expect(ambient).toBeLessThan(late);
+    expect(late).toBeLessThan(jazz);
+  });
+
+  it('post65: locks now_playing endpoint remaps url to stream_url wording', () => {
+    expect(spec).toContain("with `url` remapped to `stream_url`");
+  });
+
+  it('post65: locks stations[0] only wording for now_playing endpoint', () => {
+    expect(spec).toContain('returns `stations[0]` only');
+  });
+
+  it('post65: locks genres aliases additionalProperties string', () => {
+    expect(spec).toContain('"additionalProperties": { "type": "string" }');
+  });
+
+  it('post65: locks date-time format on curated timestamp', () => {
+    expect(spec).toContain('"format": "date-time"');
+  });
+
+  it('post65: locks logo type string|null format uri appears twice', () => {
+    expect(
+      [...spec.matchAll(/"logo": \{ "type": \["string", "null"\], "format": "uri" \}/g)],
+    ).toHaveLength(2);
+  });
+
+  it('post65: locks no tab CR BOM in mcp-spec', () => {
+    expect(spec).not.toContain('\t');
+    expect(spec).not.toContain('\r');
+    expect(spec.charCodeAt(0)).not.toBe(0xfeff);
+    expect(spec.charCodeAt(0)).toBe('#'.charCodeAt(0));
+  });
+
+  it('post65: locks em-dash code points count 3 via codePointAt scan', () => {
+    const dashes = [...spec].filter((c) => c.codePointAt(0) === 0x2014);
+    expect(dashes).toHaveLength(3);
+  });
+
+  it('post65: locks UTF-8 vs UTF-16 length delta of 8 for mcp-spec', () => {
+    expect(Buffer.byteLength(spec, 'utf8') - spec.length).toBe(8);
+  });
+
+  it('post65: locks cross MCP_MANIFEST auth none with spec no-auth bullet', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(spec).toContain('No auth required for read endpoints');
+  });
+
+  it('post65: locks docs tool ids never collide with claw-mcp tool names via Set', () => {
+    const docs = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'];
+    const claw = new Set(MCP_MANIFEST.tools.map((t) => t.name));
+    for (const id of docs) {
+      expect(claw.has(id)).toBe(false);
+      expect(spec).toContain(id);
+    }
+  });
+
+  it('post65: locks btoa of Base URL host', () => {
+    expect(btoa('backlink.fuzzywigg.com')).toBe('YmFja2xpbmsuZnV6enl3aWdnLmNvbQ==');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('post65: locks Integration Notes order Base URL → auth → KV → Gemini → degrade', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const base = notes.indexOf('Base URL');
+    const auth = notes.indexOf('No auth required');
+    const kv = notes.indexOf('KV cache');
+    const gemini = notes.indexOf('always calls Gemini fresh');
+    const degrade = notes.indexOf('graceful degradation');
+    expect(base).toBeLessThan(auth);
+    expect(auth).toBeLessThan(kv);
+    expect(kv).toBeLessThan(gemini);
+    expect(gemini).toBeLessThan(degrade);
+  });
+
+  it('post65: locks Collator-sorted docs tool ids', () => {
+    const ids = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'];
+    expect([...ids].sort(new Intl.Collator('en').compare)).toEqual(ids);
+  });
+
+  it('post65: locks TextEncoder byte length of title line', () => {
+    const title = '# Backlink MCP Tool Specification';
+    expect(new TextEncoder().encode(title).length).toBe(title.length);
+    expect(spec.startsWith(title + '\n')).toBe(true);
+  });
+
+  it('post65: locks matchAll of GET endpoint mentions', () => {
+    const gets = [...spec.matchAll(/\bGET\b/g)];
+    expect(gets.length).toBeGreaterThanOrEqual(3);
+    expect(spec).toContain('GET /genres');
+  });
+
+  it('post65: locks no invent of DNS beyond backlink.fuzzywigg.com and none other hosts', () => {
+    const hosts = [...spec.matchAll(/https?:\/\/([A-Za-z0-9.-]+)/g)].map((m) => m[1]);
+    expect(hosts).toEqual(['backlink.fuzzywigg.com']);
+  });
+
+  it('post65: locks no credential material patterns in mcp-spec', () => {
+    expect(spec).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(spec).not.toMatch(/api[_-]?key\s*[:=]/i);
+    expect(spec).not.toMatch(/bearer\s+[A-Za-z0-9._-]+/i);
+  });
+
+  it('post65: locks genres tool documents Friendly name arrow canonical slug', () => {
+    expect(spec).toContain('Friendly name → canonical slug mapping');
+  });
+
+  it('post65: locks Unicode arrow → present exactly once', () => {
+    expect((spec.match(/→/g) ?? []).length).toBe(1);
+  });
+
+  it('post65: locks structuredClone of parsed first JSON fence stays type object', () => {
+    const block = [...spec.matchAll(/```json\n([\s\S]*?)```/g)][0][1];
+    const parsed = JSON.parse(block);
+    expect(structuredClone(parsed)).toEqual(parsed);
+    expect(parsed.type).toBe('object');
+  });
+
+  it('post65: locks cross VALID_GENRES jazz classical ambient rock pop subset', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(VALID_GENRES).toContain(g);
+      expect(spec.toLowerCase()).toContain(g);
+    }
+  });
+
+  it('post65: locks Proxy read of spec length via boxed object', () => {
+    const boxed = new Proxy(
+      { spec } as { spec: string; length?: number },
+      {
+        get(t, p) {
+          return p === 'length' ? t.spec.length : Reflect.get(t, p);
+        },
+      },
+    );
+    expect(boxed.length).toBe(3544);
+  });
+
+  it('post65: locks DataView on first 4 bytes of mcp-spec are # Ba', () => {
+    const bytes = new TextEncoder().encode(spec);
+    expect(String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3])).toBe('# Ba');
+  });
+
+  it('post65: locks last non-empty line is degrade editorial null bullet', () => {
+    const lines = spec.trimEnd().split('\n');
+    expect(lines.at(-1)).toContain('editorial: null');
+  });
+
+  it('post65: locks horizontal rule count exactly 4', () => {
+    expect([...spec.matchAll(/^---$/gm)]).toHaveLength(4);
+  });
+
+  it('post65: locks exact backtick count', () => {
+    expect((spec.match(/`/g) ?? []).length).toBe(62);
+  });
+
+  it('post65: locks Map of tool heading index positions ascending', () => {
+    const map = new Map([
+      ['curate', spec.indexOf('### `backlink_curate`')],
+      ['genres', spec.indexOf('### `backlink_genres`')],
+      ['now', spec.indexOf('### `backlink_now_playing`')],
+    ]);
+    expect(map.get('curate')!).toBeLessThan(map.get('genres')!);
+    expect(map.get('genres')!).toBeLessThan(map.get('now')!);
+  });
+
+  it('post65: locks JSON.stringify(spec).length snapshot band', () => {
+    expect(JSON.stringify(spec).length).toBe(3940);
+  });
+
+  it('post65: locks no history invent — does not mention changelog version history commits', () => {
+    expect(spec).not.toMatch(/changelog|commit history|git blame/i);
+    expect(spec).not.toContain('TODO');
+    expect(spec).not.toContain('FIXME');
   });
 });
