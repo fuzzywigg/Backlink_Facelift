@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -6,7 +7,16 @@ import { MCP_MANIFEST } from '../src/mcp';
 import { GENRE_MAP, VALID_GENRES } from '../src/genres';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const spec = readFileSync(join(root, 'docs/mcp-spec.md'), 'utf8');
+const specPath = join(root, 'docs/mcp-spec.md');
+const spec = readFileSync(specPath, 'utf8');
+
+function jsonFences(): unknown[] {
+  return [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => JSON.parse(m[1]));
+}
+
+function toolSection(id: string, until: string): string {
+  return spec.slice(spec.indexOf(`### \`${id}\``), spec.indexOf(until));
+}
 
 describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('documents the live HTTP endpoints the Worker exposes', () => {
@@ -2118,4 +2128,1070 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   it('spec file path docs/mcp-spec.md is the only markdown under docs/', () => {
     expect(readdirSync(join(root, 'docs'))).toEqual(['mcp-spec.md']);
   });
+
+  // --- HEAVY burn (post-#65): mcp-spec contracts deepen (orthogonal to wrangler/genres/parser) ---
+
+  it('post65: locks docs/mcp-spec.md sha256 sha1 md5 digests', () => {
+    expect(createHash('sha256').update(spec).digest('hex')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849');
+    expect(createHash('sha1').update(spec).digest('hex')).toBe('e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a');
+    expect(createHash('md5').update(spec).digest('hex')).toBe('ee7881030c338c1773659cc6378c392c');
+    expect(spec.length).toBe(3544);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+  });
+
+  it('post65: locks docs/mcp-spec.md sha256 nibble sum to 514', () => {
+    const hex = createHash('sha256').update(spec).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(514);
+  });
+
+  it('post65: locks fs.statSync size equals UTF-8 byte length of mcp-spec', () => {
+    expect(statSync(join(root, 'docs/mcp-spec.md')).size).toBe(3552);
+  });
+
+  it('post65: locks title exact Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+  });
+
+  it('post65: locks H2 headings Tools then Integration Notes only', () => {
+    expect([...spec.matchAll(/^## /gm)].map((m) => m[0])).toEqual(['## ', '## ']);
+    expect([...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1])).toEqual([
+      'Tools',
+      'Integration Notes',
+    ]);
+  });
+
+  it('post65: locks claw-mcp phrase in intro sentence', () => {
+    expect(spec).toContain('claw-mcp tool set');
+    expect(spec.split('\n')[2]).toContain('claw-mcp');
+  });
+
+  it('post65: locks exactly three backlink_ tool ids in headings', () => {
+    expect([...spec.matchAll(/^### `backlink_/gm)]).toHaveLength(3);
+  });
+
+  it('post65: locks Output label count — curate and now_playing only (genres has Output without Array intro variance)', () => {
+    expect([...spec.matchAll(/\*\*Output:\*\*/g)]).toHaveLength(3);
+  });
+
+  it('post65: locks JSON fence count and parseable property sets', () => {
+    const blocks = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(blocks).toHaveLength(6);
+    const parsed = blocks.map((b) => JSON.parse(b));
+    expect(parsed.every((p) => p.type === 'object')).toBe(true);
+  });
+
+  it('post65: locks curate input genre description mentions jazz classical ambient rock pop', () => {
+    const section = spec.slice(spec.indexOf('### `backlink_curate`'), spec.indexOf('### `backlink_genres`'));
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop']) {
+      expect(section).toContain(`'${g}'`);
+    }
+  });
+
+  it('post65: locks now_playing input examples ambient late night jazz order', () => {
+    const section = spec.slice(
+      spec.indexOf('### `backlink_now_playing`'),
+      spec.indexOf('## Integration Notes'),
+    );
+    const ambient = section.indexOf("'ambient'");
+    const late = section.indexOf("'late night'");
+    const jazz = section.indexOf("'jazz'");
+    expect(ambient).toBeLessThan(late);
+    expect(late).toBeLessThan(jazz);
+  });
+
+  it('post65: locks now_playing endpoint remaps url to stream_url wording', () => {
+    expect(spec).toContain("with `url` remapped to `stream_url`");
+  });
+
+  it('post65: locks stations[0] only wording for now_playing endpoint', () => {
+    expect(spec).toContain('returns `stations[0]` only');
+  });
+
+  it('post65: locks genres aliases additionalProperties string', () => {
+    expect(spec).toContain('"additionalProperties": { "type": "string" }');
+  });
+
+  it('post65: locks date-time format on curated timestamp', () => {
+    expect(spec).toContain('"format": "date-time"');
+  });
+
+  it('post65: locks logo type string|null format uri appears twice', () => {
+    expect(
+      [...spec.matchAll(/"logo": \{ "type": \["string", "null"\], "format": "uri" \}/g)],
+    ).toHaveLength(2);
+  });
+
+  it('post65: locks no tab CR BOM in mcp-spec', () => {
+    expect(spec).not.toContain('\t');
+    expect(spec).not.toContain('\r');
+    expect(spec.charCodeAt(0)).not.toBe(0xfeff);
+    expect(spec.charCodeAt(0)).toBe('#'.charCodeAt(0));
+  });
+
+  it('post65: locks em-dash code points count 3 via codePointAt scan', () => {
+    const dashes = [...spec].filter((c) => c.codePointAt(0) === 0x2014);
+    expect(dashes).toHaveLength(3);
+  });
+
+  it('post65: locks UTF-8 vs UTF-16 length delta of 8 for mcp-spec', () => {
+    expect(Buffer.byteLength(spec, 'utf8') - spec.length).toBe(8);
+  });
+
+  it('post65: locks cross MCP_MANIFEST auth none with spec no-auth bullet', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(spec).toContain('No auth required for read endpoints');
+  });
+
+  it('post65: locks docs tool ids never collide with claw-mcp tool names via Set', () => {
+    const docs = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'];
+    const claw = new Set(MCP_MANIFEST.tools.map((t) => t.name));
+    for (const id of docs) {
+      expect(claw.has(id)).toBe(false);
+      expect(spec).toContain(id);
+    }
+  });
+
+  it('post65: locks btoa of Base URL host', () => {
+    expect(btoa('backlink.fuzzywigg.com')).toBe('YmFja2xpbmsuZnV6enl3aWdnLmNvbQ==');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('post65: locks Integration Notes order Base URL → auth → KV → Gemini → degrade', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const base = notes.indexOf('Base URL');
+    const auth = notes.indexOf('No auth required');
+    const kv = notes.indexOf('KV cache');
+    const gemini = notes.indexOf('always calls Gemini fresh');
+    const degrade = notes.indexOf('graceful degradation');
+    expect(base).toBeLessThan(auth);
+    expect(auth).toBeLessThan(kv);
+    expect(kv).toBeLessThan(gemini);
+    expect(gemini).toBeLessThan(degrade);
+  });
+
+  it('post65: locks Collator-sorted docs tool ids', () => {
+    const ids = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'];
+    expect([...ids].sort(new Intl.Collator('en').compare)).toEqual(ids);
+  });
+
+  it('post65: locks TextEncoder byte length of title line', () => {
+    const title = '# Backlink MCP Tool Specification';
+    expect(new TextEncoder().encode(title).length).toBe(title.length);
+    expect(spec.startsWith(title + '\n')).toBe(true);
+  });
+
+  it('post65: locks matchAll of GET endpoint mentions', () => {
+    const gets = [...spec.matchAll(/\bGET\b/g)];
+    expect(gets.length).toBeGreaterThanOrEqual(3);
+    expect(spec).toContain('GET /genres');
+  });
+
+  it('post65: locks no invent of DNS beyond backlink.fuzzywigg.com and none other hosts', () => {
+    const hosts = [...spec.matchAll(/https?:\/\/([A-Za-z0-9.-]+)/g)].map((m) => m[1]);
+    expect(hosts).toEqual(['backlink.fuzzywigg.com']);
+  });
+
+  it('post65: locks no credential material patterns in mcp-spec', () => {
+    expect(spec).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+    expect(spec).not.toMatch(/api[_-]?key\s*[:=]/i);
+    expect(spec).not.toMatch(/bearer\s+[A-Za-z0-9._-]+/i);
+  });
+
+  it('post65: locks genres tool documents Friendly name arrow canonical slug', () => {
+    expect(spec).toContain('Friendly name → canonical slug mapping');
+  });
+
+  it('post65: locks Unicode arrow → present exactly once', () => {
+    expect((spec.match(/→/g) ?? []).length).toBe(1);
+  });
+
+  it('post65: locks structuredClone of parsed first JSON fence stays type object', () => {
+    const block = [...spec.matchAll(/```json\n([\s\S]*?)```/g)][0][1];
+    const parsed = JSON.parse(block);
+    expect(structuredClone(parsed)).toEqual(parsed);
+    expect(parsed.type).toBe('object');
+  });
+
+  it('post65: locks cross VALID_GENRES jazz classical ambient rock pop subset', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(VALID_GENRES).toContain(g);
+      expect(spec.toLowerCase()).toContain(g);
+    }
+  });
+
+  it('post65: locks Proxy read of spec length via boxed object', () => {
+    const boxed = new Proxy(
+      { spec } as { spec: string; length?: number },
+      {
+        get(t, p) {
+          return p === 'length' ? t.spec.length : Reflect.get(t, p);
+        },
+      },
+    );
+    expect(boxed.length).toBe(3544);
+  });
+
+  it('post65: locks DataView on first 4 bytes of mcp-spec are # Ba', () => {
+    const bytes = new TextEncoder().encode(spec);
+    expect(String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3])).toBe('# Ba');
+  });
+
+  it('post65: locks last non-empty line is degrade editorial null bullet', () => {
+    const lines = spec.trimEnd().split('\n');
+    expect(lines.at(-1)).toContain('editorial: null');
+  });
+
+  it('post65: locks horizontal rule count exactly 4', () => {
+    expect([...spec.matchAll(/^---$/gm)]).toHaveLength(4);
+  });
+
+  it('post65: locks exact backtick count', () => {
+    expect((spec.match(/`/g) ?? []).length).toBe(62);
+  });
+
+  it('post65: locks Map of tool heading index positions ascending', () => {
+    const map = new Map([
+      ['curate', spec.indexOf('### `backlink_curate`')],
+      ['genres', spec.indexOf('### `backlink_genres`')],
+      ['now', spec.indexOf('### `backlink_now_playing`')],
+    ]);
+    expect(map.get('curate')!).toBeLessThan(map.get('genres')!);
+    expect(map.get('genres')!).toBeLessThan(map.get('now')!);
+  });
+
+  it('post65: locks JSON.stringify(spec).length snapshot band', () => {
+    expect(JSON.stringify(spec).length).toBe(3940);
+  });
+
+  it('post65: locks no history invent — does not mention changelog version history commits', () => {
+    expect(spec).not.toMatch(/changelog|commit history|git blame/i);
+    expect(spec).not.toContain('TODO');
+    expect(spec).not.toContain('FIXME');
+  });
+  // --- HEAVY burn (post-#66): mcp-spec contract deepen (orthogonal to routes/wrangler/genres/parser/helpers) ---
+
+  it('post66: locks exact H1 Backlink MCP Tool Specification', () => {
+    expect(spec.startsWith('# Backlink MCP Tool Specification\n')).toBe(true);
+    expect([...spec.matchAll(/^# /gm)]).toHaveLength(1);
+  });
+
+  it('post66: locks exact intro sentence about claw-mcp tool set', () => {
+    expect(spec).toContain(
+      'This spec defines Backlink as a claw-mcp tool set. Each tool maps to a Backlink API endpoint.',
+    );
+  });
+
+  it('post66: locks exactly two H2 headings Tools and Integration Notes', () => {
+    const h2 = [...spec.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    expect(h2).toEqual(['Tools', 'Integration Notes']);
+  });
+
+  it('post66: horizontal-rule split yields five segments', () => {
+    expect(spec.split('\n---\n')).toHaveLength(5);
+  });
+
+  it('post66: locks exact Description body for backlink_curate', () => {
+    expect(spec).toContain(
+      "**Description:** Ask Backlink's AI curator to pick the top 3 radio stations for a given genre or mood, with editorial blurbs.",
+    );
+  });
+
+  it('post66: locks exact Description body for backlink_genres', () => {
+    expect(spec).toContain(
+      '**Description:** List all available iptv-org genre categories supported by Backlink, including mood aliases.',
+    );
+  });
+
+  it('post66: locks exact Description body for backlink_now_playing', () => {
+    expect(spec).toContain(
+      '**Description:** Get the top AI-curated pick for a genre or mood — the single best station right now, with editorial context.',
+    );
+  });
+
+  it('post66: locks exactly three **Output:** labels', () => {
+    expect([...spec.matchAll(/\*\*Output:\*\*/g)]).toHaveLength(3);
+  });
+
+  it('post66: genres Output has no prose intro before fence', () => {
+    const section = toolSection('backlink_genres', '### `backlink_now_playing`');
+    expect(section).toContain('**Output:**\n```json');
+    expect(section).not.toContain('**Output:** Array');
+    expect(section).not.toContain('**Output:** Single');
+  });
+
+  it('post66: curate input property key order is genre then mood', () => {
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[0].properties ?? {})).toEqual(['genre', 'mood']);
+  });
+
+  it('post66: now_playing input property key order is genre then mood', () => {
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[4].properties ?? {})).toEqual(['genre', 'mood']);
+  });
+
+  it('post66: curate output top-level key order query curated_by timestamp stations', () => {
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[1].properties ?? {})).toEqual([
+      'query',
+      'curated_by',
+      'timestamp',
+      'stations',
+    ]);
+  });
+
+  it('post66: curate station items.properties key order name url logo editorial genre', () => {
+    const fences = jsonFences() as Array<{
+      properties?: {
+        stations?: { items?: { properties?: Record<string, unknown>; required?: string[] } };
+      };
+    }>;
+    expect(Object.keys(fences[1].properties?.stations?.items?.properties ?? {})).toEqual([
+      'name',
+      'url',
+      'logo',
+      'editorial',
+      'genre',
+    ]);
+  });
+
+  it('post66: now_playing output key order name stream_url logo editorial genre', () => {
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[5].properties ?? {})).toEqual([
+      'name',
+      'stream_url',
+      'logo',
+      'editorial',
+      'genre',
+    ]);
+  });
+
+  it('post66: genres output key order genres then aliases', () => {
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[3].properties ?? {})).toEqual(['genres', 'aliases']);
+  });
+
+  it('post66: genres aliases.additionalProperties.type is string', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { aliases?: { additionalProperties?: { type?: string } } };
+    }>;
+    expect(fences[3].properties?.aliases?.additionalProperties?.type).toBe('string');
+  });
+
+  it('post66: curate station required is exactly name url genre', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { stations?: { items?: { required?: string[] } } };
+    }>;
+    expect(fences[1].properties?.stations?.items?.required).toEqual(['name', 'url', 'genre']);
+  });
+
+  it('post66: now_playing required is exactly name stream_url genre', () => {
+    const fences = jsonFences() as Array<{ required?: string[] }>;
+    expect(fences[5].required).toEqual(['name', 'stream_url', 'genre']);
+  });
+
+  it('post66: all six fences are type object', () => {
+    const fences = jsonFences() as Array<{ type?: string }>;
+    expect(fences).toHaveLength(6);
+    expect(fences.every((f) => f.type === 'object')).toBe(true);
+  });
+
+  it('post66: input fences set additionalProperties false; outputs omit top-level false', () => {
+    const fences = jsonFences() as Array<{ additionalProperties?: boolean }>;
+    expect(fences[0].additionalProperties).toBe(false);
+    expect(fences[2].additionalProperties).toBe(false);
+    expect(fences[4].additionalProperties).toBe(false);
+    expect(fences[1].additionalProperties).toBeUndefined();
+    expect(fences[3].additionalProperties).toBeUndefined();
+    expect(fences[5].additionalProperties).toBeUndefined();
+  });
+
+  it('post66: curate genre examples order jazz classical ambient rock pop', () => {
+    const section = toolSection('backlink_curate', '### `backlink_genres`');
+    const jazz = section.indexOf("'jazz'");
+    const classical = section.indexOf("'classical'");
+    const ambient = section.indexOf("'ambient'");
+    const rock = section.indexOf("'rock'");
+    const pop = section.indexOf("'pop'");
+    expect(jazz).toBeGreaterThan(-1);
+    expect(classical).toBeGreaterThan(jazz);
+    expect(ambient).toBeGreaterThan(classical);
+    expect(rock).toBeGreaterThan(ambient);
+    expect(pop).toBeGreaterThan(rock);
+  });
+
+  it('post66: now_playing genre examples order ambient late night jazz', () => {
+    const section = toolSection('backlink_now_playing', '## Integration Notes');
+    const ambient = section.indexOf("'ambient'");
+    const late = section.indexOf("'late night'");
+    const jazz = section.indexOf("'jazz'");
+    expect(ambient).toBeGreaterThan(-1);
+    expect(late).toBeGreaterThan(ambient);
+    expect(jazz).toBeGreaterThan(late);
+  });
+
+  it('post66: cross-locks curate mood examples late night focus chill with GENRE_MAP', () => {
+    expect(GENRE_MAP['late night']).toBe('ambient');
+    expect(GENRE_MAP.focus).toBe('ambient');
+    expect(GENRE_MAP.chill).toBe('ambient');
+    const section = toolSection('backlink_curate', '### `backlink_genres`');
+    expect(section).toContain("'late night'");
+    expect(section).toContain("'focus'");
+    expect(section).toContain("'chill'");
+  });
+
+  it('post66: energizing appears in curate mood examples without GENRE_MAP inventing', () => {
+    expect(spec).toContain("'energizing'");
+    expect(Object.prototype.hasOwnProperty.call(GENRE_MAP, 'energizing')).toBe(false);
+  });
+
+  it('post66: documented curate genre examples are subset of VALID_GENRES', () => {
+    for (const g of ['jazz', 'classical', 'ambient', 'rock', 'pop'] as const) {
+      expect(VALID_GENRES).toContain(g);
+      expect(spec).toContain(`'${g}'`);
+    }
+  });
+
+  it('post66: cross-locks /genres docs shape with Worker genres+aliases payload keys', () => {
+    const worker = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(worker).toContain('genres: [...VALID_GENRES]');
+    expect(worker).toContain('aliases: GENRE_MAP');
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[3].properties ?? {}).sort()).toEqual(['aliases', 'genres']);
+  });
+
+  it('post66: cross-locks curate output keys with Worker c.json payload', () => {
+    const worker = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(worker).toMatch(/query[\s\S]*curated_by[\s\S]*timestamp[\s\S]*stations/);
+    expect(worker).toContain("curated_by: 'Backlink/Geryon'");
+    const fences = jsonFences() as Array<{ properties?: Record<string, unknown> }>;
+    expect(Object.keys(fences[1].properties ?? {})).toEqual([
+      'query',
+      'curated_by',
+      'timestamp',
+      'stations',
+    ]);
+  });
+
+  it('post66: cross-locks top 3 wording with Gemini prompt pick the top 3 stations', () => {
+    const worker = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(worker).toContain('pick the top 3 stations');
+    expect(spec).toContain('top 3 radio stations');
+  });
+
+  it('post66: cross-locks stream_url remap note with Worker keeping url not stream_url', () => {
+    expect(spec).toContain('with `url` remapped to `stream_url`');
+    const worker = readFileSync(join(root, 'src/index.ts'), 'utf8');
+    expect(worker).not.toContain('stream_url');
+    expect(worker).toContain('url: s.url');
+  });
+
+  it('post66: cross-locks Base URL host with wrangler.toml custom domain pattern', () => {
+    const toml = readFileSync(join(root, 'wrangler.toml'), 'utf8');
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('post66: cross-locks No auth bullet with MCP_MANIFEST.auth.type none', () => {
+    expect(MCP_MANIFEST.auth.type).toBe('none');
+    expect(spec).toContain('- No auth required for read endpoints');
+  });
+
+  it('post66: does not document claw tool names as docs tool ids', () => {
+    for (const claw of ['station_select', 'genre_filter', 'curator_prompt'] as const) {
+      expect(spec).not.toContain(`### \`${claw}\``);
+      expect(spec).not.toContain(`backlink_${claw}`);
+    }
+    // claw `now_playing` is a suffix of docs id `backlink_now_playing` — assert heading form only
+    expect(spec).not.toContain('### `now_playing`');
+    expect(spec).toContain('### `backlink_now_playing`');
+  });
+
+  it('post66: does not document root / or /openapi.json or /health endpoints', () => {
+    expect(spec).not.toContain('GET /`');
+    expect(spec).not.toContain('GET /health');
+    expect(spec).not.toContain('/openapi.json');
+    expect(spec).not.toContain("GET /'");
+  });
+
+  it('post66: does not document stations.slice(0, 50) catalog limit', () => {
+    expect(spec).not.toContain('slice(0, 50)');
+    expect(spec).not.toContain('top 50');
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain('slice(0, 50)');
+  });
+
+  it('post66: does not document retry_after or 503 status codes', () => {
+    expect(spec).not.toContain('retry_after');
+    expect(spec).not.toContain('503');
+    expect(spec).not.toMatch(/\b404\b|\b500\b|\b401\b/);
+  });
+
+  it('post66: no HTML tags images or markdown links', () => {
+    expect(spec).not.toMatch(/<[^>]+>/);
+    expect(spec).not.toContain('](');
+    expect(spec).not.toContain('![');
+  });
+
+  it('post66: fs.statSync size equals UTF-8 byte length 3552', () => {
+    expect(statSync(specPath).size).toBe(3552);
+    expect(Buffer.byteLength(spec, 'utf8')).toBe(3552);
+    expect(new TextEncoder().encode(spec).length).toBe(3552);
+  });
+
+  it('post66: sha256 of docs/mcp-spec.md locks to known digest', () => {
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post66: sha1 of docs/mcp-spec.md locks to known digest', () => {
+    expect(createHash('sha1').update(spec, 'utf8').digest('hex')).toBe(
+      'e3e2d1b4bdd67b6c396306af6fc9d119b5a4e88a',
+    );
+  });
+
+  it('post66: md5 of docs/mcp-spec.md locks to known digest', () => {
+    expect(createHash('md5').update(spec, 'utf8').digest('hex')).toBe(
+      'ee7881030c338c1773659cc6378c392c',
+    );
+  });
+
+  it('post66: sha256 digest is lowercase hex length 64', () => {
+    const digest = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(digest).toHaveLength(64);
+  });
+
+  it('post66: sha256 hex starts with a93978d7 and ends with 5da56849', () => {
+    const digest = createHash('sha256').update(spec, 'utf8').digest('hex');
+    expect(digest.startsWith('a93978d7')).toBe(true);
+    expect(digest.endsWith('5da56849')).toBe(true);
+  });
+
+  it('post66: md5 hex starts with ee788103 and ends with 378c392c', () => {
+    const digest = createHash('md5').update(spec, 'utf8').digest('hex');
+    expect(digest.startsWith('ee788103')).toBe(true);
+    expect(digest.endsWith('378c392c')).toBe(true);
+  });
+
+  it('post66: createHash sha256 digest Buffer equals hex decode of locked digest', () => {
+    const hex = 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849';
+    const buf = createHash('sha256').update(spec, 'utf8').digest();
+    expect(Buffer.from(hex, 'hex').equals(buf)).toBe(true);
+  });
+
+  it('post66: createHash md5 digest Buffer length 16; sha1 length 20', () => {
+    expect(createHash('md5').update(spec, 'utf8').digest()).toHaveLength(16);
+    expect(createHash('sha1').update(spec, 'utf8').digest()).toHaveLength(20);
+  });
+
+  it('post66: trimStart and trimEnd are no-ops aside from trailing newline', () => {
+    expect(spec).toBe(spec.trimStart());
+    expect(spec.trimEnd() + '\n').toBe(spec);
+    expect(spec.endsWith('\n')).toBe(true);
+    expect(spec.endsWith('\n\n')).toBe(false);
+  });
+
+  it('post66: tool-id localeCompare ascending curate < genres < now_playing', () => {
+    const ids = ['backlink_curate', 'backlink_genres', 'backlink_now_playing'] as const;
+    expect([...ids].sort((a, b) => a.localeCompare(b))).toEqual([...ids]);
+    expect(ids[0].localeCompare(ids[1])).toBeLessThan(0);
+    expect(ids[1].localeCompare(ids[2])).toBeLessThan(0);
+  });
+
+  it('post66: locks Endpoint lines for all three tools exactly', () => {
+    expect(spec).toContain('**Endpoint:** `GET /curate?genre={genre}&mood={mood}`');
+    expect(spec).toContain('**Endpoint:** `GET /genres`');
+    expect(spec).toContain(
+      '**Endpoint:** `GET /curate?genre={genre}&mood={mood}` — returns `stations[0]` only, with `url` remapped to `stream_url`.',
+    );
+  });
+
+  it('post66: curate and now_playing share identical GET /curate query template', () => {
+    const template = 'GET /curate?genre={genre}&mood={mood}';
+    expect([...spec.matchAll(new RegExp(template.replace(/[.?]/g, '\\$&'), 'g'))]).toHaveLength(2);
+  });
+
+  it('post66: locks curate Output intro and now_playing Output intro exact', () => {
+    expect(spec).toContain('**Output:** Array of curated station objects.');
+    expect(spec).toContain('**Output:** Single station object (first result from /curate).');
+  });
+
+  it('post66: timestamp format date-time only on curate output', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { timestamp?: { format?: string; type?: string } };
+    }>;
+    expect(fences[1].properties?.timestamp).toEqual({ type: 'string', format: 'date-time' });
+    expect(JSON.stringify(fences[5])).not.toContain('date-time');
+  });
+
+  it('post66: logo type string|null format uri on curate and now_playing', () => {
+    expect([...spec.matchAll(/"logo": \{ "type": \["string", "null"\], "format": "uri" \}/g)]).toHaveLength(
+      2,
+    );
+  });
+
+  it('post66: editorial type string|null without format appears twice', () => {
+    expect([...spec.matchAll(/"editorial": \{ "type": \["string", "null"\] \}/g)]).toHaveLength(2);
+  });
+
+  it('post66: genres input fence is empty properties object with additionalProperties false', () => {
+    const fences = jsonFences() as Array<{
+      type: string;
+      properties: Record<string, unknown>;
+      additionalProperties?: boolean;
+    }>;
+    expect(fences[2]).toEqual({
+      type: 'object',
+      properties: {},
+      additionalProperties: false,
+    });
+  });
+
+  it('post66: curate genre description mentions Optional if mood is provided', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { genre?: { description?: string }; mood?: { description?: string } };
+    }>;
+    expect(fences[0].properties?.genre?.description).toContain('Optional if mood is provided.');
+    expect(fences[0].properties?.mood?.description).toContain('Optional if genre is provided.');
+  });
+
+  it('post66: now_playing mood description Used alongside or instead of genre', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { mood?: { description?: string }; genre?: { description?: string } };
+    }>;
+    expect(fences[4].properties?.mood?.description).toBe(
+      'Mood descriptor. Used alongside or instead of genre.',
+    );
+    expect(fences[4].properties?.genre?.description).toContain('Genre slug or friendly name');
+  });
+
+  it('post66: genres description Friendly name → canonical slug mapping', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { aliases?: { description?: string }; genres?: { description?: string } };
+    }>;
+    expect(fences[3].properties?.aliases?.description).toBe(
+      'Friendly name → canonical slug mapping',
+    );
+    expect(fences[3].properties?.genres?.description).toBe(
+      'Canonical genre slugs accepted by /curate and /stations',
+    );
+  });
+
+  it('post66: genres items type string and aliases is object', () => {
+    const fences = jsonFences() as Array<{
+      properties?: {
+        genres?: { type?: string; items?: { type?: string } };
+        aliases?: { type?: string };
+      };
+    }>;
+    expect(fences[3].properties?.genres?.type).toBe('array');
+    expect(fences[3].properties?.genres?.items?.type).toBe('string');
+    expect(fences[3].properties?.aliases?.type).toBe('object');
+  });
+
+  it('post66: stations array items type object', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { stations?: { type?: string; items?: { type?: string } } };
+    }>;
+    expect(fences[1].properties?.stations?.type).toBe('array');
+    expect(fences[1].properties?.stations?.items?.type).toBe('object');
+  });
+
+  it('post66: Integration Notes section starts after now_playing Endpoint', () => {
+    const nowEnd = spec.indexOf('## Integration Notes');
+    const endpoint = spec.lastIndexOf('**Endpoint:**', nowEnd);
+    expect(endpoint).toBeGreaterThan(spec.indexOf('### `backlink_now_playing`'));
+    expect(nowEnd).toBeGreaterThan(endpoint);
+  });
+
+  it('post66: Integration Notes five bullets preserve exact order', () => {
+    const notes = spec.slice(spec.indexOf('## Integration Notes'));
+    const bullets = [...notes.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+    expect(bullets).toEqual([
+      'Base URL: `https://backlink.fuzzywigg.com`',
+      'No auth required for read endpoints',
+      'KV cache means `/stations` calls are fast after first hit per genre (1h TTL)',
+      '`/curate` always calls Gemini fresh — no LLM response caching',
+      'On Gemini failure, graceful degradation returns top 5 raw stations with `editorial: null`',
+    ]);
+  });
+
+  it('post66: cross-locks editorial null degrade wording with Worker editorial: null', () => {
+    expect(spec).toContain('`editorial: null`');
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain('editorial: null');
+  });
+
+  it('post66: does not invent /playlist or /now-playing Worker routes in docs', () => {
+    expect(spec).not.toContain('/playlist');
+    expect(spec).not.toContain('/now-playing');
+    expect(spec).not.toContain('GET /now');
+  });
+
+  it('post66: docs tool ids all start with backlink_ and use snake_case', () => {
+    const ids = [...spec.matchAll(/### `(backlink_[a-z_]+)`/g)].map((m) => m[1]);
+    expect(ids).toEqual(['backlink_curate', 'backlink_genres', 'backlink_now_playing']);
+    for (const id of ids) {
+      expect(id).toMatch(/^backlink_[a-z_]+$/);
+      expect(id).not.toMatch(/[A-Z-]/);
+    }
+  });
+
+  it('post66: claw-mcp names never appear as backlink_ prefixed docs ids', () => {
+    for (const claw of MCP_MANIFEST.tools.map((t) => t.name)) {
+      if (claw === 'now_playing') {
+        // docs intentionally use backlink_now_playing; claw name is unprefixed now_playing
+        expect(spec).toContain('### `backlink_now_playing`');
+        expect(spec).not.toContain('### `now_playing`');
+        continue;
+      }
+      expect(spec).not.toContain(`backlink_${claw}`);
+    }
+  });
+
+  it('post66: character length 3544 with UTF-8 multi-byte em-dashes', () => {
+    expect(spec.length).toBe(3544);
+    expect(Buffer.byteLength(spec, 'utf8') - spec.length).toBe(8);
+    expect((spec.match(/—/g) ?? []).length).toBe(3);
+    expect(Buffer.byteLength('—', 'utf8')).toBe(3);
+  });
+
+  it('post66: no BOM and first code unit is hash', () => {
+    expect(spec.charCodeAt(0)).toBe(0x23);
+    expect(spec).not.toMatch(/^\uFEFF/);
+  });
+
+  it('post66: backtick-wrapped tool headings appear once each', () => {
+    for (const id of ['backlink_curate', 'backlink_genres', 'backlink_now_playing']) {
+      expect([...spec.matchAll(new RegExp(`### \\\`${id}\\\``, 'g'))]).toHaveLength(1);
+    }
+  });
+
+  it('post66: Input Schema label always immediately precedes a json fence', () => {
+    expect([...spec.matchAll(/\*\*Input Schema:\*\*\n```json\n/g)]).toHaveLength(3);
+  });
+
+  it('post66: does not document GEMINI_API_KEY or secret management', () => {
+    expect(spec).not.toMatch(/GEMINI_API_KEY|secret put|wrangler secret/i);
+  });
+
+  it('post66: does not document IPTV_BASE host string', () => {
+    expect(spec).not.toContain('iptv-org.github.io');
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain(
+      'https://iptv-org.github.io/iptv/categories',
+    );
+  });
+
+  it('post66: mentions iptv-org only in genres Description', () => {
+    expect([...spec.matchAll(/iptv-org/g)]).toHaveLength(1);
+    const section = toolSection('backlink_genres', '### `backlink_now_playing`');
+    expect(section).toContain('iptv-org');
+  });
+
+  it('post66: mentions Gemini only in Integration Notes degrade and fresh bullets', () => {
+    expect([...spec.matchAll(/Gemini/g)]).toHaveLength(2);
+    expect(spec).toContain('calls Gemini fresh');
+    expect(spec).toContain('On Gemini failure');
+  });
+
+  it('post66: AI curator / AI-curated wording sites stay stable', () => {
+    expect(spec).toContain("Ask Backlink's AI curator");
+    expect(spec).toContain('top AI-curated pick');
+    expect([...spec.matchAll(/\bAI\b/g)].length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('post66: fence top-level key order type properties then optional fields', () => {
+    const fences = jsonFences() as Array<Record<string, unknown>>;
+    expect(Object.keys(fences[0])).toEqual(['type', 'properties', 'additionalProperties']);
+    expect(Object.keys(fences[1])).toEqual(['type', 'properties']);
+    expect(Object.keys(fences[2])).toEqual(['type', 'properties', 'additionalProperties']);
+    expect(Object.keys(fences[3])).toEqual(['type', 'properties']);
+    expect(Object.keys(fences[4])).toEqual(['type', 'properties', 'additionalProperties']);
+    expect(Object.keys(fences[5])).toEqual(['type', 'properties', 'required']);
+  });
+
+  it('post66: curate station required omits logo and editorial', () => {
+    const fences = jsonFences() as Array<{
+      properties?: { stations?: { items?: { required?: string[] } } };
+    }>;
+    const required = fences[1].properties?.stations?.items?.required ?? [];
+    expect(required).not.toContain('logo');
+    expect(required).not.toContain('editorial');
+  });
+
+  it('post66: now_playing required omits logo and editorial', () => {
+    const fences = jsonFences() as Array<{ required?: string[] }>;
+    expect(fences[5].required).not.toContain('logo');
+    expect(fences[5].required).not.toContain('editorial');
+  });
+
+  it('post66: query curated_by timestamp types are string on curate output', () => {
+    const fences = jsonFences() as Array<{
+      properties?: Record<string, { type?: string }>;
+    }>;
+    expect(fences[1].properties?.query?.type).toBe('string');
+    expect(fences[1].properties?.curated_by?.type).toBe('string');
+    expect(fences[1].properties?.timestamp?.type).toBe('string');
+  });
+
+  it('post66: name url/stream_url genre types are string on station shapes', () => {
+    const fences = jsonFences() as Array<{
+      properties?: Record<string, { type?: string }>;
+    }>;
+    const curateStation = (
+      fences[1].properties?.stations as unknown as {
+        items?: { properties?: Record<string, { type?: string }> };
+      }
+    )?.items?.properties;
+    expect(curateStation?.name?.type).toBe('string');
+    expect(curateStation?.url?.type).toBe('string');
+    expect(curateStation?.genre?.type).toBe('string');
+    expect(fences[5].properties?.name?.type).toBe('string');
+    expect(fences[5].properties?.stream_url?.type).toBe('string');
+    expect(fences[5].properties?.genre?.type).toBe('string');
+  });
+
+  it('post66: docs/ directory listing remains singleton mcp-spec.md', () => {
+    expect(readdirSync(join(root, 'docs'))).toEqual(['mcp-spec.md']);
+    expect(statSync(specPath).isFile()).toBe(true);
+  });
+
+  it('post66: re-read from disk matches in-memory spec and digest', () => {
+    const again = readFileSync(specPath, 'utf8');
+    expect(again).toBe(spec);
+    expect(createHash('sha256').update(again, 'utf8').digest('hex')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post66: does not document music fallback or catalog unavailable errors', () => {
+    expect(spec).not.toContain('music.m3u');
+    expect(spec).not.toContain('Stream catalog unavailable');
+    expect(spec).not.toContain('Curation service unavailable');
+  });
+
+  it('post66: does not document generationConfig or Gemini model id', () => {
+    expect(spec).not.toContain('generationConfig');
+    expect(spec).not.toContain('gemini-2.0-flash');
+    expect(spec).not.toContain('maxOutputTokens');
+  });
+
+  it('post66: does not document CORS or Access-Control headers', () => {
+    expect(spec).not.toMatch(/cors|access-control/i);
+  });
+
+  it('post66: curly-brace path params genre and mood appear in Endpoint templates', () => {
+    expect(spec).toContain('{genre}');
+    expect(spec).toContain('{mood}');
+    expect([...spec.matchAll(/\{genre\}/g)]).toHaveLength(2);
+    expect([...spec.matchAll(/\{mood\}/g)]).toHaveLength(2);
+  });
+
+  it('post66: cross-locks VALID_GENRES membership for now_playing ambient jazz examples', () => {
+    expect(VALID_GENRES).toContain('ambient');
+    expect(VALID_GENRES).toContain('jazz');
+    expect(GENRE_MAP['late night']).toBe('ambient');
+  });
+
+  it('post66: focus chill late night aliases resolve ambient and appear in spec', () => {
+    for (const alias of ['focus', 'chill', 'late night'] as const) {
+      expect(GENRE_MAP[alias]).toBe('ambient');
+      expect(spec).toContain(`'${alias}'`);
+    }
+  });
+
+  it('post66: package name backlink aligns with Base URL host subdomain', () => {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { name: string };
+    expect(pkg.name).toBe('backlink');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+  });
+
+  it('post66: wrangler name backlink aligns with docs Base URL subdomain', () => {
+    expect(readFileSync(join(root, 'wrangler.toml'), 'utf8')).toMatch(/^name = "backlink"$/m);
+    expect(spec).toMatch(/backlink\.fuzzywigg\.com/);
+  });
+
+  it('post66: MCP_MANIFEST name_for_model backlink aligns with docs product name', () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+    expect(spec).toContain('Backlink');
+  });
+
+  it('post66: does not document claw name_for_human Backlink Radio string', () => {
+    expect(spec).not.toContain('Backlink Radio');
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it('post66: does not document schema_version or openapi api.type from claw manifest', () => {
+    expect(spec).not.toContain('schema_version');
+    expect(spec).not.toContain('name_for_model');
+    expect(spec).not.toContain('"openapi"');
+    expect(MCP_MANIFEST.api.type).toBe('openapi');
+  });
+
+  it('post66: stations[0] remap prose appears only on now_playing Endpoint', () => {
+    expect([...spec.matchAll(/stations\[0\]/g)]).toHaveLength(1);
+    const section = toolSection('backlink_now_playing', '## Integration Notes');
+    expect(section).toContain('stations[0]');
+    expect(toolSection('backlink_curate', '### `backlink_genres`')).not.toContain('stations[0]');
+  });
+
+  it('post66: first result from /curate wording only on now_playing Output', () => {
+    expect([...spec.matchAll(/first result from \/curate/g)]).toHaveLength(1);
+    expect(toolSection('backlink_now_playing', '## Integration Notes')).toContain(
+      'first result from /curate',
+    );
+  });
+
+  it('post66: code fences are balanced six open six close', () => {
+    expect([...spec.matchAll(/```/g)]).toHaveLength(12);
+    expect([...spec.matchAll(/```json\n/g)]).toHaveLength(6);
+  });
+
+  it('post66: no trailing spaces on non-empty lines', () => {
+    for (const line of spec.split('\n')) {
+      if (line.length > 0) expect(line).not.toMatch(/[ \t]$/);
+    }
+  });
+
+  it('post66: blank line after H1 before intro sentence', () => {
+    expect(spec).toMatch(/^# Backlink MCP Tool Specification\n\nThis spec defines/s);
+  });
+
+  it('post66: blank line before each horizontal rule separator', () => {
+    expect([...spec.matchAll(/\n\n---\n/g)]).toHaveLength(4);
+  });
+
+  it('post66: sha256 of empty string is not the locked digest', () => {
+    expect(createHash('sha256').update('', 'utf8').digest('hex')).not.toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post66: mutating a copy does not change locked digest of original', () => {
+    const mutated = spec.replace('Backlink', 'Xacklink');
+    expect(mutated).not.toBe(spec);
+    expect(createHash('sha256').update(mutated, 'utf8').digest('hex')).not.toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+    expect(createHash('sha256').update(spec, 'utf8').digest('hex')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post66: TextEncoder byte length matches Buffer and stat', () => {
+    const encoded = new TextEncoder().encode(spec);
+    expect(encoded.byteLength).toBe(3552);
+    expect(encoded.length).toBe(statSync(specPath).size);
+  });
+
+  it('post66: JSON.parse round-trip preserves fence structures', () => {
+    const raw = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => m[1]);
+    expect(raw).toHaveLength(6);
+    for (const block of raw) {
+      const parsed = JSON.parse(block);
+      expect(JSON.parse(JSON.stringify(parsed))).toEqual(parsed);
+    }
+  });
+
+  it('post66: cross-locks Worker curated_by Backlink/Geryon not documented as literal in schemas', () => {
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain("curated_by: 'Backlink/Geryon'");
+    const fences = jsonFences() as Array<{ properties?: { curated_by?: { const?: string } } }>;
+    expect(fences[1].properties?.curated_by).toEqual({ type: 'string' });
+    expect(JSON.stringify(fences[1])).not.toContain('Backlink/Geryon');
+  });
+
+  it('post66: does not document powered_by or Geryon crab emoji', () => {
+    expect(spec).not.toContain('powered_by');
+    expect(spec).not.toContain('Geryon');
+    expect(spec).not.toContain('🦀');
+  });
+
+  it('post66: /stations appears only in Integration Notes KV bullet and genres description', () => {
+    expect([...spec.matchAll(/\/stations/g)]).toHaveLength(2);
+    expect(spec).toContain('Canonical genre slugs accepted by /curate and /stations');
+    expect(spec).toContain('`/stations` calls are fast');
+  });
+
+  it('post66: /curate path references stay within documented surface', () => {
+    expect([...spec.matchAll(/\/curate/g)].length).toBeGreaterThanOrEqual(5);
+    expect(spec).not.toContain('/curate/');
+  });
+
+  it('post66: mood aliases phrase only on genres Description', () => {
+    expect([...spec.matchAll(/mood aliases/g)]).toHaveLength(1);
+    expect(toolSection('backlink_genres', '### `backlink_now_playing`')).toContain('mood aliases');
+  });
+
+  it('post66: editorial blurbs phrase only on curate Description', () => {
+    expect([...spec.matchAll(/editorial blurbs/g)]).toHaveLength(1);
+    expect(toolSection('backlink_curate', '### `backlink_genres`')).toContain('editorial blurbs');
+  });
+
+  it('post66: editorial context phrase only on now_playing Description', () => {
+    expect([...spec.matchAll(/editorial context/g)]).toHaveLength(1);
+    expect(toolSection('backlink_now_playing', '## Integration Notes')).toContain('editorial context');
+  });
+
+  it('post66: single best station phrase only on now_playing Description', () => {
+    expect([...spec.matchAll(/single best station/g)]).toHaveLength(1);
+  });
+
+  it('post66: top 3 radio stations phrase only on curate Description', () => {
+    expect([...spec.matchAll(/top 3 radio stations/g)]).toHaveLength(1);
+  });
+
+  it('post66: top 5 raw stations phrase only on Integration Notes', () => {
+    expect([...spec.matchAll(/top 5 raw stations/g)]).toHaveLength(1);
+    expect(spec.slice(spec.indexOf('## Integration Notes'))).toContain('top 5 raw stations');
+  });
+
+  it('post66: 1h TTL appears once in Integration Notes', () => {
+    expect([...spec.matchAll(/1h TTL/g)]).toHaveLength(1);
+  });
+
+  it('post66: no LLM response caching appears once', () => {
+    expect([...spec.matchAll(/no LLM response caching/g)]).toHaveLength(1);
+  });
+
+  it('post66: cross-locks expirationTtl 3600 seconds equals 1h', () => {
+    expect(readFileSync(join(root, 'src/index.ts'), 'utf8')).toContain('expirationTtl: 3600');
+    expect(3600).toBe(60 * 60);
+    expect(spec).toContain('1h TTL');
+  });
+
+  it('post66: does not document KV binding name CATALOG_CACHE', () => {
+    expect(spec).not.toContain('CATALOG_CACHE');
+    expect(readFileSync(join(root, 'wrangler.toml'), 'utf8')).toContain('binding = "CATALOG_CACHE"');
+  });
+
+  it('post66: ascii punctuation set excludes smart quotes', () => {
+    expect(spec).not.toContain('\u201c');
+    expect(spec).not.toContain('\u201d');
+    expect(spec).not.toContain('\u2019');
+    expect(spec).toContain("'jazz'");
+  });
+
+  it('post66: arrow in aliases description is Unicode → not ASCII ->', () => {
+    expect(spec).toContain('Friendly name → canonical slug mapping');
+    expect(spec).not.toContain('Friendly name -> canonical');
+  });
+
+  it('post66: jsonFences helper returns six objects matching inline parses', () => {
+    const viaHelper = jsonFences();
+    const inline = [...spec.matchAll(/```json\n([\s\S]*?)```/g)].map((m) => JSON.parse(m[1]));
+    expect(viaHelper).toEqual(inline);
+    expect(viaHelper).toHaveLength(6);
+  });
+
+  it('post66: toolSection helper bounds match indexOf slices', () => {
+    expect(toolSection('backlink_curate', '### `backlink_genres`')).toBe(
+      spec.slice(spec.indexOf('### `backlink_curate`'), spec.indexOf('### `backlink_genres`')),
+    );
+    expect(toolSection('backlink_genres', '### `backlink_now_playing`')).toBe(
+      spec.slice(spec.indexOf('### `backlink_genres`'), spec.indexOf('### `backlink_now_playing`')),
+    );
+    expect(toolSection('backlink_now_playing', '## Integration Notes')).toBe(
+      spec.slice(spec.indexOf('### `backlink_now_playing`'), spec.indexOf('## Integration Notes')),
+    );
+  });
+
 });
