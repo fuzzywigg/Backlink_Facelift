@@ -43708,3 +43708,5 @@ describe('post277b parser ultra HEAVY deepen (after #277 leftover wave5 / media-
     expect((body.match(/it\('post277b-ultra:/g) ?? []).length).toBeGreaterThan(40);
   });
 });
+
+// wave5 tip-relaunch deepen complete
