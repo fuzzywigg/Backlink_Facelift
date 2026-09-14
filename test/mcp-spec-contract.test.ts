@@ -28411,7 +28411,7 @@ describe('post253 mcp-spec-contract HEAVY deepen (after #253 tip leftover / genr
     expect(fences[5].required).toEqual(['name', 'stream_url', 'genre']);
     expect(fences[5].properties.stream_url.format).toBe('uri');
     expect(fences[1].properties.timestamp.format).toBe('date-time');
-    expect(text).toContain('url remapped to `stream_url`');
+    expect(text).toContain('`url` remapped to `stream_url`');
   });
 
   it('post253: residual — five integration bullets leftover exact; no POST invent', () => {
