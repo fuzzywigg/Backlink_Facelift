@@ -2477,4 +2477,1304 @@ describe('source ↔ product contracts', () => {
     expect(index).toContain('User request: ${query}');
     expect(index).toContain('Available stations:\\n${stationList}');
   });
+
+  // --- HEAVY burn (post-#66): source ↔ product contract deepen ---
+  // Orthogonal to routes (#66), wrangler (#65), genres (#63), parser (#60), helpers (#58).
+  // Tests-only. No product inventing.
+
+  it('post66: locks AGENTS.md Classification Tier A Active Strategic', () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toMatch(/## Classification/);
+    expect(agents).toContain('Tier: A (Active Strategic — Andrew flagged HIGH PRIORITY)');
+  });
+
+  it('post66: locks AGENTS.md Autonomy L2 Standard non-critical infra', () => {
+    expect(read('AGENTS.md')).toContain('Autonomy: L2 (Standard — non-critical infra)');
+  });
+
+  it('post66: locks AGENTS.md parent_governance fuzzywigg/agents-governance', () => {
+    expect(read('AGENTS.md')).toContain(
+      'parent_governance: github.com/fuzzywigg/agents-governance',
+    );
+  });
+
+  it('post66: locks AGENTS.md Purpose domain target backlink.fuzzywigg.com', () => {
+    const agents = read('AGENTS.md');
+    const purpose = agents.slice(agents.indexOf('## Purpose'), agents.indexOf('## Safe Agent Actions'));
+    expect(purpose).toMatch(/LLM-curated internet radio on CF Workers/);
+    expect(purpose).toContain('Domain target: backlink.fuzzywigg.com');
+  });
+
+  it('post66: locks AGENTS.md title Backlink_Facelift', () => {
+    expect(read('AGENTS.md')).toMatch(/^# AGENTS\.md — Backlink_Facelift/m);
+  });
+
+  it('post66: locks AGENTS Escalate GEMINI_API_KEY and secret management', () => {
+    const escalate = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/GEMINI_API_KEY handling or any secret management/);
+  });
+
+  it('post66: locks AGENTS Escalate Production deploy first deploy HITL', () => {
+    const escalate = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/Production deploy \(first deploy must be HITL\)/);
+  });
+
+  it('post66: locks AGENTS Escalate external data sources beyond iptv-org', () => {
+    const escalate = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/beyond iptv-org/);
+  });
+
+  it('post66: locks AGENTS Escalate CORS or authentication logic', () => {
+    const escalate = read('AGENTS.md').slice(read('AGENTS.md').indexOf('## Escalate to Human'));
+    expect(escalate).toMatch(/CORS or authentication logic/);
+  });
+
+  it('post66: locks AGENTS Safe Actions include parser.ts and test/ extends', () => {
+    const safe = read('AGENTS.md').slice(
+      read('AGENTS.md').indexOf('## Safe Agent Actions'),
+      read('AGENTS.md').indexOf('## Verify'),
+    );
+    expect(safe).toMatch(/Improve M3U parser in `src\/parser\.ts`/);
+    expect(safe).toMatch(/Add \/ extend unit tests under `test\/`/);
+    expect(safe).toMatch(/Bump dependency versions/);
+  });
+
+  it('post66: cross-locks AGENTS Verify scripts with package.json scripts', () => {
+    const agents = read('AGENTS.md');
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    const verify = agents.slice(agents.indexOf('## Verify'), agents.indexOf('## Escalate to Human'));
+    expect(verify).toContain('npm ci');
+    expect(verify).toContain('npm run typecheck');
+    expect(verify).toContain('npm test');
+    expect(verify).toContain('npm run test:coverage');
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post66: locks DEPLOY.md Prerequisites Gemini API key and Node 18+', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/## Prerequisites/);
+    expect(deploy).toContain('Gemini API key');
+    expect(deploy).toContain('Node.js 18+');
+    expect(deploy).toContain('Cloudflare account with Workers enabled');
+  });
+
+  it('post66: locks DEPLOY.md custom domain backlink.fuzzywigg.com steps', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/Add custom domain/);
+    expect(deploy).toContain('backlink.fuzzywigg.com');
+    expect(deploy).toMatch(/fuzzywigg\.com`? is on Cloudflare DNS/);
+  });
+
+  it('post66: locks DEPLOY.md KV create CATALOG_CACHE and placeholder id', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toContain('wrangler kv namespace create CATALOG_CACHE');
+    expect(deploy).toContain('your-kv-id-here');
+    expect(deploy).toContain('binding = "CATALOG_CACHE"');
+  });
+
+  it('post66: locks DEPLOY.md Cost Estimate Workers free tier 100k requests', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/## Cost Estimate/);
+    expect(deploy).toMatch(/100,000 requests\/day/);
+    expect(deploy).toMatch(/CF KV/);
+  });
+
+  it('post66: locks DEPLOY.md Gemini 2.0 Flash token pricing bullets', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/Gemini 2\.0 Flash/);
+    expect(deploy).toMatch(/\$0\.25\/1M input tokens/);
+    expect(deploy).toMatch(/\$1\.25\/1M output tokens/);
+    expect(deploy).toMatch(/\$0\.75 per 1,000 curation requests/);
+  });
+
+  it('post66: locks DEPLOY.md Local dev wrangler on localhost:8787', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/## Local dev/);
+    expect(deploy).toContain('npm run dev');
+    expect(deploy).toContain('http://localhost:8787');
+  });
+
+  it('post66: locks DEPLOY.md HITL Andrew first production deploy', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/## HITL Required/);
+    expect(deploy).toMatch(/First production deploy must be reviewed by Andrew/);
+  });
+
+  it('post66: cross-locks DEPLOY Gemini model with Worker gemini-2.0-flash', () => {
+    expect(read('DEPLOY.md')).toMatch(/Gemini 2\.0 Flash/);
+    expect(read('src/index.ts')).toContain('gemini-2.0-flash');
+  });
+
+  it('post66: locks README CI badge points at ci.yml workflow', () => {
+    const readme = read('README.md');
+    expect(readme).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml/badge.svg',
+    );
+    expect(readme).toContain(
+      'https://github.com/fuzzywigg/Backlink_Facelift/actions/workflows/ci.yml',
+    );
+  });
+
+  it('post66: locks README live worker URL https://backlink.fuzzywigg.com', () => {
+    expect(read('README.md')).toContain('https://backlink.fuzzywigg.com');
+    expect(read('README.md')).not.toMatch(/workers\.dev/);
+  });
+
+  it('post66: locks README JSON API over iptv-org blockquote positioning', () => {
+    expect(read('README.md')).toMatch(/JSON API over iptv-org category M3Us/);
+  });
+
+  it('post66: locks README live caveat catalog is IPTV video not internet radio', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/Catalog is IPTV \*video\* channels, not internet radio/);
+    expect(readme).toMatch(/editorial: null/);
+  });
+
+  it('post66: locks README real matching categories music news sports entertainment', () => {
+    expect(read('README.md')).toContain(
+      'Real matching categories today: `music`, `news`, `sports`, `entertainment`.',
+    );
+  });
+
+  it('post66: locks README Cloud agents bootstrap npm ci only no secrets', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/## Cloud agents/);
+    expect(readme).toMatch(/`npm ci` only; no secrets in the file/);
+    expect(readme).toContain('.cursor/environment.json');
+  });
+
+  it('post66: locks README Coverage floors stay at 100% all four metrics', () => {
+    expect(read('README.md')).toMatch(
+      /Coverage floors stay at \*\*100%\*\* statements\/branches\/functions\/lines/,
+    );
+  });
+
+  it('post66: locks README CI pins Node 20 and persist-credentials false', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/CI pins Node 20/);
+    expect(readme).toMatch(/disables checkout credentials persistence/);
+    expect(readme).toMatch(/asserts `coverage\/lcov\.info` exists/);
+  });
+
+  it('post66: cross-locks README coverage floors with vitest thresholds 100', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toMatch(/lines:\s*100/);
+    expect(vitest).toMatch(/functions:\s*100/);
+    expect(vitest).toMatch(/branches:\s*100/);
+    expect(vitest).toMatch(/statements:\s*100/);
+    expect(read('README.md')).toMatch(/100%/);
+  });
+
+  it('post66: locks README Stack Cloudflare Workers Hono iptv-org Gemini KV', () => {
+    const stack = read('README.md').slice(read('README.md').indexOf('## Stack'));
+    expect(stack).toMatch(/Cloudflare Workers/);
+    expect(stack).toMatch(/Hono/);
+    expect(stack).toMatch(/iptv-org/);
+    expect(stack).toMatch(/Gemini 2\.0 Flash/);
+    expect(stack).toMatch(/CF KV/);
+    expect(stack).toMatch(/1h TTL/);
+  });
+
+  it('post66: locks README Example Response curated_by Backlink/Geryon', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/## Example Response/);
+    expect(readme).toContain('"curated_by": "Backlink/Geryon"');
+    expect(readme).toContain('"editorial": "Deep, textural ambient');
+  });
+
+  it('post66: locks README API /health example version 0.1.0', () => {
+    expect(read('README.md')).toContain('→ { ok: true, version: "0.1.0" }');
+  });
+
+  it('post66: locks README Part of smtp.eth ecosystem Andrew link', () => {
+    const readme = read('README.md');
+    expect(readme).toMatch(/## Part of the smtp\.eth ecosystem/);
+    expect(readme).toContain('[Andrew Pappas](https://fuzzywigg.com)');
+  });
+
+  it('post66: cross-locks domain across README DEPLOY AGENTS wrangler mcp-spec', () => {
+    const domain = 'backlink.fuzzywigg.com';
+    expect(read('README.md')).toContain(domain);
+    expect(read('DEPLOY.md')).toContain(domain);
+    expect(read('AGENTS.md')).toContain(domain);
+    expect(read('wrangler.toml')).toContain(domain);
+    expect(read('docs/mcp-spec.md')).toContain(`https://${domain}`);
+  });
+
+  it('post66: locks callGemini stationList map template with group language defaults', () => {
+    expect(read('src/index.ts')).toContain(
+      "${i + 1}. ${s.name} (${s.group ?? genre}) [${s.language ?? 'en'}] — ${s.url}",
+    );
+  });
+
+  it('post66: locks callGemini persona You are Backlink an AI radio curator', () => {
+    expect(read('src/index.ts')).toContain(
+      'You are Backlink, an AI radio curator. Given this list of radio stations and the user\'s request, pick the top 3 stations',
+    );
+  });
+
+  it('post66: locks callGemini editorial blurb 1-2 sentences max instruction', () => {
+    expect(read('src/index.ts')).toContain(
+      'with a short editorial blurb (1-2 sentences max)',
+    );
+  });
+
+  it('post66: locks callGemini Be specific about what makes each station right for the mood', () => {
+    expect(read('src/index.ts')).toContain(
+      'Be specific about what makes each station right for the mood',
+    );
+  });
+
+  it('post66: locks callGemini Return JSON only schema keys name url logo editorial genre', () => {
+    expect(read('src/index.ts')).toContain(
+      'Return JSON only: [{"name": "...", "url": "...", "logo": "...", "editorial": "...", "genre": "..."}]',
+    );
+  });
+
+  it('post66: locks Gemini fetch URL template generateContent key query param', () => {
+    expect(read('src/index.ts')).toContain(
+      '`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`',
+    );
+  });
+
+  it('post66: locks Gemini POST headers content-type application/json', () => {
+    expect(read('src/index.ts')).toContain("headers: { 'content-type': 'application/json' }");
+    expect(read('src/index.ts')).toContain("method: 'POST'");
+  });
+
+  it('post66: locks Gemini body contents single parts text prompt', () => {
+    expect(read('src/index.ts')).toContain(
+      'contents: [{ parts: [{ text: prompt }] }]',
+    );
+  });
+
+  it('post66: locks Gemini generationConfig object inline maxOutputTokens temperature', () => {
+    expect(read('src/index.ts')).toContain(
+      'generationConfig: { maxOutputTokens: 512, temperature: 0.7 }',
+    );
+  });
+
+  it('post66: locks Gemini error throw uses resp.status interpolation', () => {
+    expect(read('src/index.ts')).toContain('`Gemini API error: ${resp.status}`');
+  });
+
+  it('post66: locks Invalid JSON from Gemini exact throw string', () => {
+    expect(read('src/index.ts')).toContain("throw new Error('Invalid JSON from Gemini')");
+  });
+
+  it('post66: locks candidates[0] optional chain with empty string coalesce', () => {
+    expect(read('src/index.ts')).toContain(
+      "const text = data.candidates[0]?.content?.parts[0]?.text ?? ''",
+    );
+  });
+
+  it('post66: locks IPTV_BASE const and category url template', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain(
+      "const IPTV_BASE = 'https://iptv-org.github.io/iptv/categories'",
+    );
+    expect(index).toContain('const url = `${IPTV_BASE}/${genre}.m3u`');
+  });
+
+  it('post66: locks fetchStations cacheKey stations colon genre template', () => {
+    expect(read('src/index.ts')).toContain('const cacheKey = `stations:${genre}`');
+  });
+
+  it('post66: locks fetchStations KV get then JSON.parse as Station array', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('const cached = await kv.get(cacheKey)');
+    expect(index).toContain('if (cached) return JSON.parse(cached) as Station[]');
+  });
+
+  it('post66: locks fetchStations kv.put JSON.stringify with expirationTtl 3600', () => {
+    expect(read('src/index.ts')).toContain(
+      'await kv.put(cacheKey, JSON.stringify(stations), { expirationTtl: 3600 })',
+    );
+  });
+
+  it('post66: locks Stream catalog unavailable throw when music fallback fails', () => {
+    expect(read('src/index.ts')).toContain("throw new Error('Stream catalog unavailable')");
+  });
+
+  it('post66: locks Fallback to music.m3u comment adjacent to fallback fetch', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('// Fallback to music.m3u');
+    expect(index).toContain('res = await fetch(`${IPTV_BASE}/music.m3u`)');
+  });
+
+  it('post66: locks / response name Backlink and powered_by crab branding', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("name: 'Backlink'");
+    expect(index).toContain("powered_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('post66: locks / endpoints map four keys with exact help strings', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("'/curate': 'GET ?genre=&mood= — AI-curated station picks'");
+    expect(index).toContain("'/stations': 'GET ?genre= — Raw station list'");
+    expect(index).toContain("'/genres': 'GET — Available genre categories'");
+    expect(index).toContain("'/health': 'GET — Health check'");
+  });
+
+  it('post66: locks /health ok true and VERSION fallback 0.1.0', () => {
+    expect(read('src/index.ts')).toContain(
+      "return c.json({ ok: true, version: c.env.VERSION ?? '0.1.0' })",
+    );
+  });
+
+  it('post66: locks /genres spreads VALID_GENRES and aliases GENRE_MAP', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('genres: [...VALID_GENRES]');
+    expect(index).toContain('aliases: GENRE_MAP');
+  });
+
+  it('post66: locks /stations response genre count stations keys', () => {
+    expect(read('src/index.ts')).toContain(
+      'return c.json({ genre, count: stations.length, stations })',
+    );
+  });
+
+  it('post66: locks /stations and /curate catalog 503 payload identical', () => {
+    const index = read('src/index.ts');
+    const payload = "{ error: 'Stream catalog unavailable', retry_after: 60 }, 503";
+    expect((index.match(new RegExp(payload.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks /curate key-missing 503 Curation service unavailable', () => {
+    expect(read('src/index.ts')).toContain(
+      "return c.json({ error: 'Curation service unavailable', retry_after: 60 }, 503)",
+    );
+  });
+
+  it('post66: locks /curate query join mood genreParam space fallback genre', () => {
+    expect(read('src/index.ts')).toContain(
+      "const query = [mood, genreParam].filter(Boolean).join(' ') || genre",
+    );
+  });
+
+  it('post66: locks /curate response curated_by without crab emoji', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("curated_by: 'Backlink/Geryon'");
+    expect(index).toContain("powered_by: 'Backlink/Geryon 🦀'");
+    expect(index).not.toContain("curated_by: 'Backlink/Geryon 🦀'");
+  });
+
+  it('post66: locks /curate timestamp via new Date().toISOString()', () => {
+    expect(read('src/index.ts')).toContain('timestamp: new Date().toISOString()');
+  });
+
+  it('post66: locks degrade map fields name url logo editorial null genre', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/editorial:\s*null/);
+    expect(index).toContain('// Graceful degradation: return top 5 without editorial');
+    expect(index).toMatch(/stations\.slice\(0,\s*5\)\.map\(\(s\) => \(\{/);
+  });
+
+  it('post66: locks helper declaration order fetchStations then callGemini then app', () => {
+    const index = read('src/index.ts');
+    const fetchIdx = index.indexOf('async function fetchStations');
+    const geminiIdx = index.indexOf('async function callGemini');
+    const appIdx = index.indexOf("const app = new Hono<{ Bindings: Env }>()");
+    expect(fetchIdx).toBeGreaterThan(-1);
+    expect(geminiIdx).toBeGreaterThan(fetchIdx);
+    expect(appIdx).toBeGreaterThan(geminiIdx);
+  });
+
+  it('post66: locks route registration after cors middleware', () => {
+    const index = read('src/index.ts');
+    const corsIdx = index.indexOf("app.use('*', cors())");
+    const rootIdx = index.indexOf("app.get('/',");
+    expect(corsIdx).toBeGreaterThan(-1);
+    expect(rootIdx).toBeGreaterThan(corsIdx);
+  });
+
+  it('post66: locks exactly one export default app and no named exports in index', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/^export default app/gm)]).toHaveLength(1);
+    expect(index).not.toMatch(/^export \{/m);
+    expect(index).not.toMatch(/^export const /m);
+    expect(index).not.toMatch(/^export function /m);
+  });
+
+  it('post66: locks index import order Hono cors genres parser types', () => {
+    const index = read('src/index.ts');
+    const hono = index.indexOf("import { Hono } from 'hono'");
+    const cors = index.indexOf("import { cors } from 'hono/cors'");
+    const genres = index.indexOf("import { GENRE_MAP, VALID_GENRES, resolveGenre } from './genres'");
+    const parser = index.indexOf("import { parseM3U, Station } from './parser'");
+    const types = index.indexOf("import { Env } from './types'");
+    expect(hono).toBeLessThan(cors);
+    expect(cors).toBeLessThan(genres);
+    expect(genres).toBeLessThan(parser);
+    expect(parser).toBeLessThan(types);
+  });
+
+  it('post66: locks index free of mcp import and MCP_MANIFEST identifier', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/from ['"]\.\/mcp['"]/);
+    expect(index).not.toContain('MCP_MANIFEST');
+  });
+
+  it('post66: locks index free of process.env Deno Bun Node APIs', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/process\.env/);
+    expect(index).not.toMatch(/\bDeno\b|\bBun\b/);
+    expect(index).not.toMatch(/node:fs|node:path/);
+  });
+
+  it('post66: locks index free of Anthropic OpenAI Claude Haiku strings', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/anthropic|openai|claude|haiku|gpt-4/i);
+  });
+
+  it('post66: locks index line count 154 with trailing newline (153 content lines)', () => {
+    expect(read('src/index.ts').split('\n').length).toBe(154);
+  });
+
+  it('post66: locks parser line count 67 with trailing newline (66 content lines)', () => {
+    expect(read('src/parser.ts').split('\n').length).toBe(67);
+  });
+
+  it('post66: locks genres line count 48 with trailing newline (47 content lines)', () => {
+    expect(read('src/genres.ts').split('\n').length).toBe(48);
+  });
+
+  it('post66: locks mcp line count 68 with trailing newline (67 content lines)', () => {
+    expect(read('src/mcp.ts').split('\n').length).toBe(68);
+  });
+
+  it('post66: locks types line count 7 with trailing newline (6 content lines)', () => {
+    expect(read('src/types.ts').split('\n').length).toBe(7);
+  });
+
+  it('post66: locks parser rtmp non-http skip comment', () => {
+    expect(read('src/parser.ts')).toContain(
+      '// Non-http URL (rtmp://, etc.) — skip but reset current',
+    );
+  });
+
+  it('post66: locks parser EXTINF startsWith and current reset Partial Station', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain("if (line.startsWith('#EXTINF'))");
+    expect(parser).toContain('let current: Partial<Station> = {}');
+    expect(parser).toContain('current = {}');
+  });
+
+  it('post66: locks parser Extract tvg-name logo group language country comments', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toContain('// Extract tvg-name');
+    expect(parser).toContain('// Extract tvg-logo');
+    expect(parser).toContain('// Extract group-title');
+    expect(parser).toContain('// Extract tvg-language');
+    expect(parser).toContain('// Extract tvg-country');
+  });
+
+  it('post66: locks parser Fallback name comment after last comma', () => {
+    expect(read('src/parser.ts')).toContain(
+      '// Fallback name from the end of the #EXTINF line (after last comma)',
+    );
+  });
+
+  it('post66: locks parser push object field order name url logo group language country', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).toMatch(
+      /stations\.push\(\{\s*name: current\.name,\s*url: line,\s*logo: current\.logo,\s*group: current\.group,\s*language: current\.language,\s*country: current\.country,\s*\}\)/,
+    );
+  });
+
+  it('post66: locks parser free of fetch network and Env bindings', () => {
+    const parser = read('src/parser.ts');
+    expect(parser).not.toMatch(/\bfetch\s*\(/);
+    expect(parser).not.toMatch(/KVNamespace|GEMINI|Env/);
+    expect(parser).not.toMatch(/from ['"]\.\//);
+  });
+
+  it('post66: locks genres resolveGenre empty input returns music', () => {
+    expect(read('src/genres.ts')).toContain("if (!input) return 'music'");
+  });
+
+  it('post66: locks genres resolveGenre lowercases and trims input', () => {
+    expect(read('src/genres.ts')).toContain(
+      'const lower = input.toLowerCase().trim()',
+    );
+  });
+
+  it('post66: locks genres resolveGenre default map parameter GENRE_MAP', () => {
+    expect(read('src/genres.ts')).toMatch(
+      /map:\s*Record<string,\s*string>\s*=\s*GENRE_MAP/,
+    );
+  });
+
+  it('post66: locks GENRE_MAP entry count 21 aliases including identity keys', () => {
+    expect(Object.keys(GENRE_MAP)).toHaveLength(21);
+  });
+
+  it('post66: locks VALID_GENRES runtime length 9 matching README middot list', () => {
+    expect(VALID_GENRES).toHaveLength(9);
+    const readme = read('README.md');
+    const line = readme
+      .split('\n')
+      .find((l) => l.includes('`music`') && l.includes('·') && l.includes('`entertainment`'));
+    const listed = [...(line ?? '').matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+    expect(listed).toEqual([...VALID_GENRES]);
+  });
+
+  it('post66: locks GENRE_MAP metal→rock dance→pop blues→jazz classic→classical', () => {
+    expect(GENRE_MAP.metal).toBe('rock');
+    expect(GENRE_MAP.dance).toBe('pop');
+    expect(GENRE_MAP.blues).toBe('jazz');
+    expect(GENRE_MAP.classic).toBe('classical');
+  });
+
+  it('post66: locks GENRE_MAP focus relaxing chill late night electronic to ambient', () => {
+    for (const key of ['focus', 'relaxing', 'chill', 'late night', 'electronic', 'lofi', 'lo-fi']) {
+      expect(GENRE_MAP[key]).toBe('ambient');
+    }
+  });
+
+  it('post66: locks every GENRE_MAP value is a VALID_GENRES member', () => {
+    const valid = new Set<string>(VALID_GENRES as unknown as string[]);
+    for (const value of Object.values(GENRE_MAP)) {
+      expect(valid.has(value)).toBe(true);
+    }
+  });
+
+  it('post66: locks genres module free of hono fetch kv and mcp', () => {
+    const genres = read('src/genres.ts');
+    expect(genres).not.toMatch(/\bfetch\s*\(|hono|KVNamespace|MCP_MANIFEST/);
+  });
+
+  it('post66: locks MCP_MANIFEST schema_version v1 name_for_model backlink', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('schema_version: "v1"');
+    expect(mcp).toContain('name_for_model: "backlink"');
+    expect(mcp).toContain('name_for_human: "Backlink Radio"');
+  });
+
+  it('post66: locks MCP auth none and openapi api url /openapi.json', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('auth: { type: "none" }');
+    expect(mcp).toContain('api: { type: "openapi", url: "/openapi.json" }');
+  });
+
+  it('post66: locks MCP tools array order station_select now_playing genre_filter curator_prompt', () => {
+    const mcp = read('src/mcp.ts');
+    const names = [...mcp.matchAll(/^\s*name: "([a-z_]+)"/gm)].map((m) => m[1]);
+    expect(names).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post66: locks MCP now_playing empty properties object schema', () => {
+    expect(read('src/mcp.ts')).toContain(
+      'input_schema: { type: "object", properties: {} }',
+    );
+  });
+
+  it('post66: locks MCP station_select required station_name only', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('required: ["station_name"]');
+    expect(mcp).toContain('Partial or full name of the station to select.');
+  });
+
+  it('post66: locks MCP genre_filter required genre and jazz news classical example', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('required: ["genre"]');
+    expect(mcp).toContain('e.g. jazz, news, classical');
+  });
+
+  it('post66: locks MCP curator_prompt required mood with optional genre', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('required: ["mood"]');
+    expect(mcp).toContain('Optional genre to constrain the selection.');
+    expect(mcp).toContain('focus work, late night jazz, morning energy');
+  });
+
+  it('post66: locks MCP free of fetch hono Env and Gemini strings', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).not.toMatch(/\bfetch\s*\(|from ['"]hono|GEMINI|KVNamespace/);
+  });
+
+  it('post66: cross-locks docs backlink_curate endpoint with Worker /curate', () => {
+    expect(read('docs/mcp-spec.md')).toContain('GET /curate?genre={genre}&mood={mood}');
+    expect(read('src/index.ts')).toMatch(/app\.get\('\/curate'/);
+  });
+
+  it('post66: cross-locks docs backlink_genres endpoint with Worker /genres', () => {
+    expect(read('docs/mcp-spec.md')).toContain('**Endpoint:** `GET /genres`');
+    expect(read('src/index.ts')).toMatch(/app\.get\('\/genres'/);
+  });
+
+  it('post66: cross-locks docs stream_url remap against Worker url field', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(/url`?\s+remapped to\s+`?stream_url/i);
+    expect(read('src/index.ts')).toMatch(/url:\s*s\.url|url:\s*"\.\.\."/);
+    expect(read('src/index.ts')).not.toContain('stream_url');
+  });
+
+  it('post66: cross-locks docs Integration Notes 1h TTL with expirationTtl 3600', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(/1h TTL/i);
+    expect(read('src/index.ts')).toMatch(/expirationTtl:\s*3600/);
+  });
+
+  it('post66: cross-locks docs /curate always calls Gemini fresh with no LLM cache in index', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(/always calls Gemini fresh/i);
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/llm.*cache|cache.*gemini|gemini.*cache/i);
+    expect(index).toContain('await callGemini(');
+  });
+
+  it('post66: cross-locks docs editorial null degradation with Worker editorial null', () => {
+    expect(read('docs/mcp-spec.md')).toContain('editorial: null');
+    expect(read('src/index.ts')).toMatch(/editorial:\s*null/);
+  });
+
+  it('post66: locks docs Base URL https without workers.dev', () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec).toContain('https://backlink.fuzzywigg.com');
+    expect(spec).not.toMatch(/workers\.dev/);
+  });
+
+  it('post66: locks docs additionalProperties false at least three times', () => {
+    const matches = read('docs/mcp-spec.md').match(/"additionalProperties":\s*false/g) ?? [];
+    expect(matches.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('post66: locks docs only markdown file under docs/ is mcp-spec.md', () => {
+    expect(readdirSync(join(root, 'docs'))).toEqual(['mcp-spec.md']);
+  });
+
+  it('post66: locks Env CATALOG_CACHE required while GEMINI and VERSION optional', () => {
+    const types = read('src/types.ts');
+    expect(types).toMatch(/CATALOG_CACHE:\s*KVNamespace;/);
+    expect(types).toMatch(/GEMINI_API_KEY\?:\s*string;/);
+    expect(types).toMatch(/VERSION\?:\s*string;/);
+  });
+
+  it('post66: locks types.ts JSDoc Optional at runtime issue #8 exact', () => {
+    expect(read('src/types.ts')).toContain(
+      '/** Optional at runtime — `/curate` returns 503 when unset (#8). */',
+    );
+  });
+
+  it('post66: locks package.json name backlink type module version 0.1.0', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      name: string;
+      type: string;
+      version: string;
+    };
+    expect(pkg.name).toBe('backlink');
+    expect(pkg.type).toBe('module');
+    expect(pkg.version).toBe('0.1.0');
+  });
+
+  it('post66: locks package.json sole runtime dependency hono', () => {
+    const pkg = JSON.parse(read('package.json')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(Object.keys(pkg.dependencies)).toEqual(['hono']);
+    expect(pkg.dependencies.hono).toMatch(/^\^4\./);
+  });
+
+  it('post66: locks package.json scripts include wrangler and vitest coverage', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.dev).toBe('wrangler dev');
+    expect(pkg.scripts.deploy).toBe('wrangler deploy');
+    expect(pkg.scripts['test:watch']).toBe('vitest');
+  });
+
+  it('post66: locks package.json description em-dash editorial AI over iptv-org', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toBe(
+      'LLM-curated internet radio — editorial AI over iptv-org catalog',
+    );
+  });
+
+  it('post66: cross-locks package description with Worker / description field', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(read('src/index.ts')).toContain(`description: '${pkg.description}'`);
+  });
+
+  it('post66: cross-locks package version with wrangler VERSION var and health fallback', () => {
+    const pkg = JSON.parse(read('package.json')) as { version: string };
+    expect(read('wrangler.toml')).toContain(`VERSION = "${pkg.version}"`);
+    expect(read('src/index.ts')).toContain(`c.env.VERSION ?? '${pkg.version}'`);
+  });
+
+  it('post66: locks wrangler.toml name backlink main src/index.ts', () => {
+    const wrangler = read('wrangler.toml');
+    expect(wrangler).toContain('name = "backlink"');
+    expect(wrangler).toContain('main = "src/index.ts"');
+  });
+
+  it('post66: locks wrangler.toml custom_domain true for backlink.fuzzywigg.com', () => {
+    const wrangler = read('wrangler.toml');
+    expect(wrangler).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(wrangler).toContain('custom_domain = true');
+  });
+
+  it('post66: locks wrangler.toml never commits GEMINI_API_KEY value', () => {
+    const wrangler = read('wrangler.toml');
+    expect(wrangler).not.toMatch(/GEMINI_API_KEY\s*=/);
+    expect(wrangler).toContain('# wrangler secret put GEMINI_API_KEY');
+  });
+
+  it('post66: locks .cursor/environment.json name Backlink_Facelift install npm ci only', () => {
+    const env = JSON.parse(read('.cursor/environment.json')) as {
+      name: string;
+      install: string;
+    };
+    expect(Object.keys(env).sort()).toEqual(['install', 'name']);
+    expect(env.name).toBe('Backlink_Facelift');
+    expect(env.install).toBe('npm ci');
+  });
+
+  it('post66: locks vitest include test/**/*.test.ts and coverage src/**/*.ts', () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toContain("include: ['test/**/*.test.ts']");
+    expect(vitest).toContain("include: ['src/**/*.ts']");
+    expect(vitest).toContain("exclude: ['src/types.ts']");
+  });
+
+  it('post66: locks vitest github-actions reporter when GITHUB_ACTIONS set', () => {
+    expect(read('vitest.config.ts')).toContain(
+      "reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default']",
+    );
+  });
+
+  it('post66: locks vitest coverage reporter text text-summary html lcov', () => {
+    expect(read('vitest.config.ts')).toContain(
+      "reporter: ['text', 'text-summary', 'html', 'lcov']",
+    );
+  });
+
+  it('post66: locks tsconfig strict noEmit ES2022 Bundler workers-types', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as {
+      compilerOptions: Record<string, unknown>;
+    };
+    expect(ts.compilerOptions.strict).toBe(true);
+    expect(ts.compilerOptions.noEmit).toBe(true);
+    expect(ts.compilerOptions.target).toBe('ES2022');
+    expect(ts.compilerOptions.moduleResolution).toBe('Bundler');
+    expect(ts.compilerOptions.types).toEqual(['@cloudflare/workers-types', 'node']);
+  });
+
+  it('post66: locks tsconfig include src test vitest.config', () => {
+    const ts = JSON.parse(read('tsconfig.json')) as { include: string[] };
+    expect(ts.include).toEqual(['src/**/*.ts', 'test/**/*.ts', 'vitest.config.ts']);
+  });
+
+  it('post66: locks .gitignore covers node_modules coverage .env .dev.vars secrets', () => {
+    const gi = read('.gitignore');
+    expect(gi).toContain('node_modules/');
+    expect(gi).toContain('coverage/');
+    expect(gi).toContain('.env');
+    expect(gi).toContain('.dev.vars');
+    expect(gi).toContain('*.pem');
+    expect(gi).toContain('*.key');
+    expect(gi).toContain('.wrangler/');
+  });
+
+  it('post66: locks .gitattributes text=auto LF normalization', () => {
+    expect(read('.gitattributes')).toContain('* text=auto');
+  });
+
+  it('post66: locks src tree exactly five TypeScript modules', () => {
+    const files = readdirSync(join(root, 'src')).filter((f) => f.endsWith('.ts')).sort();
+    expect(files).toEqual(['genres.ts', 'index.ts', 'mcp.ts', 'parser.ts', 'types.ts']);
+  });
+
+  it('post66: locks test suite files include source-contracts among hygiene list', () => {
+    const tests = readdirSync(join(root, 'test')).filter((f) => f.endsWith('.test.ts')).sort();
+    expect(tests).toContain('source-contracts.test.ts');
+    expect(tests).toContain('routes.test.ts');
+    expect(tests).toContain('parser.test.ts');
+    expect(tests).toContain('mcp-spec-contract.test.ts');
+  });
+
+  it('post66: locks no .env or .dev.vars committed at repo root', () => {
+    const rootFiles = readdirSync(root);
+    expect(rootFiles).not.toContain('.env');
+    expect(rootFiles).not.toContain('.dev.vars');
+  });
+
+  it('post66: locks callGemini return Promise Array with editorial string genre', () => {
+    expect(read('src/index.ts')).toContain(
+      'Promise<Array<{ name: string; url: string; logo?: string; editorial: string; genre: string }>>',
+    );
+  });
+
+  it('post66: locks degrade path editorial null diverges from callGemini string editorial type', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/editorial:\s*string/);
+    expect(index).toMatch(/editorial:\s*null/);
+  });
+
+  it('post66: locks /curate GEMINI_API_KEY guard before fetchStations', () => {
+    const index = read('src/index.ts');
+    const curate = index.slice(index.indexOf("app.get('/curate'"));
+    const keyGuard = curate.indexOf('if (!c.env.GEMINI_API_KEY)');
+    const fetchCall = curate.indexOf('stations = await fetchStations');
+    expect(keyGuard).toBeGreaterThan(-1);
+    expect(fetchCall).toBeGreaterThan(keyGuard);
+  });
+
+  it('post66: locks /stations has no GEMINI_API_KEY check', () => {
+    const index = read('src/index.ts');
+    const stations = index.slice(
+      index.indexOf("app.get('/stations'"),
+      index.indexOf("app.get('/curate'"),
+    );
+    expect(stations).not.toContain('GEMINI_API_KEY');
+    expect(stations).toContain('await fetchStations(genre, c.env.CATALOG_CACHE)');
+  });
+
+  it('post66: locks /stations resolveGenre(genreParam) mood-free', () => {
+    const index = read('src/index.ts');
+    const stations = index.slice(
+      index.indexOf("app.get('/stations'"),
+      index.indexOf("app.get('/curate'"),
+    );
+    expect(stations).toContain('const genre = resolveGenre(genreParam)');
+    expect(stations).not.toContain('mood');
+  });
+
+  it('post66: locks /curate reads both genre and mood query params', () => {
+    const index = read('src/index.ts');
+    const curate = index.slice(index.indexOf("app.get('/curate'"));
+    expect(curate).toContain("const genreParam = c.req.query('genre')");
+    expect(curate).toContain("const mood = c.req.query('mood')");
+  });
+
+  it('post66: locks exactly five app.get and zero app.post app.put app.delete', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/app\.get\(/g) ?? []).length).toBe(5);
+    expect(index).not.toMatch(/app\.post\(|app\.put\(|app\.delete\(|app\.patch\(/);
+  });
+
+  it('post66: locks cors registered exactly once with star path', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/app\.use\('\*',\s*cors\(\)\)/g) ?? []).length).toBe(1);
+    expect((index.match(/cors\(\)/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks filter\(Boolean\) exactly twice in index', () => {
+    expect((read('src/index.ts').match(/\.filter\(Boolean\)/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks JSON.parse exactly twice and JSON.stringify twice in index', () => {
+    const index = read('src/index.ts');
+    // parse: KV cache hit + Gemini jsonMatch; stringify: KV put + Gemini request body
+    expect((index.match(/JSON\.parse/g) ?? []).length).toBe(2);
+    expect((index.match(/JSON\.stringify/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks fetch( call sites: iptv primary, music fallback, gemini', () => {
+    const index = read('src/index.ts');
+    // await fetch(url); await fetch(`${IPTV_BASE}/music.m3u`); await fetch(`https://generativelanguage...
+    expect((index.match(/await fetch\(/g) ?? []).length).toBe(3);
+  });
+
+  it('post66: locks no hardcoded API keys or sk- prefixes in src', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      const src = read(rel);
+      expect(src).not.toMatch(/sk-[a-zA-Z0-9]{10,}/);
+      expect(src).not.toMatch(/AIza[0-9A-Za-z\-_]{20,}/);
+    }
+  });
+
+  it('post66: locks src free of TODO FIXME HACK XXX BUG', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(rel)).not.toMatch(/TODO|FIXME|HACK|XXX|BUG/);
+    }
+  });
+
+  it('post66: locks src free of any type assertions as any', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      expect(read(rel)).not.toContain('as any');
+    }
+  });
+
+  it('post66: locks src free of eval new Function WebSocket DurableObject D1', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts']) {
+      const src = read(rel);
+      expect(src).not.toMatch(/\beval\s*\(|new Function|WebSocket|DurableObject|D1Database/);
+    }
+  });
+
+  it('post66: locks package-lock lockfileVersion 3 present', () => {
+    expect(read('package-lock.json')).toMatch(/"lockfileVersion":\s*3/);
+  });
+
+  it('post66: locks CI workflow name CI with typecheck test hygiene jobs', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toMatch(/^name: CI/m);
+    expect(ci).toContain('name: Typecheck');
+    expect(ci).toContain('name: Tests');
+    expect(ci).toContain('name: Hygiene');
+  });
+
+  it('post66: locks CI Node 20 and npm ci and test:coverage', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('node-version: "20"');
+    expect(ci).toContain('npm ci');
+    expect(ci).toContain('npm run test:coverage');
+    expect(ci).toContain('npm run typecheck');
+  });
+
+  it('post66: locks CI persist-credentials false and contents read', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('persist-credentials: false');
+    expect(ci).toContain('contents: read');
+  });
+
+  it('post66: locks CI cancel-in-progress true concurrency group', () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('cancel-in-progress: true');
+    expect(ci).toContain('group: ci-${{ github.workflow }}-${{ github.ref }}');
+  });
+
+  it('post66: locks deploy.yml workflow_dispatch only HITL trigger', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('workflow_dispatch:');
+    expect(deploy).not.toMatch(/^\s+push:/m);
+    expect(deploy).not.toMatch(/pull_request/);
+  });
+
+  it('post66: locks deploy.yml runs typecheck and test:coverage before wrangler-action', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    const typecheck = deploy.indexOf('npm run typecheck');
+    const coverage = deploy.indexOf('npm run test:coverage');
+    const wrangler = deploy.indexOf('cloudflare/wrangler-action@v4');
+    expect(typecheck).toBeGreaterThan(-1);
+    expect(coverage).toBeGreaterThan(typecheck);
+    expect(wrangler).toBeGreaterThan(coverage);
+  });
+
+  it('post66: locks deploy.yml secrets GEMINI_API_KEY via wrangler-action', () => {
+    const deploy = read('.github/workflows/deploy.yml');
+    expect(deploy).toContain('GEMINI_API_KEY');
+    expect(deploy).toContain('secrets.CF_API_TOKEN');
+    expect(deploy).toContain('secrets.CF_ACCOUNT_ID');
+  });
+
+  it('post66: cross-locks README unit suites list mentions source contracts', () => {
+    expect(read('README.md')).toMatch(/source contracts/);
+    expect(read('README.md')).toMatch(/mcp-spec/);
+  });
+
+  it('post66: locks README Deploy Your Own points at DEPLOY.md', () => {
+    expect(read('README.md')).toMatch(/## Deploy Your Own/);
+    expect(read('README.md')).toContain('[DEPLOY.md](./DEPLOY.md)');
+  });
+
+  it('post66: locks GENRE_MAP identity keys for each VALID_GENRES slug present', () => {
+    for (const g of VALID_GENRES) {
+      expect(GENRE_MAP[g]).toBe(g);
+    }
+  });
+
+  it('post66: locks resolveGenre export is the only function in genres.ts', () => {
+    const genres = read('src/genres.ts');
+    expect([...genres.matchAll(/^export function /gm)]).toHaveLength(1);
+    expect(genres).toMatch(/^export function resolveGenre\(/m);
+  });
+
+  it('post66: locks parseM3U export is the only function in parser.ts', () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/^export function /gm)]).toHaveLength(1);
+    expect(parser).toMatch(/^export function parseM3U\(/m);
+  });
+
+  it('post66: locks MCP_MANIFEST is the only export in mcp.ts', () => {
+    const mcp = read('src/mcp.ts');
+    expect([...mcp.matchAll(/^export /gm)]).toHaveLength(1);
+    expect(mcp).toMatch(/^export const MCP_MANIFEST/m);
+  });
+
+  it('post66: locks index does not re-export genres parser or types', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/export \{[^}]*GENRE_MAP/);
+    expect(index).not.toMatch(/export \{[^}]*parseM3U/);
+    expect(index).not.toMatch(/export \{[^}]*Env/);
+  });
+
+  it('post66: locks callGemini mood optional in signature and used in query join', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('mood?: string');
+    expect(index).toContain("[mood, genre].filter(Boolean).join(' / ')");
+  });
+
+  it('post66: locks dual join separators slash in Gemini vs space in /curate query', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain(".join(' / ')");
+    expect(index).toContain(".join(' ')");
+  });
+
+  it('post66: locks /curate stations field assigned curated variable', () => {
+    expect(read('src/index.ts')).toContain('stations: curated');
+  });
+
+  it('post66: locks retry_after literal 60 exactly three times', () => {
+    expect((read('src/index.ts').match(/retry_after:\s*60/g) ?? []).length).toBe(3);
+  });
+
+  it('post66: locks , 503) status returns exactly three times', () => {
+    expect((read('src/index.ts').match(/,\s*503\)/g) ?? []).length).toBe(3);
+  });
+
+  it('post66: locks expirationTtl 3600 exactly once', () => {
+    expect((read('src/index.ts').match(/expirationTtl:\s*3600/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks slice\(0, 50\) exactly once and slice\(0, 5\) exactly once', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/\.slice\(0,\s*50\)/g) ?? []).length).toBe(1);
+    expect((index.match(/\.slice\(0,\s*5\)/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks music.m3u string exactly twice in index — comment + fallback URL', () => {
+    expect((read('src/index.ts').match(/music\.m3u/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks gemini-2.0-flash string exactly once in index', () => {
+    expect((read('src/index.ts').match(/gemini-2\.0-flash/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks Backlink/Geryon branding appears twice — powered_by and curated_by', () => {
+    expect((read('src/index.ts').match(/Backlink\/Geryon/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks crab emoji appears exactly once in index powered_by', () => {
+    expect((read('src/index.ts').match(/🦀/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks Hono Bindings Env generic exactly once', () => {
+    expect(
+      (read('src/index.ts').match(/new Hono<\{ Bindings: Env \}>/g) ?? []).length,
+    ).toBe(1);
+  });
+
+  it('post66: locks IPTV_BASE identifier used at least three times', () => {
+    // declaration + primary url template + music fallback
+    expect((read('src/index.ts').match(/IPTV_BASE/g) ?? []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('post66: locks CATALOG_CACHE binding used in both /stations and /curate fetchStations', () => {
+    expect((read('src/index.ts').match(/c\.env\.CATALOG_CACHE/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks c.env.GEMINI_API_KEY referenced twice — guard and callGemini arg', () => {
+    expect((read('src/index.ts').match(/c\.env\.GEMINI_API_KEY/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks c.env.VERSION referenced twice — root and health', () => {
+    expect((read('src/index.ts').match(/c\.env\.VERSION/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks resolveGenre call sites exactly two — stations and curate', () => {
+    expect((read('src/index.ts').match(/resolveGenre\(/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks parseM3U call site exactly once in fetchStations', () => {
+    expect((read('src/index.ts').match(/parseM3U\(/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks callGemini invocation exactly once from /curate', () => {
+    expect((read('src/index.ts').match(/await callGemini\(/g) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks fetchStations invocation exactly twice', () => {
+    expect((read('src/index.ts').match(/await fetchStations\(/g) ?? []).length).toBe(2);
+  });
+
+  it('post66: locks docs tool heading backticks for three backlink_* tools', () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec).toMatch(/^### `backlink_curate`/m);
+    expect(spec).toMatch(/^### `backlink_genres`/m);
+    expect(spec).toMatch(/^### `backlink_now_playing`/m);
+  });
+
+  it('post66: locks docs Integration Notes section present after tools', () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec.indexOf('## Tools')).toBeLessThan(spec.indexOf('## Integration Notes'));
+  });
+
+  it('post66: locks docs No auth required for read endpoints bullet', () => {
+    expect(read('docs/mcp-spec.md')).toContain('- No auth required for read endpoints');
+  });
+
+  it('post66: locks DEPLOY title Backlink — Deployment Guide', () => {
+    expect(read('DEPLOY.md')).toMatch(/^# Backlink — Deployment Guide/m);
+  });
+
+  it('post66: locks README title Backlink with radio emoji', () => {
+    expect(read('README.md')).toMatch(/^# Backlink 📻/m);
+  });
+
+  it('post66: locks package.json no engines field — CI pins Node instead', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    expect(pkg.engines).toBeUndefined();
+  });
+
+  it('post66: locks package.json no private field false — publishable name ok', () => {
+    const pkg = JSON.parse(read('package.json')) as Record<string, unknown>;
+    // either absent or not forcing private registry coupling
+    expect(pkg.private ?? false).toBeFalsy();
+  });
+
+  it('post66: locks dependabot config exists under .github', () => {
+    expect(read('.github/dependabot.yml').length).toBeGreaterThan(0);
+  });
+
+  it('post66: locks hygiene-required source-contracts.test.ts file non-empty', () => {
+    expect(read('test/source-contracts.test.ts').length).toBeGreaterThan(10_000);
+  });
+
+  it('post66: locks root description field uses package description exactly once in index', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect((read('src/index.ts').match(new RegExp(pkg.description.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length).toBe(1);
+  });
+
+  it('post66: locks stationList join newline after map', () => {
+    expect(read('src/index.ts')).toContain(".join('\\n')");
+  });
+
+  it('post66: locks User request and Available stations labels with template interpolations', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('User request: ${query}');
+    expect(index).toContain('Available stations:\\n${stationList}');
+  });
+
+  it('post66: locks JSON extract regex then JSON.parse jsonMatch[0]', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain('const jsonMatch = text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/)');
+    expect(index).toContain('return JSON.parse(jsonMatch[0])');
+    expect(index).toContain('if (!jsonMatch) throw new Error');
+  });
+
+  it('post66: locks !resp.ok throw before resp.json in callGemini', () => {
+    const index = read('src/index.ts');
+    const call = index.slice(index.indexOf('async function callGemini'), index.indexOf('const app = new Hono'));
+    expect(call.indexOf('if (!resp.ok)')).toBeLessThan(call.indexOf('await resp.json()'));
+  });
+
+  it('post66: locks !res.ok music fallback before parseM3U in fetchStations', () => {
+    const index = read('src/index.ts');
+    const fetchFn = index.slice(
+      index.indexOf('async function fetchStations'),
+      index.indexOf('async function callGemini'),
+    );
+    expect(fetchFn.indexOf('if (!res.ok)')).toBeLessThan(fetchFn.indexOf('parseM3U(raw)'));
+    expect(fetchFn.indexOf('music.m3u')).toBeLessThan(fetchFn.indexOf('parseM3U(raw)'));
+  });
+
+  it('post66: locks kv cache hit return before network fetch in fetchStations', () => {
+    const index = read('src/index.ts');
+    const fetchFn = index.slice(
+      index.indexOf('async function fetchStations'),
+      index.indexOf('async function callGemini'),
+    );
+    expect(fetchFn.indexOf('if (cached)')).toBeLessThan(fetchFn.indexOf('await fetch(url)'));
+  });
+
+  it('post66: locks GENRE_MAP indie→rock and electronic→ambient and music→music', () => {
+    expect(GENRE_MAP.indie).toBe('rock');
+    expect(GENRE_MAP.electronic).toBe('ambient');
+    expect(GENRE_MAP.music).toBe('music');
+  });
+
+  it('post66: locks VALID_GENRES order music ambient jazz classical pop rock news sports entertainment', () => {
+    expect([...VALID_GENRES]).toEqual([
+      'music',
+      'ambient',
+      'jazz',
+      'classical',
+      'pop',
+      'rock',
+      'news',
+      'sports',
+      'entertainment',
+    ]);
+  });
+
+  it('post66: locks docs curator output required name url genre without editorial required', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(
+      /"required":\s*\[["']name["'],\s*["']url["'],\s*["']genre["']\]/,
+    );
+  });
+
+  it('post66: locks docs now_playing required name stream_url genre', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(
+      /"required":\s*\[["']name["'],\s*["']stream_url["'],\s*["']genre["']\]/,
+    );
+  });
+
+  it('post66: locks docs editorial type string or null in curator output', () => {
+    expect(read('docs/mcp-spec.md')).toMatch(
+      /"editorial":\s*\{\s*"type":\s*\[["']string["'],\s*["']null["']\]/,
+    );
+  });
+
+  it('post66: locks docs timestamp format date-time', () => {
+    expect(read('docs/mcp-spec.md')).toContain('"format": "date-time"');
+  });
+
+  it('post66: locks README live caveat jazz ambient classical pop rock 404→music.m3u', () => {
+    expect(read('README.md')).toMatch(
+      /`jazz`\/`ambient`\/`classical`\/`pop`\/`rock` files 404 and fall back to `music\.m3u`/,
+    );
+  });
+
+  it('post66: locks AGENTS Safe Actions Update docs and deploy guides', () => {
+    expect(read('AGENTS.md')).toContain('- Update docs and deploy guides');
+  });
+
+  it('post66: locks AGENTS Safe Actions Add new endpoints playlist now-playing examples', () => {
+    expect(read('AGENTS.md')).toContain(
+      '- Add new endpoints (e.g., `/playlist`, `/now-playing`)',
+    );
+  });
+
+  it('post66: locks index free of /playlist and /now-playing routes today', () => {
+    const index = read('src/index.ts');
+    expect(index).not.toMatch(/app\.get\(['"]\/playlist['"]/);
+    expect(index).not.toMatch(/app\.get\(['"]\/now-playing['"]/);
+  });
+
+  it('post66: locks package description mentions iptv-org and LLM-curated', () => {
+    const pkg = JSON.parse(read('package.json')) as { description: string };
+    expect(pkg.description).toMatch(/iptv-org/i);
+    expect(pkg.description).toMatch(/LLM-curated/i);
+  });
+
+  it('post66: locks Worker powered_by crab and docs Base URL same product host', () => {
+    expect(read('src/index.ts')).toContain('Backlink/Geryon 🦀');
+    expect(read('docs/mcp-spec.md')).toContain('backlink.fuzzywigg.com');
+  });
+
+  it('post66: locks fetchStations and callGemini remain non-exported private helpers', () => {
+    const index = read('src/index.ts');
+    expect(index).toMatch(/^async function fetchStations\(/m);
+    expect(index).toMatch(/^async function callGemini\(/m);
+    expect(index).not.toMatch(/^export async function fetchStations/m);
+    expect(index).not.toMatch(/^export async function callGemini/m);
+  });
+
+  it('post66: locks Station type imported into index and used in fetchStations return', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("import { parseM3U, Station } from './parser'");
+    expect(index).toContain('Promise<Station[]>');
+    expect(index).toContain('let stations: Station[]');
+  });
+
+  it('post66: locks Env imported only for Hono Bindings generic', () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("import { Env } from './types'");
+    expect((index.match(/\bEnv\b/g) ?? []).length).toBe(2); // import + Bindings
+  });
 });
