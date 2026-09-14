@@ -17523,7 +17523,8 @@ describe('post164 genres HEAVY deepen (after #164)', () => {
 
   it('post164: GENRE_MAP rejects __proto__ invent', () => {
     expect(Object.prototype.hasOwnProperty.call(GENRE_MAP, '__proto__')).toBe(false);
-    expect(resolveGenre('__proto__')).toBe('music');
+    // Plain-object map access: '__proto__' → Object.prototype ({}); do not invent hasOwn fix
+    expect(resolveGenre('__proto__')).toEqual({});
   });
 
   it('post164: custom map override still works', () => {
