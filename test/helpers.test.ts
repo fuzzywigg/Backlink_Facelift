@@ -31806,7 +31806,7 @@ describe('post249 helpers HEAVY deepen (after #249 tip leftover / helpers-source
   });
 });
 
-describe('post249 helpers extras HEAVY deepen (after #239 leftover / helpers-source-only)', () => {
+describe('post249 helpers extras HEAVY deepen (after #249 leftover / helpers-source-only)', () => {
   const root = helpersRoot;
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
@@ -31975,13 +31975,13 @@ describe('post249 helpers extras HEAVY deepen (after #239 leftover / helpers-sou
   it("post249-extras: HMAC genres-mcp-merged wrangler.toml", () => { expect(hmacSha256("genres-mcp-merged", "wrangler.toml")).toBe("40f55299a4215bbdf86b603ddb183b9e7c7f1e27f711661cef5b2fb1c6c1d4bf"); });
   it('post249-extras: inventory markers', () => {
     const body = read('test/helpers.test.ts');
-    expect(body).toContain("describe('post249 helpers extras HEAVY deepen (after #239 leftover / helpers-source-only)");
+    expect(body).toContain("describe('post249 helpers extras HEAVY deepen (after #249 leftover / helpers-source-only)");
     expect(body).toContain('unsaturated-after-249');
     expect(body).toContain('media-parser-merged');
   });
 });
 
-describe('post249 helpers ultra HEAVY deepen (after #239 typecheck-hygiene leftover)', () => {
+describe('post249 helpers ultra HEAVY deepen (after #249 typecheck-hygiene leftover)', () => {
   const root = helpersRoot;
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const hmacSha256 = (key: string, rel: string) => createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
@@ -32192,7 +32192,7 @@ describe('post249 helpers ultra HEAVY deepen (after #239 typecheck-hygiene lefto
   it("post249-ultra: HMAC genres-mcp-merged vitest.config.ts", () => { expect(hmacSha256("genres-mcp-merged", "vitest.config.ts")).toBe("78b37c62318399971be886c5fa583999a1b37af260d375a5c290631d3e62427c"); });
   it('post249-ultra: final inventory markers', () => {
     const body = read('test/helpers.test.ts');
-    expect(body).toContain("describe('post249 helpers ultra HEAVY deepen (after #239 typecheck-hygiene leftover)");
+    expect(body).toContain("describe('post249 helpers ultra HEAVY deepen (after #249 typecheck-hygiene leftover)");
     expect(body).toContain('unsaturated-after-249');
     expect((body.match(/it\(['"]post249-ultra:/g) ?? []).length).toBeGreaterThan(40);
   });

@@ -38115,7 +38115,7 @@ describe('post249 source-contracts HEAVY deepen (after #249 tip leftover / helpe
   });
 });
 
-describe('post249 source-contracts extras HEAVY deepen (after #239 leftover / helpers-source-only)', () => {
+describe('post249 source-contracts extras HEAVY deepen (after #249 leftover / helpers-source-only)', () => {
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
   const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
@@ -38347,13 +38347,13 @@ describe('post249 source-contracts extras HEAVY deepen (after #239 leftover / he
   it("post249-extras: HMAC genres-mcp-merged tsconfig.json", () => { expect(hmacSha256("genres-mcp-merged", "tsconfig.json")).toBe("37460cb12450c1a8ce7a0430a62fbf6cefaa31bcc53a6c30930e6246cddf4cf5"); });
   it('post249-extras: inventory markers', () => {
     const body = read('test/source-contracts.test.ts');
-    expect(body).toContain("describe('post249 source-contracts extras HEAVY deepen (after #239 leftover / helpers-source-only)");
+    expect(body).toContain("describe('post249 source-contracts extras HEAVY deepen (after #249 leftover / helpers-source-only)");
     expect(body).toContain('unsaturated-after-249');
     expect(body).toContain('media-parser-merged');
   });
 });
 
-describe('post249 source-contracts ultra HEAVY deepen (after #239 typecheck-hygiene leftover)', () => {
+describe('post249 source-contracts ultra HEAVY deepen (after #249 typecheck-hygiene leftover)', () => {
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
   const hmacSha256 = (key: string, rel: string) => createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
 
@@ -38599,7 +38599,7 @@ describe('post249 source-contracts ultra HEAVY deepen (after #239 typecheck-hygi
   it("post249-ultra: HMAC genres-mcp-merged AGENTS.md", () => { expect(hmacSha256("genres-mcp-merged", "AGENTS.md")).toBe("616f0a112b2f99f8a23828f30bd50460c16719cd6817521050957655d8a229c0"); });
   it('post249-ultra: final inventory markers', () => {
     const body = read('test/source-contracts.test.ts');
-    expect(body).toContain("describe('post249 source-contracts ultra HEAVY deepen (after #239 typecheck-hygiene leftover)");
+    expect(body).toContain("describe('post249 source-contracts ultra HEAVY deepen (after #249 typecheck-hygiene leftover)");
     expect(body).toContain('unsaturated-after-249');
     expect((body.match(/it\(['"]post249-ultra:/g) ?? []).length).toBeGreaterThan(40);
   });
