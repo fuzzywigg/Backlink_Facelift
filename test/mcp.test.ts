@@ -31844,8 +31844,8 @@ describe('post226 mcp HEAVY deepen (after #226 tip leftover / genres-mcp-spec-on
     const curator = MCP_MANIFEST.tools.find((t) => t.name === 'curator_prompt')!;
     expect(curator.input_schema.required).toEqual(['mood']);
     expect(Object.keys(curator.input_schema.properties).sort()).toEqual(['genre', 'mood']);
-    expect(curator.input_schema.properties.mood.type).toBe('string');
-    expect(curator.input_schema.properties.genre.type).toBe('string');
+    expect(curator.input_schema.properties.mood?.type).toBe('string');
+    expect(curator.input_schema.properties.genre?.type).toBe('string');
   });
 
   it('post226: residual — station_select single prop station_name required; genre_filter single genre', () => {
@@ -31898,7 +31898,7 @@ describe('post226 mcp HEAVY deepen (after #226 tip leftover / genres-mcp-spec-on
 
   it('post226: residual — station_name description keeps Partial or full name copy', () => {
     const select = MCP_MANIFEST.tools.find((t) => t.name === 'station_select')!;
-    expect(select.input_schema.properties.station_name.description).toBe(
+    expect(select.input_schema.properties.station_name?.description).toBe(
       'Partial or full name of the station to select.',
     );
   });
