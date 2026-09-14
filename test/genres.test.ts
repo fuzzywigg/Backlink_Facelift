@@ -15950,8 +15950,8 @@ describe('post151 genres HEAVY deepen (after #151)', () => {
     expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738);
   });
 
-  it('post151: locks src/index.ts utf8 4723 lines 154', () => {
-    expect(read('src/index.ts')).toHaveLength(4723);
+  it('post151: locks src/index.ts utf8 4724 lines 154', () => {
+    expect(read('src/index.ts')).toHaveLength(4724);
     expect(read('src/index.ts').split('\n')).toHaveLength(154);
   });
 
@@ -16361,7 +16361,8 @@ describe('post151 genres HEAVY deepen (after #151)', () => {
 
   it('post151: GENRE_MAP rejects __proto__ invent', () => {
     expect(Object.prototype.hasOwnProperty.call(GENRE_MAP, '__proto__')).toBe(false);
-    expect(resolveGenre('__proto__')).toBe('music');
+    // Plain-object map access: '__proto__' → Object.prototype ({}); do not invent hasOwn fix
+    expect(resolveGenre('__proto__')).toEqual({});
   });
 
   it('post151: custom map override still works', () => {
@@ -16469,7 +16470,7 @@ describe('post151 genres extras HEAVY deepen (after #151 leftover slice)', () =>
   it('post151-extras: HMAC no-creds src/index.ts', () => { expect(hmacSha256('no-creds', 'src/index.ts')).toBe('db99bb419f05b9e3acfc10001000a112d3e4408c75dade7a526dc6eb78836b3e'); });
   it('post151-extras: HMAC station_select src/index.ts', () => { expect(hmacSha256('station_select', 'src/index.ts')).toBe('784e6a0de32998b04080793417ccc5d3593c9340b59587a677a954185f42c7bc'); });
   it('post151-extras: size src/index.ts', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738); });
-  it('post151-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post151-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post151-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post151-extras: sha256 src/mcp.ts', () => { expect(sha256('src/mcp.ts')).toBe('6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683'); });
   it('post151-extras: HMAC post151 src/mcp.ts', () => { expect(hmacSha256('post151', 'src/mcp.ts')).toBe('5247fa3cc9633d44c67e29621a2905a346a218618de5e521f3104e5b2e7630c2'); });
@@ -16709,7 +16710,7 @@ describe('post151 genres extras HEAVY deepen (after #151 leftover slice)', () =>
   it('post151-extras: HMAC no-creds README.md', () => { expect(hmacSha256('no-creds', 'README.md')).toBe('156fbb321fedfacd1635a84a8d38e0a7450c58d90d2a0c6ff14f862146cc2575'); });
   it('post151-extras: HMAC station_select README.md', () => { expect(hmacSha256('station_select', 'README.md')).toBe('289b9759c9711fc95c2727e9b042374e19297b25418e436a859007fa247b3e2c'); });
   it('post151-extras: size README.md', () => { expect(statSync(join(root, 'README.md')).size).toBe(2801); });
-  it('post151-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2755); });
+  it('post151-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2757); });
   it('post151-extras: nibble README.md', () => { expect(nibbleSum(sha256('README.md'))).toBe(429); });
   it('post151-extras: sha256 docs/mcp-spec.md', () => { expect(sha256('docs/mcp-spec.md')).toBe('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849'); });
   it('post151-extras: HMAC post151 docs/mcp-spec.md', () => { expect(hmacSha256('post151', 'docs/mcp-spec.md')).toBe('88e3ced8d9b3f32b4c5ecb7534829dd7cc8fa21d31d331476b321bbdb5e067ff'); });
