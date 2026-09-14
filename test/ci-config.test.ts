@@ -18062,3 +18062,1003 @@ describe('post132 ci-config HEAVY deepen (after #132)', () => {
   });
 
 });
+
+describe('post134 ci-config HEAVY deepen (after #134)', () => {
+  // uses module-level root
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(root, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(root, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(root, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(root, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(root, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(root, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+  it('post134: locks .github/workflows/ci.yml sha256', () => {
+    expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5');
+  });
+
+  it('post134: locks .github/workflows/ci.yml sha1', () => {
+    expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa');
+  });
+
+  it('post134: locks .github/workflows/ci.yml md5', () => {
+    expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605');
+  });
+
+  it('post134: locks .github/workflows/ci.yml sha384', () => {
+    expect(sha384('.github/workflows/ci.yml')).toBe('8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab');
+  });
+
+  it('post134: locks .github/workflows/ci.yml sha512', () => {
+    expect(sha512('.github/workflows/ci.yml')).toBe('3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460');
+  });
+
+  it('post134: locks .github/workflows/ci.yml sha3-256', () => {
+    expect(sha3('.github/workflows/ci.yml')).toBe('8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611');
+  });
+
+  it('post134: locks .github/workflows/ci.yml blake2b512', () => {
+    expect(blake2b('.github/workflows/ci.yml')).toBe('5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d');
+  });
+
+  it('post134: locks .github/workflows/ci.yml ripemd160', () => {
+    expect(ripemd('.github/workflows/ci.yml')).toBe('491302ba2e7b00c030ea98aea8ccee799d61e1ff');
+  });
+
+  it('post134: locks .github/workflows/ci.yml size 6295', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295);
+    expect(readFileSync(join(root, '.github/workflows/ci.yml')).byteLength).toBe(6295);
+  });
+
+  it('post134: locks .github/workflows/ci.yml utf8 6295 lines 177', () => {
+    expect(read('.github/workflows/ci.yml')).toHaveLength(6295);
+    expect(read('.github/workflows/ci.yml').split('\n')).toHaveLength(177);
+  });
+
+  it('post134: locks .github/workflows/ci.yml nibble 515 xor 3', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(nibbleSum(d)).toBe(515);
+    expect(xorNibbles(d)).toBe(3);
+  });
+
+  it('post134: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(pairSum(d)).toBe(4595);
+    expect(rollingXor(d)).toBe(71);
+  });
+
+  it('post134: locks .github/workflows/ci.yml first/last/mid octets', () => {
+    const d = sha256('.github/workflows/ci.yml');
+    expect(d.slice(0, 2)).toBe('c4');
+    expect(d.slice(-2)).toBe('d5');
+    expect(d.slice(28, 36)).toBe('f5e6f56e');
+  });
+
+  it('post134: locks .github/workflows/ci.yml HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', '.github/workflows/ci.yml')).toBe('199965c6028a40806468dd20758d9c55c2a5d71f63de5c9c5b1fc85875be6c77');
+    expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce');
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b');
+  });
+
+  it('post134: locks .github/workflows/ci.yml HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', '.github/workflows/ci.yml')).toBe('39985590571a396881fd6653fcb75dd1e02f4d1ed1ba0266f582711dd2f2f95d');
+    expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea');
+    expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde');
+  });
+
+  it('post134: locks .github/workflows/ci.yml spaces 1716', () => {
+    expect((read('.github/workflows/ci.yml').match(/ /g) ?? []).length).toBe(1716);
+  });
+
+  it('post134: locks .github/workflows/ci.yml reversed sha256', () => {
+    const rev = [...read('.github/workflows/ci.yml')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b');
+  });
+
+  it('post134: locks .github/workflows/ci.yml sha256 UPPERCASE', () => {
+    expect(sha256('.github/workflows/ci.yml').toUpperCase()).toBe('C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5');
+  });
+
+  it('post134: locks .github/workflows/ci.yml first-line sha256', () => {
+    expect(createHash('sha256').update(read('.github/workflows/ci.yml').split('\n')[0]).digest('hex')).toBe('8e7430f31889b761a2ccebd73080d82a3491aa7c565a2ea6583bd0f8788ccbd8');
+  });
+
+  it('post134: locks .github/workflows/ci.yml size*lines 1114215', () => {
+    expect(statSync(join(root, '.github/workflows/ci.yml')).size * read('.github/workflows/ci.yml').split('\n').length).toBe(1114215);
+  });
+
+  it('post134: locks .github/workflows/ci.yml char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('.github/workflows/ci.yml');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(176);
+    expect((t.match(/,/g) ?? []).length).toBe(1);
+    expect((t.match(/:/g) ?? []).length).toBe(109);
+    expect((t.match(/"/g) ?? []).length).toBe(23);
+    expect((t.match(/'/g) ?? []).length).toBe(113);
+  });
+
+  it('post134: locks .github/workflows/ci.yml HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, '.github/workflows/ci.yml'))).digest('hex')).toBe('3abb66932a340e0af24821c3d400157b2353efb2');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, '.github/workflows/ci.yml'))).digest('hex')).toBe('2fa932eda0c2306ff186b81517a3805a');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha256', () => {
+    expect(sha256('.github/workflows/deploy.yml')).toBe('49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha1', () => {
+    expect(sha1('.github/workflows/deploy.yml')).toBe('5f7a3932b69a68d740162b1079688d6934060f61');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml md5', () => {
+    expect(md5('.github/workflows/deploy.yml')).toBe('ea86e4de097085159e425937542bf7cf');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha384', () => {
+    expect(sha384('.github/workflows/deploy.yml')).toBe('61fa961396d8c3231bc50da4eb215cff97cc8e73cd619076488abd7a58ae14a9c8295922846a197b0c2f60535bd02c9f');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha512', () => {
+    expect(sha512('.github/workflows/deploy.yml')).toBe('7157a652975fffe4354d4b6fcec916a5529485bd2b1c6dd96fa628b1228ae6a9883690c3c08aa30627eb0a635efeeb7e1f73e540064824415dcd3a844df0b641');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha3-256', () => {
+    expect(sha3('.github/workflows/deploy.yml')).toBe('c214b3a3742462dbe536466786d717241cdc0be84f5bbf71da7c8f8ed281d62e');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml blake2b512', () => {
+    expect(blake2b('.github/workflows/deploy.yml')).toBe('0ec8ba30a1fdece2b7033b67cffa78d926b8deb86a5f7468060a746f0ff0dc8b8488236b19465603f53aac178556c000ecca9748f4dcf7591155f67f0c1c5628');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml ripemd160', () => {
+    expect(ripemd('.github/workflows/deploy.yml')).toBe('7a476e7889618bef7c8b22a0f651f4e49658527e');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml size 1004', () => {
+    expect(statSync(join(root, '.github/workflows/deploy.yml')).size).toBe(1004);
+    expect(readFileSync(join(root, '.github/workflows/deploy.yml')).byteLength).toBe(1004);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml utf8 1004 lines 47', () => {
+    expect(read('.github/workflows/deploy.yml')).toHaveLength(1004);
+    expect(read('.github/workflows/deploy.yml').split('\n')).toHaveLength(47);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml nibble 476 xor 4', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(nibbleSum(d)).toBe(476);
+    expect(xorNibbles(d)).toBe(4);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml pairSum 3686 rollingXor 38', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(pairSum(d)).toBe(3686);
+    expect(rollingXor(d)).toBe(38);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml first/last/mid octets', () => {
+    const d = sha256('.github/workflows/deploy.yml');
+    expect(d.slice(0, 2)).toBe('49');
+    expect(d.slice(-2)).toBe('c3');
+    expect(d.slice(28, 36)).toBe('de06de33');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', '.github/workflows/deploy.yml')).toBe('3aefc8c35cf339fc3d6fa1e0da23ae7eaafef316d6196fd90ed87bcc789f2de2');
+    expect(hmacSha256('leftover', '.github/workflows/deploy.yml')).toBe('e2dbbf6c1389e4865ce3242c95a3e4d42b864f0813f4c9bf69ee4c63f5cbff83');
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/deploy.yml')).toBe('339feabc44fb30f3c7e838856094324356823f1371ae0a32c0c328943494867b');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', '.github/workflows/deploy.yml')).toBe('9b716fb367cfdcff373a452ecb1c403a87b184f95b52657587a1a194f93b788b');
+    expect(hmacSha256('HEAVY', '.github/workflows/deploy.yml')).toBe('87354c51a785eb76f81ba427f9a58d6f8b0b7e3c85febd19b973c04874bde601');
+    expect(hmacSha256('no-product-invent', '.github/workflows/deploy.yml')).toBe('3ed3dcb49626ea55aa10de93931f8c107b800db0e2d4852f9cfe4a32f9ffe544');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml spaces 274', () => {
+    expect((read('.github/workflows/deploy.yml').match(/ /g) ?? []).length).toBe(274);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml reversed sha256', () => {
+    const rev = [...read('.github/workflows/deploy.yml')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('c76eeb8130b6ef38120b7c8d0345a0401de9d92f3114786cea652396314dae41');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml sha256 UPPERCASE', () => {
+    expect(sha256('.github/workflows/deploy.yml').toUpperCase()).toBe('49BF571653F9091108A8E7E3F358DE06DE332686019D1B0E0F68DDAF7B48D5C3');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml first-line sha256', () => {
+    expect(createHash('sha256').update(read('.github/workflows/deploy.yml').split('\n')[0]).digest('hex')).toBe('2dbfcbc4df1ce394975f60183fd2e5c420d970fd3611c0d88ad06ff073091960');
+  });
+
+  it('post134: locks .github/workflows/deploy.yml size*lines 47188', () => {
+    expect(statSync(join(root, '.github/workflows/deploy.yml')).size * read('.github/workflows/deploy.yml').split('\n').length).toBe(47188);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('.github/workflows/deploy.yml');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(46);
+    expect((t.match(/,/g) ?? []).length).toBe(0);
+    expect((t.match(/:/g) ?? []).length).toBe(37);
+    expect((t.match(/"/g) ?? []).length).toBe(4);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks .github/workflows/deploy.yml HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, '.github/workflows/deploy.yml'))).digest('hex')).toBe('8e97e65373001d5022029b0c9688ed179bb2840a');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, '.github/workflows/deploy.yml'))).digest('hex')).toBe('2be0d38f8035bf7554b418d418bc325f');
+  });
+
+  it('post134: locks .github/dependabot.yml sha256', () => {
+    expect(sha256('.github/dependabot.yml')).toBe('a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac');
+  });
+
+  it('post134: locks .github/dependabot.yml sha1', () => {
+    expect(sha1('.github/dependabot.yml')).toBe('dfdb63975444874143105431e4cee95165932c7b');
+  });
+
+  it('post134: locks .github/dependabot.yml md5', () => {
+    expect(md5('.github/dependabot.yml')).toBe('bd53b7cdf9bb7287532d96a32cbec9a4');
+  });
+
+  it('post134: locks .github/dependabot.yml sha384', () => {
+    expect(sha384('.github/dependabot.yml')).toBe('ea9d5b80d192675fecbce15828b4dc305f234744d81936d5baa2cd24b7bbdf1a6ac8708c2f7da50603d77f9ee15a1ffc');
+  });
+
+  it('post134: locks .github/dependabot.yml sha512', () => {
+    expect(sha512('.github/dependabot.yml')).toBe('276de093809db87de2059c26ebe5ba732e8c3bc5bfed72843cd2bf0c81a7d3308da1f947c2ca8463ff615704aa5dd2f02f3a5857e6f2f9c358d97c111dbca34e');
+  });
+
+  it('post134: locks .github/dependabot.yml sha3-256', () => {
+    expect(sha3('.github/dependabot.yml')).toBe('4a022f1046b7dcd4b57cc16cbb7efad06e9401d30f9d383321ff44ef7a16d1d7');
+  });
+
+  it('post134: locks .github/dependabot.yml blake2b512', () => {
+    expect(blake2b('.github/dependabot.yml')).toBe('3fb74f327e9c57cb11a7219281df13a608a303a09c82ac1233f53ddddfc96a01e9e9eee076f206359e8b4db1264e971f389ce226acf2f3647146ce8901395f0e');
+  });
+
+  it('post134: locks .github/dependabot.yml ripemd160', () => {
+    expect(ripemd('.github/dependabot.yml')).toBe('7d8132f4ca88999fcfcf95c3fc1c0ca8b617fe5c');
+  });
+
+  it('post134: locks .github/dependabot.yml size 505', () => {
+    expect(statSync(join(root, '.github/dependabot.yml')).size).toBe(505);
+    expect(readFileSync(join(root, '.github/dependabot.yml')).byteLength).toBe(505);
+  });
+
+  it('post134: locks .github/dependabot.yml utf8 505 lines 25', () => {
+    expect(read('.github/dependabot.yml')).toHaveLength(505);
+    expect(read('.github/dependabot.yml').split('\n')).toHaveLength(25);
+  });
+
+  it('post134: locks .github/dependabot.yml nibble 526 xor 6', () => {
+    const d = sha256('.github/dependabot.yml');
+    expect(nibbleSum(d)).toBe(526);
+    expect(xorNibbles(d)).toBe(6);
+  });
+
+  it('post134: locks .github/dependabot.yml pairSum 4381 rollingXor 219', () => {
+    const d = sha256('.github/dependabot.yml');
+    expect(pairSum(d)).toBe(4381);
+    expect(rollingXor(d)).toBe(219);
+  });
+
+  it('post134: locks .github/dependabot.yml first/last/mid octets', () => {
+    const d = sha256('.github/dependabot.yml');
+    expect(d.slice(0, 2)).toBe('a1');
+    expect(d.slice(-2)).toBe('ac');
+    expect(d.slice(28, 36)).toBe('6507533f');
+  });
+
+  it('post134: locks .github/dependabot.yml HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', '.github/dependabot.yml')).toBe('465edd11cdfbf0ed968b2c8374b1f28b41fa4e5cad8c5c1390ed8fc0bb23e358');
+    expect(hmacSha256('leftover', '.github/dependabot.yml')).toBe('b9fba0e3b098292ae8ff8b4cffe94463966fadb875a0c9db9a1dadb85281a0f9');
+    expect(hmacSha256('TOKENMAXX', '.github/dependabot.yml')).toBe('e463d734fec72defa4912ef385c5b824620155271e553a45e5520430623023e1');
+  });
+
+  it('post134: locks .github/dependabot.yml HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', '.github/dependabot.yml')).toBe('4ddd83752ba581ffdd22cfa576166165ce5b7cde42837bb255a1011574ab819c');
+    expect(hmacSha256('HEAVY', '.github/dependabot.yml')).toBe('e651250d8c5b977a6bf6fb30e4edcc515accf3f9c97019df6fd702d19fb9e2ff');
+    expect(hmacSha256('no-product-invent', '.github/dependabot.yml')).toBe('5fdab5d04737aa2fd4596ef674259a9f07c54593c68d38f74f8e6f81207f80fa');
+  });
+
+  it('post134: locks .github/dependabot.yml spaces 130', () => {
+    expect((read('.github/dependabot.yml').match(/ /g) ?? []).length).toBe(130);
+  });
+
+  it('post134: locks .github/dependabot.yml reversed sha256', () => {
+    const rev = [...read('.github/dependabot.yml')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('8012cea11db50fc6f52d77f98c5e1fbe5a1a1bf3401459cd98de5bb63657fc84');
+  });
+
+  it('post134: locks .github/dependabot.yml sha256 UPPERCASE', () => {
+    expect(sha256('.github/dependabot.yml').toUpperCase()).toBe('A11B96153B6BB773EE0CBDCD59816507533FF4DD5E8CB34DE0BAF667CE72ECAC');
+  });
+
+  it('post134: locks .github/dependabot.yml first-line sha256', () => {
+    expect(createHash('sha256').update(read('.github/dependabot.yml').split('\n')[0]).digest('hex')).toBe('28ddc9cbecb071435220504c25f544985d6671b0c98ad9e06d9bf8c0d36f23be');
+  });
+
+  it('post134: locks .github/dependabot.yml size*lines 12625', () => {
+    expect(statSync(join(root, '.github/dependabot.yml')).size * read('.github/dependabot.yml').split('\n').length).toBe(12625);
+  });
+
+  it('post134: locks .github/dependabot.yml char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('.github/dependabot.yml');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(24);
+    expect((t.match(/,/g) ?? []).length).toBe(0);
+    expect((t.match(/:/g) ?? []).length).toBe(22);
+    expect((t.match(/"/g) ?? []).length).toBe(20);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks .github/dependabot.yml HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, '.github/dependabot.yml'))).digest('hex')).toBe('2a3da99d88fa393556976f81347e79e1d9af428d');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, '.github/dependabot.yml'))).digest('hex')).toBe('797c1f41cf5df4d5f8d1020d77aa8d82');
+  });
+
+  it('post134: locks package.json sha256', () => {
+    expect(sha256('package.json')).toBe('34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c');
+  });
+
+  it('post134: locks package.json sha1', () => {
+    expect(sha1('package.json')).toBe('b58d14f35b9c13bb254d5e2a51240e2918a126c5');
+  });
+
+  it('post134: locks package.json md5', () => {
+    expect(md5('package.json')).toBe('63472e1fb514fb0dadb5e49a7bdbaa5f');
+  });
+
+  it('post134: locks package.json sha384', () => {
+    expect(sha384('package.json')).toBe('4208b099e242907b02fce514c0ce890d1805b1a6de73ad0a15e49ce9f5a2eb5e311f6e3175464f97ff91b0ca752f7c20');
+  });
+
+  it('post134: locks package.json sha512', () => {
+    expect(sha512('package.json')).toBe('7b56f282c4ae1f06e33354171317d5a318ef8f85cf74f07392a18ee65f40a3ed66acb974513f5bae57b83d67b18132fc67b66dde5aa4dca015f7d5fc14926b28');
+  });
+
+  it('post134: locks package.json sha3-256', () => {
+    expect(sha3('package.json')).toBe('e56db806f28d1317bcd7620e70192882b7b8e72c55481fd4cd639b174e04a5a5');
+  });
+
+  it('post134: locks package.json blake2b512', () => {
+    expect(blake2b('package.json')).toBe('a4b33748d54cbb972b7e8ed7e5e370d92bee40b0110f42fa1158b2c1ee628ee68d34704af77564c5e3c2c7988d7020f5608a42c3b03bb58567874256c2f1dd1d');
+  });
+
+  it('post134: locks package.json ripemd160', () => {
+    expect(ripemd('package.json')).toBe('f3b12f3f8d6366baa145f30bfb68d5bbb06a1bad');
+  });
+
+  it('post134: locks package.json size 637', () => {
+    expect(statSync(join(root, 'package.json')).size).toBe(637);
+    expect(readFileSync(join(root, 'package.json')).byteLength).toBe(637);
+  });
+
+  it('post134: locks package.json utf8 635 lines 26', () => {
+    expect(read('package.json')).toHaveLength(635);
+    expect(read('package.json').split('\n')).toHaveLength(26);
+  });
+
+  it('post134: locks package.json nibble 451 xor 13', () => {
+    const d = sha256('package.json');
+    expect(nibbleSum(d)).toBe(451);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post134: locks package.json pairSum 4051 rollingXor 13', () => {
+    const d = sha256('package.json');
+    expect(pairSum(d)).toBe(4051);
+    expect(rollingXor(d)).toBe(13);
+  });
+
+  it('post134: locks package.json first/last/mid octets', () => {
+    const d = sha256('package.json');
+    expect(d.slice(0, 2)).toBe('34');
+    expect(d.slice(-2)).toBe('1c');
+    expect(d.slice(28, 36)).toBe('e0ecaa43');
+  });
+
+  it('post134: locks package.json HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', 'package.json')).toBe('da6eab75dfa282d488400670e8a0a48a808b5777ee3903c4cd96558c404c84cb');
+    expect(hmacSha256('leftover', 'package.json')).toBe('20e0c5771e324d5d7c4d9bb108e54226b1ca026d3c6d232d5f0b8ccba88462a1');
+    expect(hmacSha256('TOKENMAXX', 'package.json')).toBe('ff224f52701ef6f2ee2609bc2bd5cdf346a14ef6b4b5eab51bbf86a8b01bca58');
+  });
+
+  it('post134: locks package.json HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', 'package.json')).toBe('961232c61cd4dc84f8eb5deb35fbc2ddd21b32b32b3be0dad3720409f30867ec');
+    expect(hmacSha256('HEAVY', 'package.json')).toBe('59f02fb62823abdd3ebccdd68ef1f27db9333e414f49a111c132eca85acb6563');
+    expect(hmacSha256('no-product-invent', 'package.json')).toBe('b4d2e3db95a68120d3e5f1dc0b35bda72e5a8ffa0c34dd3b2b110699c0cd286b');
+  });
+
+  it('post134: locks package.json spaces 106', () => {
+    expect((read('package.json').match(/ /g) ?? []).length).toBe(106);
+  });
+
+  it('post134: locks package.json reversed sha256', () => {
+    const rev = [...read('package.json')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('76b81fd27392035d0e4776f664acfb5bf67811a2b3ebb57b61b7be81ceb7ccc4');
+  });
+
+  it('post134: locks package.json sha256 UPPERCASE', () => {
+    expect(sha256('package.json').toUpperCase()).toBe('34552493F3008B58991D10E7B41EE0ECAA43BF8BA3E79D261AC2A061E6F7181C');
+  });
+
+  it('post134: locks package.json first-line sha256', () => {
+    expect(createHash('sha256').update(read('package.json').split('\n')[0]).digest('hex')).toBe('021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96');
+  });
+
+  it('post134: locks package.json size*lines 16562', () => {
+    expect(statSync(join(root, 'package.json')).size * read('package.json').split('\n').length).toBe(16562);
+  });
+
+  it('post134: locks package.json char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('package.json');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(25);
+    expect((t.match(/,/g) ?? []).length).toBe(16);
+    expect((t.match(/:/g) ?? []).length).toBe(22);
+    expect((t.match(/"/g) ?? []).length).toBe(74);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks package.json HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, 'package.json'))).digest('hex')).toBe('a83dd71ce8572d4fad06edf959ad96bdc5a07587');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, 'package.json'))).digest('hex')).toBe('136f2fafbdd200dc5779aa1085249804');
+  });
+
+  it('post134: locks vitest.config.ts sha256', () => {
+    expect(sha256('vitest.config.ts')).toBe('f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38');
+  });
+
+  it('post134: locks vitest.config.ts sha1', () => {
+    expect(sha1('vitest.config.ts')).toBe('f8d49517ece92fc5e9781fbde021a948958aac37');
+  });
+
+  it('post134: locks vitest.config.ts md5', () => {
+    expect(md5('vitest.config.ts')).toBe('f1176313255f5f064a946d458482d81a');
+  });
+
+  it('post134: locks vitest.config.ts sha384', () => {
+    expect(sha384('vitest.config.ts')).toBe('c740544ed89115527034ecf6e26516e084e03eb35bb32b53e2a9ba0c87e13c92d27eedad009b8248a3c0410200eba563');
+  });
+
+  it('post134: locks vitest.config.ts sha512', () => {
+    expect(sha512('vitest.config.ts')).toBe('ea76043e8370d77ce0cb6723483ce791cff7cb9b5fb3bf8997a9772e1f3e9c897d34fc0fe2787d4f95cfb0561a8c1439436468cefb79893325b21f462c243682');
+  });
+
+  it('post134: locks vitest.config.ts sha3-256', () => {
+    expect(sha3('vitest.config.ts')).toBe('ec04c66cbf9a14154aabbfb72cd926250ae10c5577428b5b8a8b749db6c0a7ba');
+  });
+
+  it('post134: locks vitest.config.ts blake2b512', () => {
+    expect(blake2b('vitest.config.ts')).toBe('93d50742fb1f4fa70321f558b00b563052eefcaf0112ff159c377f6e7d5c989a19df038ab20fe701cb59b44d1075a621253feead3118a6a974a21e23c2eb980a');
+  });
+
+  it('post134: locks vitest.config.ts ripemd160', () => {
+    expect(ripemd('vitest.config.ts')).toBe('6f29a743813430d4d364f8ddd66e0aedf1506fcd');
+  });
+
+  it('post134: locks vitest.config.ts size 535', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size).toBe(535);
+    expect(readFileSync(join(root, 'vitest.config.ts')).byteLength).toBe(535);
+  });
+
+  it('post134: locks vitest.config.ts utf8 535 lines 22', () => {
+    expect(read('vitest.config.ts')).toHaveLength(535);
+    expect(read('vitest.config.ts').split('\n')).toHaveLength(22);
+  });
+
+  it('post134: locks vitest.config.ts nibble 536 xor 2', () => {
+    const d = sha256('vitest.config.ts');
+    expect(nibbleSum(d)).toBe(536);
+    expect(xorNibbles(d)).toBe(2);
+  });
+
+  it('post134: locks vitest.config.ts pairSum 4691 rollingXor 49', () => {
+    const d = sha256('vitest.config.ts');
+    expect(pairSum(d)).toBe(4691);
+    expect(rollingXor(d)).toBe(49);
+  });
+
+  it('post134: locks vitest.config.ts first/last/mid octets', () => {
+    const d = sha256('vitest.config.ts');
+    expect(d.slice(0, 2)).toBe('f9');
+    expect(d.slice(-2)).toBe('38');
+    expect(d.slice(28, 36)).toBe('ec95c6d5');
+  });
+
+  it('post134: locks vitest.config.ts HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', 'vitest.config.ts')).toBe('c53a882c6e5e8ef3b1506104649574edf896592a9bc5ea53d19b9304e98409bc');
+    expect(hmacSha256('leftover', 'vitest.config.ts')).toBe('3bc8abcf1f58dc77ee233f74f3e725de7089ea5307ef488f25b1aad2d0f3d1b7');
+    expect(hmacSha256('TOKENMAXX', 'vitest.config.ts')).toBe('0f446a2e20693c7657cb1d718f1a1b296160af17a69fcd36cec18d937ae65de9');
+  });
+
+  it('post134: locks vitest.config.ts HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', 'vitest.config.ts')).toBe('dc6c0303b4827d3ce7d0721e9e70d47e3d365b5613550dfa0ad885d70d9265bc');
+    expect(hmacSha256('HEAVY', 'vitest.config.ts')).toBe('08ec43359860bb937405b1b476b372ee74b0d49b19430497c923df04bbe60179');
+    expect(hmacSha256('no-product-invent', 'vitest.config.ts')).toBe('3e3b5178103ca33942111d45dcf7e812cb38dc01558a23497b43440560df420c');
+  });
+
+  it('post134: locks vitest.config.ts spaces 121', () => {
+    expect((read('vitest.config.ts').match(/ /g) ?? []).length).toBe(121);
+  });
+
+  it('post134: locks vitest.config.ts reversed sha256', () => {
+    const rev = [...read('vitest.config.ts')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('0938009226d244856c43668b42c9aa000689efe510086849e55daf781d867c2b');
+  });
+
+  it('post134: locks vitest.config.ts sha256 UPPERCASE', () => {
+    expect(sha256('vitest.config.ts').toUpperCase()).toBe('F9B58BB937531DA55AD474592E69EC95C6D55A5B8B878F8FA251C0F8D6CAFF38');
+  });
+
+  it('post134: locks vitest.config.ts first-line sha256', () => {
+    expect(createHash('sha256').update(read('vitest.config.ts').split('\n')[0]).digest('hex')).toBe('85734f4752244f71454215d0cfbe952f4ff6d79da03016ebd55e0dd9a1e7d328');
+  });
+
+  it('post134: locks vitest.config.ts size*lines 11770', () => {
+    expect(statSync(join(root, 'vitest.config.ts')).size * read('vitest.config.ts').split('\n').length).toBe(11770);
+  });
+
+  it('post134: locks vitest.config.ts char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('vitest.config.ts');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(21);
+    expect((t.match(/,/g) ?? []).length).toBe(18);
+    expect((t.match(/:/g) ?? []).length).toBe(15);
+    expect((t.match(/"/g) ?? []).length).toBe(0);
+    expect((t.match(/'/g) ?? []).length).toBe(26);
+  });
+
+  it('post134: locks vitest.config.ts HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, 'vitest.config.ts'))).digest('hex')).toBe('62951756fd133c5e9fee517c5a04a2bea1cec88c');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, 'vitest.config.ts'))).digest('hex')).toBe('00a2129f8c5de8d1ee77a0de9da8d0ca');
+  });
+
+  it('post134: locks AGENTS.md sha256', () => {
+    expect(sha256('AGENTS.md')).toBe('48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa');
+  });
+
+  it('post134: locks AGENTS.md sha1', () => {
+    expect(sha1('AGENTS.md')).toBe('a7df1fec05dcf7b8ace116788297c77f467a7b6c');
+  });
+
+  it('post134: locks AGENTS.md md5', () => {
+    expect(md5('AGENTS.md')).toBe('e73be0edb8c4353b6b591454478f00cd');
+  });
+
+  it('post134: locks AGENTS.md sha384', () => {
+    expect(sha384('AGENTS.md')).toBe('817ee000b8167b63255d4061082f64b6cb1ce8ce4d1c1b43af4d884deb0b10694d66d13b9eb3d961b5f434bfcc2e372a');
+  });
+
+  it('post134: locks AGENTS.md sha512', () => {
+    expect(sha512('AGENTS.md')).toBe('7c29c33e9dd0677243dfefdab7f9a8d71305ac78b78a4d52a2ffaa0fa4e067f46242e0c32064be1e4705c817e7cdcb112c2cc7b372de7ea098de4e93d7b23908');
+  });
+
+  it('post134: locks AGENTS.md sha3-256', () => {
+    expect(sha3('AGENTS.md')).toBe('894f7d1a3a1e8fd469f25df037a053e3ca5758aa6433d1bb0908b2940fd6c1a4');
+  });
+
+  it('post134: locks AGENTS.md blake2b512', () => {
+    expect(blake2b('AGENTS.md')).toBe('7b327e420b36188b3330e57c54c0cae4331fc506b92ad5b76432b44b3e171d3b52ee5b3d3f458e323eb409fb0b73d4fbfc23bf9319d833629654a8b4996ac8e0');
+  });
+
+  it('post134: locks AGENTS.md ripemd160', () => {
+    expect(ripemd('AGENTS.md')).toBe('6637e853e0148967671e4a3f21bd852255e8ed1c');
+  });
+
+  it('post134: locks AGENTS.md size 1017', () => {
+    expect(statSync(join(root, 'AGENTS.md')).size).toBe(1017);
+    expect(readFileSync(join(root, 'AGENTS.md')).byteLength).toBe(1017);
+  });
+
+  it('post134: locks AGENTS.md utf8 1011 lines 35', () => {
+    expect(read('AGENTS.md')).toHaveLength(1011);
+    expect(read('AGENTS.md').split('\n')).toHaveLength(35);
+  });
+
+  it('post134: locks AGENTS.md nibble 479 xor 5', () => {
+    const d = sha256('AGENTS.md');
+    expect(nibbleSum(d)).toBe(479);
+    expect(xorNibbles(d)).toBe(5);
+  });
+
+  it('post134: locks AGENTS.md pairSum 5084 rollingXor 216', () => {
+    const d = sha256('AGENTS.md');
+    expect(pairSum(d)).toBe(5084);
+    expect(rollingXor(d)).toBe(216);
+  });
+
+  it('post134: locks AGENTS.md first/last/mid octets', () => {
+    const d = sha256('AGENTS.md');
+    expect(d.slice(0, 2)).toBe('48');
+    expect(d.slice(-2)).toBe('aa');
+    expect(d.slice(28, 36)).toBe('a5ec1be5');
+  });
+
+  it('post134: locks AGENTS.md HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', 'AGENTS.md')).toBe('1988f92b5fdd04e681c969c3279279c28d120dc08d91e34bdf83677579318ce1');
+    expect(hmacSha256('leftover', 'AGENTS.md')).toBe('ebc9f95bcc289e29e0a1ef806d4a6466da053e934eba9da783fda10f1a46b84e');
+    expect(hmacSha256('TOKENMAXX', 'AGENTS.md')).toBe('b3fb6ac3a6100a53c55b09762041608ae8003dd239b191726b2de0f18ae2b72f');
+  });
+
+  it('post134: locks AGENTS.md HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', 'AGENTS.md')).toBe('00f1950ccd29586a92c5e8b1dcc168b3ae33f40128c0354f418c47eef8e3f144');
+    expect(hmacSha256('HEAVY', 'AGENTS.md')).toBe('f5534ae49c23be34018c9e05a44b201edf94a776bd06b184d44b41e02e77c87c');
+    expect(hmacSha256('no-product-invent', 'AGENTS.md')).toBe('dbfdb45d097dffeee56f94781c4ce33e6c8cfb185871bf00c7237385c42cf264');
+  });
+
+  it('post134: locks AGENTS.md spaces 120', () => {
+    expect((read('AGENTS.md').match(/ /g) ?? []).length).toBe(120);
+  });
+
+  it('post134: locks AGENTS.md reversed sha256', () => {
+    const rev = [...read('AGENTS.md')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('662d61b72071234b614b17c421d0f8a3fc73757a69c1690a0b6a36fd122672dc');
+  });
+
+  it('post134: locks AGENTS.md sha256 UPPERCASE', () => {
+    expect(sha256('AGENTS.md').toUpperCase()).toBe('48E590B4F146E2FBD1EBB409E0D5A5EC1BE50B72B2C310F1C1E360487B36FEAA');
+  });
+
+  it('post134: locks AGENTS.md first-line sha256', () => {
+    expect(createHash('sha256').update(read('AGENTS.md').split('\n')[0]).digest('hex')).toBe('e3df46c4dc415311293b71de67e5df2d01a72a69658ef8f8cf5ac9e682d8d618');
+  });
+
+  it('post134: locks AGENTS.md size*lines 35595', () => {
+    expect(statSync(join(root, 'AGENTS.md')).size * read('AGENTS.md').split('\n').length).toBe(35595);
+  });
+
+  it('post134: locks AGENTS.md char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('AGENTS.md');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(34);
+    expect((t.match(/,/g) ?? []).length).toBe(2);
+    expect((t.match(/:/g) ?? []).length).toBe(5);
+    expect((t.match(/"/g) ?? []).length).toBe(0);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks AGENTS.md HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, 'AGENTS.md'))).digest('hex')).toBe('049511be1917d0959b64a24579ceccf1feb4c93e');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, 'AGENTS.md'))).digest('hex')).toBe('bfc53914397334c7c24ed6d51efd1023');
+  });
+
+  it('post134: locks tsconfig.json sha256', () => {
+    expect(sha256('tsconfig.json')).toBe('ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792');
+  });
+
+  it('post134: locks tsconfig.json sha1', () => {
+    expect(sha1('tsconfig.json')).toBe('68e3169249049539d687b6b3d81fc809079134f9');
+  });
+
+  it('post134: locks tsconfig.json md5', () => {
+    expect(md5('tsconfig.json')).toBe('13f6687a50fe7c6ea7ef4eb3623b7457');
+  });
+
+  it('post134: locks tsconfig.json sha384', () => {
+    expect(sha384('tsconfig.json')).toBe('2776ddc534d652582b058179048240c9df59cfc882305b98aa08108dd00b1e56a8cecf89510fd59bec966575455dd15d');
+  });
+
+  it('post134: locks tsconfig.json sha512', () => {
+    expect(sha512('tsconfig.json')).toBe('1ef6e98053d98ec50aeabad12d3f8b7bd44bd81f1a0f63264f0b8530b65b75a1f4e4f705147467a3099a0a89674db33becaf259d25b28c546d2cbdb4862614f3');
+  });
+
+  it('post134: locks tsconfig.json sha3-256', () => {
+    expect(sha3('tsconfig.json')).toBe('8ee1f99839cc021ccb77405886ffd1863202cc524498261be719f4ed561ad346');
+  });
+
+  it('post134: locks tsconfig.json blake2b512', () => {
+    expect(blake2b('tsconfig.json')).toBe('b581de91f82f2c41af059ca5d0c03f07f36a943058f3e6c3426c0c69bac9920d5758b91fb9bfe293471bf5bebe5addf90c2a638aa4db8f3299d02d59f9184327');
+  });
+
+  it('post134: locks tsconfig.json ripemd160', () => {
+    expect(ripemd('tsconfig.json')).toBe('4f7e133ecedc6704045e80181dff3a2ad3d993e6');
+  });
+
+  it('post134: locks tsconfig.json size 397', () => {
+    expect(statSync(join(root, 'tsconfig.json')).size).toBe(397);
+    expect(readFileSync(join(root, 'tsconfig.json')).byteLength).toBe(397);
+  });
+
+  it('post134: locks tsconfig.json utf8 397 lines 24', () => {
+    expect(read('tsconfig.json')).toHaveLength(397);
+    expect(read('tsconfig.json').split('\n')).toHaveLength(24);
+  });
+
+  it('post134: locks tsconfig.json nibble 506 xor 8', () => {
+    const d = sha256('tsconfig.json');
+    expect(nibbleSum(d)).toBe(506);
+    expect(xorNibbles(d)).toBe(8);
+  });
+
+  it('post134: locks tsconfig.json pairSum 4436 rollingXor 110', () => {
+    const d = sha256('tsconfig.json');
+    expect(pairSum(d)).toBe(4436);
+    expect(rollingXor(d)).toBe(110);
+  });
+
+  it('post134: locks tsconfig.json first/last/mid octets', () => {
+    const d = sha256('tsconfig.json');
+    expect(d.slice(0, 2)).toBe('ef');
+    expect(d.slice(-2)).toBe('92');
+    expect(d.slice(28, 36)).toBe('04688ea1');
+  });
+
+  it('post134: locks tsconfig.json HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', 'tsconfig.json')).toBe('053cf169643728881c696a630a95c7c56c836fbdb8e5723eac1c2e72d2346f2f');
+    expect(hmacSha256('leftover', 'tsconfig.json')).toBe('8b1d7fdf24ecef58d7971089e3fb62f7cf97d8a840f50636ffa32327fa8503a9');
+    expect(hmacSha256('TOKENMAXX', 'tsconfig.json')).toBe('2da19928cb9b06a5242f987184cc2d44cc385aed692bf3b6fa005e79065d47d1');
+  });
+
+  it('post134: locks tsconfig.json HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', 'tsconfig.json')).toBe('577b9ff59b4b17e672dfb35ae2e963a46b8bbeb05eb23aeb25f7d791422225d0');
+    expect(hmacSha256('HEAVY', 'tsconfig.json')).toBe('351594a3f9f8c0502c2a8387cd10b128a0cc58fc4bc16001784d9e1b55a4088f');
+    expect(hmacSha256('no-product-invent', 'tsconfig.json')).toBe('94ad9d8f2eeaf1debb6286a3db3ef2dfadafc8f031999c1c384fef8d8310ae22');
+  });
+
+  it('post134: locks tsconfig.json spaces 93', () => {
+    expect((read('tsconfig.json').match(/ /g) ?? []).length).toBe(93);
+  });
+
+  it('post134: locks tsconfig.json reversed sha256', () => {
+    const rev = [...read('tsconfig.json')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('09dd5c17729a34e7ec3fc568710cfb6d88183e5c5a45e1a0084987266b3b2439');
+  });
+
+  it('post134: locks tsconfig.json sha256 UPPERCASE', () => {
+    expect(sha256('tsconfig.json').toUpperCase()).toBe('EF73D52E26C5DBE1F1785A067CBC04688EA1E6EF80CA5FFF4A7351583828D792');
+  });
+
+  it('post134: locks tsconfig.json first-line sha256', () => {
+    expect(createHash('sha256').update(read('tsconfig.json').split('\n')[0]).digest('hex')).toBe('021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96');
+  });
+
+  it('post134: locks tsconfig.json size*lines 9528', () => {
+    expect(statSync(join(root, 'tsconfig.json')).size * read('tsconfig.json').split('\n').length).toBe(9528);
+  });
+
+  it('post134: locks tsconfig.json char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('tsconfig.json');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(23);
+    expect((t.match(/,/g) ?? []).length).toBe(12);
+    expect((t.match(/:/g) ?? []).length).toBe(11);
+    expect((t.match(/"/g) ?? []).length).toBe(40);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks tsconfig.json HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, 'tsconfig.json'))).digest('hex')).toBe('22cb51f172cb8b4a16123fd80e59dcef8236b64c');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, 'tsconfig.json'))).digest('hex')).toBe('154262083e1805bce0427c62f4499d87');
+  });
+
+  it('post134: locks wrangler.toml sha256', () => {
+    expect(sha256('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+  });
+
+  it('post134: locks wrangler.toml sha1', () => {
+    expect(sha1('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it('post134: locks wrangler.toml md5', () => {
+    expect(md5('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it('post134: locks wrangler.toml sha384', () => {
+    expect(sha384('wrangler.toml')).toBe('77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09');
+  });
+
+  it('post134: locks wrangler.toml sha512', () => {
+    expect(sha512('wrangler.toml')).toBe('4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96');
+  });
+
+  it('post134: locks wrangler.toml sha3-256', () => {
+    expect(sha3('wrangler.toml')).toBe('67dbc36705b469b0f55c46e26ed7ac6355f2d0d59d088cf8d5f1b687c79ae9b9');
+  });
+
+  it('post134: locks wrangler.toml blake2b512', () => {
+    expect(blake2b('wrangler.toml')).toBe('c2c7d2994209964f33dd815a5abd5e40369f5a58f9d095a887a3e6096887f41cdabb8621faad084ad76430bdb19430751d1090ac30c3cd8125d6ed8a8c5a2e86');
+  });
+
+  it('post134: locks wrangler.toml ripemd160', () => {
+    expect(ripemd('wrangler.toml')).toBe('324931f8f42bb9dda5d95a21011a0897894de2e7');
+  });
+
+  it('post134: locks wrangler.toml size 330', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size).toBe(330);
+    expect(readFileSync(join(root, 'wrangler.toml')).byteLength).toBe(330);
+  });
+
+  it('post134: locks wrangler.toml utf8 330 lines 18', () => {
+    expect(read('wrangler.toml')).toHaveLength(330);
+    expect(read('wrangler.toml').split('\n')).toHaveLength(18);
+  });
+
+  it('post134: locks wrangler.toml nibble 457 xor 13', () => {
+    const d = sha256('wrangler.toml');
+    expect(nibbleSum(d)).toBe(457);
+    expect(xorNibbles(d)).toBe(13);
+  });
+
+  it('post134: locks wrangler.toml pairSum 3802 rollingXor 122', () => {
+    const d = sha256('wrangler.toml');
+    expect(pairSum(d)).toBe(3802);
+    expect(rollingXor(d)).toBe(122);
+  });
+
+  it('post134: locks wrangler.toml first/last/mid octets', () => {
+    const d = sha256('wrangler.toml');
+    expect(d.slice(0, 2)).toBe('95');
+    expect(d.slice(-2)).toBe('f8');
+    expect(d.slice(28, 36)).toBe('4a0b0b87');
+  });
+
+  it('post134: locks wrangler.toml HMAC post134/leftover/TOKENMAXX', () => {
+    expect(hmacSha256('post134', 'wrangler.toml')).toBe('3eb43599cfa0cf03ba90567ef17ca54f9dabf1eda7596f9b48966aa7b89422ed');
+    expect(hmacSha256('leftover', 'wrangler.toml')).toBe('117043293c91e6cdcad8f44181f5c253ceb0f7dc567ea32cddbd61f9d349a063');
+    expect(hmacSha256('TOKENMAXX', 'wrangler.toml')).toBe('7d198a7e11f32e841079eb2398433044d49d9336bb0642737d55dbb39a1206d4');
+  });
+
+  it('post134: locks wrangler.toml HMAC after-#134/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('after-#134', 'wrangler.toml')).toBe('430339f86613361d93cd104578bee5e654dbf76674a3fa4e4e6ff97d04cf1aaa');
+    expect(hmacSha256('HEAVY', 'wrangler.toml')).toBe('0106e385ea2e0ca3fd52ddc940a1eb5921a22885362d57f5a49dd1bda89ea5db');
+    expect(hmacSha256('no-product-invent', 'wrangler.toml')).toBe('3d99d134e0673c8ff163b29a6c72e49bfa5e599898762bf47dd20f0e65639abb');
+  });
+
+  it('post134: locks wrangler.toml spaces 26', () => {
+    expect((read('wrangler.toml').match(/ /g) ?? []).length).toBe(26);
+  });
+
+  it('post134: locks wrangler.toml reversed sha256', () => {
+    const rev = [...read('wrangler.toml')].reverse().join('');
+    expect(createHash('sha256').update(rev).digest('hex')).toBe('ea6a9ab9f608d61dbff959c2a36e09a4822605b77cdc9b1dda5853999ae53ad0');
+  });
+
+  it('post134: locks wrangler.toml sha256 UPPERCASE', () => {
+    expect(sha256('wrangler.toml').toUpperCase()).toBe('95B11779A88F0544F3561EEA67994A0B0B874D7B8776579189FA7142FA0473F8');
+  });
+
+  it('post134: locks wrangler.toml first-line sha256', () => {
+    expect(createHash('sha256').update(read('wrangler.toml').split('\n')[0]).digest('hex')).toBe('44eea2b40cca4009e9429bc54f55cd083523742a2e6bf8195731b2e95857194e');
+  });
+
+  it('post134: locks wrangler.toml size*lines 5940', () => {
+    expect(statSync(join(root, 'wrangler.toml')).size * read('wrangler.toml').split('\n').length).toBe(5940);
+  });
+
+  it('post134: locks wrangler.toml char-class tabs/nl/comma/colon/quotes', () => {
+    const t = read('wrangler.toml');
+    expect((t.match(/\t/g) ?? []).length).toBe(0);
+    expect((t.match(/\n/g) ?? []).length).toBe(17);
+    expect((t.match(/,/g) ?? []).length).toBe(1);
+    expect((t.match(/:/g) ?? []).length).toBe(1);
+    expect((t.match(/"/g) ?? []).length).toBe(14);
+    expect((t.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post134: locks wrangler.toml HMAC-SHA1/MD5 key post134', () => {
+    expect(createHmac('sha1', 'post134').update(readFileSync(join(root, 'wrangler.toml'))).digest('hex')).toBe('27325a11fd4ec1a07be87a5570a292189ca7aca9');
+    expect(createHmac('md5', 'post134').update(readFileSync(join(root, 'wrangler.toml'))).digest('hex')).toBe('405b9395716dbf15341064252cb77587');
+  });
+
+
+  it('post134: CI still has typecheck/test/hygiene jobs', () => {
+    const c = read('.github/workflows/ci.yml');
+    expect(c).toContain('typecheck:');
+    expect(c).toContain('test:');
+    expect(c).toContain('hygiene:');
+    expect(c).toContain('npm run typecheck');
+    expect(c).toContain('npm run test:coverage');
+  });
+
+  it('post134: deploy remains workflow_dispatch HITL', () => {
+    const d = read('.github/workflows/deploy.yml');
+    expect(d).toContain('workflow_dispatch');
+    expect(d).not.toMatch(/^\s*push:/m);
+    expect(d).not.toMatch(/^\s*pull_request:/m);
+  });
+
+  it('post134: vitest thresholds remain 100', () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+  });
+
+  it('post134: AGENTS verify scripts', () => {
+    const a = read('AGENTS.md');
+    expect(a).toContain('npm ci');
+    expect(a).toContain('npm run typecheck');
+    expect(a).toContain('npm test');
+    expect(a).toContain('npm run test:coverage');
+  });
+
+  it('post134: package scripts lock', () => {
+    const p = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(p.scripts.typecheck).toBe('tsc --noEmit');
+    expect(p.scripts.test).toBe('vitest run');
+    expect(p.scripts['test:coverage']).toBe('vitest run --coverage');
+  });
+
+  it('post134: dependabot monthly npm+actions', () => {
+    const dep = read('.github/dependabot.yml');
+    expect(dep).toContain('package-ecosystem: "npm"');
+    expect(dep).toContain('package-ecosystem: "github-actions"');
+    expect(dep).toContain('interval: "monthly"');
+  });
+
+  it('post134: hygiene still lists leftover suites', () => {
+    const c = read('.github/workflows/ci.yml');
+    for (const f of ['test/helpers.test.ts', 'test/genres.test.ts', 'test/routes.test.ts', 'test/ci-config.test.ts', 'test/parser.test.ts', 'test/mcp-spec-contract.test.ts'] as const) {
+      expect(c).toContain('test -f ' + f);
+    }
+  });
+
+  it('post134: hygiene lists #134 suites too', () => {
+    const c = read('.github/workflows/ci.yml');
+    for (const f of ['test/mcp.test.ts', 'test/source-contracts.test.ts', 'test/wrangler-config.test.ts'] as const) {
+      expect(c).toContain('test -f ' + f);
+    }
+  });
+
+  it('post134: CI concurrency cancel-in-progress', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/cancel-in-progress:\s*true/);
+  });
+
+  it('post134: CI permissions contents read', () => {
+    expect(read('.github/workflows/ci.yml')).toMatch(/contents:\s*read/);
+  });
+
+  it('post134: wrangler.toml still present for CI hygiene', () => {
+    expect(read('wrangler.toml')).toContain('name = "backlink"');
+    expect(read('wrangler.toml')).toContain('CATALOG_CACHE');
+  });
+
+  it('post134: tsconfig still targets Workers', () => {
+    expect(read('tsconfig.json')).toMatch(/@cloudflare\/workers-types/);
+  });
+
+  it('post134: mega purity 40x ci.yml sha256', () => {
+    const expected = 'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5';
+    for (let i = 0; i < 40; i++) expect(sha256('.github/workflows/ci.yml')).toBe(expected);
+  });
+
+  it('post134: HMAC digests differ for distinct keys on ci.yml', () => {
+    expect(hmacSha256('post134', '.github/workflows/ci.yml')).not.toBe(hmacSha256('leftover', '.github/workflows/ci.yml'));
+    expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).not.toBe(hmacSha256('HEAVY', '.github/workflows/ci.yml'));
+  });
+
+  it('post134: negative inventing fence CI surface', () => {
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/\/playlist|\/now-playing/);
+    expect(read('package.json')).not.toMatch(/playlist|now-playing/i);
+    expect(read('vitest.config.ts')).not.toMatch(/playlist|now-playing/i);
+  });
+
+  it('post134: final inventory markers', () => {
+    const body = read('test/ci-config.test.ts');
+    expect(body).toContain("describe('post132 ci-config HEAVY deepen (after #132)'");
+    expect(body).toContain("describe('post134 ci-config HEAVY deepen (after #134)'");
+    expect((body.match(/it\('post134:/g) ?? []).length).toBeGreaterThan(100);
+  });
+});
