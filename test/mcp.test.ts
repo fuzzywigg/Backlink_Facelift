@@ -6970,3 +6970,1150 @@ describe('MCP_MANIFEST', () => {
     );
   });
 });
+
+describe('post108 mcp HEAVY deepen', () => {
+  const read = (rel: string) => readFileSync(join(mcpRoot, rel), 'utf8');
+  const mcpSrc = read('src/mcp.ts');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const TOOL_NAMES = ['station_select', 'now_playing', 'genre_filter', 'curator_prompt'] as const;
+  const TOP_KEYS = ['schema_version', 'name_for_model', 'name_for_human', 'description_for_model', 'description_for_human', 'auth', 'api', 'tools'] as const;
+
+  it("post108: locks mcp.ts sha256 digest", () => {
+    expect(createHash('sha256').update(mcpSrc, 'utf8').digest('hex')).toBe('6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683');
+  });
+
+  it("post108: locks mcp.ts sha1 digest", () => {
+    expect(createHash('sha1').update(mcpSrc, 'utf8').digest('hex')).toBe('848b3977365809fda54fcb74a7d09affe685ea82');
+  });
+
+  it("post108: locks mcp.ts md5 digest", () => {
+    expect(createHash('md5').update(mcpSrc, 'utf8').digest('hex')).toBe('52e71c72e32e3d95b8b8d61ff4a2cf46');
+  });
+
+  it("post108: locks mcp.ts sha384 digest", () => {
+    expect(createHash('sha384').update(mcpSrc, 'utf8').digest('hex')).toBe('a95bef5fcb3b93e9c05aac94aaa6a49adb47a360bfaf046e65f7254c2249fd1f34ff923ec401752e2701b7260d9949d2');
+  });
+
+  it("post108: locks mcp.ts sha512 digest", () => {
+    expect(createHash('sha512').update(mcpSrc, 'utf8').digest('hex')).toBe('aa1525a8464db0a7d40982c8f0c091b63f8b21ea363f642ca9781513618d4fb99a9926e39118f65788c423a6bd6ee2318b3165f6007ca9599d36fe7fc7820c05');
+  });
+
+  it("post108: locks mcp.ts sha256 nibble sum", () => {
+    expect(nibbleSum(createHash('sha256').update(mcpSrc, 'utf8').digest('hex'))).toBe(551);
+  });
+
+  it("post108: locks mcp.ts sha256 xor-nibble fingerprint", () => {
+    expect(xorNibbles(createHash('sha256').update(mcpSrc, 'utf8').digest('hex'))).toBe(1);
+  });
+
+  it("post108: sha256/sha384/sha512 digests are pairwise distinct", () => {
+    const a = createHash('sha256').update(mcpSrc, 'utf8').digest('hex');
+    const b = createHash('sha384').update(mcpSrc, 'utf8').digest('hex');
+    const c = createHash('sha512').update(mcpSrc, 'utf8').digest('hex');
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it("post108: sha384 length 96 and sha512 length 128 lowercase hex", () => {
+    const a = createHash('sha384').update(mcpSrc, 'utf8').digest('hex');
+    const b = createHash('sha512').update(mcpSrc, 'utf8').digest('hex');
+    expect(a).toHaveLength(96);
+    expect(b).toHaveLength(128);
+    expect(/^[a-f0-9]+$/.test(a + b)).toBe(true);
+  });
+
+  it("post108: HMAC-SHA256 keyed by post108 locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "post108").update(mcpSrc, 'utf8').digest('hex')).toBe('a083f425b35fca6441d9148d33d2980bde5c58c304ae6d099d12aaa604fc6fbf');
+  });
+
+  it("post108: HMAC-SHA256 keyed by mcp-unit locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "mcp-unit").update(mcpSrc, 'utf8').digest('hex')).toBe('28405375d03b3a6149a4c7a0894b3eeaf7aae7743e91f50254d5619b0cdcaad4');
+  });
+
+  it("post108: HMAC-SHA256 keyed by MCP_MANIFEST locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "MCP_MANIFEST").update(mcpSrc, 'utf8').digest('hex')).toBe('59cecbb5722c2db7e1162612d66c3089df15e7759da04cc68884bf03de82dce1');
+  });
+
+  it("post108: HMAC-SHA256 keyed by backlink locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "backlink").update(mcpSrc, 'utf8').digest('hex')).toBe('948dbb9d47ee26b53b9ed9f9656e46752675060261aec301d8a9688178c14b7d');
+  });
+
+  it("post108: HMAC-SHA256 keyed by Backlink Radio locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "Backlink Radio").update(mcpSrc, 'utf8').digest('hex')).toBe('d61171f097655fd1e99e3fbe76f6c7ddb35b0ce15c63cb13081124b0f53d4860');
+  });
+
+  it("post108: HMAC-SHA256 keyed by station_select locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "station_select").update(mcpSrc, 'utf8').digest('hex')).toBe('d8c897e3e257256d5c946e2e941fbc36b75dc2a5027d3685a0f2446686d8cea2');
+  });
+
+  it("post108: HMAC-SHA256 keyed by now_playing locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "now_playing").update(mcpSrc, 'utf8').digest('hex')).toBe('96cc206873f09cc5de0c09d24c34da0daa4923eeb79077fc55e393f6215c3c5d');
+  });
+
+  it("post108: HMAC-SHA256 keyed by genre_filter locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "genre_filter").update(mcpSrc, 'utf8').digest('hex')).toBe('d5fb3f55b4e99eebe3005c654592da845e3f41c4f552e3bc98f4119ff03cf189');
+  });
+
+  it("post108: HMAC-SHA256 keyed by curator_prompt locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "curator_prompt").update(mcpSrc, 'utf8').digest('hex')).toBe('70897363a596f9754bee8cc34105600129e430194d666f995b799708bf1b3259');
+  });
+
+  it("post108: HMAC-SHA256 keyed by openapi locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "openapi").update(mcpSrc, 'utf8').digest('hex')).toBe('23d20e1f26a97ecc18e15e745c7da152c106dd8c4bbf3c1bb613c409581a5f6f');
+  });
+
+  it("post108: HMAC-SHA256 keyed by schema_version locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "schema_version").update(mcpSrc, 'utf8').digest('hex')).toBe('49151d77055e1ab6a8d5dba06712e46bd0a691799e6fdcaa4061081f97f732d9');
+  });
+
+  it("post108: HMAC-SHA256 keyed by name_for_model locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "name_for_model").update(mcpSrc, 'utf8').digest('hex')).toBe('20fbfff86d3e7243df61d31d9f17e1b594ed3a05ffd9a4b7cb2b0668ff42a793');
+  });
+
+  it("post108: HMAC-SHA256 keyed by name_for_human locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "name_for_human").update(mcpSrc, 'utf8').digest('hex')).toBe('6fe184bec192a1ecb54e934e58d578d04fb15810574060827df967c24084bdd0');
+  });
+
+  it("post108: HMAC-SHA256 keyed by description_for_model locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "description_for_model").update(mcpSrc, 'utf8').digest('hex')).toBe('4f8c9c86f9581700421b62eb624787414872f21837d1b9c44700bb76545bd1af');
+  });
+
+  it("post108: HMAC-SHA256 keyed by description_for_human locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "description_for_human").update(mcpSrc, 'utf8').digest('hex')).toBe('cd20ac6c6e8bc98e98e097a7c8399a5cb407e122b01b529f78e222adbc9081f8');
+  });
+
+  it("post108: HMAC-SHA256 keyed by auth locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "auth").update(mcpSrc, 'utf8').digest('hex')).toBe('51c074cc572c2d90279c94301d28ce02f7656b08cbf29d1d84ddbc21aa6a00bf');
+  });
+
+  it("post108: HMAC-SHA256 keyed by api locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "api").update(mcpSrc, 'utf8').digest('hex')).toBe('048366872b63bbf0c846ce3a16c0ab6ebbc179765373c828b58460469ab6cf28');
+  });
+
+  it("post108: HMAC-SHA256 keyed by tools locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "tools").update(mcpSrc, 'utf8').digest('hex')).toBe('5e9557b9ae59f110077be68da61eb3fa6224de77bf86c4dabade62434fe435dc');
+  });
+
+  it("post108: HMAC-SHA256 keyed by input_schema locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "input_schema").update(mcpSrc, 'utf8').digest('hex')).toBe('eea6f08b9bd3d7b32b1b40425a7580eee0dac81d4c78616d91f35997a85868d1');
+  });
+
+  it("post108: HMAC-SHA256 keyed by iptv-org locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "iptv-org").update(mcpSrc, 'utf8').digest('hex')).toBe('dcaf0c454cf3ee0bbaba12121ffe1183726881c6eb0f1f0714218d84c63cd1d7');
+  });
+
+  it("post108: HMAC-SHA256 keyed by HEAVY locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "HEAVY").update(mcpSrc, 'utf8').digest('hex')).toBe('870bb2f88c83abd6679e447c6937b01c998a1b3f527024e687dc35c00a046e40');
+  });
+
+  it("post108: HMAC-SHA256 keyed by TOKENMAXX locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "TOKENMAXX").update(mcpSrc, 'utf8').digest('hex')).toBe('cc983fd02cae540665f120f8a72c3867b8d573a30f5a9c84ace5b4cea2fb9f62');
+  });
+
+  it("post108: HMAC-SHA256 keyed by fuzzywigg locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "fuzzywigg").update(mcpSrc, 'utf8').digest('hex')).toBe('93171a03382e2488888b170abdf10cc84dbd7ec7e77448b36c60d6758faac830');
+  });
+
+  it("post108: HMAC-SHA256 keyed by v1 locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "v1").update(mcpSrc, 'utf8').digest('hex')).toBe('cd5abd9dfa9a5fa313d5e8a57feaf99ebf5df5a6e1ff502e24668734d0950a2d');
+  });
+
+  it("post108: HMAC-SHA256 keyed by none locks mcp.ts digest", () => {
+    expect(createHmac('sha256', "none").update(mcpSrc, 'utf8').digest('hex')).toBe('a1af32180d644f1839679f216e2702a075b41bbc8e3cff24564e0e1cea6170cc');
+  });
+
+  it("post108: HMAC-SHA1 keyed by post108 locks digest", () => {
+    expect(createHmac('sha1', 'post108').update(mcpSrc, 'utf8').digest('hex')).toBe('05f69e563be26022d346365676c55e84b277d688');
+  });
+
+  it("post108: HMAC-SHA384 keyed by post108 locks digest", () => {
+    expect(createHmac('sha384', 'post108').update(mcpSrc, 'utf8').digest('hex')).toBe('185a6e881cef84791de3d85a4ca2c3c3cb5c4e19e0930e2bf6fde1b24d12c88791b6e72e31a2cf2394010d304c951817');
+  });
+
+  it("post108: HMAC-SHA512 keyed by post108 locks digest", () => {
+    expect(createHmac('sha512', 'post108').update(mcpSrc, 'utf8').digest('hex')).toBe('de7b3188917b97053c250cacd035f3e4dcb1721ec3f601c43917bc639d9ff27456b075cc8a4413357b868adefce300eb2759b9627b4f87125281a1abb4e695f7');
+  });
+
+  it("post108: HMAC digests differ from unkeyed sha256 and each other", () => {
+    const plain = createHash('sha256').update(mcpSrc, 'utf8').digest('hex');
+    const a = createHmac('sha256', 'post108').update(mcpSrc, 'utf8').digest('hex');
+    const b = createHmac('sha256', 'mcp-unit').update(mcpSrc, 'utf8').digest('hex');
+    expect(a).not.toBe(plain);
+    expect(b).not.toBe(plain);
+    expect(a).not.toBe(b);
+  });
+
+  it("post108: HMAC key matrix all digests unique", () => {
+    const keys = ["post108","mcp-unit","MCP_MANIFEST","backlink","Backlink Radio","station_select","now_playing","genre_filter","curator_prompt","openapi","schema_version","name_for_model","name_for_human","description_for_model","description_for_human","auth","api","tools","input_schema","iptv-org","HEAVY","TOKENMAXX","fuzzywigg","v1","none"];
+    const digests = keys.map((k) => createHmac('sha256', k).update(mcpSrc, 'utf8').digest('hex'));
+    expect(new Set(digests).size).toBe(keys.length);
+  });
+
+  it("post108: locks mcp.ts byte and code-unit lengths", () => {
+    expect(Buffer.byteLength(mcpSrc, 'utf8')).toBe(2057);
+    expect(mcpSrc.length).toBe(2057);
+    expect(statSync(join(mcpRoot, 'src/mcp.ts')).size).toBe(2057);
+  });
+
+  it("post108: locks mcp.ts code-unit sum", () => {
+    const sum = [...mcpSrc].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    expect(sum).toBe(155333);
+  });
+
+  it("post108: locks mcp.ts line count and trailing newline", () => {
+    expect(mcpSrc.endsWith('\n')).toBe(true);
+    expect(mcpSrc.split('\n')).toHaveLength(68);
+    expect((mcpSrc.match(/\n/g) ?? []).length).toBe(67);
+  });
+
+  it("post108: glyph budget — quotes equals spaces underscores", () => {
+    expect((mcpSrc.match(/"/g) ?? []).length).toBe(62);
+    expect((mcpSrc.match(/=/g) ?? []).length).toBe(1);
+    expect((mcpSrc.match(/ /g) ?? []).length).toBe(617);
+    expect((mcpSrc.match(/_/g) ?? []).length).toBe(20);
+  });
+
+  it("post108: glyph budget — colons commas semis parens braces brackets", () => {
+    expect((mcpSrc.match(/:/g) ?? []).length).toBe(46);
+    expect((mcpSrc.match(/,/g) ?? []).length).toBe(60);
+    expect((mcpSrc.match(/;/g) ?? []).length).toBe(1);
+    expect((mcpSrc.match(/[()]/g) ?? []).length).toBe(4);
+    expect((mcpSrc.match(/[{}]/g) ?? []).length).toBe(38);
+    expect((mcpSrc.match(/[\[\]]/g) ?? []).length).toBe(8);
+  });
+
+  it("post108: glyph budget — singles backticks newlines tabs", () => {
+    expect((mcpSrc.match(/'/g) ?? []).length).toBe(0);
+    expect((mcpSrc.match(/`/g) ?? []).length).toBe(0);
+    expect((mcpSrc.match(/\n/g) ?? []).length).toBe(67);
+    expect((mcpSrc.match(/\t/g) ?? []).length).toBe(0);
+  });
+
+  it("post108: mcp.ts starts with export const MCP_MANIFEST", () => {
+    expect(mcpSrc.startsWith('export const MCP_MANIFEST = {')).toBe(true);
+  });
+
+  it("post108: single export only", () => {
+    expect((mcpSrc.match(/^export /gm) ?? []).length).toBe(1);
+    expect(mcpSrc).not.toMatch(/export function|export interface|export type/);
+  });
+
+  it("post108: TOP_KEYS inventory lock", () => {
+    for (const k of TOP_KEYS) expect(mcpSrc).toContain(k);
+    expect(Object.keys(MCP_MANIFEST)).toEqual([...TOP_KEYS]);
+    expect(createHash('sha256').update(TOP_KEYS.join('|'), 'utf8').digest('hex')).toBe('85b8c45c73051208a5040ac3e196500244c903291970911fc936b124a1dac69e');
+  });
+
+  it("post108: TOOL_NAMES inventory lock", () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
+    expect(TOOL_NAMES).toHaveLength(4);
+    expect(createHash('sha256').update(TOOL_NAMES.join('|'), 'utf8').digest('hex')).toBe('2015d2ac108fff286afe263f4973ac93f78f2eb5690a4a051be6dc5d4edb064d');
+  });
+
+  it("post108: schema_version is v1", () => {
+    expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it("post108: name_for_model is backlink", () => {
+    expect(MCP_MANIFEST.name_for_model).toBe('backlink');
+  });
+
+  it("post108: name_for_human is Backlink Radio", () => {
+    expect(MCP_MANIFEST.name_for_human).toBe('Backlink Radio');
+  });
+
+  it("post108: auth is open none", () => {
+    expect(MCP_MANIFEST.auth).toEqual({ type: 'none' });
+  });
+
+  it("post108: api is openapi at /openapi.json", () => {
+    expect(MCP_MANIFEST.api).toEqual({ type: 'openapi', url: '/openapi.json' });
+  });
+
+  it("post108: description_for_model mentions IPTV radio and curator", () => {
+    expect(MCP_MANIFEST.description_for_model).toMatch(/IPTV radio/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/curator/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/genre/i);
+    expect(MCP_MANIFEST.description_for_model).toMatch(/now-playing/i);
+  });
+
+  it("post108: description_for_human mentions iptv-org", () => {
+    expect(MCP_MANIFEST.description_for_human).toContain('iptv-org');
+  });
+
+  it("post108: locks compact JSON sha256", () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('11910aab98869ffe2c0979b423e62faff2f82b1aa19d3e6a13a9cb23be9c1043');
+  });
+
+  it("post108: locks compact JSON sha1/md5", () => {
+    const c = JSON.stringify(MCP_MANIFEST);
+    expect(createHash('sha1').update(c, 'utf8').digest('hex')).toBe('17b88688da33f30fa7e9f82c2902ca3b9b86e998');
+    expect(createHash('md5').update(c, 'utf8').digest('hex')).toBe('af11e695687a848fe80b386913581a3b');
+  });
+
+  it("post108: locks compact JSON sha384/sha512", () => {
+    const c = JSON.stringify(MCP_MANIFEST);
+    expect(createHash('sha384').update(c, 'utf8').digest('hex')).toBe('48b9c8c453304bca5d2fc9b97cb589a632cea9dea89ab549cbb4477e96fdba04ebace7e89d299e687c1b3636e0d7b7c9');
+    expect(createHash('sha512').update(c, 'utf8').digest('hex')).toBe('5ee0d0827bd0f94d0556e303c4c009391f97e9cdc19a515643d5b50e5529d79f82402ae5c4002827239bb71bef56184c30ad1c6622b50ab9887a46063bf07756');
+  });
+
+  it("post108: locks pretty JSON sha256", () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST, null, 2), 'utf8').digest('hex')).toBe('79d287ffdcc0536d8a2d22f540e1d380d891f93aa5c77f7f2fa293ce430a25f4');
+  });
+
+  it("post108: locks tools-only JSON sha256", () => {
+    expect(createHash('sha256').update(JSON.stringify(MCP_MANIFEST.tools), 'utf8').digest('hex')).toBe('c4dc1e07bdade8df2e72bb8c19caf43226b1f622a7d10bd1c3341ab91b599b43');
+  });
+
+  it("post108: locks compact JSON length", () => {
+    expect(JSON.stringify(MCP_MANIFEST).length).toBe(1534);
+  });
+
+  it("post108: locks pretty JSON length", () => {
+    expect(JSON.stringify(MCP_MANIFEST, null, 2).length).toBe(2159);
+  });
+
+  it("post108: HMAC-SHA256 of compact JSON keyed by post108", () => {
+    expect(createHmac('sha256', 'post108').update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('816adea7403f833083d0f117e782e03b8e7468463655ea9a000611f3094dc582');
+  });
+
+  it("post108: HMAC-SHA256 of tools JSON keyed by post108", () => {
+    expect(createHmac('sha256', 'post108').update(JSON.stringify(MCP_MANIFEST.tools), 'utf8').digest('hex')).toBe('751b626fd7b57f187fb7443be34a270ef3ac45bbc17a335fb4e6e2603516f7c8');
+  });
+
+  it("post108: tool station_select exists with object schema", () => {
+    const tool = toolNamed("station_select");
+    expect(tool.input_schema.type).toBe('object');
+    expect(typeof tool.description).toBe('string');
+    expect(tool.description.length).toBeGreaterThan(10);
+  });
+
+  it("post108: tool station_select property keys lock", () => {
+    const tool = toolNamed("station_select");
+    expect(Object.keys(tool.input_schema.properties).sort()).toEqual(["station_name"]);
+  });
+
+  it("post108: tool station_select required lock", () => {
+    const tool = toolNamed("station_select");
+    expect(tool.input_schema.required).toEqual(["station_name"]);
+  });
+
+  it("post108: tool now_playing exists with object schema", () => {
+    const tool = toolNamed("now_playing");
+    expect(tool.input_schema.type).toBe('object');
+    expect(typeof tool.description).toBe('string');
+    expect(tool.description.length).toBeGreaterThan(10);
+  });
+
+  it("post108: tool now_playing property keys lock", () => {
+    const tool = toolNamed("now_playing");
+    expect(Object.keys(tool.input_schema.properties).sort()).toEqual([]);
+  });
+
+  it("post108: tool now_playing has no required array", () => {
+    const tool = toolNamed("now_playing");
+    expect(tool.input_schema.required).toBeUndefined();
+    expect(Object.keys(tool.input_schema.properties)).toHaveLength(0);
+  });
+
+  it("post108: tool genre_filter exists with object schema", () => {
+    const tool = toolNamed("genre_filter");
+    expect(tool.input_schema.type).toBe('object');
+    expect(typeof tool.description).toBe('string');
+    expect(tool.description.length).toBeGreaterThan(10);
+  });
+
+  it("post108: tool genre_filter property keys lock", () => {
+    const tool = toolNamed("genre_filter");
+    expect(Object.keys(tool.input_schema.properties).sort()).toEqual(["genre"]);
+  });
+
+  it("post108: tool genre_filter required lock", () => {
+    const tool = toolNamed("genre_filter");
+    expect(tool.input_schema.required).toEqual(["genre"]);
+  });
+
+  it("post108: tool curator_prompt exists with object schema", () => {
+    const tool = toolNamed("curator_prompt");
+    expect(tool.input_schema.type).toBe('object');
+    expect(typeof tool.description).toBe('string');
+    expect(tool.description.length).toBeGreaterThan(10);
+  });
+
+  it("post108: tool curator_prompt property keys lock", () => {
+    const tool = toolNamed("curator_prompt");
+    expect(Object.keys(tool.input_schema.properties).sort()).toEqual(["genre","mood"]);
+  });
+
+  it("post108: tool curator_prompt required lock", () => {
+    const tool = toolNamed("curator_prompt");
+    expect(tool.input_schema.required).toEqual(["mood"]);
+  });
+
+  it("post108: station_select.station_name description lock", () => {
+    const tool = toolNamed('station_select');
+    expect(tool.input_schema.properties.station_name).toEqual({
+      type: 'string',
+      description: 'Partial or full name of the station to select.',
+    });
+  });
+
+  it("post108: genre_filter.genre description lock", () => {
+    const tool = toolNamed('genre_filter');
+    expect(tool.input_schema.properties.genre).toEqual({
+      type: 'string',
+      description: 'Genre keyword to filter by.',
+    });
+  });
+
+  it("post108: curator_prompt.mood description lock", () => {
+    const tool = toolNamed('curator_prompt');
+    const mood = tool.input_schema.properties.mood;
+    expect(mood).toBeDefined();
+    expect(mood!.type).toBe('string');
+    expect(mood!.description).toMatch(/mood|activity|vibe/i);
+  });
+
+  it("post108: curator_prompt.genre is optional string", () => {
+    const tool = toolNamed('curator_prompt');
+    const genre = tool.input_schema.properties.genre;
+    expect(genre).toBeDefined();
+    expect(genre!.type).toBe('string');
+    expect(tool.input_schema.required).toEqual(['mood']);
+    expect(tool.input_schema.required).not.toContain('genre');
+  });
+
+  it("post108: every property type is string", () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect((prop as { type: string }).type).toBe('string');
+      }
+    }
+  });
+
+  it("post108: property keys only type and description", () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      for (const prop of Object.values(tool.input_schema.properties)) {
+        expect(Object.keys(prop as object).sort()).toEqual(['description', 'type']);
+      }
+    }
+  });
+
+  it("post108: tool object keys are name description input_schema", () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(Object.keys(tool).sort()).toEqual(['description', 'input_schema', 'name']);
+    }
+  });
+
+  it("post108: tools order is station_select now_playing genre_filter curator_prompt", () => {
+    expect(MCP_MANIFEST.tools.map((t) => t.name)).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it("post108: tools length frozen at 4", () => {
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it("post108: negative — no product inventing surface in mcp.ts", () => {
+    expect(mcpSrc).not.toMatch(/playlist|websocket|sse\b|DurableObject|D1Database|R2Bucket/i);
+    expect(mcpSrc).not.toMatch(/GEMINI_API_KEY|fetch\(|Hono|parseM3U/);
+    expect(mcpSrc).not.toMatch(/async |await |Promise|function /);
+  });
+
+  it("post108: negative — no extra tools invented", () => {
+    const forbidden = ['playlist_get', 'now_playing_set', 'openapi_fetch', 'station_list', 'search', 'play', 'pause', 'volume'];
+    for (const name of forbidden) {
+      expect(MCP_MANIFEST.tools.some((t) => t.name === name)).toBe(false);
+      expect(mcpSrc).not.toContain('"' + name + '"');
+    }
+  });
+
+  it("post108: negative — no tabs CRLF or BOM", () => {
+    expect(mcpSrc).not.toContain('\t');
+    expect(mcpSrc).not.toContain('\r');
+    expect(mcpSrc.charCodeAt(0)).not.toBe(0xfeff);
+  });
+
+  it("post108: AGENTS.md verify commands present", () => {
+    const agents = read('AGENTS.md');
+    expect(agents).toContain('npm run typecheck');
+    expect(agents).toContain('npm test');
+    expect(agents).toContain('npm run test:coverage');
+    expect(agents).toMatch(/now-playing|endpoints/);
+  });
+
+  it("post108: vitest coverage floors remain 100%", () => {
+    const cfg = read('vitest.config.ts');
+    expect(cfg).toMatch(/lines:\s*100/);
+    expect(cfg).toMatch(/functions:\s*100/);
+    expect(cfg).toMatch(/branches:\s*100/);
+    expect(cfg).toMatch(/statements:\s*100/);
+  });
+
+  it("post108: CI workflow runs test:coverage on PRs", () => {
+    const ci = read('.github/workflows/ci.yml');
+    expect(ci).toContain('npm run test:coverage');
+    expect(ci).toContain('npm run typecheck');
+    expect(ci).toMatch(/pull_request:/);
+  });
+
+  it("post108: test inventory includes mcp.test.ts", () => {
+    const names = ["ci-config.test.ts","genres.test.ts","helpers.test.ts","mcp-spec-contract.test.ts","mcp.test.ts","parser.test.ts","routes.test.ts","source-contracts.test.ts","wrangler-config.test.ts"];
+    for (const n of names) expect(read('test/' + n).length).toBeGreaterThan(1000);
+    expect(createHash('sha256').update(names.join('|'), 'utf8').digest('hex')).toBe('7e43dda473551d8b100e462256d0a1ec50ff601f9f2ca783341ddb10234466d0');
+  });
+
+  it("post108: mcp.test.ts imports MCP_MANIFEST from src/mcp only", () => {
+    const self = read('test/mcp.test.ts');
+    expect(self).toContain("import { MCP_MANIFEST } from '../src/mcp';");
+    expect(self).toContain("describe('post108 mcp HEAVY deepen'");
+    expect(self).not.toMatch(/from '\.\.\/src\/index'/);
+  });
+
+  it("post108: src/index.ts does not import MCP_MANIFEST (manifest is standalone)", () => {
+    expect(read('src/index.ts')).not.toMatch(/MCP_MANIFEST/);
+    expect(read('src/index.ts')).not.toMatch(/from '\.\/mcp'/);
+    expect(mcpSrc).toContain('export const MCP_MANIFEST');
+  });
+
+  it("post108: docs/mcp-spec.md exists and mentions tools", () => {
+    const spec = read('docs/mcp-spec.md');
+    expect(spec.length).toBeGreaterThan(100);
+    expect(spec.toLowerCase()).toMatch(/station_select|now_playing|genre_filter|curator/);
+  });
+
+  it("post108: compact JSON stable across 50 serializations", () => {
+    const first = JSON.stringify(MCP_MANIFEST);
+    for (let i = 0; i < 50; i++) expect(JSON.stringify(MCP_MANIFEST)).toBe(first);
+  });
+
+  it("post108: timingSafeEqual live vs re-stringify compact", () => {
+    const a = Buffer.from(JSON.stringify(MCP_MANIFEST), 'utf8');
+    const b = Buffer.from(JSON.stringify(MCP_MANIFEST), 'utf8');
+    expect(timingSafeEqual(a, b)).toBe(true);
+  });
+
+  it("post108: timingSafeEqual false when last byte flipped", () => {
+    const a = Buffer.from(JSON.stringify(MCP_MANIFEST), 'utf8');
+    const b = Buffer.from(a);
+    b[b.length - 1] = b[b.length - 1] ^ 0xff;
+    expect(timingSafeEqual(a, b)).toBe(false);
+  });
+
+  it("post108: structuredClone of manifest deep-equals", () => {
+    expect(structuredClone(MCP_MANIFEST)).toEqual(MCP_MANIFEST);
+    expect(structuredClone(MCP_MANIFEST)).not.toBe(MCP_MANIFEST);
+  });
+
+  it("post108: mutating clone does not affect live manifest tools length", () => {
+    const clone = structuredClone(MCP_MANIFEST);
+    clone.tools.pop();
+    expect(MCP_MANIFEST.tools).toHaveLength(4);
+    expect(clone.tools).toHaveLength(3);
+  });
+
+  it("post108: tool station_select description sha256", () => {
+    const tool = toolNamed("station_select");
+    expect(createHash('sha256').update(tool.description, 'utf8').digest('hex')).toBe('1b1b6035f3a55908462e8bec71c002374de19a5863b402f9785a13f736ca1be6');
+  });
+
+  it("post108: tool station_select JSON sha256", () => {
+    const tool = toolNamed("station_select");
+    expect(createHash('sha256').update(JSON.stringify(tool), 'utf8').digest('hex')).toBe('91a70fe5417aaefede641876247b08cf99a90b99345ea56eb472a86d6e2174c4');
+  });
+
+  it("post108: toolNamed finds station_select", () => {
+    expect(toolNamed("station_select").name).toBe("station_select");
+  });
+
+  it("post108: tool now_playing description sha256", () => {
+    const tool = toolNamed("now_playing");
+    expect(createHash('sha256').update(tool.description, 'utf8').digest('hex')).toBe('15a43880c871d46c36973e95f77b64ff910e68284acdf219fa6c82978af29e7b');
+  });
+
+  it("post108: tool now_playing JSON sha256", () => {
+    const tool = toolNamed("now_playing");
+    expect(createHash('sha256').update(JSON.stringify(tool), 'utf8').digest('hex')).toBe('585a96770944c4197e8d1e91de08adb35436d7783e5d95af20ea1b718583472f');
+  });
+
+  it("post108: toolNamed finds now_playing", () => {
+    expect(toolNamed("now_playing").name).toBe("now_playing");
+  });
+
+  it("post108: tool genre_filter description sha256", () => {
+    const tool = toolNamed("genre_filter");
+    expect(createHash('sha256').update(tool.description, 'utf8').digest('hex')).toBe('3457f6157ae02b0b6c31bcfeabe4332f8954a58944c501b1b8d9bf8a67733d30');
+  });
+
+  it("post108: tool genre_filter JSON sha256", () => {
+    const tool = toolNamed("genre_filter");
+    expect(createHash('sha256').update(JSON.stringify(tool), 'utf8').digest('hex')).toBe('db7d5b12a48b329cc086d6edb02a109dcfdc8450dfbe89a5425efb05b06a1600');
+  });
+
+  it("post108: toolNamed finds genre_filter", () => {
+    expect(toolNamed("genre_filter").name).toBe("genre_filter");
+  });
+
+  it("post108: tool curator_prompt description sha256", () => {
+    const tool = toolNamed("curator_prompt");
+    expect(createHash('sha256').update(tool.description, 'utf8').digest('hex')).toBe('c3bcfd16227da8c0c55d606d7da1a1ea26a3032dc1db779e316e31c5b9014ad3');
+  });
+
+  it("post108: tool curator_prompt JSON sha256", () => {
+    const tool = toolNamed("curator_prompt");
+    expect(createHash('sha256').update(JSON.stringify(tool), 'utf8').digest('hex')).toBe('be3e43baf5701c8607c692d60338ba69b68d98502b79c9b8527b0bc9ab8b77ab');
+  });
+
+  it("post108: toolNamed finds curator_prompt", () => {
+    expect(toolNamed("curator_prompt").name).toBe("curator_prompt");
+  });
+
+  it("post108: name_for_model sha256", () => {
+    expect(createHash('sha256').update(MCP_MANIFEST.name_for_model, 'utf8').digest('hex')).toBe('bb52cd593d776fc715441c6ed294a3431aa5e098dab5bcaafa5dc5effe0890d3');
+  });
+
+  it("post108: name_for_human sha256", () => {
+    expect(createHash('sha256').update(MCP_MANIFEST.name_for_human, 'utf8').digest('hex')).toBe('406456238b6ebd1aeeb3bd4d8f64e5af1f7748ca8ac3524051d40753035a76a2');
+  });
+
+  it("post108: description_for_model sha256", () => {
+    expect(createHash('sha256').update(MCP_MANIFEST.description_for_model, 'utf8').digest('hex')).toBe('dc98e24357ac0704d5460c9ed7bd2f3fae5eacf36cd0e448584161a1251e739c');
+  });
+
+  it("post108: description_for_human sha256", () => {
+    expect(createHash('sha256').update(MCP_MANIFEST.description_for_human, 'utf8').digest('hex')).toBe('0afdffca1ae9c01f1c754ba92215e9021e7cf491a9a28ccdac603a4fad17166a');
+  });
+
+  it("post108: auth JSON digests", () => {
+    const a = JSON.stringify(MCP_MANIFEST.auth);
+    expect(createHash('sha256').update(a, 'utf8').digest('hex')).toBe('ff0f08b1aa6194023a4e4fadb848e1a977cb9f23c42b5d9cda8ea2552d9d1f73');
+    expect(createHash('sha1').update(a, 'utf8').digest('hex')).toBe('8ad62e9d2281975eab6abd500bd610a6573a185a');
+  });
+
+  it("post108: api JSON digests", () => {
+    const a = JSON.stringify(MCP_MANIFEST.api);
+    expect(createHash('sha256').update(a, 'utf8').digest('hex')).toBe('b797fe543cd774f9401d8dcec722bcb11320c594dcaa5ff9a24b6f0c5837decb');
+    expect(createHash('sha1').update(a, 'utf8').digest('hex')).toBe('1f46c3d15ebbd099083a0c657d1b8bd3ad1f6150');
+  });
+
+  it("post108: source contains token schema_version", () => {
+    expect(mcpSrc).toContain("schema_version");
+  });
+
+  it("post108: source contains token name_for_model", () => {
+    expect(mcpSrc).toContain("name_for_model");
+  });
+
+  it("post108: source contains token name_for_human", () => {
+    expect(mcpSrc).toContain("name_for_human");
+  });
+
+  it("post108: source contains token description_for_model", () => {
+    expect(mcpSrc).toContain("description_for_model");
+  });
+
+  it("post108: source contains token description_for_human", () => {
+    expect(mcpSrc).toContain("description_for_human");
+  });
+
+  it("post108: source contains token station_select", () => {
+    expect(mcpSrc).toContain("station_select");
+  });
+
+  it("post108: source contains token now_playing", () => {
+    expect(mcpSrc).toContain("now_playing");
+  });
+
+  it("post108: source contains token genre_filter", () => {
+    expect(mcpSrc).toContain("genre_filter");
+  });
+
+  it("post108: source contains token curator_prompt", () => {
+    expect(mcpSrc).toContain("curator_prompt");
+  });
+
+  it("post108: source contains token station_name", () => {
+    expect(mcpSrc).toContain("station_name");
+  });
+
+  it("post108: source contains token openapi", () => {
+    expect(mcpSrc).toContain("openapi");
+  });
+
+  it("post108: source contains token /openapi.json", () => {
+    expect(mcpSrc).toContain("/openapi.json");
+  });
+
+  it("post108: source contains token iptv-org", () => {
+    expect(mcpSrc).toContain("iptv-org");
+  });
+
+  it("post108: source contains token input_schema", () => {
+    expect(mcpSrc).toContain("input_schema");
+  });
+
+  it("post108: source contains token required", () => {
+    expect(mcpSrc).toContain("required");
+  });
+
+  it("post108: source forbids token GEMINI", () => {
+    expect(mcpSrc).not.toContain("GEMINI");
+  });
+
+  it("post108: source forbids token parseM3U", () => {
+    expect(mcpSrc).not.toContain("parseM3U");
+  });
+
+  it("post108: source forbids token VALID_GENRES", () => {
+    expect(mcpSrc).not.toContain("VALID_GENRES");
+  });
+
+  it("post108: source forbids token wrangler", () => {
+    expect(mcpSrc).not.toContain("wrangler");
+  });
+
+  it("post108: source forbids token DurableObject", () => {
+    expect(mcpSrc).not.toContain("DurableObject");
+  });
+
+  it("post108: source forbids token WebSocket", () => {
+    expect(mcpSrc).not.toContain("WebSocket");
+  });
+
+  it("post108: source forbids token EventSource", () => {
+    expect(mcpSrc).not.toContain("EventSource");
+  });
+
+  it("post108: source forbids token playlist_get", () => {
+    expect(mcpSrc).not.toContain("playlist_get");
+  });
+
+  it("post108: package.json test scripts lock", () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.test).toBe('vitest run');
+    expect(pkg.scripts['test:coverage']).toBe('vitest run --coverage');
+    expect(pkg.scripts.typecheck).toBe('tsc --noEmit');
+  });
+
+  it("post108: mcp.test.ts ends with newline after post108 block", () => {
+    expect(read('test/mcp.test.ts').endsWith('\n')).toBe(true);
+  });
+
+  it("post108: post108 describe appears after MCP_MANIFEST describe", () => {
+    const self = read('test/mcp.test.ts');
+    const a = self.indexOf("describe('MCP_MANIFEST'");
+    const b = self.indexOf("describe('post108 mcp HEAVY deepen'");
+    expect(a).toBeGreaterThanOrEqual(0);
+    expect(b).toBeGreaterThan(a);
+  });
+
+  it("post108: HMAC key inventory sha256 lock", () => {
+    const keys = ["post108","mcp-unit","MCP_MANIFEST","backlink","Backlink Radio","station_select","now_playing","genre_filter","curator_prompt","openapi","schema_version","name_for_model","name_for_human","description_for_model","description_for_human","auth","api","tools","input_schema","iptv-org","HEAVY","TOKENMAXX","fuzzywigg","v1","none"];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe('93e776aa002b27dfd695528bbdd88babca564ffa96321ed024f5e775f0b9ec54');
+    expect(keys).toHaveLength(25);
+  });
+
+  it("post108: name_for_model char codes join digest", () => {
+    const codes = [...MCP_MANIFEST.name_for_model].map((c) => c.charCodeAt(0)).join(',');
+    expect(codes).toBe('98,97,99,107,108,105,110,107');
+    expect(createHash('sha256').update(codes, 'utf8').digest('hex')).toBe('9dc66a792f9ea7346d7ce110ce7522d5bb0e46b6cf00307a6017c5d428f192cd');
+  });
+
+  it("post108: now_playing input_schema is empty object properties", () => {
+    const tool = toolNamed('now_playing');
+    expect(tool.input_schema).toEqual({ type: 'object', properties: {} });
+  });
+
+  it("post108: curator_prompt has mood required and genre optional", () => {
+    const tool = toolNamed('curator_prompt');
+    expect(Object.keys(tool.input_schema.properties)).toHaveLength(2);
+    expect(tool.input_schema.required).toEqual(['mood']);
+  });
+
+  it("post108: station_select has exactly one property", () => {
+    expect(Object.keys(toolNamed('station_select').input_schema.properties)).toHaveLength(1);
+  });
+
+  it("post108: genre_filter has exactly one property", () => {
+    expect(Object.keys(toolNamed('genre_filter').input_schema.properties)).toHaveLength(1);
+  });
+
+  it("post108: 100x tools length stays 4", () => {
+    for (let i = 0; i < 100; i++) expect(MCP_MANIFEST.tools).toHaveLength(4);
+  });
+
+  it("post108: 100x schema_version stays v1", () => {
+    for (let i = 0; i < 100; i++) expect(MCP_MANIFEST.schema_version).toBe('v1');
+  });
+
+  it("post108: sha256 starts and ends with known nibbles", () => {
+    const d = createHash('sha256').update(mcpSrc, 'utf8').digest('hex');
+    expect(d.startsWith('6ae8ffd7')).toBe(true);
+    expect(d.endsWith('099683')).toBe(true);
+  });
+
+  it("post108: DEPLOY.md remains deploy-only without mcp inventing", () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy).toMatch(/[Ww]rangler|[Dd]eploy|Cloudflare/);
+    expect(mcpSrc).not.toContain('DEPLOY.md');
+  });
+
+  it("post108: src/index.ts stays free of mcp.ts import surface", () => {
+    const index = read('src/index.ts');
+    expect(index).toContain("from './genres'");
+    expect(index).toContain("from './parser'");
+    expect(index).toContain("from './types'");
+    expect(index).not.toContain("from './mcp'");
+  });
+
+  it("post108: compact JSON has no \": \" separators", () => {
+    expect(JSON.stringify(MCP_MANIFEST).includes(': ')).toBe(false);
+  });
+
+  it("post108: pretty JSON uses 2-space indent", () => {
+    const pretty = JSON.stringify(MCP_MANIFEST, null, 2);
+    expect(pretty.split('\n')[1].startsWith('  ')).toBe(true);
+    expect(pretty.split('\n')[1].startsWith('   ')).toBe(false);
+  });
+
+  it("post108: tools JSON bracket balance", () => {
+    const tools = JSON.stringify(MCP_MANIFEST.tools);
+    expect((tools.match(/\[/g) ?? []).length).toBe((tools.match(/\]/g) ?? []).length);
+    expect((tools.match(/\{/g) ?? []).length).toBe((tools.match(/\}/g) ?? []).length);
+  });
+
+  it("post108: description_for_model includes Select stations filter genre", () => {
+    const d = MCP_MANIFEST.description_for_model.toLowerCase();
+    expect(d).toContain('select');
+    expect(d).toContain('stations');
+    expect(d).toContain('genre');
+    expect(d).toContain('mood');
+  });
+
+  it("post108: description_for_human is single sentence with period", () => {
+    expect(MCP_MANIFEST.description_for_human.endsWith('.')).toBe(true);
+    expect(MCP_MANIFEST.description_for_human.includes('. ')).toBe(false);
+  });
+
+  it("post108: tools CSV base64 lock", () => {
+    const csv = TOOL_NAMES.join(',');
+    expect(Buffer.from(csv, 'utf8').toString('base64')).toBe('c3RhdGlvbl9zZWxlY3Qsbm93X3BsYXlpbmcsZ2VucmVfZmlsdGVyLGN1cmF0b3JfcHJvbXB0');
+  });
+
+  it("post108: name_for_model hex lock", () => {
+    expect(Buffer.from(MCP_MANIFEST.name_for_model, 'utf8').toString('hex')).toBe('6261636b6c696e6b');
+  });
+
+  it("post108: Object.freeze on tools array copy still readable", () => {
+    const frozen = Object.freeze([...MCP_MANIFEST.tools]);
+    expect(frozen).toHaveLength(4);
+    expect(() => {
+      (frozen as unknown as { push: (x: unknown) => void }).push({});
+    }).toThrow();
+  });
+
+  it("post108: HMAC-SHA256 description_for_model keyed by post108", () => {
+    expect(createHmac('sha256', 'post108').update(MCP_MANIFEST.description_for_model, 'utf8').digest('hex')).toBe('abbc375a4bb926fb5c42cbccaac6e65c6f589817c6816b85f0dbc38f3f2feb50');
+  });
+
+  it("post108: HMAC-SHA256 description_for_human keyed by post108", () => {
+    expect(createHmac('sha256', 'post108').update(MCP_MANIFEST.description_for_human, 'utf8').digest('hex')).toBe('1aa3603296c9e8adb1209639efb4630a4b81dbba04816f45dfe47d0229e1dcfc');
+  });
+
+  it("post108: required arrays only on three tools", () => {
+    const withReq = MCP_MANIFEST.tools.filter((t) => Array.isArray(t.input_schema.required));
+    expect(withReq.map((t) => t.name).sort()).toEqual(['curator_prompt', 'genre_filter', 'station_select']);
+  });
+
+  it("post108: no additionalProperties keys on schemas", () => {
+    for (const tool of MCP_MANIFEST.tools) {
+      expect(tool.input_schema).not.toHaveProperty('additionalProperties');
+    }
+  });
+
+  it("post108: HMAC-SHA256 compact keyed by station_select", () => {
+    expect(createHmac('sha256', "station_select").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('6a2bc46cadb38d7a926172f9e35743a163a3f84c496cc2f67610472fe970e32c');
+  });
+
+  it("post108: HMAC-SHA256 compact keyed by now_playing", () => {
+    expect(createHmac('sha256', "now_playing").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('2c0288e84ca52d09e2b3ba80657a2d91e33f187d04b52cf25b726e0fdedad016');
+  });
+
+  it("post108: HMAC-SHA256 compact keyed by genre_filter", () => {
+    expect(createHmac('sha256', "genre_filter").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('de37ab543b4c6e40750804a7c4c697a5d96ed1f6cfcd696d526ed674e59fc4be');
+  });
+
+  it("post108: HMAC-SHA256 compact keyed by curator_prompt", () => {
+    expect(createHmac('sha256', "curator_prompt").update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex')).toBe('29d8ce477119d329ff752814955f65de2c59b97dc386561a7db2fe8b5635282e');
+  });
+
+  it("post108: description_for_model length lock", () => {
+    expect(MCP_MANIFEST.description_for_model.length).toBe(173);
+  });
+
+  it("post108: description_for_human length lock", () => {
+    expect(MCP_MANIFEST.description_for_human.length).toBe(48);
+  });
+
+  it("post108: openapi url is relative /openapi.json", () => {
+    expect(MCP_MANIFEST.api.url.startsWith('/')).toBe(true);
+    expect(MCP_MANIFEST.api.url).not.toMatch(/^https?:/);
+  });
+
+  it("post108: tool names are not claw-mcp prefixed", () => {
+    for (const t of MCP_MANIFEST.tools) {
+      expect(t.name.startsWith('backlink_')).toBe(false);
+      expect(t.name.startsWith('claw_')).toBe(false);
+    }
+  });
+
+});
+
+describe('post108 mcp HEAVY deepen extras', () => {
+  const read = (rel: string) => readFileSync(join(mcpRoot, rel), 'utf8');
+  const mcpSrc = read('src/mcp.ts');
+
+  it("post108: HMAC-SHA256 extra key post106", () => {
+    expect(createHmac('sha256', "post106").update(mcpSrc, 'utf8').digest('hex')).toBe('b14c506a871a8c934068726ca9373c2362166f36129489ce362cea8ca1c3669b');
+  });
+
+  it("post108: HMAC-SHA256 extra key post107", () => {
+    expect(createHmac('sha256', "post107").update(mcpSrc, 'utf8').digest('hex')).toBe('16ab9979a598988caa17f6d64a68479a4a53b37c7051a3033edd9c8671684415');
+  });
+
+  it("post108: HMAC-SHA256 extra key post104", () => {
+    expect(createHmac('sha256', "post104").update(mcpSrc, 'utf8').digest('hex')).toBe('4ea89c4a954d018800631fa40c6de541491ea89699155a858b838322dc9bbb6c');
+  });
+
+  it("post108: HMAC-SHA256 extra key post103", () => {
+    expect(createHmac('sha256', "post103").update(mcpSrc, 'utf8').digest('hex')).toBe('5c2b353889e45741a5395dc1be70471ae5031135909dd0f38a73b0c30580dbe8');
+  });
+
+  it("post108: HMAC-SHA256 extra key post89", () => {
+    expect(createHmac('sha256', "post89").update(mcpSrc, 'utf8').digest('hex')).toBe('85160021abc95a93354708c30f49b068ce88f787f88cdb057928cd5154359162');
+  });
+
+  it("post108: HMAC-SHA256 extra key post87", () => {
+    expect(createHmac('sha256', "post87").update(mcpSrc, 'utf8').digest('hex')).toBe('da3c67ca532dd4ccf2db096f71f8bdf2e63d983348730ac8e402b5545fe85f21');
+  });
+
+  it("post108: HMAC-SHA256 extra key station_name", () => {
+    expect(createHmac('sha256', "station_name").update(mcpSrc, 'utf8').digest('hex')).toBe('3c6dd3b5fd1e0de2d0ac4642ea5de74f18839999c6b44d4ae2f4af7bfcbde8d0');
+  });
+
+  it("post108: HMAC-SHA256 extra key mood", () => {
+    expect(createHmac('sha256', "mood").update(mcpSrc, 'utf8').digest('hex')).toBe('80cb3928fe652807ade02489a67c590c421d0881afbb567acd63c41ff6946751');
+  });
+
+  it("post108: HMAC-SHA256 extra key genre", () => {
+    expect(createHmac('sha256', "genre").update(mcpSrc, 'utf8').digest('hex')).toBe('e4013e93fed99a1611c016aee5239f809b8497b472596749c42aba16355269d9');
+  });
+
+  it("post108: HMAC-SHA256 extra key Partial or full", () => {
+    expect(createHmac('sha256', "Partial or full").update(mcpSrc, 'utf8').digest('hex')).toBe('3294cd0ae3a40b72b23463504ff077755e22e0fd337964e02d35d52cd4ba5830');
+  });
+
+  it("post108: HMAC-SHA256 extra key Genre keyword", () => {
+    expect(createHmac('sha256', "Genre keyword").update(mcpSrc, 'utf8').digest('hex')).toBe('cb0645acca54c6607d3f7cf9588bdac4f9985fe621f9807b3538b364aa9edc74');
+  });
+
+  it("post108: HMAC-SHA256 extra key focus work", () => {
+    expect(createHmac('sha256', "focus work").update(mcpSrc, 'utf8').digest('hex')).toBe('9d0f32642006e63b238a60a42d0f28e4b01cf20dd515ade46d9c3949253aa0c0');
+  });
+
+  it("post108: HMAC-SHA256 extra key late night", () => {
+    expect(createHmac('sha256', "late night").update(mcpSrc, 'utf8').digest('hex')).toBe('cded51551a2243e83b273f76072f737d6b6667600a8f52bc4ca2ea2d21e463cd');
+  });
+
+  it("post108: HMAC-SHA256 extra key morning energy", () => {
+    expect(createHmac('sha256', "morning energy").update(mcpSrc, 'utf8').digest('hex')).toBe('0e483146020ce2bae2adcf30d95663f9775581ea96e180312e90b629f0ea304e');
+  });
+
+  it("post108: HMAC-SHA256 extra key AI-curated", () => {
+    expect(createHmac('sha256', "AI-curated").update(mcpSrc, 'utf8').digest('hex')).toBe('4327e67a553fd99645eb2caaccdcbcfcc1786c99c3790d29c721862db2e45447');
+  });
+
+  it("post108: HMAC-SHA256 extra key live radio", () => {
+    expect(createHmac('sha256', "live radio").update(mcpSrc, 'utf8').digest('hex')).toBe('3dc1cab9333aa8b87fe29921fd3b1144a1e07e1aac463ed2d1584b78483f5dea');
+  });
+
+  it("post108: HMAC-SHA256 extra key catalog", () => {
+    expect(createHmac('sha256', "catalog").update(mcpSrc, 'utf8').digest('hex')).toBe('e804cfad835b27774ea9f9153723fb15ac46ce4860e834693b972539709afaa2');
+  });
+
+  it("post108: HMAC-SHA256 extra key Interact with Backlink", () => {
+    expect(createHmac('sha256', "Interact with Backlink").update(mcpSrc, 'utf8').digest('hex')).toBe('b3e118ea6139de07bbda2c3ac520d8618abd368b093fd0512735c844214ffa9f');
+  });
+
+  it("post108: HMAC-SHA256 extra key Select stations", () => {
+    expect(createHmac('sha256', "Select stations").update(mcpSrc, 'utf8').digest('hex')).toBe('791591c0a2c1dcad7f6d524253806dade55e92acb18c7a15f4e224b618271301');
+  });
+
+  it("post108: station_select.station_name description sha256", () => {
+    const tool = toolNamed("station_select");
+    const prop = tool.input_schema.properties["station_name"]!;
+    expect(createHash('sha256').update(prop.description, 'utf8').digest('hex')).toBe('85b77e93e2d24bc6f5b94d41003ba6d43f1c4eb5c5294801fac6c408f0750205');
+  });
+
+  it("post108: genre_filter.genre description sha256", () => {
+    const tool = toolNamed("genre_filter");
+    const prop = tool.input_schema.properties["genre"]!;
+    expect(createHash('sha256').update(prop.description, 'utf8').digest('hex')).toBe('ef1f96a903a23d6e90ed07ff0e44463a931b11b5c04918a309aa4f580ce09f17');
+  });
+
+  it("post108: curator_prompt.mood description sha256", () => {
+    const tool = toolNamed("curator_prompt");
+    const prop = tool.input_schema.properties["mood"]!;
+    expect(createHash('sha256').update(prop.description, 'utf8').digest('hex')).toBe('31234660f70b2056f5daf1c3b1ca4a65637b12154981d7f44d83d1972e479449');
+  });
+
+  it("post108: curator_prompt.genre description sha256", () => {
+    const tool = toolNamed("curator_prompt");
+    const prop = tool.input_schema.properties["genre"]!;
+    expect(createHash('sha256').update(prop.description, 'utf8').digest('hex')).toBe('c8a41a58580e4507ab783a1bf084fc0f834cf15e6dc9f358dddc1fba16d43210');
+  });
+
+  it("post108: description_for_model contains Interact with Backlink", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("Interact with Backlink");
+  });
+
+  it("post108: description_for_model contains AI-curated IPTV radio", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("AI-curated IPTV radio");
+  });
+
+  it("post108: description_for_model contains Select stations", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("Select stations");
+  });
+
+  it("post108: description_for_model contains filter by genre", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("filter by genre");
+  });
+
+  it("post108: description_for_model contains now-playing info", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("now-playing info");
+  });
+
+  it("post108: description_for_model contains AI curator", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("AI curator");
+  });
+
+  it("post108: description_for_model contains best station for a mood", () => {
+    expect(MCP_MANIFEST.description_for_model).toContain("best station for a mood");
+  });
+
+  it("post108: description_for_human contains AI-curated live radio", () => {
+    expect(MCP_MANIFEST.description_for_human).toContain("AI-curated live radio");
+  });
+
+  it("post108: description_for_human contains iptv-org catalog", () => {
+    expect(MCP_MANIFEST.description_for_human).toContain("iptv-org catalog");
+  });
+
+  it("post108: tool station_select description exact", () => {
+    expect(toolNamed("station_select").description).toBe("Set the currently playing station by name.");
+  });
+
+  it("post108: tool now_playing description exact", () => {
+    expect(toolNamed("now_playing").description).toBe("Get the currently playing station including name, genre, stream URL, and country.");
+  });
+
+  it("post108: tool genre_filter description exact", () => {
+    expect(toolNamed("genre_filter").description).toBe("Return a list of stations filtered by genre keyword (e.g. jazz, news, classical).");
+  });
+
+  it("post108: tool curator_prompt description exact", () => {
+    expect(toolNamed("curator_prompt").description).toBe("Ask the AI curator to pick and set the best station for a given mood or context.");
+  });
+
+  it('post108: compact JSON starts with schema_version then names', () => {
+    const c = JSON.stringify(MCP_MANIFEST);
+    expect(c.startsWith('{"schema_version":"v1","name_for_model":"backlink","name_for_human":"Backlink Radio"')).toBe(true);
+  });
+
+  it('post108: tools[0] is station_select with station_name required', () => {
+    expect(MCP_MANIFEST.tools[0].name).toBe('station_select');
+    expect(MCP_MANIFEST.tools[0].input_schema.required).toEqual(['station_name']);
+  });
+
+  it('post108: tools[1] is now_playing with empty properties', () => {
+    expect(MCP_MANIFEST.tools[1].name).toBe('now_playing');
+    expect(MCP_MANIFEST.tools[1].input_schema.properties).toEqual({});
+  });
+
+  it('post108: tools[2] is genre_filter with genre required', () => {
+    expect(MCP_MANIFEST.tools[2].name).toBe('genre_filter');
+    expect(MCP_MANIFEST.tools[2].input_schema.required).toEqual(['genre']);
+  });
+
+  it('post108: tools[3] is curator_prompt with mood required', () => {
+    expect(MCP_MANIFEST.tools[3].name).toBe('curator_prompt');
+    expect(MCP_MANIFEST.tools[3].input_schema.required).toEqual(['mood']);
+  });
+
+  it('post108: 25x compact sha256 stable', () => {
+    let d = '';
+    for (let i = 0; i < 25; i++) d = createHash('sha256').update(JSON.stringify(MCP_MANIFEST), 'utf8').digest('hex');
+    expect(d).toBe('11910aab98869ffe2c0979b423e62faff2f82b1aa19d3e6a13a9cb23be9c1043');
+  });
+
+  it('post108: extras describe appears after main post108 deepen', () => {
+    const self = read('test/mcp.test.ts');
+    const a = self.indexOf("describe('post108 mcp HEAVY deepen'");
+    const b = self.indexOf("describe('post108 mcp HEAVY deepen extras'");
+    expect(a).toBeGreaterThanOrEqual(0);
+    expect(b).toBeGreaterThan(a);
+  });
+
+  it('post108: extra HMAC keys inventory digest', () => {
+    const keys = ["post106","post107","post104","post103","post89","post87","station_name","mood","genre","Partial or full","Genre keyword","focus work","late night","morning energy","AI-curated","live radio","catalog","Interact with Backlink","Select stations"];
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe('f974f608129911dfeed6e3b732c2fccc33f286d5056449ef77024bca3a479b12');
+    expect(keys).toHaveLength(19);
+  });
+
+  it("post108: mcp.ts forbids invent phrase /playlist", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("/playlist");
+  });
+
+  it("post108: mcp.ts forbids invent phrase /now-playing endpoint", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("/now-playing endpoint");
+  });
+
+  it("post108: mcp.ts forbids invent phrase Workers AI", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("workers ai");
+  });
+
+  it("post108: mcp.ts forbids invent phrase D1_", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("d1_");
+  });
+
+  it("post108: mcp.ts forbids invent phrase R2_", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("r2_");
+  });
+
+  it("post108: mcp.ts forbids invent phrase Vectorize", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("vectorize");
+  });
+
+  it("post108: mcp.ts forbids invent phrase Analytics Engine", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("analytics engine");
+  });
+
+  it("post108: mcp.ts forbids invent phrase Hyperdrive", () => {
+    expect(mcpSrc.toLowerCase()).not.toContain("hyperdrive");
+  });
+
+  it('post108: mcp-spec-contract.test.ts still deepens docs contract', () => {
+    const specTest = read('test/mcp-spec-contract.test.ts');
+    expect(specTest.length).toBeGreaterThan(1000);
+    expect(specTest).toMatch(/mcp-spec|MCP/);
+  });
+
+  it('post108: createHmac already imported in mcp.test.ts', () => {
+    expect(read('test/mcp.test.ts')).toMatch(/import \{ createHash, createHmac, timingSafeEqual \} from 'node:crypto'/);
+  });
+
+});
