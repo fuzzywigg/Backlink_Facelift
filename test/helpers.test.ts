@@ -15610,73 +15610,73 @@ describe('overnight crawl-queue-retry-edges HEAVY deepen (helpers)', () => {
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 400 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 400 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(400);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 401 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 401 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(401);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 403 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 403 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(403);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 404 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 404 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(404);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 408 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 408 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(408);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 429 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 429 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(429);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 500 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 500 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(500);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 502 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 502 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(502);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 503 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 503 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(503);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 504 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 504 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(504);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 520 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 520 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(520);
   });
 
   it('overnight-crawl-queue-retry: stubIptvAndGemini null m3u status 521 (retry exhaustion fixture)', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: null, iptvStatus: 521 });
-    const res = await fetchMock(iptvCategoryUrl('jazz'));
+    const res = await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'));
     expect(res.status).toBe(521);
   });
 
@@ -15686,8 +15686,8 @@ describe('overnight crawl-queue-retry-edges HEAVY deepen (helpers)', () => {
       iptvByGenre: { jazz: null },
       iptvStatus: 503,
     });
-    expect((await fetchMock(iptvCategoryUrl('jazz'))).status).toBe(503);
-    expect((await fetchMock(iptvCategoryUrl('music'))).status).toBe(200);
+    expect((await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('jazz'))).status).toBe(503);
+    expect((await (fetchMock as unknown as typeof fetch)(iptvCategoryUrl('music'))).status).toBe(200);
   });
 
   it('overnight-crawl-queue-retry: idempotent seedStationsCache merge does not drop sibling keys', () => {
