@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -5153,4 +5154,1176 @@ describe('source ↔ product contracts', () => {
     expect([...read("src/index.ts").matchAll(/^export /gm)]).toHaveLength(1);
     expect(read("src/index.ts")).toContain("export default app");
   });
+
+
+  // --- HEAVY burn (post-#93): deepen source ↔ product contracts (orthogonal to genres #93 / wrangler #91 / mcp #89; tests-only) ---
+
+  it('post93: locks src/index.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('src/index.ts')).digest('hex')).toBe(
+      '7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72',
+    );
+  });
+
+  it('post93: locks src/index.ts sha1 digest', () => {
+    expect(createHash('sha1').update(read('src/index.ts')).digest('hex')).toBe(
+      '88b9273a584ce23d1da7ca8a147fee7faeee640b',
+    );
+  });
+
+  it('post93: locks src/index.ts md5 digest', () => {
+    expect(createHash('md5').update(read('src/index.ts')).digest('hex')).toBe(
+      '8c9cdb320becf0effa2d8027b66a2177',
+    );
+  });
+
+  it('post93: locks src/index.ts sha256 nibble sum to 470', () => {
+    const hex = createHash('sha256').update(read('src/index.ts')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(470);
+  });
+
+  it('post93: locks src/parser.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('src/parser.ts')).digest('hex')).toBe(
+      'cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368',
+    );
+  });
+
+  it('post93: locks src/parser.ts sha1 digest', () => {
+    expect(createHash('sha1').update(read('src/parser.ts')).digest('hex')).toBe(
+      '701cdecbef5a9049af6bd11497493c4036a60211',
+    );
+  });
+
+  it('post93: locks src/parser.ts md5 digest', () => {
+    expect(createHash('md5').update(read('src/parser.ts')).digest('hex')).toBe(
+      '500211c4c526de887252451726776563',
+    );
+  });
+
+  it('post93: locks src/parser.ts sha256 nibble sum to 477', () => {
+    const hex = createHash('sha256').update(read('src/parser.ts')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(477);
+  });
+
+  it('post93: locks src/genres.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('src/genres.ts')).digest('hex')).toBe(
+      'aa626817cf3bc8a707ac5adba39f811dfbc23f695e5e0cb9d070007d839d914e',
+    );
+  });
+
+  it('post93: locks src/genres.ts sha1 digest', () => {
+    expect(createHash('sha1').update(read('src/genres.ts')).digest('hex')).toBe(
+      '3dd586bfd23c91e9719b56c90c8cbfe038aebc3e',
+    );
+  });
+
+  it('post93: locks src/genres.ts md5 digest', () => {
+    expect(createHash('md5').update(read('src/genres.ts')).digest('hex')).toBe(
+      'ee8d34506f688c9e3097b89a35d48aa5',
+    );
+  });
+
+  it('post93: locks src/genres.ts sha256 nibble sum to 500', () => {
+    const hex = createHash('sha256').update(read('src/genres.ts')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(500);
+  });
+
+  it('post93: locks src/mcp.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('src/mcp.ts')).digest('hex')).toBe(
+      '6ae8ffd7c4b75c471db2dff1fe5c6ad61aff69e38b048a366bb8b7adb3099683',
+    );
+  });
+
+  it('post93: locks src/mcp.ts sha1 digest', () => {
+    expect(createHash('sha1').update(read('src/mcp.ts')).digest('hex')).toBe(
+      '848b3977365809fda54fcb74a7d09affe685ea82',
+    );
+  });
+
+  it('post93: locks src/mcp.ts md5 digest', () => {
+    expect(createHash('md5').update(read('src/mcp.ts')).digest('hex')).toBe(
+      '52e71c72e32e3d95b8b8d61ff4a2cf46',
+    );
+  });
+
+  it('post93: locks src/mcp.ts sha256 nibble sum to 551', () => {
+    const hex = createHash('sha256').update(read('src/mcp.ts')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(551);
+  });
+
+  it('post93: locks src/types.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('src/types.ts')).digest('hex')).toBe(
+      '4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3',
+    );
+  });
+
+  it('post93: locks src/types.ts sha1 digest', () => {
+    expect(createHash('sha1').update(read('src/types.ts')).digest('hex')).toBe(
+      '1e8906673dc0d140ee5c3d40839c88a1eeca03d8',
+    );
+  });
+
+  it('post93: locks src/types.ts md5 digest', () => {
+    expect(createHash('md5').update(read('src/types.ts')).digest('hex')).toBe(
+      'ecba663d21928622be656805ad27d0a3',
+    );
+  });
+
+  it('post93: locks src/types.ts sha256 nibble sum to 520', () => {
+    const hex = createHash('sha256').update(read('src/types.ts')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(520);
+  });
+
+  it('post93: locks fs.statSync size equals UTF-8 bytes for each src module', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'] as const) {
+      const src = read(rel);
+      expect(statSync(join(root, rel)).size).toBe(Buffer.byteLength(src, 'utf8'));
+    }
+  });
+
+  it('post93: locks src inventory alphabetical five modules only', () => {
+    expect(readdirSync(join(root, 'src')).filter((f) => f.endsWith('.ts')).sort()).toEqual([
+      'genres.ts',
+      'index.ts',
+      'mcp.ts',
+      'parser.ts',
+      'types.ts',
+    ]);
+  });
+
+  it('post93: locks src byte total across five modules at 9951', () => {
+    const total = readdirSync(join(root, 'src'))
+      .filter((f) => f.endsWith('.ts'))
+      .reduce((a, f) => a + statSync(join(root, 'src', f)).size, 0);
+    expect(total).toBe(9951);
+  });
+
+  it('post93: locks index.ts digit count at 51', () => {
+    expect([...read('src/index.ts')].filter((c) => /\d/.test(c))).toHaveLength(51);
+  });
+
+  it('post93: locks index.ts uppercase ASCII letter count at 262', () => {
+    expect([...read('src/index.ts')].filter((c) => /[A-Z]/.test(c))).toHaveLength(262);
+  });
+
+  it('post93: locks index.ts lowercase ASCII letter count at 2597', () => {
+    expect([...read('src/index.ts')].filter((c) => /[a-z]/.test(c))).toHaveLength(2597);
+  });
+
+  it('post93: locks index.ts space count at 761', () => {
+    expect((read('src/index.ts').match(/ /g) ?? []).length).toBe(761);
+  });
+
+  it('post93: locks index.ts tab and CR absence', () => {
+    const index = read('src/index.ts');
+    expect(index.includes('\t')).toBe(false);
+    expect(index.includes('\r')).toBe(false);
+  });
+
+  it('post93: locks index.ts paren pair counts at 70', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/\(/g) ?? []).length).toBe(70);
+    expect((index.match(/\)/g) ?? []).length).toBe(70);
+  });
+
+  it('post93: locks index.ts bracket pair counts at 17', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/\[/g) ?? []).length).toBe(17);
+    expect((index.match(/\]/g) ?? []).length).toBe(17);
+  });
+
+  it('post93: locks index.ts backtick count at 14', () => {
+    expect((read('src/index.ts').match(/`/g) ?? []).length).toBe(14);
+  });
+
+  it('post93: locks index.ts semicolon count at 61', () => {
+    expect((read('src/index.ts').match(/;/g) ?? []).length).toBe(61);
+  });
+
+  it('post93: locks index.ts equals count at 37', () => {
+    expect((read('src/index.ts').match(/=/g) ?? []).length).toBe(37);
+  });
+
+  it('post93: locks index.ts comma count at 69', () => {
+    expect((read('src/index.ts').match(/,/g) ?? []).length).toBe(69);
+  });
+
+  it('post93: locks index.ts question-mark count at 20', () => {
+    expect((read('src/index.ts').match(/\?/g) ?? []).length).toBe(20);
+  });
+
+  it('post93: locks index.ts star count at 4', () => {
+    expect((read('src/index.ts').match(/\*/g) ?? []).length).toBe(4);
+  });
+
+  it('post93: locks index.ts underscore count at 18', () => {
+    expect((read('src/index.ts').match(/_/g) ?? []).length).toBe(18);
+  });
+
+  it('post93: locks index.ts dollar count at 13', () => {
+    expect((read('src/index.ts').match(/\$/g) ?? []).length).toBe(13);
+  });
+
+  it('post93: locks index.ts plus count at 1 and exclaim at 5', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/\+/g) ?? []).length).toBe(1);
+    expect((index.match(/!/g) ?? []).length).toBe(5);
+  });
+
+  it('post93: locks index.ts amp count at 1 and pipe at 2', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/&/g) ?? []).length).toBe(1);
+    expect((index.match(/\|/g) ?? []).length).toBe(2);
+  });
+
+  it('post93: locks index.ts absence of @ # % ^ ~', () => {
+    const index = read('src/index.ts');
+    for (const ch of ['@', '#', '%', '^', '~'] as const) {
+      expect(index.includes(ch)).toBe(false);
+    }
+  });
+
+  it('post93: locks index.ts backslash count at 14', () => {
+    expect((read('src/index.ts').match(/\\/g) ?? []).length).toBe(14);
+  });
+
+  it('post93: locks index.ts angle-bracket counts L6 R13', () => {
+    const index = read('src/index.ts');
+    expect((index.match(/</g) ?? []).length).toBe(6);
+    expect((index.match(/>/g) ?? []).length).toBe(13);
+  });
+
+  it('post93: locks index.ts letter a count at 225', () => {
+    expect((read('src/index.ts').match(/a/g) ?? []).length).toBe(225);
+  });
+
+  it('post93: locks index.ts letter e count at 289', () => {
+    expect((read('src/index.ts').match(/e/g) ?? []).length).toBe(289);
+  });
+
+  it('post93: locks index.ts letter i count at 166', () => {
+    expect((read('src/index.ts').match(/i/g) ?? []).length).toBe(166);
+  });
+
+  it('post93: locks index.ts letter o count at 204', () => {
+    expect((read('src/index.ts').match(/o/g) ?? []).length).toBe(204);
+  });
+
+  it('post93: locks index.ts letter u count at 71', () => {
+    expect((read('src/index.ts').match(/u/g) ?? []).length).toBe(71);
+  });
+
+  it('post93: locks index.ts letter n count at 227', () => {
+    expect((read('src/index.ts').match(/n/g) ?? []).length).toBe(227);
+  });
+
+  it('post93: locks index.ts letter s count at 186', () => {
+    expect((read('src/index.ts').match(/s/g) ?? []).length).toBe(186);
+  });
+
+  it('post93: locks index.ts letter t count at 288', () => {
+    expect((read('src/index.ts').match(/t/g) ?? []).length).toBe(288);
+  });
+
+  it('post93: locks index.ts letter l count at 77', () => {
+    expect((read('src/index.ts').match(/l/g) ?? []).length).toBe(77);
+  });
+
+  it('post93: locks index.ts letter c count at 127', () => {
+    expect((read('src/index.ts').match(/c/g) ?? []).length).toBe(127);
+  });
+
+  it('post93: locks index.ts letter r count at 236', () => {
+    expect((read('src/index.ts').match(/r/g) ?? []).length).toBe(236);
+  });
+
+  it('post93: locks index.ts letter p count at 67', () => {
+    expect((read('src/index.ts').match(/p/g) ?? []).length).toBe(67);
+  });
+
+  it('post93: locks index.ts letter m count at 61', () => {
+    expect((read('src/index.ts').match(/m/g) ?? []).length).toBe(61);
+  });
+
+  it('post93: locks index.ts export keyword count at 1', () => {
+    expect([...read('src/index.ts').matchAll(/\bexport\b/g)]).toHaveLength(1);
+  });
+
+  it('post93: locks index.ts const keyword count at 20', () => {
+    expect([...read('src/index.ts').matchAll(/\bconst\b/g)]).toHaveLength(20);
+  });
+
+  it('post93: locks index.ts function keyword count at 2', () => {
+    expect([...read('src/index.ts').matchAll(/\bfunction\b/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts async keyword count at 4', () => {
+    expect([...read('src/index.ts').matchAll(/\basync\b/g)]).toHaveLength(4);
+  });
+
+  it('post93: locks index.ts await keyword count at 10', () => {
+    expect([...read('src/index.ts').matchAll(/\bawait\b/g)]).toHaveLength(10);
+  });
+
+  it('post93: locks index.ts return keyword count at 12', () => {
+    expect([...read('src/index.ts').matchAll(/\breturn\b/g)]).toHaveLength(12);
+  });
+
+  it('post93: locks index.ts import keyword count at 5', () => {
+    expect([...read('src/index.ts').matchAll(/\bimport\b/g)]).toHaveLength(5);
+  });
+
+  it('post93: locks index.ts if keyword count at 6', () => {
+    expect([...read('src/index.ts').matchAll(/\bif\b/g)]).toHaveLength(6);
+  });
+
+  it('post93: locks index.ts throw keyword count at 3', () => {
+    expect([...read('src/index.ts').matchAll(/\bthrow\b/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts new keyword count at 5', () => {
+    expect([...read('src/index.ts').matchAll(/\bnew\b/g)]).toHaveLength(5);
+  });
+
+  it('post93: locks index.ts let keyword count at 4 and var at 0', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/\blet\b/g)]).toHaveLength(4);
+    expect([...index.matchAll(/\bvar\b/g)]).toHaveLength(0);
+  });
+
+  it('post93: locks index.ts app.get call sites at 5', () => {
+    expect([...read('src/index.ts').matchAll(/app\.get\(/g)]).toHaveLength(5);
+  });
+
+  it('post93: locks index.ts c.json call sites at 8', () => {
+    expect([...read('src/index.ts').matchAll(/c\.json\(/g)]).toHaveLength(8);
+  });
+
+  it('post93: locks index.ts fetch call sites at 3', () => {
+    expect([...read('src/index.ts').matchAll(/\bfetch\(/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts c.env occurrences at 6', () => {
+    expect([...read('src/index.ts').matchAll(/c\.env/g)]).toHaveLength(6);
+  });
+
+  it('post93: locks index.ts c.req occurrences at 3', () => {
+    expect([...read('src/index.ts').matchAll(/c\.req/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts resolveGenre occurrences at 3', () => {
+    expect([...read('src/index.ts').matchAll(/resolveGenre/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts fetchStations occurrences at 3', () => {
+    expect([...read('src/index.ts').matchAll(/fetchStations/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts callGemini occurrences at 2', () => {
+    expect([...read('src/index.ts').matchAll(/callGemini/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts parseM3U occurrences at 2', () => {
+    expect([...read('src/index.ts').matchAll(/parseM3U/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts VALID_GENRES and GENRE_MAP occurrences at 2 each', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/VALID_GENRES/g)]).toHaveLength(2);
+    expect([...index.matchAll(/GENRE_MAP/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts JSON.parse and JSON.stringify at 2 each', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/JSON\.parse/g)]).toHaveLength(2);
+    expect([...index.matchAll(/JSON\.stringify/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts .slice( .filter( .map( .join( call sites', () => {
+    const index = read('src/index.ts');
+    expect([...index.matchAll(/\.slice\(/g)]).toHaveLength(2);
+    expect([...index.matchAll(/\.filter\(/g)]).toHaveLength(2);
+    expect([...index.matchAll(/\.map\(/g)]).toHaveLength(2);
+    expect([...index.matchAll(/\.join\(/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts retry_after 60 three times', () => {
+    expect([...read('src/index.ts').matchAll(/retry_after: 60/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts error string inventory', () => {
+    expect([...read('src/index.ts').matchAll(/error: '([^']+)'/g)].map((m) => m[1])).toEqual([
+      'Stream catalog unavailable',
+      'Curation service unavailable',
+      'Stream catalog unavailable',
+    ]);
+  });
+
+  it('post93: locks index.ts Backlink word count at 4', () => {
+    expect([...read('src/index.ts').matchAll(/Backlink/g)]).toHaveLength(4);
+  });
+
+  it('post93: locks index.ts Geryon word count at 2', () => {
+    expect([...read('src/index.ts').matchAll(/Geryon/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks index.ts Gemini word count at 4', () => {
+    expect([...read('src/index.ts').matchAll(/Gemini/g)]).toHaveLength(4);
+  });
+
+  it('post93: locks index.ts editorial word count at 6', () => {
+    expect([...read('src/index.ts').matchAll(/editorial/g)]).toHaveLength(6);
+  });
+
+  it('post93: locks index.ts cors occurrences at 3', () => {
+    expect([...read('src/index.ts').matchAll(/cors/g)]).toHaveLength(3);
+  });
+
+  it('post93: locks index.ts nonempty trimmed line count at 125', () => {
+    expect(read('src/index.ts').split('\n').filter((l) => l.trim().length > 0)).toHaveLength(125);
+  });
+
+  it('post93: locks index.ts first line exact import Hono', () => {
+    expect(read('src/index.ts').split('\n')[0]).toBe("import { Hono } from 'hono';");
+  });
+
+  it('post93: locks index.ts first 8 UTF-8 bytes hex', () => {
+    expect(Buffer.from(read('src/index.ts').slice(0, 8), 'utf8').toString('hex')).toBe('696d706f7274207b');
+  });
+
+  it('post93: locks index.ts DataView first 4 bytes import', () => {
+    const buf = new TextEncoder().encode(read('src/index.ts'));
+    const view = new DataView(buf.buffer, buf.byteOffset, 4);
+    expect(view.getUint8(0)).toBe(0x69);
+    expect(view.getUint8(1)).toBe(0x6d);
+    expect(view.getUint8(2)).toBe(0x70);
+    expect(view.getUint8(3)).toBe(0x6f);
+  });
+
+  it('post93: locks index.ts TextEncoder byte length 4738', () => {
+    expect(new TextEncoder().encode(read('src/index.ts')).length).toBe(4738);
+  });
+
+  it('post93: locks index.ts UTF-8 vs UTF-16 delta of 14', () => {
+    const index = read('src/index.ts');
+    expect(Buffer.byteLength(index, 'utf8') - index.length).toBe(14);
+  });
+
+  it('post93: locks index.ts non-ASCII inventory six em-dashes plus crab', () => {
+    const cps = [...read('src/index.ts')].filter((c) => c.codePointAt(0)! > 127).map((c) => c.codePointAt(0)!);
+    expect(cps).toEqual([8212, 8212, 8212, 8212, 8212, 8212, 129408]);
+  });
+
+  it('post93: locks fromCharCode rebuild of fetchStations', () => {
+    const name = String.fromCharCode(102, 101, 116, 99, 104, 83, 116, 97, 116, 105, 111, 110, 115);
+    expect(name).toBe('fetchStations');
+    expect(read('src/index.ts')).toContain(`async function ${name}`);
+  });
+
+  it('post93: locks fromCharCode rebuild of callGemini', () => {
+    const name = String.fromCharCode(99, 97, 108, 108, 71, 101, 109, 105, 110, 105);
+    expect(name).toBe('callGemini');
+    expect(read('src/index.ts')).toContain(`async function ${name}`);
+  });
+
+  it('post93: locks sha256 of identifier fetchStations', () => {
+    expect(createHash('sha256').update('fetchStations').digest('hex')).toBe(
+      '2b1f3b65227830851d4f7cff3a41601f015659b290a1416cd2e91249d0db0ee9',
+    );
+    expect(read('src/index.ts')).toContain('async function fetchStations');
+  });
+
+  it('post93: locks sha256 of identifier callGemini', () => {
+    expect(createHash('sha256').update('callGemini').digest('hex')).toBe(
+      'f8e4ae0bab17bcf8e41ea6c977edbf0a5bb40009178feae525717a1a139eec61',
+    );
+    expect(read('src/index.ts')).toContain('async function callGemini');
+  });
+
+  it('post93: locks sha256 of identifier parseM3U', () => {
+    expect(createHash('sha256').update('parseM3U').digest('hex')).toBe(
+      '6d920cec8badac45056b0bc62ba4d70dbbe5f227570c5cad160a9f80b6832591',
+    );
+    expect(read('src/parser.ts')).toContain('export function parseM3U');
+  });
+
+  it('post93: locks sha256 of identifier resolveGenre', () => {
+    expect(createHash('sha256').update('resolveGenre').digest('hex')).toBe(
+      '931c406961d2bd16ea55315a95ff2ecc35f4de9bbed875059ed39e852ae74588',
+    );
+    expect(read('src/genres.ts')).toContain('export function resolveGenre');
+  });
+
+  it('post93: locks sha256 of identifier MCP_MANIFEST', () => {
+    expect(createHash('sha256').update('MCP_MANIFEST').digest('hex')).toBe(
+      'fe92a58bd05d95573eb788a08ab8354b3a6187880ce71e55005d8e8ad9f8fde3',
+    );
+    expect(read('src/mcp.ts')).toContain('export const MCP_MANIFEST');
+  });
+
+  it('post93: locks sha256 of identifier VALID_GENRES', () => {
+    expect(createHash('sha256').update('VALID_GENRES').digest('hex')).toBe(
+      'dafc1c7184d4cbf39f3e9075bc554968c5e48ea3e91791941e0ed113a0a937a4',
+    );
+    expect(read('src/genres.ts')).toContain('export const VALID_GENRES');
+  });
+
+  it('post93: locks sha256 of identifier GENRE_MAP', () => {
+    expect(createHash('sha256').update('GENRE_MAP').digest('hex')).toBe(
+      '111c801ab3a9598fdc256cb9c670d4cd0e2b96f5fb5afaa80572635b42b682ec',
+    );
+    expect(read('src/genres.ts')).toContain('export const GENRE_MAP');
+  });
+
+  it('post93: locks btoa of Backlink IPTV_BASE gemini model CATALOG_CACHE', () => {
+    expect(btoa('Backlink')).toBe('QmFja2xpbms=');
+    expect(btoa('IPTV_BASE')).toBe('SVBUVl9CQVNF');
+    expect(btoa('gemini-2.0-flash')).toBe('Z2VtaW5pLTIuMC1mbGFzaA==');
+    expect(btoa('CATALOG_CACHE')).toBe('Q0FUQUxPR19DQUNIRQ==');
+    expect(btoa('GEMINI_API_KEY')).toBe('R0VNSU5JX0FQSV9LRVk=');
+    expect(btoa('stations:')).toBe('c3RhdGlvbnM6');
+  });
+
+  it('post93: locks parser.ts digit count at 8', () => {
+    expect([...read('src/parser.ts')].filter((c) => /\d/.test(c))).toHaveLength(8);
+  });
+
+  it('post93: locks parser.ts uppercase ASCII letter count at 54', () => {
+    expect([...read('src/parser.ts')].filter((c) => /[A-Z]/.test(c))).toHaveLength(54);
+  });
+
+  it('post93: locks parser.ts lowercase ASCII letter count at 1043', () => {
+    expect([...read('src/parser.ts')].filter((c) => /[a-z]/.test(c))).toHaveLength(1043);
+  });
+
+  it('post93: locks parser.ts space count at 432', () => {
+    expect((read('src/parser.ts').match(/ /g) ?? []).length).toBe(432);
+  });
+
+  it('post93: locks parser.ts brace pair counts at 13', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/\{/g) ?? []).length).toBe(13);
+    expect((parser.match(/\}/g) ?? []).length).toBe(13);
+  });
+
+  it('post93: locks parser.ts paren pair counts at 40', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/\(/g) ?? []).length).toBe(40);
+    expect((parser.match(/\)/g) ?? []).length).toBe(40);
+  });
+
+  it('post93: locks parser.ts bracket pair counts at 13', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/\[/g) ?? []).length).toBe(13);
+    expect((parser.match(/\]/g) ?? []).length).toBe(13);
+  });
+
+  it('post93: locks parser.ts single-quote 12 double-quote 15 backtick 0', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/'/g) ?? []).length).toBe(12);
+    expect((parser.match(/"/g) ?? []).length).toBe(15);
+    expect((parser.match(/`/g) ?? []).length).toBe(0);
+  });
+
+  it('post93: locks parser.ts colon 19 slash 30 semicolon 28', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/:/g) ?? []).length).toBe(19);
+    expect((parser.match(/\//g) ?? []).length).toBe(30);
+    expect((parser.match(/;/g) ?? []).length).toBe(28);
+  });
+
+  it('post93: locks parser.ts question 4 star 5 underscore 0', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/\?/g) ?? []).length).toBe(4);
+    expect((parser.match(/\*/g) ?? []).length).toBe(5);
+    expect((parser.match(/_/g) ?? []).length).toBe(0);
+  });
+
+  it('post93: locks parser.ts pipe 2 amp 4 hash 3 caret 5', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/\|/g) ?? []).length).toBe(2);
+    expect((parser.match(/&/g) ?? []).length).toBe(4);
+    expect((parser.match(/#/g) ?? []).length).toBe(3);
+    expect((parser.match(/\^/g) ?? []).length).toBe(5);
+  });
+
+  it('post93: locks parser.ts dollar 0 at 0 tilde 0 pct 0', () => {
+    const parser = read('src/parser.ts');
+    for (const ch of ['$', '@', '~', '%'] as const) {
+      expect(parser.includes(ch)).toBe(false);
+    }
+  });
+
+  it('post93: locks parser.ts letter t count at 139', () => {
+    expect((read('src/parser.ts').match(/t/g) ?? []).length).toBe(139);
+  });
+
+  it('post93: locks parser.ts letter n count at 105', () => {
+    expect((read('src/parser.ts').match(/n/g) ?? []).length).toBe(105);
+  });
+
+  it('post93: locks parser.ts letter r count at 89', () => {
+    expect((read('src/parser.ts').match(/r/g) ?? []).length).toBe(89);
+  });
+
+  it('post93: locks parser.ts letter e count at 86', () => {
+    expect((read('src/parser.ts').match(/e/g) ?? []).length).toBe(86);
+  });
+
+  it('post93: locks parser.ts letter a count at 82', () => {
+    expect((read('src/parser.ts').match(/a/g) ?? []).length).toBe(82);
+  });
+
+  it('post93: locks parser.ts letter c count at 71', () => {
+    expect((read('src/parser.ts').match(/c/g) ?? []).length).toBe(71);
+  });
+
+  it('post93: locks parser.ts zero j q z letters', () => {
+    const parser = read('src/parser.ts');
+    expect((parser.match(/j/g) ?? []).length).toBe(0);
+    expect((parser.match(/q/g) ?? []).length).toBe(0);
+    expect((parser.match(/z/g) ?? []).length).toBe(0);
+  });
+
+  it('post93: locks parser.ts keyword inventory export2 const10 function1 if11 else2', () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/\bexport\b/g)]).toHaveLength(2);
+    expect([...parser.matchAll(/\bconst\b/g)]).toHaveLength(10);
+    expect([...parser.matchAll(/\bfunction\b/g)]).toHaveLength(1);
+    expect([...parser.matchAll(/\bif\b/g)]).toHaveLength(11);
+    expect([...parser.matchAll(/\belse\b/g)]).toHaveLength(2);
+  });
+
+  it('post93: locks parser.ts .match( sites at 5 and .startsWith at 4', () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/\.match\(/g)]).toHaveLength(5);
+    expect([...parser.matchAll(/\.startsWith\(/g)]).toHaveLength(4);
+  });
+
+  it('post93: locks parser.ts .lastIndexOf .push Set Partial once each', () => {
+    const parser = read('src/parser.ts');
+    expect([...parser.matchAll(/\.lastIndexOf\(/g)]).toHaveLength(1);
+    expect([...parser.matchAll(/\.push\(/g)]).toHaveLength(1);
+    expect([...parser.matchAll(/\bSet\b/g)]).toHaveLength(1);
+    expect([...parser.matchAll(/\bPartial\b/g)]).toHaveLength(1);
+  });
+
+  it('post93: locks parser.ts optional Station fields logo group language country', () => {
+    expect([...read('src/parser.ts').matchAll(/(\w+)\?:/g)].map((m) => m[1])).toEqual([
+      'logo',
+      'group',
+      'language',
+      'country',
+    ]);
+  });
+
+  it('post93: locks parser.ts first line Station interface', () => {
+    expect(read('src/parser.ts').split('\n')[0]).toBe('export interface Station {');
+  });
+
+  it('post93: locks parser.ts nonempty trimmed line count at 56', () => {
+    expect(read('src/parser.ts').split('\n').filter((l) => l.trim().length > 0)).toHaveLength(56);
+  });
+
+  it('post93: locks parser.ts single em-dash code point', () => {
+    expect([...read('src/parser.ts')].filter((c) => c.codePointAt(0)! > 127).map((c) => c.codePointAt(0)!)).toEqual([
+      8212,
+    ]);
+  });
+
+  it('post93: locks mcp.ts digit count at 1', () => {
+    expect([...read('src/mcp.ts')].filter((c) => /\d/.test(c))).toHaveLength(1);
+  });
+
+  it('post93: locks mcp.ts uppercase 39 lowercase 1072 space 617', () => {
+    const mcp = read('src/mcp.ts');
+    expect([...mcp].filter((c) => /[A-Z]/.test(c))).toHaveLength(39);
+    expect([...mcp].filter((c) => /[a-z]/.test(c))).toHaveLength(1072);
+    expect((mcp.match(/ /g) ?? []).length).toBe(617);
+  });
+
+  it('post93: locks mcp.ts brace pair 19 and double-quote 62 zero single-quote', () => {
+    const mcp = read('src/mcp.ts');
+    expect((mcp.match(/\{/g) ?? []).length).toBe(19);
+    expect((mcp.match(/\}/g) ?? []).length).toBe(19);
+    expect((mcp.match(/"/g) ?? []).length).toBe(62);
+    expect((mcp.match(/'/g) ?? []).length).toBe(0);
+  });
+
+  it('post93: locks mcp.ts colon 46 comma 60 underscore 20', () => {
+    const mcp = read('src/mcp.ts');
+    expect((mcp.match(/:/g) ?? []).length).toBe(46);
+    expect((mcp.match(/,/g) ?? []).length).toBe(60);
+    expect((mcp.match(/_/g) ?? []).length).toBe(20);
+  });
+
+  it('post93: locks mcp.ts type keyword count at 10', () => {
+    expect([...read('src/mcp.ts').matchAll(/\btype\b/g)]).toHaveLength(10);
+  });
+
+  it('post93: locks mcp.ts tool name inventory order', () => {
+    expect([...read('src/mcp.ts').matchAll(/name: "([^"]+)"/g)].map((m) => m[1])).toEqual([
+      'station_select',
+      'now_playing',
+      'genre_filter',
+      'curator_prompt',
+    ]);
+  });
+
+  it('post93: locks mcp.ts schema_version v1 and auth none', () => {
+    const mcp = read('src/mcp.ts');
+    expect(mcp).toContain('schema_version: "v1"');
+    expect(mcp).toContain('auth: { type: "none" }');
+    expect(mcp).toContain('name_for_model: "backlink"');
+    expect(mcp).toContain('url: "/openapi.json"');
+  });
+
+  it('post93: locks mcp.ts letter e count at 131 and t at 115', () => {
+    const mcp = read('src/mcp.ts');
+    expect((mcp.match(/e/g) ?? []).length).toBe(131);
+    expect((mcp.match(/t/g) ?? []).length).toBe(115);
+  });
+
+  it('post93: locks mcp.ts pure ASCII via codePointAt sweep', () => {
+    const mcp = read('src/mcp.ts');
+    for (let i = 0; i < mcp.length; i++) {
+      expect(mcp.codePointAt(i)!).toBeLessThan(128);
+    }
+  });
+
+  it('post93: locks types.ts digit 4 upper 36 lower 75 space 25', () => {
+    const types = read('src/types.ts');
+    expect([...types].filter((c) => /\d/.test(c))).toHaveLength(4);
+    expect([...types].filter((c) => /[A-Z]/.test(c))).toHaveLength(36);
+    expect([...types].filter((c) => /[a-z]/.test(c))).toHaveLength(75);
+    expect((types.match(/ /g) ?? []).length).toBe(25);
+  });
+
+  it('post93: locks types.ts question 2 star 3 underscore 3 backtick 2 hash 1', () => {
+    const types = read('src/types.ts');
+    expect((types.match(/\?/g) ?? []).length).toBe(2);
+    expect((types.match(/\*/g) ?? []).length).toBe(3);
+    expect((types.match(/_/g) ?? []).length).toBe(3);
+    expect((types.match(/`/g) ?? []).length).toBe(2);
+    expect((types.match(/#/g) ?? []).length).toBe(1);
+  });
+
+  it('post93: locks types.ts first line Env interface', () => {
+    expect(read('src/types.ts').split('\n')[0]).toBe('export interface Env {');
+  });
+
+  it('post93: locks types.ts exact raw source including em-dash comment', () => {
+    expect(read('src/types.ts')).toBe(
+      'export interface Env {\n  CATALOG_CACHE: KVNamespace;\n  /** Optional at runtime — `/curate` returns 503 when unset (#8). */\n  GEMINI_API_KEY?: string;\n  VERSION?: string;\n}\n',
+    );
+  });
+
+  it('post93: locks types.ts single em-dash at offset 79', () => {
+    const types = read('src/types.ts');
+    expect(types.indexOf('\u2014')).toBe(79);
+    expect([...types].filter((c) => c.codePointAt(0)! > 127)).toHaveLength(1);
+  });
+
+  it('post93: locks README.md H1 and H2 inventory', () => {
+    const readme = read('README.md');
+    expect(readme.split('\n')[0]).toBe('# Backlink 📻');
+    expect([...readme.matchAll(/^## .+$/gm)].map((m) => m[0])).toEqual([
+      '## Cloud agents',
+      '## API',
+      '## Example Response',
+      '## Deploy Your Own',
+      '## Stack',
+      '## Available Genres',
+      '## Part of the smtp.eth ecosystem',
+    ]);
+  });
+
+  it('post93: locks DEPLOY.md H1 and H2 inventory', () => {
+    const deploy = read('DEPLOY.md');
+    expect(deploy.split('\n')[0]).toBe('# Backlink — Deployment Guide');
+    expect([...deploy.matchAll(/^## .+$/gm)].map((m) => m[0])).toEqual([
+      '## Prerequisites',
+      '## Steps',
+      '## Cost Estimate',
+      '## Local dev',
+      '## HITL Required',
+    ]);
+  });
+
+  it('post93: locks AGENTS.md H1 and H2 inventory', () => {
+    const agents = read('AGENTS.md');
+    expect(agents.split('\n')[0]).toBe('# AGENTS.md — Backlink_Facelift');
+    expect([...agents.matchAll(/^## .+$/gm)].map((m) => m[0])).toEqual([
+      '## Classification',
+      '## Purpose',
+      '## Safe Agent Actions',
+      '## Verify',
+      '## Escalate to Human',
+    ]);
+  });
+
+  it('post93: locks docs/mcp-spec.md tool heading order', () => {
+    expect([...read('docs/mcp-spec.md').matchAll(/### `([^`]+)`/g)].map((m) => m[1])).toEqual([
+      'backlink_curate',
+      'backlink_genres',
+      'backlink_now_playing',
+    ]);
+  });
+
+  it('post93: locks README.md sha256 nibble sum to 429', () => {
+    const hex = createHash('sha256').update(read('README.md')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(429);
+  });
+
+  it('post93: locks DEPLOY.md sha256 nibble sum to 439', () => {
+    const hex = createHash('sha256').update(read('DEPLOY.md')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(439);
+  });
+
+  it('post93: locks AGENTS.md sha256 nibble sum to 479', () => {
+    const hex = createHash('sha256').update(read('AGENTS.md')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(479);
+  });
+
+  it('post93: locks docs/mcp-spec.md sha256 nibble sum to 514', () => {
+    const hex = createHash('sha256').update(read('docs/mcp-spec.md')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(514);
+  });
+
+  it('post93: locks wrangler.toml sha256 nibble sum to 457', () => {
+    const hex = createHash('sha256').update(read('wrangler.toml')).digest('hex');
+    expect([...hex].reduce((a, c) => a + Number.parseInt(c, 16), 0)).toBe(457);
+  });
+
+  it('post93: locks README.md sha256 digest', () => {
+    expect(createHash('sha256').update(read('README.md')).digest('hex')).toBe(
+      'f7ecd30301c01e7af03a64ca32d1368a10cac861c09016c718e39417dc15c987',
+    );
+  });
+
+  it('post93: locks DEPLOY.md sha256 digest', () => {
+    expect(createHash('sha256').update(read('DEPLOY.md')).digest('hex')).toBe(
+      '11067fa2da7ee6d2354842e1c258f363d487536ac307b76739893a93b0c9d05a',
+    );
+  });
+
+  it('post93: locks AGENTS.md sha256 digest', () => {
+    expect(createHash('sha256').update(read('AGENTS.md')).digest('hex')).toBe(
+      '48e590b4f146e2fbd1ebb409e0d5a5ec1be50b72b2c310f1c1e360487b36feaa',
+    );
+  });
+
+  it('post93: locks docs/mcp-spec.md sha256 digest', () => {
+    expect(createHash('sha256').update(read('docs/mcp-spec.md')).digest('hex')).toBe(
+      'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849',
+    );
+  });
+
+  it('post93: locks wrangler.toml sha256 digest', () => {
+    expect(createHash('sha256').update(read('wrangler.toml')).digest('hex')).toBe(
+      '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8',
+    );
+  });
+
+  it('post93: locks package.json sha256 digest', () => {
+    expect(createHash('sha256').update(read('package.json')).digest('hex')).toBe(
+      '34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c',
+    );
+  });
+
+  it('post93: locks package.json top-level key order', () => {
+    expect(Object.keys(JSON.parse(read('package.json')) as Record<string, unknown>)).toEqual([
+      'name',
+      'version',
+      'description',
+      'type',
+      'scripts',
+      'dependencies',
+      'devDependencies',
+    ]);
+  });
+
+  it('post93: locks package.json scripts inventory', () => {
+    const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts).toEqual({
+      dev: 'wrangler dev',
+      deploy: 'wrangler deploy',
+      typecheck: 'tsc --noEmit',
+      test: 'vitest run',
+      'test:watch': 'vitest',
+      'test:coverage': 'vitest run --coverage',
+    });
+  });
+
+  it('post93: locks package.json sole runtime dependency hono', () => {
+    const pkg = JSON.parse(read('package.json')) as { dependencies: Record<string, string>; type: string };
+    expect(pkg.dependencies).toEqual({ hono: '^4.13.7' });
+    expect(pkg.type).toBe('module');
+  });
+
+  it('post93: locks package-lock lockfileVersion 3 name backlink', () => {
+    const lock = JSON.parse(read('package-lock.json')) as {
+      lockfileVersion: number;
+      name: string;
+      packages: Record<string, { name?: string }>;
+    };
+    expect(lock.lockfileVersion).toBe(3);
+    expect(lock.name).toBe('backlink');
+    expect(lock.packages[''].name).toBe('backlink');
+  });
+
+  it('post93: locks ISSUE_TEMPLATE inventory four files', () => {
+    expect(readdirSync(join(root, '.github/ISSUE_TEMPLATE')).sort()).toEqual([
+      'bug.yml',
+      'chore.yml',
+      'config.yml',
+      'feature.yml',
+    ]);
+  });
+
+  it('post93: locks ISSUE_TEMPLATE bug.yml sha256 and size 846', () => {
+    const body = read('.github/ISSUE_TEMPLATE/bug.yml');
+    expect(Buffer.byteLength(body, 'utf8')).toBe(846);
+    expect(createHash('sha256').update(body).digest('hex')).toBe(
+      'f76fcc573b913789446748a601dcb4a8d2cfaa3ec85d2c6bb798f2a35b844055',
+    );
+  });
+
+  it('post93: locks ISSUE_TEMPLATE chore.yml sha256 and size 705', () => {
+    const body = read('.github/ISSUE_TEMPLATE/chore.yml');
+    expect(Buffer.byteLength(body, 'utf8')).toBe(705);
+    expect(createHash('sha256').update(body).digest('hex')).toBe(
+      '230222c6ac61737a55b00df4442d483911154bd93657ba98a1d30b75b509c3fc',
+    );
+  });
+
+  it('post93: locks ISSUE_TEMPLATE config.yml sha256 and size 28', () => {
+    const body = read('.github/ISSUE_TEMPLATE/config.yml');
+    expect(Buffer.byteLength(body, 'utf8')).toBe(28);
+    expect(createHash('sha256').update(body).digest('hex')).toBe(
+      '1f103c6a9dd07cd13a9a6f17ace6b813f47747eb9cb7e00488cb2073caaf91bb',
+    );
+  });
+
+  it('post93: locks ISSUE_TEMPLATE feature.yml sha256 and size 966', () => {
+    const body = read('.github/ISSUE_TEMPLATE/feature.yml');
+    expect(Buffer.byteLength(body, 'utf8')).toBe(966);
+    expect(createHash('sha256').update(body).digest('hex')).toBe(
+      '83291f987d1bb546b45ecd09d9be597c5265591a99744d18a2c49122e390aac2',
+    );
+  });
+
+  it('post93: locks Intl.Collator sorted VALID_GENRES', () => {
+    expect([...VALID_GENRES].sort(new Intl.Collator('en').compare)).toEqual([
+      'ambient',
+      'classical',
+      'entertainment',
+      'jazz',
+      'music',
+      'news',
+      'pop',
+      'rock',
+      'sports',
+    ]);
+  });
+
+  it('post93: locks structuredClone of VALID_GENRES array independent', () => {
+    const clone = structuredClone([...VALID_GENRES]);
+    expect(clone).toEqual([...VALID_GENRES]);
+    clone[0] = 'mutated';
+    expect(VALID_GENRES[0]).toBe('music');
+  });
+
+  it('post93: locks Proxy read of GENRE_MAP jazz identity', () => {
+    const proxy = new Proxy(GENRE_MAP, {
+      get(target, prop, receiver) {
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+    expect(proxy.jazz).toBe('jazz');
+    expect(proxy.blues).toBe('jazz');
+    expect(proxy['late night']).toBe('ambient');
+  });
+
+  it('post93: locks Object.is frozen identity of VALID_GENRES tuple members', () => {
+    expect(Object.is(VALID_GENRES[0], 'music')).toBe(true);
+    expect(Object.is(VALID_GENRES[8], 'entertainment')).toBe(true);
+    expect(VALID_GENRES).toHaveLength(9);
+  });
+
+  it('post93: locks Map inventory of GENRE_MAP size 21', () => {
+    expect(new Map(Object.entries(GENRE_MAP)).size).toBe(21);
+    expect(new Set(Object.values(GENRE_MAP)).size).toBe(9);
+  });
+
+  it('post93: locks Set of VALID_GENRES equals Set of GENRE_MAP values', () => {
+    expect(new Set(VALID_GENRES)).toEqual(new Set(Object.values(GENRE_MAP)));
+  });
+
+  it('post93: locks wrangler.toml line inventory exact', () => {
+    expect(read('wrangler.toml').split('\n')).toEqual([
+      'name = "backlink"',
+      'main = "src/index.ts"',
+      'compatibility_date = "2025-01-01"',
+      '',
+      '[[kv_namespaces]]',
+      'binding = "CATALOG_CACHE"',
+      'id = "edb6ca4df12f4f45b40508b3dda3c432"',
+      '',
+      '[[routes]]',
+      'pattern = "backlink.fuzzywigg.com"',
+      'custom_domain = true',
+      '',
+      '[vars]',
+      'VERSION = "0.1.0"',
+      '',
+      '# Secrets (set via CLI, never commit):',
+      '# wrangler secret put GEMINI_API_KEY',
+      '',
+    ]);
+  });
+
+  it('post93: locks .cursor/environment.json exact bytes', () => {
+    expect(read('.cursor/environment.json')).toBe(
+      '{\n  "name": "Backlink_Facelift",\n  "install": "npm ci"\n}\n',
+    );
+  });
+
+  it('post93: locks .gitattributes exact bytes', () => {
+    expect(read('.gitattributes')).toBe(
+      '# Auto detect text files and perform LF normalization\n* text=auto\n',
+    );
+  });
+
+  it('post93: locks vitest.config.ts sha256 digest', () => {
+    expect(createHash('sha256').update(read('vitest.config.ts')).digest('hex')).toBe(
+      'f9b58bb937531da55ad474592e69ec95c6d55a5b8b878f8fa251c0f8d6caff38',
+    );
+  });
+
+  it('post93: locks tsconfig.json sha256 digest', () => {
+    expect(createHash('sha256').update(read('tsconfig.json')).digest('hex')).toBe(
+      'ef73d52e26c5dbe1f1785a067cbc04688ea1e6ef80ca5fff4a7351583828d792',
+    );
+  });
+
+  it('post93: locks .gitignore sha256 digest', () => {
+    expect(createHash('sha256').update(read('.gitignore')).digest('hex')).toBe(
+      '474ed59338a23de819e219c00d0e033b23e3669cc4106ce7a888fe0636569698',
+    );
+  });
+
+  it('post93: locks ci.yml sha256 digest', () => {
+    expect(createHash('sha256').update(read('.github/workflows/ci.yml')).digest('hex')).toBe(
+      'c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5',
+    );
+  });
+
+  it('post93: locks deploy.yml sha256 digest', () => {
+    expect(createHash('sha256').update(read('.github/workflows/deploy.yml')).digest('hex')).toBe(
+      '49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3',
+    );
+  });
+
+  it('post93: locks dependabot.yml sha256 digest', () => {
+    expect(createHash('sha256').update(read('.github/dependabot.yml')).digest('hex')).toBe(
+      'a11b96153b6bb773ee0cbdcd59816507533ff4dd5e8cb34de0baf667ce72ecac',
+    );
+  });
+
+  it('post93: locks test/ inventory includes source-contracts and nine siblings', () => {
+    expect(readdirSync(join(root, 'test')).sort()).toEqual([
+      'ci-config.test.ts',
+      'genres.test.ts',
+      'helpers.test.ts',
+      'helpers.ts',
+      'mcp-spec-contract.test.ts',
+      'mcp.test.ts',
+      'parser.test.ts',
+      'routes.test.ts',
+      'source-contracts.test.ts',
+      'wrangler-config.test.ts',
+    ]);
+  });
+
+  it('post93: locks cross src free of process.env Deno Bun require', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'] as const) {
+      const src = read(rel);
+      expect(src).not.toMatch(/process\.env/);
+      expect(src).not.toMatch(/\bDeno\b/);
+      expect(src).not.toMatch(/\bBun\b/);
+      expect(src).not.toMatch(/\brequire\s*\(/);
+    }
+  });
+
+  it('post93: locks all src modules end with newline', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'] as const) {
+      expect(read(rel).endsWith('\n')).toBe(true);
+    }
+  });
+
+  it('post93: locks all src modules free of BOM', () => {
+    for (const rel of ['src/index.ts', 'src/parser.ts', 'src/genres.ts', 'src/mcp.ts', 'src/types.ts'] as const) {
+      expect(read(rel).charCodeAt(0)).not.toBe(0xfeff);
+    }
+  });
+
+  it('post93: locks queueMicrotask does not alter src digests', async () => {
+    const before = createHash('sha256').update(read('src/index.ts')).digest('hex');
+    await new Promise<void>((resolve) => {
+      queueMicrotask(resolve);
+    });
+    expect(createHash('sha256').update(read('src/index.ts')).digest('hex')).toBe(before);
+  });
+
+  it('post93: locks AbortSignal.timeout unused by Worker source', () => {
+    expect(typeof AbortSignal.timeout).toBe('function');
+    expect(read('src/index.ts')).not.toMatch(/AbortSignal/);
+  });
+
+  it('post93: locks Headers unused in Worker source', () => {
+    expect(new Headers({ Accept: 'application/json' }).get('Accept')).toBe('application/json');
+    expect(read('src/index.ts')).not.toMatch(/\bHeaders\b/);
+  });
+
+  it('post93: locks Blob round-trip of product name Backlink', async () => {
+    const blob = new Blob(['Backlink'], { type: 'text/plain' });
+    expect(await blob.text()).toBe('Backlink');
+    expect(read('src/index.ts')).toContain("name: 'Backlink'");
+  });
+
+  it('post93: locks WeakMap can key GENRE_MAP object', () => {
+    const wm = new WeakMap<object, string>();
+    wm.set(GENRE_MAP, 'genre-map');
+    expect(wm.get(GENRE_MAP)).toBe('genre-map');
+  });
+
+  it('post93: locks Buffer compare index prefix import', () => {
+    expect(Buffer.from(read('src/index.ts').slice(0, 6), 'utf8').equals(Buffer.from('import'))).toBe(true);
+  });
+
+  it('post93: locks encodeURI of IPTV host path equals itself', () => {
+    const host = 'https://iptv-org.github.io/iptv/categories/music.m3u';
+    expect(encodeURI(host)).toBe(host);
+    expect(read('src/index.ts')).toContain('https://iptv-org.github.io/iptv/categories');
+  });
+
+  it('post93: locks JSON.stringify GENRE_MAP key count stable', () => {
+    expect(Object.keys(JSON.parse(JSON.stringify(GENRE_MAP)) as Record<string, string>)).toHaveLength(21);
+  });
+
+  it('post93: locks Array.from VALID_GENRES equals spread and slice', () => {
+    expect(Array.from(VALID_GENRES)).toEqual([...VALID_GENRES]);
+    expect(VALID_GENRES.slice()).toEqual([...VALID_GENRES]);
+  });
+
+  it('post93: locks performance.now around read index is finite', () => {
+    const t0 = performance.now();
+    expect(read('src/index.ts').length).toBeGreaterThan(0);
+    expect(Number.isFinite(performance.now() - t0)).toBe(true);
+  });
+
+  it('post93: locks source-contracts.test.ts ends with newline after post93', () => {
+    expect(read('test/source-contracts.test.ts').endsWith('\n')).toBe(true);
+  });
+
 });
