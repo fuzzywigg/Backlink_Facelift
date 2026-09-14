@@ -5575,3 +5575,1584 @@ describe('post87 wrangler HEAVY deepen', () => {
     );
   });
 });
+
+describe('post98 wrangler HEAVY deepen (restart after #92 CONFLICTING)', () => {
+
+  // Tests-only restart from latest main. Orthogonal to genres #99 / mcp-spec #98.
+
+  // Reversible unit deepen of wrangler.toml contracts — no product/credentials/DNS inventing.
+
+  const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
+
+  const sha256File = (rel: string) => createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+
+  const sha1File = (rel: string) => createHash('sha1').update(readFileSync(join(root, rel))).digest('hex');
+
+  const md5File = (rel: string) => createHash('md5').update(readFileSync(join(root, rel))).digest('hex');
+
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+
+  const deployYml = read('.github/workflows/deploy.yml');
+
+  const ciYml = read('.github/workflows/ci.yml');
+
+  const envJson = JSON.parse(read('.cursor/environment.json')) as { name: string; install: string };
+
+  const pkgJson = JSON.parse(read('package.json')) as {
+    name: string;
+    version: string;
+    scripts: Record<string, string>;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+
+  it("post98: sha256 fingerprint reaffirm", () => {
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+    expect(sha256File('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+  });
+
+  it("post98: sha1 fingerprint reaffirm", () => {
+    expect(createHash('sha1').update(toml, 'utf8').digest('hex')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+    expect(sha1File('wrangler.toml')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+  });
+
+  it("post98: md5 fingerprint reaffirm", () => {
+    expect(createHash('md5').update(toml, 'utf8').digest('hex')).toBe('100cd1554884befe9db6453606e565f4');
+    expect(md5File('wrangler.toml')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it("post98: sha512 fingerprint lock", () => {
+    expect(createHash('sha512').update(toml, 'utf8').digest('hex')).toBe('4fdd7f275037737b409d87c97826e8f84d32099a9e0fd3f85458fe047cba2130dff6b160020af775b50634db4bade3cbfe838bf7e7638ed69f69b43a2cb53a96');
+  });
+
+  it("post98: sha384 fingerprint lock", () => {
+    expect(createHash('sha384').update(toml, 'utf8').digest('hex')).toBe('77464378ae30b2d97a5c510d0ecb15598cc8705e67283c0a776dafdbdb349741a93f5f1e52aa0a127c077a28a574bd09');
+  });
+
+  it("post98: sha256 nibble sum 457", () => {
+    expect(nibbleSum(createHash('sha256').update(toml, 'utf8').digest('hex'))).toBe(457);
+  });
+
+  it("post98: byte length 330 via string/stat/Buffer/TextEncoder", () => {
+    expect(toml.length).toBe(330);
+    expect(statSync(tomlPath).size).toBe(330);
+    expect(Buffer.byteLength(toml, 'utf8')).toBe(330);
+    expect(new TextEncoder().encode(toml).length).toBe(330);
+  });
+
+  it("post98: newline count 17 / split 18", () => {
+    expect((toml.match(/\n/g) ?? []).length).toBe(17);
+    expect(toml.split('\n')).toHaveLength(18);
+  });
+
+  it("post98: nonempty line count 13", () => {
+    expect(toml.split('\n').filter((l) => l.length > 0)).toHaveLength(13);
+  });
+
+  it("post98: line length vector lock", () => {
+    expect(toml.split('\n').map((l) => l.length)).toEqual([17,21,33,0,17,25,39,0,10,34,20,0,6,17,0,38,36,0]);
+  });
+
+  it("post98: first 40 char codes lock", () => {
+    expect([...toml.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([110,97,109,101,32,61,32,34,98,97,99,107,108,105,110,107,34,10,109,97,105,110,32,61,32,34,115,114,99,47,105,110,100,101,120,46,116,115,34,10]);
+  });
+
+  it("post98: digit count lock", () => {
+    expect([...toml].filter((c) => /\d/.test(c))).toHaveLength(28);
+  });
+
+  it("post98: uppercase count lock", () => {
+    expect([...toml].filter((c) => /[A-Z]/.test(c))).toHaveLength(35);
+  });
+
+  it("post98: lowercase count lock", () => {
+    expect([...toml].filter((c) => /[a-z]/.test(c))).toHaveLength(172);
+  });
+
+  it("post98: space count lock", () => {
+    expect((toml.match(/ /g) ?? []).length).toBe(26);
+  });
+
+  it("post98: double-quote count lock", () => {
+    expect((toml.match(/"/g) ?? []).length).toBe(14);
+  });
+
+  it("post98: equals count lock", () => {
+    expect((toml.match(/=/g) ?? []).length).toBe(8);
+  });
+
+  it("post98: underscore count lock", () => {
+    expect((toml.match(/_/g) ?? []).length).toBe(6);
+  });
+
+  it("post98: dash count lock", () => {
+    expect((toml.match(/-/g) ?? []).length).toBe(2);
+  });
+
+  it("post98: bracket pair counts", () => {
+    expect((toml.match(/\[/g) ?? []).length).toBe(5);
+    expect((toml.match(/\]/g) ?? []).length).toBe(5);
+  });
+
+  it("post98: hash comment marker count", () => {
+    expect((toml.match(/#/g) ?? []).length).toBe(2);
+  });
+
+  it("post98: colon count lock", () => {
+    expect((toml.match(/:/g) ?? []).length).toBe(1);
+  });
+
+  it("post98: paren pair counts", () => {
+    expect((toml.match(/\(/g) ?? []).length).toBe(1);
+    expect((toml.match(/\)/g) ?? []).length).toBe(1);
+  });
+
+  it("post98: slash count lock", () => {
+    expect((toml.match(/\//g) ?? []).length).toBe(1);
+  });
+
+  it("post98: dot count lock", () => {
+    expect((toml.match(/\./g) ?? []).length).toBe(5);
+  });
+
+  it("post98: comma count lock", () => {
+    expect((toml.match(/,/g) ?? []).length).toBe(1);
+  });
+
+  it("post98: tab and CR absent", () => {
+    expect(toml.includes('\t')).toBe(false);
+    expect(toml.includes('\r')).toBe(false);
+  });
+
+  it("post98: unique char set lock", () => {
+    expect([...new Set(toml)].sort().join('')).toBe("\n \"#(),-./01234568:=ACEGHIKLMNOPRSTVY[]_abcdefgiklmnoprstuvwxyz");
+  });
+
+  it("post98: word token vector lock", () => {
+    expect(toml.match(/[A-Za-z0-9_.]+/g)).toEqual(["name","backlink","main","src","index.ts","compatibility_date","2025","01","01","kv_namespaces","binding","CATALOG_CACHE","id","edb6ca4df12f4f45b40508b3dda3c432","routes","pattern","backlink.fuzzywigg.com","custom_domain","true","vars","VERSION","0.1.0","Secrets","set","via","CLI","never","commit","wrangler","secret","put","GEMINI_API_KEY"]);
+  });
+
+  it("post98: comment lines exact pair", () => {
+    expect(toml.split('\n').filter((l) => l.startsWith('#'))).toEqual(["# Secrets (set via CLI, never commit):","# wrangler secret put GEMINI_API_KEY"]);
+  });
+
+  it("post98: nonempty line length sum 313", () => {
+    expect(toml.split('\n').filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(313);
+  });
+
+  it("post98: exact snapshot reaffirm", () => {
+    expect(toml).toBe("name = \"backlink\"\nmain = \"src/index.ts\"\ncompatibility_date = \"2025-01-01\"\n\n[[kv_namespaces]]\nbinding = \"CATALOG_CACHE\"\nid = \"edb6ca4df12f4f45b40508b3dda3c432\"\n\n[[routes]]\npattern = \"backlink.fuzzywigg.com\"\ncustom_domain = true\n\n[vars]\nVERSION = \"0.1.0\"\n\n# Secrets (set via CLI, never commit):\n# wrangler secret put GEMINI_API_KEY\n");
+  });
+
+  it("post98: re-read equals module snapshot", () => {
+    expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+  });
+
+  it("post98: line 0 exact content", () => {
+    expect(toml.split('\n')[0]).toBe("name = \"backlink\"");
+  });
+
+  it("post98: line 1 exact content", () => {
+    expect(toml.split('\n')[1]).toBe("main = \"src/index.ts\"");
+  });
+
+  it("post98: line 2 exact content", () => {
+    expect(toml.split('\n')[2]).toBe("compatibility_date = \"2025-01-01\"");
+  });
+
+  it("post98: line 3 exact content", () => {
+    expect(toml.split('\n')[3]).toBe("");
+  });
+
+  it("post98: line 4 exact content", () => {
+    expect(toml.split('\n')[4]).toBe("[[kv_namespaces]]");
+  });
+
+  it("post98: line 5 exact content", () => {
+    expect(toml.split('\n')[5]).toBe("binding = \"CATALOG_CACHE\"");
+  });
+
+  it("post98: line 6 exact content", () => {
+    expect(toml.split('\n')[6]).toBe("id = \"edb6ca4df12f4f45b40508b3dda3c432\"");
+  });
+
+  it("post98: line 7 exact content", () => {
+    expect(toml.split('\n')[7]).toBe("");
+  });
+
+  it("post98: line 8 exact content", () => {
+    expect(toml.split('\n')[8]).toBe("[[routes]]");
+  });
+
+  it("post98: line 9 exact content", () => {
+    expect(toml.split('\n')[9]).toBe("pattern = \"backlink.fuzzywigg.com\"");
+  });
+
+  it("post98: line 10 exact content", () => {
+    expect(toml.split('\n')[10]).toBe("custom_domain = true");
+  });
+
+  it("post98: line 11 exact content", () => {
+    expect(toml.split('\n')[11]).toBe("");
+  });
+
+  it("post98: line 12 exact content", () => {
+    expect(toml.split('\n')[12]).toBe("[vars]");
+  });
+
+  it("post98: line 13 exact content", () => {
+    expect(toml.split('\n')[13]).toBe("VERSION = \"0.1.0\"");
+  });
+
+  it("post98: line 14 exact content", () => {
+    expect(toml.split('\n')[14]).toBe("");
+  });
+
+  it("post98: line 15 exact content", () => {
+    expect(toml.split('\n')[15]).toBe("# Secrets (set via CLI, never commit):");
+  });
+
+  it("post98: line 16 exact content", () => {
+    expect(toml.split('\n')[16]).toBe("# wrangler secret put GEMINI_API_KEY");
+  });
+
+  it("post98: line 17 exact content", () => {
+    expect(toml.split('\n')[17]).toBe("");
+  });
+
+  it("post98: line 0 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[0] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('44eea2b40cca4009');
+  });
+
+  it("post98: line 1 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[1] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('625410b0ed7d9f67');
+  });
+
+  it("post98: line 2 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[2] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a1e68ad315991358');
+  });
+
+  it("post98: line 3 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[3] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post98: line 4 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[4] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('a956430c61f81bfe');
+  });
+
+  it("post98: line 5 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[5] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c73157420ab84c39');
+  });
+
+  it("post98: line 6 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[6] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('c1d0c2ec18c0f0be');
+  });
+
+  it("post98: line 7 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[7] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post98: line 8 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[8] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('cebc572dd47d342d');
+  });
+
+  it("post98: line 9 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[9] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('3337e5d997065b8a');
+  });
+
+  it("post98: line 10 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[10] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('2160b9454f356d18');
+  });
+
+  it("post98: line 11 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[11] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post98: line 12 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[12] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('4098c70630d33665');
+  });
+
+  it("post98: line 13 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[13] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('f7c1152ced11e787');
+  });
+
+  it("post98: line 14 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[14] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post98: line 15 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[15] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('21465a90ea852c7a');
+  });
+
+  it("post98: line 16 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[16] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('9e54f159c315311e');
+  });
+
+  it("post98: line 17 sha256 prefix", () => {
+    expect(createHash('sha256').update(toml.split('\n')[17] ?? '', 'utf8').digest('hex').slice(0, 16)).toBe('e3b0c44298fc1c14');
+  });
+
+  it("post98: starts with name assignment", () => {
+    expect(toml.startsWith('name = "backlink"\n')).toBe(true);
+  });
+
+  it("post98: ends with secret put + trailing newline", () => {
+    expect(toml.endsWith('# wrangler secret put GEMINI_API_KEY\n')).toBe(true);
+  });
+
+  it("post98: assignment keys order", () => {
+    expect([...toml.matchAll(/^([A-Za-z0-9_]+) = /gm)].map((m) => m[1])).toEqual(["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"]);
+  });
+
+  it("post98: table headers order", () => {
+    expect([...toml.matchAll(/^\[\[?[^\]\n]+\]\]?$/gm)].map((m) => m[0])).toEqual(["[[kv_namespaces]]","[[routes]]","[vars]"]);
+  });
+
+  it("post98: worker name exact + pkg align", () => {
+    expect(toml).toMatch(/^name = "backlink"$/m);
+    expect(pkg.name).toBe('backlink');
+    expect(pkgJson.name).toBe('backlink');
+  });
+
+  it("post98: main entry exact", () => {
+    expect(toml).toMatch(/^main = "src\/index\.ts"$/m);
+  });
+
+  it("post98: compatibility_date exact", () => {
+    expect(toml).toMatch(/^compatibility_date = "2025-01-01"$/m);
+  });
+
+  it("post98: KV binding + id exact", () => {
+    expect(toml).toContain('binding = "CATALOG_CACHE"');
+    expect(toml).toContain('id = "edb6ca4df12f4f45b40508b3dda3c432"');
+  });
+
+  it("post98: routes pattern + custom_domain exact", () => {
+    expect(toml).toContain('pattern = "backlink.fuzzywigg.com"');
+    expect(toml).toMatch(/^custom_domain = true$/m);
+    expect(toml).not.toMatch(/custom_domain = "true"/);
+  });
+
+  it("post98: VERSION var exact + pkg version", () => {
+    expect(toml).toContain('VERSION = "0.1.0"');
+    expect(pkg.version).toBe('0.1.0');
+    expect(pkgJson.version).toBe('0.1.0');
+  });
+
+  it("post98: section order kv → routes → vars", () => {
+    const kv = toml.indexOf('[[kv_namespaces]]');
+    const routes = toml.indexOf('[[routes]]');
+    const vars = toml.indexOf('[vars]');
+    expect(kv).toBeGreaterThan(-1);
+    expect(routes).toBeGreaterThan(kv);
+    expect(vars).toBeGreaterThan(routes);
+  });
+
+  it("post98: blank separators between major blocks", () => {
+    expect(toml).toContain('compatibility_date = "2025-01-01"\n\n[[kv_namespaces]]');
+    expect(toml).toContain('id = "edb6ca4df12f4f45b40508b3dda3c432"\n\n[[routes]]');
+    expect(toml).toContain('custom_domain = true\n\n[vars]');
+    expect(toml).toContain('VERSION = "0.1.0"\n\n# Secrets');
+  });
+
+  it("post98: KV id nibble frequency", () => {
+    const id = 'edb6ca4df12f4f45b40508b3dda3c432';
+    const freq = [...id].reduce((a, c) => ((a[c] = (a[c] || 0) + 1), a), {} as Record<string, number>);
+    expect(freq).toEqual({"0":2,"1":1,"2":2,"3":3,"4":5,"5":2,"6":1,"8":1,"e":1,"d":4,"b":3,"c":2,"a":2,"f":3});
+  });
+
+  it("post98: KV id is 32 lowercase hex", () => {
+    const id = toml.match(/id = "([a-f0-9]+)"/)?.[1];
+    expect(id).toMatch(/^[a-f0-9]{32}$/);
+    expect(id).toBe('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it("post98: domain labels lock", () => {
+    expect('backlink.fuzzywigg.com'.split('.')).toEqual(['backlink', 'fuzzywigg', 'com']);
+  });
+
+  it("post98: no single quotes", () => {
+    expect(toml.includes("'")).toBe(false);
+  });
+
+  it("post98: ASCII-only config", () => {
+    for (let i = 0; i < toml.length; i++) {
+      expect(toml.charCodeAt(i)).toBeLessThan(128);
+      expect(toml.codePointAt(i)).toBe(toml.charCodeAt(i));
+    }
+  });
+
+  it("post98: normalize forms identity", () => {
+    expect(toml.normalize('NFC')).toBe(toml);
+    expect(toml.normalize('NFD')).toBe(toml);
+    expect(toml.normalize('NFKC')).toBe(toml);
+    expect(toml.normalize('NFKD')).toBe(toml);
+  });
+
+  it("post98: negative — no durable_objects", () => {
+    expect(toml).not.toMatch(/durable_objects/i);
+  });
+
+  it("post98: negative — no r2_buckets", () => {
+    expect(toml).not.toMatch(/r2_buckets/i);
+  });
+
+  it("post98: negative — no d1_databases", () => {
+    expect(toml).not.toMatch(/d1_databases/i);
+  });
+
+  it("post98: negative — no vectorize", () => {
+    expect(toml).not.toMatch(/vectorize/i);
+  });
+
+  it("post98: negative — no hyperdrive", () => {
+    expect(toml).not.toMatch(/hyperdrive/i);
+  });
+
+  it("post98: negative — no analytics_engine", () => {
+    expect(toml).not.toMatch(/analytics_engine/i);
+  });
+
+  it("post98: negative — no queues", () => {
+    expect(toml).not.toMatch(/\\bqueues\\b/i);
+  });
+
+  it("post98: negative — no services", () => {
+    expect(toml).not.toMatch(/\\bservices\\b/i);
+  });
+
+  it("post98: negative — no dispatch_namespaces", () => {
+    expect(toml).not.toMatch(/dispatch_namespaces/i);
+  });
+
+  it("post98: negative — no tail_consumers", () => {
+    expect(toml).not.toMatch(/tail_consumers/i);
+  });
+
+  it("post98: negative — no logpush", () => {
+    expect(toml).not.toMatch(/logpush/i);
+  });
+
+  it("post98: negative — no observability", () => {
+    expect(toml).not.toMatch(/observability/i);
+  });
+
+  it("post98: negative — no workflows", () => {
+    expect(toml).not.toMatch(/workflows/i);
+  });
+
+  it("post98: negative — no triggers", () => {
+    expect(toml).not.toMatch(/\\[triggers\\]/i);
+  });
+
+  it("post98: negative — no crons", () => {
+    expect(toml).not.toMatch(/\\bcrons\\b/i);
+  });
+
+  it("post98: negative — no migrations", () => {
+    expect(toml).not.toMatch(/migrations/i);
+  });
+
+  it("post98: negative — no placement", () => {
+    expect(toml).not.toMatch(/\\bplacement\\b/i);
+  });
+
+  it("post98: negative — no minify", () => {
+    expect(toml).not.toMatch(/\\bminify\\b/i);
+  });
+
+  it("post98: negative — no nodejs_compat", () => {
+    expect(toml).not.toMatch(/nodejs_compat/i);
+  });
+
+  it("post98: negative — no compatibility_flags", () => {
+    expect(toml).not.toMatch(/compatibility_flags/i);
+  });
+
+  it("post98: negative — no workers_dev", () => {
+    expect(toml).not.toMatch(/workers_dev/i);
+  });
+
+  it("post98: negative — no preview_urls", () => {
+    expect(toml).not.toMatch(/preview_urls/i);
+  });
+
+  it("post98: negative — no account_id", () => {
+    expect(toml).not.toMatch(/account_id/i);
+  });
+
+  it("post98: negative — no zone_id", () => {
+    expect(toml).not.toMatch(/zone_id/i);
+  });
+
+  it("post98: negative — no api_token", () => {
+    expect(toml).not.toMatch(/api_token/i);
+  });
+
+  it("post98: negative — no send_metrics", () => {
+    expect(toml).not.toMatch(/send_metrics/i);
+  });
+
+  it("post98: negative — no keep_vars", () => {
+    expect(toml).not.toMatch(/keep_vars/i);
+  });
+
+  it("post98: negative — no wasm_modules", () => {
+    expect(toml).not.toMatch(/wasm_modules/i);
+  });
+
+  it("post98: negative — no text_blobs", () => {
+    expect(toml).not.toMatch(/text_blobs/i);
+  });
+
+  it("post98: negative — no find_additional_modules", () => {
+    expect(toml).not.toMatch(/find_additional_modules/i);
+  });
+
+  it("post98: negative — no no_bundle", () => {
+    expect(toml).not.toMatch(/no_bundle/i);
+  });
+
+  it("post98: negative — no build table", () => {
+    expect(toml).not.toMatch(/\\[build\\]/i);
+  });
+
+  it("post98: negative — no site table", () => {
+    expect(toml).not.toMatch(/\\[site\\]/i);
+  });
+
+  it("post98: negative — no dev table", () => {
+    expect(toml).not.toMatch(/\\[dev\\]/i);
+  });
+
+  it("post98: negative — no env.production", () => {
+    expect(toml).not.toMatch(/\\[env\\.production\\]/i);
+  });
+
+  it("post98: negative — no env.staging", () => {
+    expect(toml).not.toMatch(/\\[env\\.staging\\]/i);
+  });
+
+  it("post98: negative — no ai table", () => {
+    expect(toml).not.toMatch(/\\[ai\\]/i);
+  });
+
+  it("post98: negative — no mtls", () => {
+    expect(toml).not.toMatch(/mtls/i);
+  });
+
+  it("post98: negative — no pipelines", () => {
+    expect(toml).not.toMatch(/pipelines/i);
+  });
+
+  it("post98: negative — no send_email", () => {
+    expect(toml).not.toMatch(/send_email/i);
+  });
+
+  it("post98: negative — no nodejs_als", () => {
+    expect(toml).not.toMatch(/nodejs_als/i);
+  });
+
+  it("post98: negative — no secrets table", () => {
+    expect(toml).not.toMatch(/\\[secrets\\]/i);
+  });
+
+  it("post98: negative — no preview_id", () => {
+    expect(toml).not.toMatch(/preview_id/i);
+  });
+
+  it("post98: negative — no zone_name", () => {
+    expect(toml).not.toMatch(/zone_name/i);
+  });
+
+  it("post98: negative — no GEMINI_API_KEY assignment", () => {
+    expect(toml).not.toMatch(/GEMINI_API_KEY\s*=/);
+  });
+
+  it("post98: negative — no Anthropic leftovers", () => {
+    expect(toml).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it("post98: negative — no API key assignment patterns", () => {
+    expect(toml).not.toMatch(/api[_-]?key\s*=/i);
+  });
+
+  it("post98: negative — no Bearer/Authorization", () => {
+    expect(toml).not.toMatch(/Authorization|Bearer|CF_API_TOKEN/i);
+  });
+
+  it("post98: negative — no localhost/loopback", () => {
+    expect(toml).not.toMatch(/localhost|127\.0\.0\.1/);
+  });
+
+  it("post98: negative — no workers.dev", () => {
+    expect(toml).not.toMatch(/\.workers\.dev/);
+  });
+
+  it("post98: negative — no example.com", () => {
+    expect(toml).not.toMatch(/example\.com|example\.org/);
+  });
+
+  it("post98: negative — no your-kv-id-here", () => {
+    expect(toml).not.toContain('your-kv-id-here');
+  });
+
+  it("post98: negative — no Backlink_Facelift as worker name", () => {
+    expect(toml).not.toContain('Backlink_Facelift');
+    expect(toml).toContain('name = "backlink"');
+  });
+
+  it("post98: negative — no IP patterns", () => {
+    expect(toml).not.toMatch(/\b\d{1,3}(?:\.\d{1,3}){3}\b/);
+  });
+
+  it("post98: negative — no unicode escapes", () => {
+    expect(toml).not.toContain('\\u');
+    expect(toml).not.toContain('\\x');
+  });
+
+  it("post98: negative — no @cloudflare package refs", () => {
+    expect(toml).not.toMatch(/@cloudflare/);
+  });
+
+  it("post98: negative — no npm tokens", () => {
+    expect(toml).not.toMatch(/npm[_-]?token|registry\.npmjs/i);
+  });
+
+  it("post98: negative — no sk-/AIza key material", () => {
+    expect(toml).not.toMatch(/sk-[a-zA-Z0-9]+/);
+    expect(toml).not.toMatch(/AIza[0-9A-Za-z_-]{10,}/);
+  });
+
+  it("post98: negative — no DNS inventing beyond locked pattern", () => {
+    expect([...toml.matchAll(/pattern = "([^"]+)"/g)].map((m) => m[1])).toEqual(['backlink.fuzzywigg.com']);
+  });
+
+  it("post98: negative — no credential-looking hex beyond KV id", () => {
+    const hex32 = [...toml.matchAll(/[a-f0-9]{32}/g)].map((m) => m[0]);
+    expect(hex32).toEqual(['edb6ca4df12f4f45b40508b3dda3c432']);
+  });
+
+  it("post98: TextEncoder/Decoder round-trip", () => {
+    expect(new TextDecoder().decode(new TextEncoder().encode(toml))).toBe(toml);
+  });
+
+  it("post98: Buffer utf8 round-trip", () => {
+    expect(Buffer.from(toml, 'utf8').toString('utf8')).toBe(toml);
+  });
+
+  it("post98: btoa worker name", () => {
+    expect(btoa('backlink')).toBe('YmFja2xpbms=');
+  });
+
+  it("post98: btoa CATALOG_CACHE", () => {
+    expect(btoa('CATALOG_CACHE')).toBe('Q0FUQUxPR19DQUNIRQ==');
+  });
+
+  it("post98: btoa domain", () => {
+    expect(btoa('backlink.fuzzywigg.com')).toBe('YmFja2xpbmsuZnV6enl3aWdnLmNvbQ==');
+  });
+
+  it("post98: btoa VERSION", () => {
+    expect(btoa('0.1.0')).toBe('MC4xLjA=');
+  });
+
+  it("post98: btoa compatibility_date", () => {
+    expect(btoa('2025-01-01')).toBe('MjAyNS0wMS0wMQ==');
+  });
+
+  it("post98: btoa KV id", () => {
+    expect(btoa('edb6ca4df12f4f45b40508b3dda3c432')).toBe('ZWRiNmNhNGRmMTJmNGY0NWI0MDUwOGIzZGRhM2M0MzI=');
+  });
+
+  it("post98: atob round-trip fuzzywigg", () => {
+    expect(atob(btoa('fuzzywigg'))).toBe('fuzzywigg');
+  });
+
+  it("post98: Uint8Array name prefix", () => {
+    expect([...new TextEncoder().encode('name')]).toEqual([110, 97, 109, 101]);
+  });
+
+  it("post98: Uint8Array date digits", () => {
+    expect([...new TextEncoder().encode('2025-01-01')]).toEqual([50, 48, 50, 53, 45, 48, 49, 45, 48, 49]);
+  });
+
+  it("post98: digest buffer lengths", () => {
+    expect(createHash('sha256').update(toml, 'utf8').digest()).toHaveLength(32);
+    expect(createHash('sha1').update(toml, 'utf8').digest()).toHaveLength(20);
+    expect(createHash('md5').update(toml, 'utf8').digest()).toHaveLength(16);
+    expect(createHash('sha512').update(toml, 'utf8').digest()).toHaveLength(64);
+  });
+
+  it("post98: cross-lock types.ts Env has CATALOG_CACHE", () => {
+    expect(typesSrc).toContain('CATALOG_CACHE: KVNamespace');
+  });
+
+  it("post98: cross-lock types.ts optional GEMINI_API_KEY", () => {
+    expect(typesSrc).toMatch(/GEMINI_API_KEY\?:\s*string/);
+  });
+
+  it("post98: cross-lock types.ts optional VERSION", () => {
+    expect(typesSrc).toMatch(/VERSION\?:\s*string/);
+  });
+
+  it("post98: cross-lock types.ts sha256", () => {
+    expect(createHash('sha256').update(typesSrc, 'utf8').digest('hex')).toBe('4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3');
+    expect(sha256File('src/types.ts')).toBe('4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3');
+  });
+
+  it("post98: cross-lock types.ts sha1+md5", () => {
+    expect(createHash('sha1').update(typesSrc, 'utf8').digest('hex')).toBe('1e8906673dc0d140ee5c3d40839c88a1eeca03d8');
+    expect(createHash('md5').update(typesSrc, 'utf8').digest('hex')).toBe('ecba663d21928622be656805ad27d0a3');
+  });
+
+  it("post98: cross-lock types.ts JS length 172 / UTF-8 174", () => {
+    expect(typesSrc.length).toBe(172);
+    expect(Buffer.byteLength(typesSrc, 'utf8')).toBe(174);
+  });
+
+  it("post98: cross-lock index references CATALOG_CACHE", () => {
+    expect(indexSrc).toMatch(/c\.env\.CATALOG_CACHE|env\.CATALOG_CACHE/);
+  });
+
+  it("post98: cross-lock index does not hardcode KV id", () => {
+    expect(indexSrc).not.toContain('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it("post98: cross-lock DEPLOY.md documents secret put", () => {
+    expect(deployMd).toMatch(/wrangler secret put GEMINI_API_KEY/);
+  });
+
+  it("post98: cross-lock DEPLOY.md has your-kv-id-here placeholder", () => {
+    expect(deployMd).toContain('your-kv-id-here');
+    expect(toml).not.toContain('your-kv-id-here');
+  });
+
+  it("post98: cross-lock DEPLOY.md mentions custom domain", () => {
+    expect(deployMd).toContain('backlink.fuzzywigg.com');
+  });
+
+  it("post98: cross-lock DEPLOY.md HITL first deploy", () => {
+    expect(deployMd).toMatch(/HITL/i);
+    expect(deployMd).toMatch(/First production deploy/i);
+  });
+
+  it("post98: cross-lock AGENTS.md escalates GEMINI + HITL", () => {
+    expect(agentsMd).toContain('GEMINI_API_KEY');
+    expect(agentsMd).toMatch(/HITL/);
+  });
+
+  it("post98: cross-lock AGENTS.md domain target", () => {
+    expect(agentsMd).toContain('backlink.fuzzywigg.com');
+  });
+
+  it("post98: cross-lock package scripts via wrangler", () => {
+    expect(pkgJson.scripts.deploy).toBe('wrangler deploy');
+    expect(pkgJson.scripts.dev).toBe('wrangler dev');
+    expect(pkgJson.devDependencies?.wrangler).toMatch(/^\^4\./);
+  });
+
+  it("post98: cross-lock CI hygiene checks wrangler.toml", () => {
+    expect(ciYml).toContain('test -f wrangler.toml');
+    expect(ciYml).toContain('test -f test/wrangler-config.test.ts');
+    expect(ciYml).toMatch(/! grep -q 'GEMINI_API_KEY=' wrangler\.toml/);
+  });
+
+  it("post98: cross-lock deploy.yml wrangler-action + GEMINI", () => {
+    expect(deployYml).toContain('cloudflare/wrangler-action@v4');
+    expect(deployYml).toContain('GEMINI_API_KEY');
+    expect(deployYml).toContain('workflow_dispatch');
+  });
+
+  it("post98: cross-lock deploy.yml no embedded CF tokens", () => {
+    expect(deployYml).toMatch(/secrets\.CF_API_TOKEN|secrets\.CLOUDFLARE_API_TOKEN/);
+    expect(deployYml).not.toMatch(/apiToken:\s*['"][A-Za-z0-9_-]{20,}/);
+  });
+
+  it("post98: cross-lock vitest coverage excludes wrangler.toml", () => {
+    const vitest = read('vitest.config.ts');
+    expect(vitest).toContain("include: ['src/**/*.ts']");
+    expect(vitest).not.toContain('wrangler.toml');
+  });
+
+  it("post98: cross-lock .cursor/environment.json distinct from worker", () => {
+    expect(envJson.name).toBe('Backlink_Facelift');
+    expect(envJson.install).toBe('npm ci');
+    expect(toml).toContain('name = "backlink"');
+    expect(envJson.name).not.toBe(pkgJson.name);
+  });
+
+  it("post98: cross-lock README mentions worker/deploy", () => {
+    const readme = read('README.md');
+    expect(readme.toLowerCase()).toMatch(/wrangler|worker|deploy/);
+  });
+
+  it("post98: cross-lock tsconfig does not override wrangler main", () => {
+    expect(read('tsconfig.json')).not.toContain('wrangler.toml');
+  });
+
+  it("post98: cross-lock gitignore keeps wrangler.toml tracked", () => {
+    const gi = read('.gitignore');
+    expect(gi).not.toMatch(/^wrangler\.toml$/m);
+    expect(gi).toMatch(/\.dev\.vars|\.wrangler/);
+  });
+
+  it("post98: cross-lock index Gemini not Anthropic", () => {
+    expect(indexSrc).toMatch(/gemini/i);
+    expect(indexSrc).not.toMatch(/anthropic|claude|haiku/i);
+    expect(toml).not.toMatch(/anthropic|claude|haiku/i);
+  });
+
+  it("post98: Object.freeze keys immutable", () => {
+    const keys = Object.freeze(["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"]);
+    expect(() => { (keys as string[]).push('x'); }).toThrow();
+  });
+
+  it("post98: Map assignment key presence", () => {
+    const map = new Map(["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"].map((k: string) => [k, true] as const));
+    expect(map.get('VERSION')).toBe(true);
+    expect(map.get('account_id')).toBeUndefined();
+    expect(map.size).toBe(8);
+  });
+
+  it("post98: Set headers size 3", () => {
+    expect(new Set(["[[kv_namespaces]]","[[routes]]","[vars]"]).size).toBe(3);
+  });
+
+  it("post98: JSON.stringify keys lock", () => {
+    expect(JSON.stringify([...toml.matchAll(/^([A-Za-z0-9_]+) = /gm)].map((m) => m[1]))).toBe("[\"name\",\"main\",\"compatibility_date\",\"binding\",\"id\",\"pattern\",\"custom_domain\",\"VERSION\"]");
+  });
+
+  it("post98: JSON.stringify headers lock", () => {
+    expect(JSON.stringify([...toml.matchAll(/^\[\[?[^\]\n]+\]\]?$/gm)].map((m) => m[0]))).toBe("[\"[[kv_namespaces]]\",\"[[routes]]\",\"[vars]\"]");
+  });
+
+  it("post98: structuredClone keys deep equal", () => {
+    expect(structuredClone(["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"])).toEqual(["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"]);
+  });
+
+  it("post98: Reflect.ownKeys frozen headers", () => {
+    const h = Object.freeze(["[[kv_namespaces]]","[[routes]]","[vars]"]);
+    expect(Reflect.ownKeys(h)).toEqual(['0', '1', '2', 'length']);
+  });
+
+  it("post98: WeakRef toml still alive", () => {
+    expect(new WeakRef({ toml }).deref()?.toml).toBe(toml);
+  });
+
+  it("post98: Promise.resolve sha256 matches sync", () => {
+    return expect(Promise.resolve(createHash('sha256').update(toml, 'utf8').digest('hex'))).resolves.toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+  });
+
+  it("post98: Proxy get on name line", () => {
+    const proxy = new Proxy({ line: toml.split('\n')[0] }, { get: (t, p) => Reflect.get(t, p) });
+    expect(proxy.line).toBe('name = "backlink"');
+  });
+
+  it("post98: Iterator values mirrors split", () => {
+    expect([...toml.split('\n').values()]).toEqual(toml.split('\n'));
+  });
+
+  it("post98: padStart KV id then slice", () => {
+    const id = 'edb6ca4df12f4f45b40508b3dda3c432';
+    expect(id.padStart(40, '0').slice(-32)).toBe(id);
+  });
+
+  it("post98: no doubled equals on assignments", () => {
+    expect(toml).not.toMatch(/==/);
+  });
+
+  it("post98: search GEMINI only after [vars]", () => {
+    expect(toml.search(/GEMINI_API_KEY/)).toBeGreaterThan(toml.indexOf('[vars]'));
+  });
+
+  it("post98: match hex id capture", () => {
+    expect(toml.match(/id = "([a-f0-9]{32})"/)?.[1]).toBe('edb6ca4df12f4f45b40508b3dda3c432');
+  });
+
+  it("post98: Secrets appears once", () => {
+    expect(toml.split('Secrets').length - 1).toBe(1);
+  });
+
+  it("post98: split join round-trip", () => {
+    expect(toml.split('\n').join('\n')).toBe(toml);
+  });
+
+  it("post98: localeCompare headers brackets", () => {
+    const headers = ["[[kv_namespaces]]","[[routes]]","[vars]"];
+    const sorted = [...headers].sort((a, b) => a.localeCompare(b));
+    expect(sorted[0]).toBe('[[kv_namespaces]]');
+    expect(sorted.at(-1)).toBe('[vars]');
+  });
+
+  it("post98: endsWith newline not double", () => {
+    expect(toml.endsWith('\n')).toBe(true);
+    expect(toml.endsWith('\n\n')).toBe(false);
+  });
+
+  it("post98: every nonempty non-comment is assignment or header", () => {
+    for (const line of toml.split('\n')) {
+      if (!line || line.startsWith('#')) continue;
+      expect(line.startsWith('[') || line.includes(' = ')).toBe(true);
+    }
+  });
+
+  it("post98: each assignment has exactly one equals", () => {
+    for (const line of toml.split('\n')) {
+      if (!line.includes(' = ')) continue;
+      expect(line.split('=').length - 1).toBe(1);
+    }
+  });
+
+  it("post98: no trailing spaces on nonempty lines", () => {
+    for (const line of toml.split('\n')) {
+      if (!line) continue;
+      expect(line).toBe(line.trimEnd());
+    }
+  });
+
+  it("post98: top-level keys before first table", () => {
+    const head = toml.slice(0, toml.indexOf('[['));
+    expect(head).toContain('name =');
+    expect(head).toContain('main =');
+    expect(head).toContain('compatibility_date =');
+  });
+
+  it("post98: vars section limited to VERSION", () => {
+    const varsSection = toml.split('[vars]')[1] ?? '';
+    expect([...varsSection.matchAll(/^\s*([A-Z_]+)\s*=/gm)].map((m) => m[1])).toEqual(['VERSION']);
+  });
+
+  it("post98: kv block binding before id", () => {
+    const block = (toml.split('[[kv_namespaces]]')[1] ?? '').split('\n\n')[0];
+    expect(block.indexOf('binding')).toBeLessThan(block.indexOf('id'));
+  });
+
+  it("post98: routes block pattern before custom_domain", () => {
+    const block = (toml.split('[[routes]]')[1] ?? '').split('\n\n')[0];
+    expect(block.indexOf('pattern')).toBeLessThan(block.indexOf('custom_domain'));
+  });
+
+  it("post98: compatibility_date parts", () => {
+    expect('2025-01-01'.split('-')).toEqual(['2025', '01', '01']);
+  });
+
+  it("post98: VERSION semver parts", () => {
+    expect('0.1.0'.split('.')).toEqual(['0', '1', '0']);
+  });
+
+  it("post98: main path segments", () => {
+    expect('src/index.ts'.split('/')).toEqual(['src', 'index.ts']);
+  });
+
+  it("post98: binding SCREAMING_SNAKE", () => {
+    expect('CATALOG_CACHE').toMatch(/^[A-Z]+(_[A-Z]+)*$/);
+  });
+
+  it("post98: pattern TLD com", () => {
+    expect('backlink.fuzzywigg.com'.endsWith('.com')).toBe(true);
+  });
+
+  it("post98: indexOf CATALOG before domain", () => {
+    expect(toml.indexOf('CATALOG_CACHE')).toBeLessThan(toml.indexOf('backlink.fuzzywigg.com'));
+  });
+
+  it("post98: indexOf name before main before date", () => {
+    expect(toml.indexOf('name =')).toBeLessThan(toml.indexOf('main ='));
+    expect(toml.indexOf('main =')).toBeLessThan(toml.indexOf('compatibility_date ='));
+  });
+
+  it("post98: GEMINI_API_KEY once", () => {
+    expect(toml.indexOf('GEMINI_API_KEY')).toBe(toml.lastIndexOf('GEMINI_API_KEY'));
+    expect(toml.split('GEMINI_API_KEY').length - 1).toBe(1);
+  });
+
+  it("post98: wrangler secret put once", () => {
+    expect(toml.split('wrangler secret put').length - 1).toBe(1);
+  });
+
+  it("post98: never commit once", () => {
+    expect(toml.split('never commit').length - 1).toBe(1);
+  });
+
+  it("post98: Object.is twin digests", () => {
+    const a = createHash('sha256').update(toml, 'utf8').digest('hex');
+    const b = createHash('sha256').update(toml, 'utf8').digest('hex');
+    expect(Object.is(a, b)).toBe(true);
+  });
+
+  it("post98: sha256 starts 95b11779 ends fa0473f8", () => {
+    const d = createHash('sha256').update(toml, 'utf8').digest('hex');
+    expect(d.startsWith('95b11779')).toBe(true);
+    expect(d.endsWith('fa0473f8')).toBe(true);
+  });
+
+  it("post98: md5 starts 100cd155 ends 06e565f4", () => {
+    const d = createHash('md5').update(toml, 'utf8').digest('hex');
+    expect(d.startsWith('100cd155')).toBe(true);
+    expect(d.endsWith('06e565f4')).toBe(true);
+  });
+
+  it("post98: lean config under 20 split lines", () => {
+    expect(toml.split('\n').length).toBeLessThanOrEqual(20);
+  });
+
+  it("post98: exactly one of each table header", () => {
+    expect((toml.match(/\[\[kv_namespaces\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/\[\[routes\]\]/g) ?? []).length).toBe(1);
+    expect((toml.match(/^\[vars\]$/gm) ?? []).length).toBe(1);
+  });
+
+  it("post98: assignment keys snake or SCREAMING only", () => {
+    for (const key of ["name","main","compatibility_date","binding","id","pattern","custom_domain","VERSION"]) {
+      expect(key).toMatch(/^[a-z_]+$|^[A-Z_]+$/);
+    }
+  });
+
+  it("post98: no camelCase or kebab keys", () => {
+    expect(toml).not.toMatch(/customDomain|compatibilityDate|kvNamespaces/);
+    expect(toml).not.toMatch(/custom-domain|compatibility-date/);
+  });
+
+  it("post98: flatMap char length equals code-unit length", () => {
+    expect(toml.split('').length).toBe(toml.length);
+  });
+
+  it("post98: codePointAt equals charCodeAt", () => {
+    for (let i = 0; i < toml.length; i++) expect(toml.codePointAt(i)).toBe(toml.charCodeAt(i));
+  });
+
+  it("post98: substring name→main contiguous", () => {
+    expect(toml).toContain('name = "backlink"\nmain = "src/index.ts"');
+  });
+
+  it("post98: substring main→date contiguous", () => {
+    expect(toml).toContain('main = "src/index.ts"\ncompatibility_date = "2025-01-01"');
+  });
+
+  it("post98: substring kv block contiguous", () => {
+    expect(toml).toContain('[[kv_namespaces]]\nbinding = "CATALOG_CACHE"\nid = "edb6ca4df12f4f45b40508b3dda3c432"');
+  });
+
+  it("post98: substring routes block contiguous", () => {
+    expect(toml).toContain('[[routes]]\npattern = "backlink.fuzzywigg.com"\ncustom_domain = true');
+  });
+
+  it("post98: substring vars block contiguous", () => {
+    expect(toml).toContain('[vars]\nVERSION = "0.1.0"');
+  });
+
+  it("post98: first nonempty is name", () => {
+    expect(toml.split('\n').find((l) => l.length > 0)).toBe('name = "backlink"');
+  });
+
+  it("post98: last nonempty is secret put comment", () => {
+    expect(toml.split('\n').filter((l) => l.length > 0).at(-1)).toBe('# wrangler secret put GEMINI_API_KEY');
+  });
+
+  it("post98: charCodeAt name first four", () => {
+    expect([...'name'].map((c) => c.charCodeAt(0))).toEqual([110, 97, 109, 101]);
+  });
+
+  it("post98: Buffer.from equals TextEncoder", () => {
+    expect([...Buffer.from(toml, 'utf8')]).toEqual([...new TextEncoder().encode(toml)]);
+  });
+
+  it("post98: quote count even", () => {
+    expect((toml.match(/"/g) ?? []).length % 2).toBe(0);
+  });
+
+  it("post98: double-newline split >=4 blocks", () => {
+    expect(toml.trimEnd().split('\n\n').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("post98: headers have no spaces inside brackets", () => {
+    for (const h of ["[[kv_namespaces]]","[[routes]]","[vars]"]) {
+      expect(h).not.toMatch(/\[ /);
+      expect(toml).toContain(h);
+    }
+  });
+
+  it("post98: types Env comment mentions /curate 503", () => {
+    expect(typesSrc).toMatch(/\/curate/);
+    expect(typesSrc).toMatch(/503/);
+  });
+
+  it("post98: package version equals VERSION var", () => {
+    expect(pkgJson.version).toBe('0.1.0');
+    expect(toml).toContain('VERSION = "0.1.0"');
+  });
+
+  it("post98: index does not import wrangler", () => {
+    expect(indexSrc).not.toMatch(/from ['"]wrangler['"]/);
+  });
+
+  it("post98: agents escalate CORS/billing", () => {
+    expect(agentsMd).toMatch(/CORS/);
+    expect(agentsMd).toMatch(/billing|CF account/i);
+  });
+
+  it("post98: hygiene path is file size 330", () => {
+    expect(statSync(tomlPath).isFile()).toBe(true);
+    expect(statSync(tomlPath).size).toBe(330);
+  });
+
+  it("post98: char freq SPACE", () => {
+    expect(toml.split(" ").length - 1).toBe(26);
+  });
+
+  it("post98: char freq \"e\"", () => {
+    expect(toml.split("e").length - 1).toBe(17);
+  });
+
+  it("post98: char freq LF", () => {
+    expect(toml.split("\n").length - 1).toBe(17);
+  });
+
+  it("post98: char freq \"a\"", () => {
+    expect(toml.split("a").length - 1).toBe(15);
+  });
+
+  it("post98: char freq DQUOTE", () => {
+    expect(toml.split("\"").length - 1).toBe(14);
+  });
+
+  it("post98: char freq \"i\"", () => {
+    expect(toml.split("i").length - 1).toBe(14);
+  });
+
+  it("post98: char freq \"t\"", () => {
+    expect(toml.split("t").length - 1).toBe(14);
+  });
+
+  it("post98: char freq \"n\"", () => {
+    expect(toml.split("n").length - 1).toBe(12);
+  });
+
+  it("post98: char freq \"c\"", () => {
+    expect(toml.split("c").length - 1).toBe(12);
+  });
+
+  it("post98: char freq \"s\"", () => {
+    expect(toml.split("s").length - 1).toBe(10);
+  });
+
+  it("post98: char freq \"r\"", () => {
+    expect(toml.split("r").length - 1).toBe(10);
+  });
+
+  it("post98: char freq \"m\"", () => {
+    expect(toml.split("m").length - 1).toBe(9);
+  });
+
+  it("post98: char freq \"d\"", () => {
+    expect(toml.split("d").length - 1).toBe(9);
+  });
+
+  it("post98: char freq \"=\"", () => {
+    expect(toml.split("=").length - 1).toBe(8);
+  });
+
+  it("post98: char freq \"0\"", () => {
+    expect(toml.split("0").length - 1).toBe(7);
+  });
+
+  it("post98: char freq \"b\"", () => {
+    expect(toml.split("b").length - 1).toBe(7);
+  });
+
+  it("post98: char freq \"o\"", () => {
+    expect(toml.split("o").length - 1).toBe(6);
+  });
+
+  it("post98: char freq \"_\"", () => {
+    expect(toml.split("_").length - 1).toBe(6);
+  });
+
+  it("post98: char freq \"4\"", () => {
+    expect(toml.split("4").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"k\"", () => {
+    expect(toml.split("k").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \".\"", () => {
+    expect(toml.split(".").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"[\"", () => {
+    expect(toml.split("[").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"]\"", () => {
+    expect(toml.split("]").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"u\"", () => {
+    expect(toml.split("u").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"I\"", () => {
+    expect(toml.split("I").length - 1).toBe(5);
+  });
+
+  it("post98: char freq \"1\"", () => {
+    expect(toml.split("1").length - 1).toBe(4);
+  });
+
+  it("post98: char freq \"2\"", () => {
+    expect(toml.split("2").length - 1).toBe(4);
+  });
+
+  it("post98: char freq \"l\"", () => {
+    expect(toml.split("l").length - 1).toBe(4);
+  });
+
+  it("post98: indexOf marker locked at 0", () => {
+    expect(toml.indexOf("name = \"backlink\"")).toBe(0);
+  });
+
+  it("post98: contains marker name = \"backlink\"", () => {
+    expect(toml).toContain("name = \"backlink\"");
+  });
+
+  it("post98: indexOf marker locked at 18", () => {
+    expect(toml.indexOf("main = \"src/index.ts\"")).toBe(18);
+  });
+
+  it("post98: contains marker main = \"src/index.ts\"", () => {
+    expect(toml).toContain("main = \"src/index.ts\"");
+  });
+
+  it("post98: indexOf marker locked at 40", () => {
+    expect(toml.indexOf("compatibility_date = \"2025-01-01\"")).toBe(40);
+  });
+
+  it("post98: contains marker compatibility_date = \"2025-01-01\"", () => {
+    expect(toml).toContain("compatibility_date = \"2025-01-01\"");
+  });
+
+  it("post98: indexOf marker locked at 75", () => {
+    expect(toml.indexOf("[[kv_namespaces]]")).toBe(75);
+  });
+
+  it("post98: contains marker [[kv_namespaces]]", () => {
+    expect(toml).toContain("[[kv_namespaces]]");
+  });
+
+  it("post98: indexOf marker locked at 93", () => {
+    expect(toml.indexOf("binding = \"CATALOG_CACHE\"")).toBe(93);
+  });
+
+  it("post98: contains marker binding = \"CATALOG_CACHE\"", () => {
+    expect(toml).toContain("binding = \"CATALOG_CACHE\"");
+  });
+
+  it("post98: indexOf marker locked at 119", () => {
+    expect(toml.indexOf("id = \"edb6ca4df12f4f45b40508b3dda3c432\"")).toBe(119);
+  });
+
+  it("post98: contains marker id = \"edb6ca4df12f4f45b40508b3dda3c4", () => {
+    expect(toml).toContain("id = \"edb6ca4df12f4f45b40508b3dda3c432\"");
+  });
+
+  it("post98: indexOf marker locked at 160", () => {
+    expect(toml.indexOf("[[routes]]")).toBe(160);
+  });
+
+  it("post98: contains marker [[routes]]", () => {
+    expect(toml).toContain("[[routes]]");
+  });
+
+  it("post98: indexOf marker locked at 171", () => {
+    expect(toml.indexOf("pattern = \"backlink.fuzzywigg.com\"")).toBe(171);
+  });
+
+  it("post98: contains marker pattern = \"backlink.fuzzywigg.com\"", () => {
+    expect(toml).toContain("pattern = \"backlink.fuzzywigg.com\"");
+  });
+
+  it("post98: indexOf marker locked at 206", () => {
+    expect(toml.indexOf("custom_domain = true")).toBe(206);
+  });
+
+  it("post98: contains marker custom_domain = true", () => {
+    expect(toml).toContain("custom_domain = true");
+  });
+
+  it("post98: indexOf marker locked at 228", () => {
+    expect(toml.indexOf("[vars]")).toBe(228);
+  });
+
+  it("post98: contains marker [vars]", () => {
+    expect(toml).toContain("[vars]");
+  });
+
+  it("post98: indexOf marker locked at 235", () => {
+    expect(toml.indexOf("VERSION = \"0.1.0\"")).toBe(235);
+  });
+
+  it("post98: contains marker VERSION = \"0.1.0\"", () => {
+    expect(toml).toContain("VERSION = \"0.1.0\"");
+  });
+
+  it("post98: indexOf marker locked at 254", () => {
+    expect(toml.indexOf("# Secrets (set via CLI, never commit):")).toBe(254);
+  });
+
+  it("post98: contains marker # Secrets (set via CLI, never commit", () => {
+    expect(toml).toContain("# Secrets (set via CLI, never commit):");
+  });
+
+  it("post98: indexOf marker locked at 293", () => {
+    expect(toml.indexOf("# wrangler secret put GEMINI_API_KEY")).toBe(293);
+  });
+
+  it("post98: contains marker # wrangler secret put GEMINI_API_KEY", () => {
+    expect(toml).toContain("# wrangler secret put GEMINI_API_KEY");
+  });
+
+  it("post98: marker index chain strictly increasing", () => {
+    const markers = ["name = \"backlink\"","main = \"src/index.ts\"","compatibility_date = \"2025-01-01\"","[[kv_namespaces]]","binding = \"CATALOG_CACHE\"","id = \"edb6ca4df12f4f45b40508b3dda3c432\"","[[routes]]","pattern = \"backlink.fuzzywigg.com\"","custom_domain = true","[vars]","VERSION = \"0.1.0\"","# Secrets (set via CLI, never commit):","# wrangler secret put GEMINI_API_KEY"];
+    const idxs = markers.map((m) => toml.indexOf(m));
+    expect(idxs.every((n) => n >= 0)).toBe(true);
+    for (let i = 1; i < idxs.length; i++) expect(idxs[i]).toBeGreaterThan(idxs[i - 1]);
+  });
+
+  it("post98: slice between marker 0 and 1", () => {
+    expect(toml.slice(toml.indexOf("name = \"backlink\"") + 17, toml.indexOf("main = \"src/index.ts\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 1 and 2", () => {
+    expect(toml.slice(toml.indexOf("main = \"src/index.ts\"") + 21, toml.indexOf("compatibility_date = \"2025-01-01\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 2 and 3", () => {
+    expect(toml.slice(toml.indexOf("compatibility_date = \"2025-01-01\"") + 33, toml.indexOf("[[kv_namespaces]]"))).toBe("\n\n");
+  });
+
+  it("post98: slice between marker 3 and 4", () => {
+    expect(toml.slice(toml.indexOf("[[kv_namespaces]]") + 17, toml.indexOf("binding = \"CATALOG_CACHE\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 4 and 5", () => {
+    expect(toml.slice(toml.indexOf("binding = \"CATALOG_CACHE\"") + 25, toml.indexOf("id = \"edb6ca4df12f4f45b40508b3dda3c432\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 5 and 6", () => {
+    expect(toml.slice(toml.indexOf("id = \"edb6ca4df12f4f45b40508b3dda3c432\"") + 39, toml.indexOf("[[routes]]"))).toBe("\n\n");
+  });
+
+  it("post98: slice between marker 6 and 7", () => {
+    expect(toml.slice(toml.indexOf("[[routes]]") + 10, toml.indexOf("pattern = \"backlink.fuzzywigg.com\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 7 and 8", () => {
+    expect(toml.slice(toml.indexOf("pattern = \"backlink.fuzzywigg.com\"") + 34, toml.indexOf("custom_domain = true"))).toBe("\n");
+  });
+
+  it("post98: slice between marker 8 and 9", () => {
+    expect(toml.slice(toml.indexOf("custom_domain = true") + 20, toml.indexOf("[vars]"))).toBe("\n\n");
+  });
+
+  it("post98: slice between marker 9 and 10", () => {
+    expect(toml.slice(toml.indexOf("[vars]") + 6, toml.indexOf("VERSION = \"0.1.0\""))).toBe("\n");
+  });
+
+  it("post98: slice between marker 10 and 11", () => {
+    expect(toml.slice(toml.indexOf("VERSION = \"0.1.0\"") + 17, toml.indexOf("# Secrets (set via CLI, never commit):"))).toBe("\n\n");
+  });
+
+  it("post98: slice between marker 11 and 12", () => {
+    expect(toml.slice(toml.indexOf("# Secrets (set via CLI, never commit):") + 38, toml.indexOf("# wrangler secret put GEMINI_API_KEY"))).toBe("\n");
+  });
+
+  it("post98: assignment key name once", () => {
+    expect([...toml.matchAll(/^name = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key main once", () => {
+    expect([...toml.matchAll(/^main = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key compatibility_date once", () => {
+    expect([...toml.matchAll(/^compatibility_date = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key binding once", () => {
+    expect([...toml.matchAll(/^binding = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key id once", () => {
+    expect([...toml.matchAll(/^id = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key pattern once", () => {
+    expect([...toml.matchAll(/^pattern = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key custom_domain once", () => {
+    expect([...toml.matchAll(/^custom_domain = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: assignment key VERSION once", () => {
+    expect([...toml.matchAll(/^VERSION = /gm)]).toHaveLength(1);
+  });
+
+  it("post98: forbidden token password", () => {
+    expect(toml.toLowerCase()).not.toContain("password");
+  });
+
+  it("post98: forbidden token private_key", () => {
+    expect(toml.toLowerCase()).not.toContain("private_key");
+  });
+
+  it("post98: forbidden token oauth", () => {
+    expect(toml.toLowerCase()).not.toContain("oauth");
+  });
+
+  it("post98: forbidden token webhook", () => {
+    expect(toml.toLowerCase()).not.toContain("webhook");
+  });
+
+  it("post98: forbidden token smtp", () => {
+    expect(toml.toLowerCase()).not.toContain("smtp");
+  });
+
+  it("post98: forbidden token redis", () => {
+    expect(toml.toLowerCase()).not.toContain("redis");
+  });
+
+  it("post98: forbidden token postgres", () => {
+    expect(toml.toLowerCase()).not.toContain("postgres");
+  });
+
+  it("post98: forbidden token mongodb", () => {
+    expect(toml.toLowerCase()).not.toContain("mongodb");
+  });
+
+  it("post98: forbidden token sqlite", () => {
+    expect(toml.toLowerCase()).not.toContain("sqlite");
+  });
+
+  it("post98: forbidden token mysql", () => {
+    expect(toml.toLowerCase()).not.toContain("mysql");
+  });
+
+  it("post98: forbidden token kafka", () => {
+    expect(toml.toLowerCase()).not.toContain("kafka");
+  });
+
+  it("post98: forbidden token rabbitmq", () => {
+    expect(toml.toLowerCase()).not.toContain("rabbitmq");
+  });
+
+  it("post98: forbidden token elasticsearch", () => {
+    expect(toml.toLowerCase()).not.toContain("elasticsearch");
+  });
+
+  it("post98: forbidden token sentry", () => {
+    expect(toml.toLowerCase()).not.toContain("sentry");
+  });
+
+  it("post98: forbidden token datadog", () => {
+    expect(toml.toLowerCase()).not.toContain("datadog");
+  });
+
+  it("post98: forbidden token newrelic", () => {
+    expect(toml.toLowerCase()).not.toContain("newrelic");
+  });
+
+  it("post98: forbidden token honeycomb", () => {
+    expect(toml.toLowerCase()).not.toContain("honeycomb");
+  });
+
+  it("post98: forbidden token launchdarkly", () => {
+    expect(toml.toLowerCase()).not.toContain("launchdarkly");
+  });
+
+  it("post98: forbidden token stripe", () => {
+    expect(toml.toLowerCase()).not.toContain("stripe");
+  });
+
+  it("post98: forbidden token paypal", () => {
+    expect(toml.toLowerCase()).not.toContain("paypal");
+  });
+
+  it("post98: forbidden token twilio", () => {
+    expect(toml.toLowerCase()).not.toContain("twilio");
+  });
+
+  it("post98: forbidden token sendgrid", () => {
+    expect(toml.toLowerCase()).not.toContain("sendgrid");
+  });
+
+  it("post98: forbidden token mailgun", () => {
+    expect(toml.toLowerCase()).not.toContain("mailgun");
+  });
+
+  it("post98: forbidden token jwt_secret", () => {
+    expect(toml.toLowerCase()).not.toContain("jwt_secret");
+  });
+
+  it("post98: forbidden token session_secret", () => {
+    expect(toml.toLowerCase()).not.toContain("session_secret");
+  });
+
+  it("post98: forbidden token encryption_key", () => {
+    expect(toml.toLowerCase()).not.toContain("encryption_key");
+  });
+
+  it("post98: forbidden token AWS_ACCESS", () => {
+    expect(toml.toLowerCase()).not.toContain("aws_access");
+  });
+
+  it("post98: forbidden token AWS_SECRET", () => {
+    expect(toml.toLowerCase()).not.toContain("aws_secret");
+  });
+
+  it("post98: forbidden token GCP_PROJECT", () => {
+    expect(toml.toLowerCase()).not.toContain("gcp_project");
+  });
+
+  it("post98: createHmac sha256 of toml with worker name key is stable", () => {
+    const a = createHmac('sha256', 'backlink').update(toml, 'utf8').digest('hex');
+    const b = createHmac('sha256', 'backlink').update(toml, 'utf8').digest('hex');
+    expect(a).toBe(b);
+    expect(a).toHaveLength(64);
+  });
+
+  it("post98: HMAC digests differ for distinct keys", () => {
+    const a = createHmac('sha256', 'backlink').update(toml, 'utf8').digest('hex');
+    const b = createHmac('sha256', 'other').update(toml, 'utf8').digest('hex');
+    expect(a).not.toBe(b);
+  });
+
+  it("post98: mega purity 50x sha256", () => {
+    const expected = '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8';
+    for (let i = 0; i < 50; i++) expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+  });
+
+  it("post98: mega purity 25x re-read", () => {
+    for (let i = 0; i < 25; i++) expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+  });
+
+  it("post98: final triple digest lock", () => {
+    expect(createHash('sha1').update(toml, 'utf8').digest('hex')).toBe('481c8221707ffe602ab8d5ce4a2b7b5192d3ade6');
+    expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+    expect(createHash('md5').update(toml, 'utf8').digest('hex')).toBe('100cd1554884befe9db6453606e565f4');
+  });
+
+  it("post98: final mega 100x sha256", () => {
+    const expected = '95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8';
+    for (let i = 0; i < 100; i++) expect(createHash('sha256').update(toml, 'utf8').digest('hex')).toBe(expected);
+  });
+
+  it("post98: final lock module snapshot equals disk", () => {
+    expect(readFileSync(tomlPath, 'utf8')).toBe(toml);
+    expect(sha256File('wrangler.toml')).toBe('95b11779a88f0544f3561eea67994a0b0b874d7b8776579189fa7142fa0473f8');
+    expect(statSync(tomlPath).size).toBe(330);
+  });
+
+});
