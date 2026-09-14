@@ -3777,7 +3777,6 @@ describe('source ↔ product contracts', () => {
     expect(index).toContain("import { Env } from './types'");
     expect((index.match(/\bEnv\b/g) ?? []).length).toBe(2); // import + Bindings
   });
-}
 
   // --- HEAVY burn (post-#70): complementary fingerprint deepen (orthogonal to #70/#71/#73) ---
 
@@ -5154,7 +5153,4 @@ describe('source ↔ product contracts', () => {
     expect([...read("src/index.ts").matchAll(/^export /gm)]).toHaveLength(1);
     expect(read("src/index.ts")).toContain("export default app");
   });
-
-}
-
 });
