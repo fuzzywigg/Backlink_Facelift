@@ -2435,10 +2435,9 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
   });
 
   it('post66: createHash sha256 digest Buffer equals hex decode of locked digest', () => {
+    const hex = 'a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849';
     const buf = createHash('sha256').update(spec, 'utf8').digest();
-    expect(buf.equals(Buffer.from('a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849', 'hex'))).toBe(
-      true,
-    );
+    expect(Buffer.from(hex, 'hex').equals(buf)).toBe(true);
   });
 
   it('post66: createHash md5 digest Buffer length 16; sha1 length 20', () => {
@@ -2697,10 +2696,10 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
 
   it('post66: name url/stream_url genre types are string on station shapes', () => {
     const fences = jsonFences() as Array<{
-      properties?: Record<string, { type?: string } | { items?: { properties?: Record<string, { type?: string }> } }>;
+      properties?: Record<string, { type?: string }>;
     }>;
     const curateStation = (
-      fences[1].properties?.stations as {
+      fences[1].properties?.stations as unknown as {
         items?: { properties?: Record<string, { type?: string }> };
       }
     )?.items?.properties;
@@ -2708,7 +2707,7 @@ describe('docs/mcp-spec.md ↔ runtime contracts', () => {
     expect(curateStation?.url?.type).toBe('string');
     expect(curateStation?.genre?.type).toBe('string');
     expect(fences[5].properties?.name?.type).toBe('string');
-    expect((fences[5].properties?.stream_url as { type?: string })?.type).toBe('string');
+    expect(fences[5].properties?.stream_url?.type).toBe('string');
     expect(fences[5].properties?.genre?.type).toBe('string');
   });
 
