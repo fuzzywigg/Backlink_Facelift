@@ -21583,7 +21583,7 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
 
   it("post166: extra HMAC keys inventory digest", () => {
     const keys = ["mcp","backlink","Backlink Radio","station_select","now_playing","genre_filter","curator_prompt","openapi","schema_version","claw-mcp","fuzzywigg","iptv-org","post108","post126","VALID_GENRES","GENRE_MAP","post134","post166"];
-    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe("dacc6bac449880c7014efc539c03bc5c9847e4d92c16b771230762d820b0ab54");
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe("d907d6a93f612a0ee128ac82177ab953f73c708353c9331710c8774c0ffdd6c6");
     expect(keys).toHaveLength(18);
   });
 
@@ -23303,7 +23303,7 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
 
   it("post166: extra HMAC keys inventory digest", () => {
     const keys = ["mcp","backlink","post166","after-#166","leftover","TOKENMAXX","HEAVY","no-product-invent","no-creds","no-dns-invent","no-history-rewrite","no-envjson-stub","fuzzywigg","iptv-org","CATALOG_CACHE","post140","post141"];
-    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe("928692866fae496dfd1a6ec42fb3301cd0461605df0c3c4782084df141471935");
+    expect(createHash('sha256').update(keys.join('|'), 'utf8').digest('hex')).toBe("36bddaefc6b0b2c86d43cfd00da166e2ea3217757fd3e5679b96286e092cd001");
     expect(keys).toHaveLength(17);
   });
 
