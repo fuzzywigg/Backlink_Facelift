@@ -59292,7 +59292,7 @@ describe('post285 ci-config ultra HEAVY deepen (after tip #285 fixtures leftover
 });
 
 // --- HEAVY burn (post-#289): deepen ci-config leftover edges only — no product inventing ---
-// TOKENMAXX tip-relaunch after merged #289 (tip a5ddc87f / 35dfd8f); orthogonal to genres+mcp #278, helpers/source #286, media/parser #288.
+// TOKENMAXX tip-relaunch after merged #289 (tip a5ddc87f / a5ddc87); orthogonal to genres+mcp #278, helpers/source #286, media/parser #288.
 describe('post289 ci-config HEAVY deepen (after tip #289 leftover / tip-relaunch-2026-09-14 / tip-a5ddc87f / ci-config-only / not parser-routes / not genres-mcp / not helpers+source / not wrangler / not mcp-spec / wrangler-ci-merged-289 / beyond-post289 / unsaturated-after-289 / genres-mcp-merged-278 / helpers-source-merged-286 / media-parser-merged-288 / wrangler-ci-merged-289)', () => {
 
   const read = (rel: string) => readFileSync(join(root, rel), 'utf8');
