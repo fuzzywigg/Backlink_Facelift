@@ -1,5 +1,5 @@
 import { createHash, createHmac } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -11603,3 +11603,3540 @@ describe('post106 parser HEAVY deepen', () => {
   });
 
 });
+
+describe('post107 parser HEAVY deepen', () => {
+  // Tests-only deepen of parseM3U after helpers #107 and parser #108.
+  // Orthogonal to helpers/ci-config; complementary to post106 suite.
+  // Leftovers: fingerprints, scheme resets, attr/dedupe edges, helper cross-locks.
+  // No product inventing.
+
+  it("post107: sha256 fingerprint reaffirm", () => {
+
+    expect(createHash('sha256').update(parserSource, 'utf8').digest('hex')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+    expect(
+      createHash('sha256')
+        .update(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8'), 'utf8')
+        .digest('hex'),
+    ).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+
+  });
+
+  it("post107: sha1 fingerprint reaffirm", () => {
+
+    expect(createHash('sha1').update(parserSource, 'utf8').digest('hex')).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+
+  });
+
+  it("post107: md5 fingerprint reaffirm", () => {
+
+    expect(createHash('md5').update(parserSource, 'utf8').digest('hex')).toBe('500211c4c526de887252451726776563');
+
+  });
+
+  it("post107: sha512 fingerprint lock", () => {
+
+    expect(createHash('sha512').update(parserSource, 'utf8').digest('hex')).toBe('66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89');
+
+  });
+
+  it("post107: sha384 fingerprint lock", () => {
+
+    expect(createHash('sha384').update(parserSource, 'utf8').digest('hex')).toBe('f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9');
+
+  });
+
+  it("post107: HMAC-SHA256(post107) fingerprint lock", () => {
+
+    expect(createHmac('sha256', 'post107').update(parserSource, 'utf8').digest('hex')).toBe(
+      'aa2a5fba6aa6db9982dd76e15113af693991aa09287057c6b89619da9b7c0993',
+    );
+
+  });
+
+  it("post107: sha256 nibble sum 477", () => {
+
+    const dig = createHash('sha256').update(parserSource, 'utf8').digest('hex');
+    expect([...dig].reduce((s, c) => s + parseInt(c, 16), 0)).toBe(477);
+
+  });
+
+  it("post107: first/last sha256 octets 0xcf / 0x68", () => {
+
+    const dig = createHash('sha256').update(parserSource, 'utf8').digest('hex');
+    expect(parseInt(dig.slice(0, 2), 16)).toBe(0xcf);
+    expect(parseInt(dig.slice(-2), 16)).toBe(0x68);
+
+  });
+
+  it("post107: byte length 1955 via string/stat/Buffer/TextEncoder", () => {
+
+    expect(parserSource.length).toBe(1953);
+    expect(Buffer.byteLength(parserSource, 'utf8')).toBe(1955);
+    expect(new TextEncoder().encode(parserSource).length).toBe(1955);
+    expect(statSync(join(parserRoot, 'src/parser.ts')).size).toBe(1955);
+
+  });
+
+  it("post107: newline count 66 / split 67", () => {
+
+    expect((parserSource.match(/\n/g) ?? []).length).toBe(66);
+    expect(parserSource.split('\n')).toHaveLength(67);
+
+  });
+
+  it("post107: nonempty line count 56 / length sum 1887", () => {
+
+    const ls = parserSource.split('\n');
+    expect(ls.filter((l) => l.length > 0)).toHaveLength(56);
+    expect(ls.filter((l) => l.length > 0).reduce((a, l) => a + l.length, 0)).toBe(1887);
+
+  });
+
+  it("post107: line length vector lock", () => {
+
+    expect(parserSource.split('\n').map((l) => l.length)).toEqual([26,15,14,16,17,20,19,1,0,50,53,33,33,0,37,0,29,37,19,0,25,58,49,0,25,58,49,0,28,62,52,0,29,62,53,0,28,64,58,0,74,26,47,76,7,75,44,23,23,29,20,29,31,37,35,11,7,19,47,62,19,5,3,0,18,1,0]);
+
+  });
+
+  it("post107: first 40 char codes lock", () => {
+
+    expect([...parserSource.slice(0, 40)].map((c) => c.charCodeAt(0))).toEqual([101,120,112,111,114,116,32,105,110,116,101,114,102,97,99,101,32,83,116,97,116,105,111,110,32,123,10,32,32,110,97,109,101,58,32,115,116,114,105,110]);
+
+  });
+
+  it("post107: last 40 char codes lock", () => {
+
+    expect([...parserSource.slice(-40)].map((c) => c.charCodeAt(0))).toEqual([116,32,61,32,123,125,59,10,32,32,32,32,125,10,32,32,125,10,10,32,32,114,101,116,117,114,110,32,115,116,97,116,105,111,110,115,59,10,125,10]);
+
+  });
+
+  it("post107: digit count lock", () => {
+    expect([...parserSource].filter((c) => /\d/.test(c))).toHaveLength(8);
+  });
+
+  it("post107: uppercase count lock", () => {
+    expect([...parserSource].filter((c) => /[A-Z]/.test(c))).toHaveLength(54);
+  });
+
+  it("post107: lowercase count lock", () => {
+    expect([...parserSource].filter((c) => /[a-z]/.test(c))).toHaveLength(1043);
+  });
+
+  it("post107: space count lock", () => {
+    expect((parserSource.match(/ /g) ?? []).length).toBe(432);
+  });
+
+  it("post107: double-quote count lock", () => {
+    expect((parserSource.match(/"/g) ?? []).length).toBe(15);
+  });
+
+  it("post107: single-quote count lock", () => {
+    expect((parserSource.match(/'/g) ?? []).length).toBe(12);
+  });
+
+  it("post107: equals count lock", () => {
+    expect((parserSource.match(/=/g) ?? []).length).toBe(27);
+  });
+
+  it("post107: underscore absent", () => {
+    expect((parserSource.match(/_/g) ?? []).length).toBe(0);
+  });
+
+  it("post107: dash count lock", () => {
+    expect((parserSource.match(/-/g) ?? []).length).toBe(12);
+  });
+
+  it("post107: bracket pair counts", () => {
+
+    expect((parserSource.match(/\[/g) ?? []).length).toBe(13);
+    expect((parserSource.match(/\]/g) ?? []).length).toBe(13);
+
+  });
+
+  it("post107: brace pair counts", () => {
+
+    expect((parserSource.match(/\{/g) ?? []).length).toBe(13);
+    expect((parserSource.match(/\}/g) ?? []).length).toBe(13);
+
+  });
+
+  it("post107: paren pair counts", () => {
+
+    expect((parserSource.match(/\(/g) ?? []).length).toBe(40);
+    expect((parserSource.match(/\)/g) ?? []).length).toBe(40);
+
+  });
+
+  it("post107: semicolon count lock", () => {
+    expect((parserSource.match(/;/g) ?? []).length).toBe(28);
+  });
+
+  it("post107: colon count lock", () => {
+    expect((parserSource.match(/:/g) ?? []).length).toBe(19);
+  });
+
+  it("post107: slash count lock", () => {
+    expect((parserSource.match(/\//g) ?? []).length).toBe(30);
+  });
+
+  it("post107: dot count lock", () => {
+    expect((parserSource.match(/\./g) ?? []).length).toBe(32);
+  });
+
+  it("post107: comma count lock", () => {
+    expect((parserSource.match(/,/g) ?? []).length).toBe(8);
+  });
+
+  it("post107: hash count lock", () => {
+    expect((parserSource.match(/#/g) ?? []).length).toBe(3);
+  });
+
+  it("post107: question mark count lock", () => {
+    expect((parserSource.match(/\?/g) ?? []).length).toBe(4);
+  });
+
+  it("post107: bang count lock", () => {
+    expect((parserSource.match(/!/g) ?? []).length).toBe(4);
+  });
+
+  it("post107: pipe count lock", () => {
+    expect((parserSource.match(/\|/g) ?? []).length).toBe(2);
+  });
+
+  it("post107: amp count lock", () => {
+    expect((parserSource.match(/&/g) ?? []).length).toBe(4);
+  });
+
+  it("post107: angle bracket counts", () => {
+
+    expect((parserSource.match(/</g) ?? []).length).toBe(2);
+    expect((parserSource.match(/>/g) ?? []).length).toBe(3);
+
+  });
+
+  it("post107: backtick absent / single arrow", () => {
+
+    expect((parserSource.match(/`/g) ?? []).length).toBe(0);
+    expect((parserSource.match(/=>/g) ?? []).length).toBe(1);
+
+  });
+
+  it("post107: tab and CR absent", () => {
+
+    expect(parserSource.includes('\t')).toBe(false);
+    expect(parserSource.includes('\r')).toBe(false);
+
+  });
+
+  it("post107: unique char set lock", () => {
+
+    expect([...new Set(parserSource)].sort().join('')).toBe("\n !\"#&'()*+,-./13:;<=>?EFILMNOPRSTUWX[\\]^abcdefghiklmnoprstuvwxy{|}—");
+
+  });
+
+  it("post107: word token vector sha256 lock", () => {
+
+    const words = parserSource.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    expect(words).toHaveLength(208);
+    expect(createHash('sha256').update(words.join('|'), 'utf8').digest('hex')).toBe('aec8fd33d1a2feea92ce1e1c6731854716061cd541ab4f04aa7be4ad81a1c241');
+
+  });
+
+  it("post107: unique word inventory lock", () => {
+
+    const words = parserSource.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    const unique = [...new Set(words)].sort();
+    expect(unique).toEqual(["EXTINF","Extract","Fallback","Non","Partial","Set","Station","URL","add","after","but","comma","commaIdx","const","country","countryMatch","current","else","end","etc","export","for","from","function","group","groupMatch","has","http","https","i","if","interface","l","langMatch","language","last","lastIndexOf","let","line","lines","logo","logoMatch","map","match","n","name","nameMatch","new","of","parseM3U","push","raw","reset","return","rtmp","seen","skip","slice","split","startsWith","stations","string","the","title","trim","tvg","url"]);
+    expect(createHash('sha256').update(unique.join('|'), 'utf8').digest('hex')).toBe(
+      'ab3bcc5db38ace588b56a55f3bf27775b33ced5dd486d8f85aad5ff7b682c489',
+    );
+
+  });
+
+  it("post107: substring count parseM3U = 1", () => {
+
+    expect(parserSource.split("parseM3U").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count Station = 4", () => {
+
+    expect(parserSource.split("Station").length - 1).toBe(4);
+  
+  });
+
+  it("post107: substring count EXTINF = 2", () => {
+
+    expect(parserSource.split("EXTINF").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count tvg-name = 2", () => {
+
+    expect(parserSource.split("tvg-name").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count tvg-logo = 2", () => {
+
+    expect(parserSource.split("tvg-logo").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count group-title = 2", () => {
+
+    expect(parserSource.split("group-title").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count tvg-language = 2", () => {
+
+    expect(parserSource.split("tvg-language").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count tvg-country = 2", () => {
+
+    expect(parserSource.split("tvg-country").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count http:// = 1", () => {
+
+    expect(parserSource.split("http://").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count https:// = 1", () => {
+
+    expect(parserSource.split("https://").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count seen = 3", () => {
+
+    expect(parserSource.split("seen").length - 1).toBe(3);
+  
+  });
+
+  it("post107: substring count current = 18", () => {
+
+    expect(parserSource.split("current").length - 1).toBe(18);
+  
+  });
+
+  it("post107: substring count startsWith = 4", () => {
+
+    expect(parserSource.split("startsWith").length - 1).toBe(4);
+  
+  });
+
+  it("post107: substring count Partial = 1", () => {
+
+    expect(parserSource.split("Partial").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count trim = 2", () => {
+
+    expect(parserSource.split("trim").length - 1).toBe(2);
+  
+  });
+
+  it("post107: substring count push = 1", () => {
+
+    expect(parserSource.split("push").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count .match( = 5", () => {
+
+    expect(parserSource.split(".match(").length - 1).toBe(5);
+  
+  });
+
+  it("post107: substring count lastIndexOf = 1", () => {
+
+    expect(parserSource.split("lastIndexOf").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count slice( = 1", () => {
+
+    expect(parserSource.split("slice(").length - 1).toBe(1);
+  
+  });
+
+  it("post107: substring count Set<string> = 1", () => {
+
+    expect(parserSource.split("Set<string>").length - 1).toBe(1);
+  
+  });
+
+  it("post107: export inventory Station + parseM3U only", () => {
+
+    const exports = [...parserSource.matchAll(/^export (?:interface|function) (\w+)/gm)].map(
+      (m) => m[1],
+    );
+    expect(exports).toEqual(['Station', 'parseM3U']);
+
+  });
+
+  it("post107: no imports and no default export", () => {
+
+    expect(parserSource).not.toMatch(/^import /m);
+    expect(parserSource).not.toMatch(/export default/);
+
+  });
+
+  it("post107: first byte is e (0x65) and ends with newline", () => {
+
+    expect(parserSource.charCodeAt(0)).toBe(0x65);
+    expect(parserSource.endsWith('\n')).toBe(true);
+    expect(parserSource.endsWith('}\n')).toBe(true);
+
+  });
+
+  it("post107: emdash present once at known index", () => {
+
+    expect(parserSource.indexOf('—')).toBe(1876);
+    expect(parserSource.lastIndexOf('—')).toBe(1876);
+    expect(parserSource.codePointAt(1876)).toBe(0x2014);
+
+  });
+
+  it("post107: export indices lock", () => {
+
+    expect(parserSource.indexOf('export interface Station')).toBe(0);
+    expect(parserSource.indexOf('export function parseM3U')).toBe(137);
+
+  });
+
+  it("post107: sha256 of export name parseM3U", () => {
+
+    expect(createHash('sha256').update('parseM3U', 'utf8').digest('hex')).toBe('6d920cec8badac45056b0bc62ba4d70dbbe5f227570c5cad160a9f80b6832591');
+    expect(
+      [...createHash('sha256').update('parseM3U', 'utf8').digest('hex')].reduce(
+        (s, c) => s + parseInt(c, 16),
+        0,
+      ),
+    ).toBe(477);
+
+  });
+
+  it("post107: sha256 of export name Station", () => {
+
+    expect(createHash('sha256').update('Station', 'utf8').digest('hex')).toBe('115ccf9610656d3b5afd25f3160d9b5201266fc01eb30943e15838542b36521a');
+    expect(
+      [...createHash('sha256').update('Station', 'utf8').digest('hex')].reduce(
+        (s, c) => s + parseInt(c, 16),
+        0,
+      ),
+    ).toBe(396);
+
+  });
+
+  it("post107: line 0 exact content", () => {
+
+    expect(parserSource.split('\n')[0]).toBe("export interface Station {");
+  
+  });
+
+  it("post107: line 1 exact content", () => {
+
+    expect(parserSource.split('\n')[1]).toBe("  name: string;");
+  
+  });
+
+  it("post107: line 2 exact content", () => {
+
+    expect(parserSource.split('\n')[2]).toBe("  url: string;");
+  
+  });
+
+  it("post107: line 3 exact content", () => {
+
+    expect(parserSource.split('\n')[3]).toBe("  logo?: string;");
+  
+  });
+
+  it("post107: line 4 exact content", () => {
+
+    expect(parserSource.split('\n')[4]).toBe("  group?: string;");
+  
+  });
+
+  it("post107: line 5 exact content", () => {
+
+    expect(parserSource.split('\n')[5]).toBe("  language?: string;");
+  
+  });
+
+  it("post107: line 6 exact content", () => {
+
+    expect(parserSource.split('\n')[6]).toBe("  country?: string;");
+  
+  });
+
+  it("post107: line 7 exact content", () => {
+
+    expect(parserSource.split('\n')[7]).toBe("}");
+  
+  });
+
+  it("post107: line 8 exact content", () => {
+
+    expect(parserSource.split('\n')[8]).toBe("");
+  
+  });
+
+  it("post107: line 9 exact content", () => {
+
+    expect(parserSource.split('\n')[9]).toBe("export function parseM3U(raw: string): Station[] {");
+  
+  });
+
+  it("post107: line 10 exact content", () => {
+
+    expect(parserSource.split('\n')[10]).toBe("  const lines = raw.split('\\n').map((l) => l.trim());");
+  
+  });
+
+  it("post107: line 11 exact content", () => {
+
+    expect(parserSource.split('\n')[11]).toBe("  const stations: Station[] = [];");
+  
+  });
+
+  it("post107: line 12 exact content", () => {
+
+    expect(parserSource.split('\n')[12]).toBe("  const seen = new Set<string>();");
+  
+  });
+
+  it("post107: line 13 exact content", () => {
+
+    expect(parserSource.split('\n')[13]).toBe("");
+  
+  });
+
+  it("post107: line 14 exact content", () => {
+
+    expect(parserSource.split('\n')[14]).toBe("  let current: Partial<Station> = {};");
+  
+  });
+
+  it("post107: line 15 exact content", () => {
+
+    expect(parserSource.split('\n')[15]).toBe("");
+  
+  });
+
+  it("post107: line 16 exact content", () => {
+
+    expect(parserSource.split('\n')[16]).toBe("  for (const line of lines) {");
+  
+  });
+
+  it("post107: line 17 exact content", () => {
+
+    expect(parserSource.split('\n')[17]).toBe("    if (line.startsWith('#EXTINF')) {");
+  
+  });
+
+  it("post107: line 18 exact content", () => {
+
+    expect(parserSource.split('\n')[18]).toBe("      current = {};");
+  
+  });
+
+  it("post107: line 19 exact content", () => {
+
+    expect(parserSource.split('\n')[19]).toBe("");
+  
+  });
+
+  it("post107: line 20 exact content", () => {
+
+    expect(parserSource.split('\n')[20]).toBe("      // Extract tvg-name");
+  
+  });
+
+  it("post107: line 21 exact content", () => {
+
+    expect(parserSource.split('\n')[21]).toBe("      const nameMatch = line.match(/tvg-name=\"([^\"]*)\"/i);");
+  
+  });
+
+  it("post107: line 22 exact content", () => {
+
+    expect(parserSource.split('\n')[22]).toBe("      if (nameMatch) current.name = nameMatch[1];");
+  
+  });
+
+  it("post107: line 23 exact content", () => {
+
+    expect(parserSource.split('\n')[23]).toBe("");
+  
+  });
+
+  it("post107: line 24 exact content", () => {
+
+    expect(parserSource.split('\n')[24]).toBe("      // Extract tvg-logo");
+  
+  });
+
+  it("post107: line 25 exact content", () => {
+
+    expect(parserSource.split('\n')[25]).toBe("      const logoMatch = line.match(/tvg-logo=\"([^\"]*)\"/i);");
+  
+  });
+
+  it("post107: line 26 exact content", () => {
+
+    expect(parserSource.split('\n')[26]).toBe("      if (logoMatch) current.logo = logoMatch[1];");
+  
+  });
+
+  it("post107: line 27 exact content", () => {
+
+    expect(parserSource.split('\n')[27]).toBe("");
+  
+  });
+
+  it("post107: line 28 exact content", () => {
+
+    expect(parserSource.split('\n')[28]).toBe("      // Extract group-title");
+  
+  });
+
+  it("post107: line 29 exact content", () => {
+
+    expect(parserSource.split('\n')[29]).toBe("      const groupMatch = line.match(/group-title=\"([^\"]*)\"/i);");
+  
+  });
+
+  it("post107: line 30 exact content", () => {
+
+    expect(parserSource.split('\n')[30]).toBe("      if (groupMatch) current.group = groupMatch[1];");
+  
+  });
+
+  it("post107: line 31 exact content", () => {
+
+    expect(parserSource.split('\n')[31]).toBe("");
+  
+  });
+
+  it("post107: line 32 exact content", () => {
+
+    expect(parserSource.split('\n')[32]).toBe("      // Extract tvg-language");
+  
+  });
+
+  it("post107: line 33 exact content", () => {
+
+    expect(parserSource.split('\n')[33]).toBe("      const langMatch = line.match(/tvg-language=\"([^\"]*)\"/i);");
+  
+  });
+
+  it("post107: line 34 exact content", () => {
+
+    expect(parserSource.split('\n')[34]).toBe("      if (langMatch) current.language = langMatch[1];");
+  
+  });
+
+  it("post107: line 35 exact content", () => {
+
+    expect(parserSource.split('\n')[35]).toBe("");
+  
+  });
+
+  it("post107: line 36 exact content", () => {
+
+    expect(parserSource.split('\n')[36]).toBe("      // Extract tvg-country");
+  
+  });
+
+  it("post107: line 37 exact content", () => {
+
+    expect(parserSource.split('\n')[37]).toBe("      const countryMatch = line.match(/tvg-country=\"([^\"]*)\"/i);");
+  
+  });
+
+  it("post107: line 38 exact content", () => {
+
+    expect(parserSource.split('\n')[38]).toBe("      if (countryMatch) current.country = countryMatch[1];");
+  
+  });
+
+  it("post107: line 39 exact content", () => {
+
+    expect(parserSource.split('\n')[39]).toBe("");
+  
+  });
+
+  it("post107: line 40 exact content", () => {
+
+    expect(parserSource.split('\n')[40]).toBe("      // Fallback name from the end of the #EXTINF line (after last comma)");
+  
+  });
+
+  it("post107: line 41 exact content", () => {
+
+    expect(parserSource.split('\n')[41]).toBe("      if (!current.name) {");
+  
+  });
+
+  it("post107: line 42 exact content", () => {
+
+    expect(parserSource.split('\n')[42]).toBe("        const commaIdx = line.lastIndexOf(',');");
+  
+  });
+
+  it("post107: line 43 exact content", () => {
+
+    expect(parserSource.split('\n')[43]).toBe("        if (commaIdx !== -1) current.name = line.slice(commaIdx + 1).trim();");
+  
+  });
+
+  it("post107: line 44 exact content", () => {
+
+    expect(parserSource.split('\n')[44]).toBe("      }");
+  
+  });
+
+  it("post107: line 45 exact content", () => {
+
+    expect(parserSource.split('\n')[45]).toBe("    } else if (line.startsWith('http://') || line.startsWith('https://')) {");
+  
+  });
+
+  it("post107: line 46 exact content", () => {
+
+    expect(parserSource.split('\n')[46]).toBe("      if (current.name && !seen.has(line)) {");
+  
+  });
+
+  it("post107: line 47 exact content", () => {
+
+    expect(parserSource.split('\n')[47]).toBe("        seen.add(line);");
+  
+  });
+
+  it("post107: line 48 exact content", () => {
+
+    expect(parserSource.split('\n')[48]).toBe("        stations.push({");
+  
+  });
+
+  it("post107: line 49 exact content", () => {
+
+    expect(parserSource.split('\n')[49]).toBe("          name: current.name,");
+  
+  });
+
+  it("post107: line 50 exact content", () => {
+
+    expect(parserSource.split('\n')[50]).toBe("          url: line,");
+  
+  });
+
+  it("post107: line 51 exact content", () => {
+
+    expect(parserSource.split('\n')[51]).toBe("          logo: current.logo,");
+  
+  });
+
+  it("post107: line 52 exact content", () => {
+
+    expect(parserSource.split('\n')[52]).toBe("          group: current.group,");
+  
+  });
+
+  it("post107: line 53 exact content", () => {
+
+    expect(parserSource.split('\n')[53]).toBe("          language: current.language,");
+  
+  });
+
+  it("post107: line 54 exact content", () => {
+
+    expect(parserSource.split('\n')[54]).toBe("          country: current.country,");
+  
+  });
+
+  it("post107: line 55 exact content", () => {
+
+    expect(parserSource.split('\n')[55]).toBe("        });");
+  
+  });
+
+  it("post107: line 56 exact content", () => {
+
+    expect(parserSource.split('\n')[56]).toBe("      }");
+  
+  });
+
+  it("post107: line 57 exact content", () => {
+
+    expect(parserSource.split('\n')[57]).toBe("      current = {};");
+  
+  });
+
+  it("post107: line 58 exact content", () => {
+
+    expect(parserSource.split('\n')[58]).toBe("    } else if (line && !line.startsWith('#')) {");
+  
+  });
+
+  it("post107: line 59 exact content", () => {
+
+    expect(parserSource.split('\n')[59]).toBe("      // Non-http URL (rtmp://, etc.) — skip but reset current");
+  
+  });
+
+  it("post107: line 60 exact content", () => {
+
+    expect(parserSource.split('\n')[60]).toBe("      current = {};");
+  
+  });
+
+  it("post107: line 61 exact content", () => {
+
+    expect(parserSource.split('\n')[61]).toBe("    }");
+  
+  });
+
+  it("post107: line 62 exact content", () => {
+
+    expect(parserSource.split('\n')[62]).toBe("  }");
+  
+  });
+
+  it("post107: line 63 exact content", () => {
+
+    expect(parserSource.split('\n')[63]).toBe("");
+  
+  });
+
+  it("post107: line 64 exact content", () => {
+
+    expect(parserSource.split('\n')[64]).toBe("  return stations;");
+  
+  });
+
+  it("post107: line 65 exact content", () => {
+
+    expect(parserSource.split('\n')[65]).toBe("}");
+  
+  });
+
+  it("post107: line 66 exact content", () => {
+
+    expect(parserSource.split('\n')[66]).toBe("");
+  
+  });
+
+  it("post107: negative — no Gemini/Hono/MCP/genre product surface", () => {
+
+    expect(parserSource).not.toMatch(
+      /GEMINI|ANTHROPIC|Hono|resolveGenre|GENRE_MAP|MCP_MANIFEST|fetch\(|Request|Response|KVNamespace/,
+    );
+
+  });
+
+  it("post107: negative — no async/await/Promise/Timers", () => {
+
+    expect(parserSource).not.toMatch(/\basync\b|\bawait\b|\bPromise\b|setTimeout|setInterval/);
+
+  });
+
+  it("post107: negative — no Node/fs/path/process/crypto imports", () => {
+
+    expect(parserSource).not.toMatch(/node:|require\(|process\.|fs\.|path\.|crypto/);
+
+  });
+
+  it("post107: negative — no CORS/auth/billing tokens", () => {
+
+    expect(parserSource).not.toMatch(/CORS|Authorization|Bearer|billing|stripe|cloudflare/i);
+
+  });
+
+  it("post107: re-read equals module snapshot", () => {
+
+    expect(readFileSync(join(parserRoot, 'src/parser.ts'), 'utf8')).toBe(parserSource);
+
+  });
+
+  it("post107: unicode normalize forms are identity", () => {
+
+    expect(parserSource.normalize('NFC')).toBe(parserSource);
+    expect(parserSource.normalize('NFD')).toBe(parserSource);
+    expect(parserSource.normalize('NFKC')).toBe(parserSource);
+    expect(parserSource.normalize('NFKD')).toBe(parserSource);
+
+  });
+
+  it("post107: scheme reset recovers after rtmp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rtmp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after rtmps://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rtmps://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after rtsp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rtsp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after rtsps://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rtsps://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after mms://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+mms://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after mmsh://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+mmsh://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after mmst://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+mmst://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after udp://1.2.3.4:5000", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+udp://1.2.3.4:5000
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after rtp://1.2.3.4", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rtp://1.2.3.4
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after sctp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+sctp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after quic://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+quic://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ftp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ftp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ftps://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ftps://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after sftp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+sftp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after scp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+scp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after tftp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+tftp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after smb://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+smb://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after cifs://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+cifs://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after nfs://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+nfs://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after afp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+afp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after gopher://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+gopher://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after nntp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+nntp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after news://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+news://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after imap://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+imap://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after pop://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+pop://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after smtp://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+smtp://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ldap://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ldap://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ldaps://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ldaps://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after dict://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+dict://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after dns://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+dns://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ws://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ws://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after wss://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+wss://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after chrome://settings", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+chrome://settings
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after about:blank", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+about:blank
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after about:config", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+about:config
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after blob:https://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+blob:https://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after filesystem:https://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+filesystem:https://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after data:text/plain_hi", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+data:text/plain,hi
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after magnet:?xt=urn:btih:x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+magnet:?xt=urn:btih:x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ipfs://bafy", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ipfs://bafy
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ipns://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ipns://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after mailto:a@b.c", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+mailto:a@b.c
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after tel:+15551212", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+tel:+15551212
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after sms:+15551212", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+sms:+15551212
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after fax:+1", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+fax:+1
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after intent://scan/#Intent", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+intent://scan/#Intent
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after market://details?id=x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+market://details?id=x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after view-source:https://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+view-source:https://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after file:///etc/passwd", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+file:///etc/passwd
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after javascript:alert_1_", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+javascript:alert(1)
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after vbscript:msgbox", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+vbscript:msgbox
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after steam://run/0", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+steam://run/0
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after discord://-/channels/@me", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+discord://-/channels/@me
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after slack://open", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+slack://open
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after zoommtg://zoom.us/join", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+zoommtg://zoom.us/join
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after spotify:track:x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+spotify:track:x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after itunes://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+itunes://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after svn://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+svn://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after git://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+git://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ssh://user@host", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ssh://user@host
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after telnet://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+telnet://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after rlogin://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+rlogin://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after irc://irc.example/x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+irc://irc.example/x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ircs://irc.example/x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+ircs://irc.example/x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after Cap://x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+Cap://x
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after HTTP://X", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+HTTP://X
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after HTTPS://X", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+HTTPS://X
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after Http://X", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+Http://X
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after Https://X", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+Https://X
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after http:/single", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+http:/single
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after https:/single", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+https:/single
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after http:", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+http:
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after https:", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+https:
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after __server_share", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+\\server\share
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after C:__path__file", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+C:\\path\\file
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ./relative.m3u8", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+./relative.m3u8
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after ../up.m3u8", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+../up.m3u8
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after relative/path.m3u8", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+relative/path.m3u8
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after example.com/no-scheme", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+example.com/no-scheme
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: scheme reset recovers after //example.com/proto-relative", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Bad",Bad
+//example.com/proto-relative
+#EXTINF:-1 tvg-name="Good",Good
+https://good.example/stream.m3u8
+`);
+    expect(stations).toEqual([
+      {
+        name: 'Good',
+        url: 'https://good.example/stream.m3u8',
+        logo: undefined,
+        group: undefined,
+        language: undefined,
+        country: undefined,
+      },
+    ]);
+  
+  });
+
+  it("post107: buildSimpleM3U attr matrix round-trips all optional fields", () => {
+
+    const input = [{"name":"A","logo":"https://cdn/a.png","group":"G","language":"en","country":"US"},{"name":"B","group":"Jazz"},{"name":"C","language":"fr","country":"FR"},{"name":"D","logo":""},{"name":"E","group":"","language":"","country":""},{"name":"F","logo":"https://cdn/f.png","group":"Rock","language":"de","country":"DE"}];
+    const m3u = buildSimpleM3U(input.map((s, i) => ({ ...s, url: `https://m/${i}` })));
+    const stations = parseM3U(m3u);
+    expect(stations).toHaveLength(input.length);
+    for (let i = 0; i < input.length; i++) {
+      expect(stations[i].name).toBe(input[i].name);
+      expect(stations[i].url).toBe(`https://m/${i}`);
+      expect(stations[i].logo).toBe(input[i].logo);
+      expect(stations[i].group).toBe(input[i].group);
+      expect(stations[i].language).toBe(input[i].language);
+      expect(stations[i].country).toBe(input[i].country);
+    }
+    expect(countHttpStreamLines(m3u)).toBe(input.length);
+
+  });
+
+  it("post107: dedupe keeps first across 50 unique then 50 shuffled dupes", () => {
+
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 50; i++) {
+      lines.push(`#EXTINF:-1 tvg-name="U${i}",U${i}`);
+      lines.push(`https://u/${i}`);
+    }
+    const order = [...Array(50).keys()].reverse();
+    for (const i of order) {
+      lines.push(`#EXTINF:-1 tvg-name="D${i}",D${i}`);
+      lines.push(`https://u/${i}`);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(50);
+    expect(stations.map((s) => s.name)).toEqual([...Array(50).keys()].map((i) => `U${i}`));
+
+  });
+
+  it("post107: dedupe is case-sensitive on URL path", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com/Path
+#EXTINF:-1,B
+https://example.com/path
+#EXTINF:-1,C
+https://example.com/PATH
+`);
+    expect(stations.map((s) => s.url)).toEqual([
+      'https://example.com/Path',
+      'https://example.com/path',
+      'https://example.com/PATH',
+    ]);
+
+  });
+
+  it("post107: query param order differences are distinct URLs", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://x?a=1&b=2
+#EXTINF:-1,B
+https://x?b=2&a=1
+`);
+    expect(stations).toHaveLength(2);
+
+  });
+
+  it("post107: fragment differences are distinct URLs", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://x#one
+#EXTINF:-1,B
+https://x#two
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://x#one', 'https://x#two']);
+
+  });
+
+  it("post107: tvg-name with only spaces is truthy and pushes", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="   ",X\nhttps://u\n');
+    expect(s.name).toBe('   ');
+    expect(s.url).toBe('https://u');
+
+  });
+
+  it("post107: empty tvg-name falls back even when other attrs present", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="" tvg-logo="L" group-title="G" tvg-language="en" tvg-country="US",Fallback\nhttps://u\n',
+    );
+    expect(s).toEqual({
+      name: 'Fallback',
+      url: 'https://u',
+      logo: 'L',
+      group: 'G',
+      language: 'en',
+      country: 'US',
+    });
+
+  });
+
+  it("post107: first-wins for all five attrs when each duplicated thrice", () => {
+
+    const line =
+      '#EXTINF:-1 tvg-name="N1" tvg-name="N2" tvg-name="N3" tvg-logo="L1" tvg-logo="L2" tvg-logo="L3" group-title="G1" group-title="G2" group-title="G3" tvg-language="A" tvg-language="B" tvg-language="C" tvg-country="X" tvg-country="Y" tvg-country="Z",Disp';
+    const [s] = parseM3U(`#EXTM3U\n${line}\nhttps://u\n`);
+    expect(s).toEqual({
+      name: 'N1',
+      url: 'https://u',
+      logo: 'L1',
+      group: 'G1',
+      language: 'A',
+      country: 'X',
+    });
+
+  });
+
+  it("post107: attribute values may contain equals and hashes", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A=B#C" tvg-logo="https://cdn/x.png?v=1#frag" group-title="G=1",A=B#C\nhttps://u\n',
+    );
+    expect(s.name).toBe('A=B#C');
+    expect(s.logo).toBe('https://cdn/x.png?v=1#frag');
+    expect(s.group).toBe('G=1');
+
+  });
+
+  it("post107: EXTINF duration scientific notation still extracts attrs", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:1e3 tvg-name="Sci",Sci\nhttps://u\n');
+    expect(s.name).toBe('Sci');
+
+  });
+
+  it("post107: EXTINF with only attrs and no comma uses tvg-name", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1 tvg-name="Only"\nhttps://u\n');
+    expect(s.name).toBe('Only');
+
+  });
+
+  it("post107: multiple blank and comment lines between EXTINF and URL", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Gap",Gap
+
+# PLAYLIST
+#EXTVLCOPT:http-user-agent=x
+
+https://gap
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://gap');
+
+  });
+
+  it("post107: interleaved orphan http URLs do not steal prior names after push", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://a
+https://orphan
+#EXTINF:-1,B
+https://b
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://a', 'https://b']);
+
+  });
+
+  it("post107: SAMPLE_M3U cross-lock names urls groups via parseM3U", () => {
+
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.map((s) => s.name)).toEqual([
+      'Alpha FM',
+      'Beta FM',
+      'Gamma FM',
+      'Delta FM',
+      'Epsilon FM',
+      'Zeta FM',
+    ]);
+    expect(stations.map((s) => s.url)).toEqual([
+      'https://example.com/alpha.m3u8',
+      'https://example.com/beta.m3u8',
+      'https://example.com/gamma.m3u8',
+      'https://example.com/delta.m3u8',
+      'https://example.com/epsilon.m3u8',
+      'https://example.com/zeta.m3u8',
+    ]);
+    expect(stations.every((s) => s.group === 'Music')).toBe(true);
+    expect(stations.every((s) => s.logo === undefined)).toBe(true);
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+
+  });
+
+  it("post107: SAMPLE fixture local SAMPLE length 4 after dedupe", () => {
+
+    const stations = parseM3U(SAMPLE);
+    expect(stations).toHaveLength(4);
+    expect(stations.map((s) => s.url)).toEqual([
+      'https://example.com/drone.m3u8',
+      'https://example.com/jazz.m3u8',
+      'https://example.com/comma-only.m3u8',
+      'http://example.com/news.m3u8',
+    ]);
+
+  });
+
+  it("post107: buildSimpleM3U scale 300 preserves order", () => {
+
+    const input = Array.from({ length: 300 }, (_, i) => ({
+      name: `S${i}`,
+      url: `https://scale/${i}`,
+      group: i % 2 === 0 ? 'Even' : 'Odd',
+    }));
+    const stations = parseM3U(buildSimpleM3U(input));
+    expect(stations).toHaveLength(300);
+    expect(stations[0]).toMatchObject({ name: 'S0', url: 'https://scale/0', group: 'Even' });
+    expect(stations[299]).toMatchObject({ name: 'S299', url: 'https://scale/299', group: 'Odd' });
+    expect(countHttpStreamLines(buildSimpleM3U(input))).toBe(300);
+
+  });
+
+  it("post107: isolation — two parses do not share seen set", () => {
+
+    const a = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://shared\n');
+    const b = parseM3U('#EXTM3U\n#EXTINF:-1,B\nhttps://shared\n');
+    expect(a[0].name).toBe('A');
+    expect(b[0].name).toBe('B');
+
+  });
+
+  it("post107: isolation — mutating returned station does not affect next parse", () => {
+
+    const first = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n');
+    first[0].name = 'mutated';
+    const second = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n');
+    expect(second[0].name).toBe('A');
+
+  });
+
+  it("post107: Object.keys order on station is name url logo group language country", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="N" tvg-logo="L" group-title="G" tvg-language="en" tvg-country="US",N\nhttps://u\n',
+    );
+    expect(Object.keys(s)).toEqual(['name', 'url', 'logo', 'group', 'language', 'country']);
+
+  });
+
+  it("post107: JSON.stringify drops undefined optional fields", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://u\n');
+    expect(JSON.parse(JSON.stringify(s))).toEqual({ name: 'A', url: 'https://u' });
+
+  });
+
+  it("post107: JSON.stringify keeps empty-string optional fields", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1 tvg-name="A" tvg-logo="" group-title="" tvg-language="" tvg-country="",A\nhttps://u\n',
+    );
+    expect(JSON.parse(JSON.stringify(s))).toEqual({
+      name: 'A',
+      url: 'https://u',
+      logo: '',
+      group: '',
+      language: '',
+      country: '',
+    });
+
+  });
+
+  it("post107: preserves ZWJ emoji sequences in names", () => {
+
+    const name = '👨‍👩‍👧‍👦 FM';
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u\n`);
+    expect(s.name).toBe(name);
+
+  });
+
+  it("post107: preserves RTL marks in group-title", () => {
+
+    const group = '\u200Fعربية\u200E';
+    const [s] = parseM3U(
+      `#EXTM3U\n#EXTINF:-1 tvg-name="A" group-title="${group}",A\nhttps://u\n`,
+    );
+    expect(s.group).toBe(group);
+
+  });
+
+  it("post107: preserves soft hyphen and nbsp in display name fallback", () => {
+
+    const name = 'Soft\u00ADHyphen\u00A0Name';
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1,${name}\nhttps://u\n`);
+    expect(s.name).toBe(name);
+
+  });
+
+  it("post107: IPv4 and IPv6 literals both bind as https streams", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,V4
+https://127.0.0.1:8443/live
+#EXTINF:-1,V6
+https://[2001:db8::1]:443/live
+`);
+    expect(stations.map((s) => s.url)).toEqual([
+      'https://127.0.0.1:8443/live',
+      'https://[2001:db8::1]:443/live',
+    ]);
+
+  });
+
+  it("post107: userinfo in URL is preserved", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://user:pass@example.com/x\n');
+    expect(s.url).toBe('https://user:pass@example.com/x');
+
+  });
+
+  it("post107: keeps EXTINF state across tag _EXTGRP_Rock", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXTGRP:Rock
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _EXTVLCOPT_network-caching_1000", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXTVLCOPT:network-caching=1000
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _EXTIMG_https___x", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXTIMG:https://x
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _EXTALB_Album", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXTALB:Album
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _PLAYLIST_Name", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#PLAYLIST:Name
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _EXTM3U", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXTM3U
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag __", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+# 
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: keeps EXTINF state across tag _EXT-X-VERSION_3", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1 tvg-name="Keep",Keep
+#EXT-X-VERSION:3
+https://keep
+`);
+    expect(stations).toHaveLength(1);
+    expect(stations[0].url).toBe('https://keep');
+  
+  });
+
+  it("post107: #extinf lowercase is ignored as non-EXTINF comment-like", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#extinf:-1 tvg-name="Nope",Nope
+https://orphan
+#EXTINF:-1 tvg-name="Yep",Yep
+https://yep
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://yep']);
+
+  });
+
+  it("post107: #EXTINF must be prefix — mid-line ignored", () => {
+
+    const stations = parseM3U(`#EXTM3U
+x#EXTINF:-1 tvg-name="Nope",Nope
+https://orphan
+#EXTINF:-1,Yep
+https://yep
+`);
+    expect(stations.map((s) => s.url)).toEqual(['https://yep']);
+
+  });
+
+  it("post107: mixed LF and CRLF in one playlist", () => {
+
+    const raw = '#EXTM3U\r\n#EXTINF:-1,A\nhttps://a\r\n#EXTINF:-1,B\r\nhttps://b\n';
+    expect(parseM3U(raw).map((s) => s.url)).toEqual(['https://a', 'https://b']);
+
+  });
+
+  it("post107: leading BOM on whole playlist still parses", () => {
+
+    const stations = parseM3U('\uFEFF#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(stations).toHaveLength(1);
+    expect(stations[0].name).toBe('A');
+
+  });
+
+  it("post107: station objects are plain Object prototypes", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Object.getPrototypeOf(s)).toBe(Object.prototype);
+    expect(Object.prototype.toString.call(s)).toBe('[object Object]');
+
+  });
+
+  it("post107: returned array is extensible and not frozen", () => {
+
+    const stations = parseM3U('#EXTM3U\n#EXTINF:-1,A\nhttps://a\n');
+    expect(Object.isExtensible(stations)).toBe(true);
+    expect(Object.isFrozen(stations)).toBe(false);
+    stations.push({
+      name: 'X',
+      url: 'https://x',
+      logo: undefined,
+      group: undefined,
+      language: undefined,
+      country: undefined,
+    });
+    expect(stations).toHaveLength(2);
+
+  });
+
+  it("post107: structuredClone deep-equals stations from SAMPLE_M3U", () => {
+
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(structuredClone(stations)).toEqual(stations);
+
+  });
+
+  it("post107: Array.from copy is shallow-equal on field values", () => {
+
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(Array.from(stations)).toEqual(stations);
+    expect(Array.from(stations)).not.toBe(stations);
+
+  });
+
+  it("post107: alternating 100 reset schemes then 100 good streams", () => {
+
+    const lines = ['#EXTM3U'];
+    for (let i = 0; i < 100; i++) {
+      lines.push(`#EXTINF:-1,Bad${i}`);
+      lines.push(`rtmp://bad/${i}`);
+      lines.push(`#EXTINF:-1,Good${i}`);
+      lines.push(`https://good/${i}`);
+    }
+    const stations = parseM3U(lines.join('\n'));
+    expect(stations).toHaveLength(100);
+    expect(stations.every((s) => s.url.startsWith('https://good/'))).toBe(true);
+
+  });
+
+  it("post107: excessive whitespace between attributes still matches", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1   tvg-name="W"    group-title="G"   ,W\nhttps://u\n',
+    );
+    expect(s.name).toBe('W');
+    expect(s.group).toBe('G');
+
+  });
+
+  it("post107: no space before attribute still matches", () => {
+
+    const [s] = parseM3U(
+      '#EXTM3U\n#EXTINF:-1tvg-name="Glue"group-title="G",Glue\nhttps://u\n',
+    );
+    expect(s.name).toBe('Glue');
+    expect(s.group).toBe('G');
+
+  });
+
+  it("post107: many commas — fallback is after last comma only", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,one,two,three,four\nhttps://u\n');
+    expect(s.name).toBe('four');
+
+  });
+
+  it("post107: comma fallback trims surrounding spaces", () => {
+
+    const [s] = parseM3U('#EXTM3U\n#EXTINF:-1,   Spaced Name   \nhttps://u\n');
+    expect(s.name).toBe('Spaced Name');
+
+  });
+
+  it("post107: trailing comma empty fallback skips push", () => {
+
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,\nhttps://u\n')).toEqual([]);
+
+  });
+
+  it("post107: whitespace-only after comma skips push", () => {
+
+    expect(parseM3U('#EXTM3U\n#EXTINF:-1,   \nhttps://u\n')).toEqual([]);
+
+  });
+
+  it("post107: http and https of identical host+path are distinct", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+http://example.com/x
+#EXTINF:-1,B
+https://example.com/x
+`);
+    expect(stations).toHaveLength(2);
+
+  });
+
+  it("post107: port differences are distinct streams", () => {
+
+    const stations = parseM3U(`#EXTM3U
+#EXTINF:-1,A
+https://example.com:443/x
+#EXTINF:-1,B
+https://example.com:8443/x
+`);
+    expect(stations).toHaveLength(2);
+
+  });
+
+  it("post107: countHttpStreamLines matches parse length for SAMPLE_M3U", () => {
+
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(countHttpStreamLines(SAMPLE_M3U));
+
+  });
+
+  it("post107: countHttpStreamLines overcounts when orphan URLs present", () => {
+
+    const body = '#EXTM3U\nhttps://orphan\n#EXTINF:-1,A\nhttps://a\n';
+    expect(countHttpStreamLines(body)).toBe(2);
+    expect(parseM3U(body)).toHaveLength(1);
+
+  });
+
+  it("post107: buildSimpleM3U empty parses to []", () => {
+
+    expect(parseM3U(buildSimpleM3U([]))).toEqual([]);
+    expect(countHttpStreamLines(buildSimpleM3U([]))).toBe(0);
+
+  });
+
+  it("post107: ignores unsupported attr key tvg_name", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg_name=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key tvgName", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvgName=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key name", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 name=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key title", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 title=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key tvg-id", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-id=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key tvg-chno", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-chno=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key tvg-shift", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-shift=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key radio", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 radio=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key catchup", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 catchup=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key catchup-source", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 catchup-source=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: ignores unsupported attr key http-user-agent", () => {
+
+    const stations = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 http-user-agent=\"Nope\",Fallback\nhttps://u\n",
+    );
+    expect(stations[0].name).toBe('Fallback');
+  
+  });
+
+  it("post107: lang/country pair en/US round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"en\" tvg-country=\"US\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("en");
+    expect(s.country).toBe("US");
+  
+  });
+
+  it("post107: lang/country pair en/GB round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"en\" tvg-country=\"GB\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("en");
+    expect(s.country).toBe("GB");
+  
+  });
+
+  it("post107: lang/country pair fr/FR round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"fr\" tvg-country=\"FR\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("fr");
+    expect(s.country).toBe("FR");
+  
+  });
+
+  it("post107: lang/country pair de/DE round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"de\" tvg-country=\"DE\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("de");
+    expect(s.country).toBe("DE");
+  
+  });
+
+  it("post107: lang/country pair es/ES round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"es\" tvg-country=\"ES\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("es");
+    expect(s.country).toBe("ES");
+  
+  });
+
+  it("post107: lang/country pair pt/BR round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"pt\" tvg-country=\"BR\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("pt");
+    expect(s.country).toBe("BR");
+  
+  });
+
+  it("post107: lang/country pair ja/JP round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"ja\" tvg-country=\"JP\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("ja");
+    expect(s.country).toBe("JP");
+  
+  });
+
+  it("post107: lang/country pair ko/KR round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"ko\" tvg-country=\"KR\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("ko");
+    expect(s.country).toBe("KR");
+  
+  });
+
+  it("post107: lang/country pair zh/CN round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"zh\" tvg-country=\"CN\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("zh");
+    expect(s.country).toBe("CN");
+  
+  });
+
+  it("post107: lang/country pair ar/SA round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"ar\" tvg-country=\"SA\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("ar");
+    expect(s.country).toBe("SA");
+  
+  });
+
+  it("post107: lang/country pair hi/IN round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"hi\" tvg-country=\"IN\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("hi");
+    expect(s.country).toBe("IN");
+  
+  });
+
+  it("post107: lang/country pair ru/RU round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"ru\" tvg-country=\"RU\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("ru");
+    expect(s.country).toBe("RU");
+  
+  });
+
+  it("post107: lang/country pair it/IT round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"it\" tvg-country=\"IT\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("it");
+    expect(s.country).toBe("IT");
+  
+  });
+
+  it("post107: lang/country pair nl/NL round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"nl\" tvg-country=\"NL\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("nl");
+    expect(s.country).toBe("NL");
+  
+  });
+
+  it("post107: lang/country pair sv/SE round-trips", () => {
+
+    const [s] = parseM3U(
+      "#EXTM3U\n#EXTINF:-1 tvg-name=\"X\" tvg-language=\"sv\" tvg-country=\"SE\",X\nhttps://u\n",
+    );
+    expect(s.language).toBe("sv");
+    expect(s.country).toBe("SE");
+  
+  });
+
+  it("post107: group-title Ambient round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Ambient" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Ambient");
+  
+  });
+
+  it("post107: group-title Jazz round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Jazz" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Jazz");
+  
+  });
+
+  it("post107: group-title Classical round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Classical" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Classical");
+  
+  });
+
+  it("post107: group-title Pop round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Pop" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Pop");
+  
+  });
+
+  it("post107: group-title Rock round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Rock" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Rock");
+  
+  });
+
+  it("post107: group-title News round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "News" }]);
+    expect(parseM3U(m3u)[0].group).toBe("News");
+  
+  });
+
+  it("post107: group-title Sports round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Sports" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Sports");
+  
+  });
+
+  it("post107: group-title Talk round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Talk" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Talk");
+  
+  });
+
+  it("post107: group-title Electronic round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "Electronic" }]);
+    expect(parseM3U(m3u)[0].group).toBe("Electronic");
+  
+  });
+
+  it("post107: group-title World round-trips via buildSimpleM3U", () => {
+
+    const m3u = buildSimpleM3U([{ name: 'N', url: 'https://u', group: "World" }]);
+    expect(parseM3U(m3u)[0].group).toBe("World");
+  
+  });
+
+  it("post107: 2k-char path URL preserved", () => {
+
+    const path = 'p'.repeat(2000);
+    const url = `https://example.com/${path}`;
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1,A\n${url}\n`);
+    expect(s.url).toBe(url);
+    expect(s.url.length).toBe(2000 + 'https://example.com/'.length);
+
+  });
+
+  it("post107: 500-char station name preserved", () => {
+
+    const name = 'N'.repeat(500);
+    const [s] = parseM3U(`#EXTM3U\n#EXTINF:-1 tvg-name="${name}",X\nhttps://u\n`);
+    expect(s.name).toBe(name);
+    expect(s.name).toHaveLength(500);
+
+  });
+
+  it("post107: reduce length equals map length for SAMPLE_M3U", () => {
+
+    const stations = parseM3U(SAMPLE_M3U);
+    expect(stations.reduce((n) => n + 1, 0)).toBe(stations.map((s) => s.url).length);
+
+  });
+
+  it("post107: filter https-only keeps all SAMPLE_M3U stations", () => {
+
+    expect(parseM3U(SAMPLE_M3U).filter((s) => s.url.startsWith('https://'))).toHaveLength(6);
+
+  });
+
+  it("post107: filter http-only keeps News Desk from local SAMPLE", () => {
+
+    expect(parseM3U(SAMPLE).filter((s) => s.url.startsWith('http://')).map((s) => s.name)).toEqual([
+      'News Desk',
+    ]);
+
+  });
+
+  it("post107: HMAC-SHA256(post107) of SAMPLE_M3U lock", () => {
+    expect(createHmac('sha256', 'post107').update(SAMPLE_M3U, 'utf8').digest('hex')).toBe(
+      '204cbdf93dc15e484fb8571416a4921aa907bc2edaaf00a0c33c258884df53ac',
+    );
+  });
+});
+
