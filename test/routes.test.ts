@@ -13469,7 +13469,7 @@ describe('post111 routes HEAVY deepen (after #110/#111)', () => {
 
   it('post111: Promise.all parallel /genres share aliases', async () => {
     const results = await Promise.all(
-      Array.from({ length: 8 }, () => app.request('/genres', undefined, testEnv()).then(json)),
+      Array.from({ length: 8 }, async () => json(await app.request('/genres', undefined, testEnv()))),
     );
     for (const body of results) {
       expect(body.aliases).toEqual(GENRE_MAP);
