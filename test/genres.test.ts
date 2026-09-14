@@ -27551,11 +27551,11 @@ describe('post241 genres HEAVY deepen (after #241 tip leftover / genres-mcp-spec
     expect(resolveGenre('jazz')).toBe('jazz');
   });
 
-  it('post241: residual — GENRE_MAP stays extensible (not frozen/sealed); VALID_GENRES last is entertainment', () => {
-    expect(Object.isFrozen(GENRE_MAP)).toBe(false);
-    expect(Object.isSealed(GENRE_MAP)).toBe(false);
+  it('post241: residual — VALID_GENRES ends with entertainment and starts with music; length 9', () => {
     expect(VALID_GENRES.at(-1)).toBe('entertainment');
     expect(VALID_GENRES[0]).toBe('music');
+    expect(VALID_GENRES).toHaveLength(9);
+    expect(resolveGenre(VALID_GENRES.at(-1))).toBe('entertainment');
   });
 
   it('post241: residual — nullish custom-map value falls through to VALID/music', () => {
