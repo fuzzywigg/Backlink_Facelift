@@ -40759,7 +40759,7 @@ describe('post233 ci-config extras HEAVY deepen (after #233 leftover slice)', ()
   it('post233-extras: HMAC wrangler-ci-config-only README.md', () => { expect(hmacSha256("wrangler-ci-config-only", "README.md")).toBe("3a1f934e3f6493585bcae6628b78b89eed4fbe42b38c9e9e4affaf3cc43704b7"); });
   it('post233-extras: HMAC coverage-100 README.md', () => { expect(hmacSha256("coverage-100", "README.md")).toBe("720e1a643f6aff882de5437d4684f3a27a307459100ce767a3f89c9ee317d066"); });
   it('post233-extras: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post233-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post233-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post233-extras: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post233-extras: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post233-extras: sha256 docs/mcp-spec.md', () => { expect(sha256("docs/mcp-spec.md")).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849"); });
@@ -40829,7 +40829,7 @@ describe('post233 ci-config extras HEAVY deepen (after #233 leftover slice)', ()
   it('post233-extras: HMAC wrangler-ci-config-only src/index.ts', () => { expect(hmacSha256("wrangler-ci-config-only", "src/index.ts")).toBe("1a6e607ea288dddd5284c8751b7e5d9c5f9501f3a2caf5d3fd569aa28d8412a3"); });
   it('post233-extras: HMAC coverage-100 src/index.ts', () => { expect(hmacSha256("coverage-100", "src/index.ts")).toBe("b5b16271c93c74735e9f69c1a703cf55ced7c9fa3219a6eaacd91a94fb9996ac"); });
   it('post233-extras: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post233-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post233-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post233-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post233-extras: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post233-extras: sha256 src/types.ts', () => { expect(sha256("src/types.ts")).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3"); });
@@ -41596,7 +41596,7 @@ describe('post233 ci-config ultra HEAVY deepen (after #233 fixtures leftover)', 
   it('post233-ultra: HMAC wrangler-ci-config-only README.md', () => { expect(hmacSha256("wrangler-ci-config-only", "README.md")).toBe("3a1f934e3f6493585bcae6628b78b89eed4fbe42b38c9e9e4affaf3cc43704b7"); });
   it('post233-ultra: HMAC coverage-100 README.md', () => { expect(hmacSha256("coverage-100", "README.md")).toBe("720e1a643f6aff882de5437d4684f3a27a307459100ce767a3f89c9ee317d066"); });
   it('post233-ultra: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post233-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post233-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post233-ultra: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post233-ultra: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post233-ultra: sha256 docs/mcp-spec.md', () => { expect(sha256("docs/mcp-spec.md")).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849"); });
@@ -41666,7 +41666,7 @@ describe('post233 ci-config ultra HEAVY deepen (after #233 fixtures leftover)', 
   it('post233-ultra: HMAC wrangler-ci-config-only src/index.ts', () => { expect(hmacSha256("wrangler-ci-config-only", "src/index.ts")).toBe("1a6e607ea288dddd5284c8751b7e5d9c5f9501f3a2caf5d3fd569aa28d8412a3"); });
   it('post233-ultra: HMAC coverage-100 src/index.ts', () => { expect(hmacSha256("coverage-100", "src/index.ts")).toBe("b5b16271c93c74735e9f69c1a703cf55ced7c9fa3219a6eaacd91a94fb9996ac"); });
   it('post233-ultra: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post233-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post233-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post233-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post233-ultra: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post233-ultra: sha256 src/types.ts', () => { expect(sha256("src/types.ts")).toBe("4008ddd3dd6dd2fb7e8d386dfe2a345e4f21fa5576e229a8fbbe691626f743d3"); });

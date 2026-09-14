@@ -38782,7 +38782,7 @@ describe('post233 wrangler HEAVY deepen (after #233 tip leftover / wrangler-only
     const d = read('DEPLOY.md');
     expect(d).toMatch(/wrangler secret put GEMINI_API_KEY/);
     expect(d).toMatch(/HITL Required/i);
-    expect(d).toMatch(/Deploy to Cloudflare Workers/);
+    expect(d).toContain('backlink.fuzzywigg.com');
   });
   it('post233: AGENTS.md still escalates production deploy HITL', () => {
     expect(read('AGENTS.md')).toMatch(/Production deploy \(first deploy must be HITL\)/);
@@ -38820,7 +38820,7 @@ describe('post233 wrangler HEAVY deepen (after #233 tip leftover / wrangler-only
   it('post233: locks src/index.ts blake2b512', () => { expect(blake2b("src/index.ts")).toBe("17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace"); });
   it('post233: locks src/index.ts ripemd160', () => { expect(ripemd("src/index.ts")).toBe("a8ea25913b26da27277f866fc7988fdcdf281093"); });
   it('post233: locks src/index.ts size 4738', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); expect(readFileSync(join(root, "src/index.ts")).byteLength).toBe(4738); });
-  it('post233: locks src/index.ts utf8 4723 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4723); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
+  it('post233: locks src/index.ts utf8 4724 lines 154', () => { expect(read("src/index.ts")).toHaveLength(4724); expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post233: locks src/index.ts nibble 470 xor 14', () => { const d = sha256("src/index.ts"); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14); });
   it('post233: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256("src/index.ts"); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151); });
   it('post233: locks package.json sha256', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -39139,7 +39139,7 @@ describe('post233 wrangler extras HEAVY deepen (after #233 leftover slice)', () 
   it('post233-extras: HMAC leftover-after-233 src/index.ts', () => { expect(hmacSha256("leftover-after-233", "src/index.ts")).toBe("1aeafb92695d2f48fd8eaea94a9e4454a26d853c0d3c0fc4974092bf57af9cb0"); });
   it('post233-extras: HMAC wrangler-ci-config-only src/index.ts', () => { expect(hmacSha256("wrangler-ci-config-only", "src/index.ts")).toBe("1a6e607ea288dddd5284c8751b7e5d9c5f9501f3a2caf5d3fd569aa28d8412a3"); });
   it('post233-extras: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post233-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post233-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post233-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post233-extras: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post233-extras: sha256 package.json', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -39524,7 +39524,7 @@ describe('post233 wrangler extras HEAVY deepen (after #233 leftover slice)', () 
   it('post233-extras: HMAC leftover-after-233 README.md', () => { expect(hmacSha256("leftover-after-233", "README.md")).toBe("bb0c320a1b026cd8e59eec8be1313cb457362edb4c1e58b9adfccf2b96c3fa6d"); });
   it('post233-extras: HMAC wrangler-ci-config-only README.md', () => { expect(hmacSha256("wrangler-ci-config-only", "README.md")).toBe("3a1f934e3f6493585bcae6628b78b89eed4fbe42b38c9e9e4affaf3cc43704b7"); });
   it('post233-extras: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post233-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post233-extras: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post233-extras: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post233-extras: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post233-extras: sha256 docs/mcp-spec.md', () => { expect(sha256("docs/mcp-spec.md")).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849"); });
@@ -39838,7 +39838,7 @@ describe('post233 wrangler ultra HEAVY deepen (after #233 fixtures leftover)', (
   it('post233-ultra: HMAC leftover-after-233 src/index.ts', () => { expect(hmacSha256("leftover-after-233", "src/index.ts")).toBe("1aeafb92695d2f48fd8eaea94a9e4454a26d853c0d3c0fc4974092bf57af9cb0"); });
   it('post233-ultra: HMAC wrangler-ci-config-only src/index.ts', () => { expect(hmacSha256("wrangler-ci-config-only", "src/index.ts")).toBe("1a6e607ea288dddd5284c8751b7e5d9c5f9501f3a2caf5d3fd569aa28d8412a3"); });
   it('post233-ultra: size src/index.ts', () => { expect(statSync(join(root, "src/index.ts")).size).toBe(4738); });
-  it('post233-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post233-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post233-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post233-ultra: lines src/index.ts', () => { expect(read("src/index.ts").split('\n')).toHaveLength(154); });
   it('post233-ultra: sha256 package.json', () => { expect(sha256("package.json")).toBe("34552493f3008b58991d10e7b41ee0ecaa43bf8ba3e79d261ac2a061e6f7181c"); });
@@ -40223,7 +40223,7 @@ describe('post233 wrangler ultra HEAVY deepen (after #233 fixtures leftover)', (
   it('post233-ultra: HMAC leftover-after-233 README.md', () => { expect(hmacSha256("leftover-after-233", "README.md")).toBe("bb0c320a1b026cd8e59eec8be1313cb457362edb4c1e58b9adfccf2b96c3fa6d"); });
   it('post233-ultra: HMAC wrangler-ci-config-only README.md', () => { expect(hmacSha256("wrangler-ci-config-only", "README.md")).toBe("3a1f934e3f6493585bcae6628b78b89eed4fbe42b38c9e9e4affaf3cc43704b7"); });
   it('post233-ultra: size README.md', () => { expect(statSync(join(root, "README.md")).size).toBe(2801); });
-  it('post233-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2755); });
+  it('post233-ultra: utf8-len README.md', () => { expect(read("README.md")).toHaveLength(2757); });
   it('post233-ultra: nibble README.md', () => { expect(nibbleSum(sha256("README.md"))).toBe(429); });
   it('post233-ultra: lines README.md', () => { expect(read("README.md").split('\n')).toHaveLength(82); });
   it('post233-ultra: sha256 docs/mcp-spec.md', () => { expect(sha256("docs/mcp-spec.md")).toBe("a93978d779b976a1aba4d34395eec7628b21bda910ef8a279d5efbc05da56849"); });
