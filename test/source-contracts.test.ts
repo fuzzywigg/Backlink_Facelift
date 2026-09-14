@@ -6127,7 +6127,7 @@ describe('source ↔ product contracts', () => {
   });
 
   it('post93: locks structuredClone of VALID_GENRES array independent', () => {
-    const clone = structuredClone([...VALID_GENRES]);
+    const clone: string[] = structuredClone([...VALID_GENRES]);
     expect(clone).toEqual([...VALID_GENRES]);
     clone[0] = 'mutated';
     expect(VALID_GENRES[0]).toBe('music');
