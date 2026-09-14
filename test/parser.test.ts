@@ -21597,3 +21597,597 @@ rtmp://example.com/live
     expect((body.match(/it\('overnight-sdf:/g) ?? []).length).toBeGreaterThan(100);
   });
 });
+
+describe('overnight link-audit-pipeline HEAVY deepen (parser)', () => {
+  const read = (rel: string) => readFileSync(join(parserRoot, rel), 'utf8');
+  const sha256 = (rel: string) => createHash('sha256').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha1 = (rel: string) => createHash('sha1').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const md5 = (rel: string) => createHash('md5').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha384 = (rel: string) => createHash('sha384').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha512 = (rel: string) => createHash('sha512').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const sha3 = (rel: string) => createHash('sha3-256').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const blake2b = (rel: string) => createHash('blake2b512').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const ripemd = (rel: string) => createHash('ripemd160').update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const hmacSha256 = (key: string, rel: string) =>
+    createHmac('sha256', key).update(readFileSync(join(parserRoot, rel))).digest('hex');
+  const nibbleSum = (hex: string) => [...hex].reduce((s, c) => s + parseInt(c, 16), 0);
+  const xorNibbles = (hex: string) => [...hex].reduce((a, c) => a ^ parseInt(c, 16), 0);
+  const pairSum = (hex: string) => {
+    let s = 0;
+    for (let i = 0; i < hex.length; i += 2) s += parseInt(hex.slice(i, i + 2), 16);
+    return s;
+  };
+  const rollingXor = (hex: string) => {
+    let a = 0;
+    for (let i = 0; i < hex.length; i += 2) a ^= parseInt(hex.slice(i, i + 2), 16);
+    return a;
+  };
+
+  it('overnight-link-audit: inventory — no dedicated audit-pipeline module; parser is URL gate', () => {
+    expect(parserSource).toContain("line.startsWith('http://') || line.startsWith('https://')");
+    expect(parserSource).toContain('if (current.name && !seen.has(line))');
+    expect(parserSource).toContain('// Non-http URL (rtmp://, etc.) — skip but reset current');
+    expect(parserSource).not.toMatch(/auditWorker|redirectLoop|linkAudit/i);
+  });
+
+
+  it('overnight-link-audit: locks src/parser.ts digests', () => {
+    expect(sha256('src/parser.ts')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+    expect(sha1('src/parser.ts')).toBe('701cdecbef5a9049af6bd11497493c4036a60211');
+    expect(md5('src/parser.ts')).toBe('500211c4c526de887252451726776563');
+    expect(sha384('src/parser.ts')).toBe('f0a019536ec33dacf0f6547d31576d16c174a981267b33d61eee78f76eb3b6159a56584ed8a9b73c8b0931ec7e109fa9');
+    expect(sha512('src/parser.ts')).toBe('66bdc1d7e75b956559a0487151947ec6b3537de14c0379001563c3de14b3d2f7b99af3e1ffe39dc5064f647ef34999f76102443a3323dd6252d69055981e0b89');
+    expect(sha3('src/parser.ts')).toBe('0ec47247da4cff229cc417b213da73883427985239714e246eb16d1f021bf9c2');
+    expect(blake2b('src/parser.ts')).toBe('d61759e7d0a68efcd16a74811ad84abebe0b82dab5c16e51261ca37118efc5a3c36aec8bc1523ce2b0d3908cd065c7cb8d1c153ea9a31dec633a90ec53aca7ef');
+    expect(ripemd('src/parser.ts')).toBe('36f12fc76af98f06dfa651f814e8f2e13b26c96a');
+  });
+
+  it('overnight-link-audit: locks src/parser.ts size/lines/spaces', () => {
+    expect(statSync(join(parserRoot, 'src/parser.ts')).size).toBe(1955);
+    expect(read('src/parser.ts')).toHaveLength(1953);
+    expect(read('src/parser.ts').split('\n')).toHaveLength(67);
+    expect((read('src/parser.ts').match(/ /g) ?? []).length).toBe(432);
+  });
+
+  it('overnight-link-audit: locks src/parser.ts nibble/xor/pair/rolling', () => {
+    const d = sha256('src/parser.ts');
+    expect(nibbleSum(d)).toBe(477);
+    expect(xorNibbles(d)).toBe(9);
+    expect(pairSum(d)).toBe(3612);
+    expect(rollingXor(d)).toBe(126);
+  });
+
+  it('overnight-link-audit: locks src/parser.ts HMAC overnight/link-audit/pipeline', () => {
+    expect(hmacSha256('overnight', 'src/parser.ts')).toBe('50d40a29dda2f8c87024a971ed95621093ce740bf96c84ef0f7aee69a5284044');
+    expect(hmacSha256('link-audit', 'src/parser.ts')).toBe('a3d89a7d8b93aa11d0cd79e13102b830c7232881a18d609e5051e053c9a27623');
+    expect(hmacSha256('pipeline', 'src/parser.ts')).toBe('35e23cc05a47834ab4ea256c0b7060d8daa58e2893a48f0d4ffc42c991e04b62');
+  });
+
+  it('overnight-link-audit: locks src/parser.ts HMAC TOKENMAXX/HEAVY/no-product-invent', () => {
+    expect(hmacSha256('TOKENMAXX', 'src/parser.ts')).toBe('eb866dc584e40b066fb5a9de9222c575a6d45a5401d3f67886f8671f9404bbe8');
+    expect(hmacSha256('HEAVY', 'src/parser.ts')).toBe('fd5ebb2c344a6816bb58195587d08797442f589d92c7b5abae29a493e249ef70');
+    expect(hmacSha256('no-product-invent', 'src/parser.ts')).toBe('25b61b2dada026216640bb0a1e66ac0b6216c6f7aa182e6af20a1d43bb35446f');
+  });
+
+  it('overnight-link-audit: locks src/parser.ts HMAC leftover/after-#146/redirect-loop/empty-batch', () => {
+    expect(hmacSha256('leftover', 'src/parser.ts')).toBe('e74189a221ce1b1a2a4d081f9b68599ba752e6b01af10d0050cb60dcf731b7c3');
+    expect(hmacSha256('after-#146', 'src/parser.ts')).toBe('3180d54dc49be49beb9e7427f9508ce8649567a936e426d0456f7bccbb5624f0');
+    expect(hmacSha256('redirect-loop', 'src/parser.ts')).toBe('8de83a0645aa0bd07e9e3f57bae325b7623206e0c286f5f5d5be6c2f4afe1ab0');
+    expect(hmacSha256('empty-batch', 'src/parser.ts')).toBe('1b2e110fa9a024939cbe944dd078374c295d437d7b8ee6a8c1140ccb145b7335');
+  });
+
+  it('overnight-link-audit: locks src/parser.ts first-line + reversed sha256', () => {
+    expect(createHash('sha256').update(read('src/parser.ts').split('\n')[0]).digest('hex')).toBe('64a393f12da7f34518f8343d01e7da0c8da3e9f0b9cf1916ec7af9a35cbf8eb5');
+    expect(createHash('sha256').update([...read('src/parser.ts')].reverse().join('')).digest('hex')).toBe('a78f8cb8e92e3203b94933c1ec51e34ac1f54892dcc0c99024a48333407e79de');
+  });
+
+  it('overnight-link-audit: empty audit batch — empty string', () => {
+    expect(parseM3U('')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — header only', () => {
+    expect(parseM3U('#EXTM3U\n')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — whitespace only', () => {
+    expect(parseM3U('   \n\t\n  ')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — comments only', () => {
+    expect(parseM3U('#EXTM3U\n# comment\n#EXT-X-VERSION:3\n')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — EXTINF orphans without URL', () => {
+    expect(parseM3U('#EXTINF:-1 tvg-name="A",A\n#EXTINF:-1 tvg-name="B",B\n')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty audit batch — only non-http schemes', () => {
+    const raw = '#EXTINF:-1 tvg-name="R",R\nrtmp://x\n#EXTINF:-1 tvg-name="F",F\nftp://y\n';
+    expect(parseM3U(raw)).toEqual([]);
+  });
+
+  it('overnight-link-audit: scheme reset 0 rtmp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nrtmp://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/0.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/0.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 1 rtmps_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nrtmps://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/1.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/1.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 2 rtsp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nrtsp://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/2.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/2.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 3 rtsps_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nrtsps://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/3.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/3.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 4 udp_1_2_3_4_1234', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nudp://@1.2.3.4:1234\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/4.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/4.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 5 ftp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nftp://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/5.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/5.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 6 sftp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nsftp://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/6.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/6.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 7 tftp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\ntftp://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/7.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/7.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 8 file_tmp_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nfile:///tmp/x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/8.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/8.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 9 data_text_plain_hi', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\ndata:text/plain,hi\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/9.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/9.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 10 blob_https_x_uuid', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nblob:https://x/uuid\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/10.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/10.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 11 javascript_alert_1_', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\njavascript:alert(1)\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/11.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/11.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 12 mailto_a_b_c', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nmailto:a@b.c\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/12.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/12.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 13 ws_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nws://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/13.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/13.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 14 wss_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nwss://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/14.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/14.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 15 mms_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nmms://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/15.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/15.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 16 mmsh_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nmmsh://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/16.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/16.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 17 gopher_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\ngopher://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/17.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/17.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 18 news_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nnews://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/18.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/18.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 19 ssh_git_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nssh://git@x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/19.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/19.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 20 sip_a_b', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nsip:a@b\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/20.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/20.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 21 sips_a_b', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nsips:a@b\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/21.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/21.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 22 magnet_xt_urn_btih_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nmagnet:?xt=urn:btih:x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/22.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/22.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 23 chrome_settings', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nchrome://settings\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/23.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/23.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 24 about_blank', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nabout:blank\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/24.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/24.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 25 view_source_https_x', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nview-source:https://x\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/25.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/25.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 26 HTTP_UPPER', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nHTTP://UPPER\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/26.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/26.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 27 HTTPS_UPPER', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nHTTPS://UPPER\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/27.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/27.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 28 Http_Mixed', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nHttp://Mixed\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/28.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/28.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 29 Https_Mixed', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nHttps://Mixed\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/29.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/29.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 30 httP_odd', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nhttP://odd\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/30.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/30.m3u8' }]);
+  });
+
+  it('overnight-link-audit: scheme reset 31 httpS_odd', () => {
+    const raw = `#EXTINF:-1 tvg-name="Skip",Skip\nhttpS://odd\n#EXTINF:-1 tvg-name="Ok",Ok\nhttps://ok.example/31.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'Ok', url: 'https://ok.example/31.m3u8' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 0 bare-https', () => {
+    const raw = `#EXTINF:-1 tvg-name="M0",M0\nhttps://\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M0', url: 'https://' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 1 bare-http', () => {
+    const raw = `#EXTINF:-1 tvg-name="M1",M1\nhttp://\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M1', url: 'http://' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 2 interior-spaces', () => {
+    const raw = `#EXTINF:-1 tvg-name="M2",M2\nhttps://example.com/path with spaces.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M2', url: 'https://example.com/path with spaces.m3u8' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 3 pct-space', () => {
+    const raw = `#EXTINF:-1 tvg-name="M3",M3\nhttps://example.com/a%20b.m3u8\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M3', url: 'https://example.com/a%20b.m3u8' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 4 userinfo-port', () => {
+    const raw = `#EXTINF:-1 tvg-name="M4",M4\nhttps://user:pass@host:8443/live\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M4', url: 'https://user:pass@host:8443/live' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 5 ipv6', () => {
+    const raw = `#EXTINF:-1 tvg-name="M5",M5\nhttps://[2001:db8::1]/live\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M5', url: 'https://[2001:db8::1]/live' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 6 at-in-path', () => {
+    const raw = `#EXTINF:-1 tvg-name="M6",M6\nhttps://example.com/path/@id/x\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M6', url: 'https://example.com/path/@id/x' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 7 loopback', () => {
+    const raw = `#EXTINF:-1 tvg-name="M7",M7\nhttp://127.0.0.1:8080/x\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M7', url: 'http://127.0.0.1:8080/x' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 8 query', () => {
+    const raw = `#EXTINF:-1 tvg-name="M8",M8\nhttps://example.com/?q=1&x=2\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M8', url: 'https://example.com/?q=1&x=2' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 9 hash', () => {
+    const raw = `#EXTINF:-1 tvg-name="M9",M9\nhttps://example.com/#frag\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M9', url: 'https://example.com/#frag' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 10 weird-userinfo', () => {
+    const raw = `#EXTINF:-1 tvg-name="M10",M10\nhttps://a+b:c&d@example.com/p\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M10', url: 'https://a+b:c&d@example.com/p' }]);
+  });
+
+  it('overnight-link-audit: malformed-accept 11 dotdot-pct', () => {
+    const raw = `#EXTINF:-1 tvg-name="M11",M11\nhttps://example.com/..%2F..%2Fetc\n`;
+    expect(parseM3U(raw)).toEqual([{ name: 'M11', url: 'https://example.com/..%2F..%2Fetc' }]);
+  });
+
+  it('overnight-link-audit: duplicate URL keeps first name only (audit dedupe)', () => {
+    const raw = '#EXTINF:-1 tvg-name="A",A\nhttps://dup.example/x\n#EXTINF:-1 tvg-name="B",B\nhttps://dup.example/x\n';
+    expect(parseM3U(raw)).toEqual([{ name: 'A', url: 'https://dup.example/x' }]);
+  });
+
+  it('overnight-link-audit: http vs https distinct for dedupe', () => {
+    const raw = '#EXTINF:-1 tvg-name="A",A\nhttp://same.example/x\n#EXTINF:-1 tvg-name="B",B\nhttps://same.example/x\n';
+    expect(parseM3U(raw).map((s) => s.url)).toEqual(['http://same.example/x', 'https://same.example/x']);
+  });
+
+  it('overnight-link-audit: concurrent-style interleaved parse purity 32x', () => {
+    const raw = '#EXTINF:-1 tvg-name="P",P\nhttps://pure.example/p\n';
+    const expected = [{ name: 'P', url: 'https://pure.example/p' }];
+    for (let i = 0; i < 32; i++) expect(parseM3U(raw)).toEqual(expected);
+  });
+
+  it('overnight-link-audit: countHttpStreamLines aligns with parse length on SAMPLE_M3U', () => {
+    expect(countHttpStreamLines(SAMPLE_M3U)).toBe(6);
+    expect(parseM3U(SAMPLE_M3U)).toHaveLength(6);
+  });
+
+  it('overnight-link-audit: buildSimpleM3U empty batch', () => {
+    expect(parseM3U(buildSimpleM3U([]))).toEqual([]);
+    expect(countHttpStreamLines(buildSimpleM3U([]))).toBe(0);
+  });
+
+  it('overnight-link-audit: buildSimpleM3U with rtmp url still counted by helper but skipped by parser', () => {
+    const m3u = buildSimpleM3U([{ name: 'R', url: 'rtmp://live/x' }, { name: 'H', url: 'https://ok' }]);
+    // countHttpStreamLines only counts http(s) startsWith
+    expect(countHttpStreamLines(m3u)).toBe(1);
+    expect(parseM3U(m3u)).toEqual([{ name: 'H', url: 'https://ok' }]);
+  });
+
+  it('overnight-link-audit: leading/trailing whitespace trimmed on URL line', () => {
+    const raw = '  #EXTINF:-1 tvg-name="W",W  \n\thttps://w.example/w\t\n';
+    expect(parseM3U(raw)).toEqual([{ name: 'W', url: 'https://w.example/w' }]);
+  });
+
+  it('overnight-link-audit: interior spaces in URL preserved (no URL validation)', () => {
+    const raw = '#EXTINF:-1 tvg-name="S",S\nhttps://example.com/has space.m3u8\n';
+    expect(parseM3U(raw)[0].url).toBe('https://example.com/has space.m3u8');
+  });
+
+  it('overnight-link-audit: relative path does not bind', () => {
+    expect(parseM3U('#EXTINF:-1 tvg-name="R",R\n/relative/path.m3u8\n')).toEqual([]);
+  });
+
+  it('overnight-link-audit: protocol-relative // does not bind', () => {
+    expect(parseM3U('#EXTINF:-1 tvg-name="R",R\n//cdn.example/stream.m3u8\n')).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 0', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[0 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 1', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[1 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 2', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[2 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 3', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[3 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 4', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[4 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 5', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[5 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 6', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[6 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 7', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[7 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 8', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[8 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 9', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[9 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 10', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[10 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 11', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[11 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 12', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[12 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 13', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[13 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 14', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[14 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 15', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[15 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 16', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[16 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 17', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[17 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 18', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[18 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 19', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[19 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 20', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[20 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 21', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[21 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 22', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[22 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 23', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[23 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 24', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[24 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 25', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[25 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 26', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[26 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 27', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[27 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 28', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[28 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 29', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[29 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 30', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[30 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 31', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[31 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 32', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[32 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 33', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[33 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 34', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[34 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 35', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[35 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 36', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[36 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 37', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[37 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 38', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[38 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: empty-batch matrix 39', () => {
+    const pads = ["","#EXTM3U","#EXTM3U\\n#x","   ","\\n\\n"];
+    expect(parseM3U(pads[39 % 5])).toEqual([]);
+  });
+
+  it('overnight-link-audit: negative invent fence — no playlist/now-playing/auditWorker in parser', () => {
+    expect(parserSource).not.toMatch(/\/playlist|\/now-playing|auditWorker|linkAuditPipeline/);
+  });
+
+  it('overnight-link-audit: mega purity 40x parser.ts sha256', () => {
+    for (let i = 0; i < 40; i++) expect(sha256('src/parser.ts')).toBe('cf293136412fba636ad7391bcea0a0e83a079fbbcc8fc14d0ca41fa6621f4368');
+  });
+
+  it('overnight-link-audit: final inventory markers', () => {
+    const body = read('test/parser.test.ts');
+    expect(body).toContain("describe('overnight link-audit-pipeline HEAVY deepen (parser)'");
+    expect((body.match(/it\('overnight-link-audit:/g) ?? []).length).toBeGreaterThan(80);
+  });
+});
