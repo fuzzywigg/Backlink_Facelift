@@ -27004,9 +27004,11 @@ describe('post186 ci-config HEAVY deepen (after #186 tip leftover / not wrangler
     expect(agents).toContain('npm run test:coverage');
   });
 
-  it('post186: hygiene forbids inventing pull_request_target on CI/deploy', () => {
-    expect(read('.github/workflows/ci.yml')).not.toMatch(/pull_request_target/);
-    expect(read('.github/workflows/deploy.yml')).not.toMatch(/pull_request_target/);
+  it('post186: hygiene forbids inventing pull_request_target trigger on CI/deploy', () => {
+    // Comment mentions are allowed (ci hygiene documents the forbid); bare trigger keys are not.
+    expect(read('.github/workflows/ci.yml')).not.toMatch(/^\s*pull_request_target\s*:/m);
+    expect(read('.github/workflows/deploy.yml')).not.toMatch(/^\s*pull_request_target\s*:/m);
+    expect(read('.github/workflows/ci.yml')).toContain('pull_request_target'); // documented forbid
   });
 
   it('post186: package-lock lockfileVersion stays 3', () => {
@@ -27232,7 +27234,7 @@ describe('post186 ci-config HEAVY deepen (after #186 tip leftover / not wrangler
   it('post186: locks README.md blake2b512', () => { expect(blake2b('README.md')).toBe('b0dd4414083fb8b70c8d61ce20a29a344e35eb41a9812c704f2cd27b131d89155ddd6a9534c7105a3d45bf117ca967adbcd7ea38d06a0ceaaf711cfa46ed8167') });
   it('post186: locks README.md ripemd160', () => { expect(ripemd('README.md')).toBe('7ca15419150a224242d22a61bd3585c51b5af14d') });
   it('post186: locks README.md size 2801', () => { expect(statSync(join(root, 'README.md')).size).toBe(2801); expect(readFileSync(join(root, 'README.md')).byteLength).toBe(2801) });
-  it('post186: locks README.md utf8 2755 lines 82', () => { expect(read('README.md')).toHaveLength(2755); expect(read('README.md').split('\n')).toHaveLength(82) });
+  it('post186: locks README.md utf8 2757 lines 82', () => { expect(read('README.md')).toHaveLength(2757); expect(read('README.md').split('\n')).toHaveLength(82) });
   it('post186: locks README.md nibble 429 xor 13', () => { const d = sha256('README.md'); expect(nibbleSum(d)).toBe(429); expect(xorNibbles(d)).toBe(13) });
   it('post186: locks README.md pairSum 4164 rollingXor 88', () => { const d = sha256('README.md'); expect(pairSum(d)).toBe(4164); expect(rollingXor(d)).toBe(88) });
   it('post186: locks README.md first/last/mid octets', () => { const d = sha256('README.md'); expect(d.slice(0, 2)).toBe('f7'); expect(d.slice(-2)).toBe('87'); expect(d.slice(28, 36)).toBe('368a10ca') });
@@ -27337,7 +27339,7 @@ describe('post186 ci-config HEAVY deepen (after #186 tip leftover / not wrangler
   it('post186: locks src/index.ts blake2b512', () => { expect(blake2b('src/index.ts')).toBe('17bccc5865d7d993ff97e58ce699f0a3f7fd4aa6270d29bcb2cccaee3b0a48dd7b118625848275aab8adfa6efdc23a8a3ddb359f9addfcf6552c15fe4be1dace') });
   it('post186: locks src/index.ts ripemd160', () => { expect(ripemd('src/index.ts')).toBe('a8ea25913b26da27277f866fc7988fdcdf281093') });
   it('post186: locks src/index.ts size 4738', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738); expect(readFileSync(join(root, 'src/index.ts')).byteLength).toBe(4738) });
-  it('post186: locks src/index.ts utf8 4723 lines 154', () => { expect(read('src/index.ts')).toHaveLength(4723); expect(read('src/index.ts').split('\n')).toHaveLength(154) });
+  it('post186: locks src/index.ts utf8 4724 lines 154', () => { expect(read('src/index.ts')).toHaveLength(4724); expect(read('src/index.ts').split('\n')).toHaveLength(154) });
   it('post186: locks src/index.ts nibble 470 xor 14', () => { const d = sha256('src/index.ts'); expect(nibbleSum(d)).toBe(470); expect(xorNibbles(d)).toBe(14) });
   it('post186: locks src/index.ts pairSum 4265 rollingXor 151', () => { const d = sha256('src/index.ts'); expect(pairSum(d)).toBe(4265); expect(rollingXor(d)).toBe(151) });
   it('post186: locks src/index.ts first/last/mid octets', () => { const d = sha256('src/index.ts'); expect(d.slice(0, 2)).toBe('7f'); expect(d.slice(-2)).toBe('72'); expect(d.slice(28, 36)).toBe('e2a20389') });
@@ -27857,7 +27859,7 @@ describe('post186 ci-config extras HEAVY deepen (after #186 leftover slice)', ()
   it('post186-extras: HMAC upload-artifact-v4 README.md', () => { expect(hmacSha256('upload-artifact-v4', 'README.md')).toBe('5d7d0f716f048b9104848aa8c66e5f5513aca84f960abb346ad8504e4e024e26') });
   it('post186-extras: HMAC do-not-merge README.md', () => { expect(hmacSha256('do-not-merge', 'README.md')).toBe('ba24364d1876d6c84e85867d857231fd128ff256b4187991dbf8869882edba7d') });
   it('post186-extras: size README.md', () => { expect(statSync(join(root, 'README.md')).size).toBe(2801) });
-  it('post186-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2755) });
+  it('post186-extras: utf8-len README.md', () => { expect(read('README.md')).toHaveLength(2757) });
   it('post186-extras: nibble README.md', () => { expect(nibbleSum(sha256('README.md'))).toBe(429) });
   it('post186-extras: HMAC post186 .cursor/environment.json', () => { expect(hmacSha256('post186', '.cursor/environment.json')).toBe('f7ab4f80b15c6e040d8d6e47d17637a53497f3fe932081d50a5d48bf936f9a8f') });
   it('post186-extras: HMAC after-#186 .cursor/environment.json', () => { expect(hmacSha256('after-#186', '.cursor/environment.json')).toBe('d75e12a657aa96d3c376a1dbfa6df212a87d6b0b6835a089f5066c5bc9ce4deb') });
@@ -28022,7 +28024,7 @@ describe('post186 ci-config extras HEAVY deepen (after #186 leftover slice)', ()
   it('post186-extras: HMAC upload-artifact-v4 src/index.ts', () => { expect(hmacSha256('upload-artifact-v4', 'src/index.ts')).toBe('2487af197e34a69d245fb04957bbaeeba467bffdcb831481525b61f96b4856d0') });
   it('post186-extras: HMAC do-not-merge src/index.ts', () => { expect(hmacSha256('do-not-merge', 'src/index.ts')).toBe('c095cf09b59065b7c44ba96b640f72dacf5e82707c101d9b4ffd02573dfbac7d') });
   it('post186-extras: size src/index.ts', () => { expect(statSync(join(root, 'src/index.ts')).size).toBe(4738) });
-  it('post186-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723) });
+  it('post186-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724) });
   it('post186-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470) });
   it('post186-extras: HMAC post186 src/types.ts', () => { expect(hmacSha256('post186', 'src/types.ts')).toBe('b124486c4130b7465708ea7f9228c015c85c35ea61ad8b33ffe746eb7b350042') });
   it('post186-extras: HMAC after-#186 src/types.ts', () => { expect(hmacSha256('after-#186', 'src/types.ts')).toBe('7c9f19ad3225f89c1e0380d5987650b994cfe999486dd23816a68ad78ea5e227') });
