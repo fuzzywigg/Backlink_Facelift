@@ -25284,7 +25284,7 @@ describe('post191 source-contracts HEAVY deepen (after #191 tip leftover / not c
 
   it('post191: inventory — source-contracts leftover after #191 tip (NOT ci-config / NOT mcp+genres / NOT wrangler)', () => {
     expect(read('src/index.ts')).toMatch(/gemini-2\.0-flash/);
-    expect(read('test/ci-config.test.ts')).toContain("describe('post186 ci-config HEAVY deepen");
+    expect(read('test/ci-config.test.ts')).toContain(['describe(', "'post186 ci-config HEAVY deepen"].join(''));
     expect(read('test/source-contracts.test.ts')).toContain("describe('post191 source-contracts HEAVY deepen");
     expect(read('test/source-contracts.test.ts').includes(['describe(', "'post191 ci-config"].join(''))).toBe(false);
     expect(read('test/source-contracts.test.ts').includes(['describe(', "'post191 mcp"].join(''))).toBe(false);

@@ -20445,7 +20445,7 @@ describe('post191 helpers HEAVY deepen (after #191 tip leftover / not ci-config 
 
   it('post191: inventory — helpers leftover after #191 tip (NOT ci-config / NOT mcp+genres / NOT wrangler)', () => {
     expect(read('test/helpers.ts')).toMatch(/export function (mockKV|testEnv|stubIptvAndGemini|buildSimpleM3U)/);
-    expect(read('test/ci-config.test.ts')).toContain("describe('post186 ci-config HEAVY deepen");
+    expect(read('test/ci-config.test.ts')).toContain(['describe(', "'post186 ci-config HEAVY deepen"].join(''));
     expect(read('test/helpers.test.ts')).toContain("describe('post191 helpers HEAVY deepen");
     expect(read('test/helpers.test.ts').includes(['describe(', "'post191 ci-config"].join(''))).toBe(false);
     expect(read('test/helpers.test.ts').includes(['describe(', "'post191 mcp"].join(''))).toBe(false);
