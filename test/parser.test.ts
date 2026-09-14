@@ -47433,7 +47433,7 @@ https://example.com/comma-in-name291.m3u8
   it('post291: HMAC wave7-leftover src/parser.ts', () => { expect(hmacSha256("wave7-leftover", "src/parser.ts")).toBe("cbd71dada5bce53ecaaaf6866e40c30b9857f5deb6cfb79e5bb6d1760c1e092e"); });
   it('post291: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post291: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post291: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post291: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post291: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post291: sha1 src/index.ts', () => { expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b"); });
   it('post291: md5 src/index.ts', () => { expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177"); });
@@ -47685,7 +47685,7 @@ describe('post291 parser extras HEAVY deepen (after #291 leftover / tip-relaunch
   it('post291-extras: HMAC wave7-leftover src/parser.ts', () => { expect(hmacSha256("wave7-leftover", "src/parser.ts")).toBe("cbd71dada5bce53ecaaaf6866e40c30b9857f5deb6cfb79e5bb6d1760c1e092e"); });
   it('post291-extras: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post291-extras: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post291-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post291-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post291-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post291-extras: HMAC post291 src/index.ts', () => { expect(hmacSha256("post291", "src/index.ts")).toBe("75bedcb0f1097ae5deec44a5f721d2b2edcab8554df32296098535eda2019309"); });
   it('post291-extras: HMAC after-#291 src/index.ts', () => { expect(hmacSha256("after-#291", "src/index.ts")).toBe("0862676ec31cc9342305043a6a8f550c674f4ecb6c9b5ae90da012c94fc16588"); });
@@ -48044,7 +48044,7 @@ describe('post291 parser ultra HEAVY deepen (after #291 residual tip-relaunch le
   it('post291-ultra: HMAC wave7-leftover src/parser.ts', () => { expect(hmacSha256("wave7-leftover", "src/parser.ts")).toBe("cbd71dada5bce53ecaaaf6866e40c30b9857f5deb6cfb79e5bb6d1760c1e092e"); });
   it('post291-ultra: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post291-ultra: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post291-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post291-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post291-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post291-ultra: sha1 src/index.ts', () => { expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b"); });
   it('post291-ultra: md5 src/index.ts', () => { expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177"); });
