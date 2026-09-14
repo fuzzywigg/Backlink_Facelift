@@ -32427,7 +32427,7 @@ describe('post220 source-contracts HEAVY deepen (after #220 tip leftover / helpe
   it('post220: leftover — cors wildcard middleware wired before routes', () => {
     const index = read('src/index.ts');
     expect(index).toContain("app.use('*', cors())");
-    expect(index.indexOf("app.use('*', cors())")).toBeLessThan(index.indexOf("app.get('/')"));
+    expect(index.indexOf("app.use('*', cors())")).toBeLessThan(index.indexOf("app.get('/', (c)"));
   });
 
   it('post220: leftover — /curate resolveGenre(genreParam ?? mood)', () => {
