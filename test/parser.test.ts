@@ -54219,7 +54219,7 @@ https://example.com/comma-in-name330.m3u8
   it('post330: HMAC wave11-leftover src/parser.ts', () => { expect(hmacSha256('wave11-leftover', 'src/parser.ts')).toBe('85585ef267d0bba9126f458478b55af5a7a993b59816a74b00c5dc199f890958'); });
   it('post330: sha256 src/index.ts', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
   it('post330: size src/index.ts', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size).toBe(4738); });
-  it('post330: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post330: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post330: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post330: sha1 src/index.ts', () => { expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b'); });
   it('post330: md5 src/index.ts', () => { expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177'); });
@@ -54474,7 +54474,7 @@ describe('post330 parser extras HEAVY deepen (after #330 leftover / tip-relaunch
   it('post330-extras: HMAC wave11-leftover src/parser.ts', () => { expect(hmacSha256('wave11-leftover', 'src/parser.ts')).toBe('85585ef267d0bba9126f458478b55af5a7a993b59816a74b00c5dc199f890958'); });
   it('post330-extras: sha256 src/index.ts', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
   it('post330-extras: size src/index.ts', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size).toBe(4738); });
-  it('post330-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post330-extras: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post330-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post330-extras: HMAC post330 src/index.ts', () => { expect(hmacSha256('post330', 'src/index.ts')).toBe('27a0b85edcce27e1e3a45dd17e34af60979ccadf8526e348a621d1df4a96bf81'); });
   it('post330-extras: HMAC tip-efe7643 src/index.ts', () => { expect(hmacSha256('tip-efe7643', 'src/index.ts')).toBe('9ce119082f26f926a7ff8f9aef3c5246e4a6a423a6ed906a7dfd9d4ed9ffd33b'); });
@@ -55161,7 +55161,7 @@ describe('post330 parser ultra HEAVY deepen (after #330 residual tip-relaunch le
   it('post330-ultra: HMAC wave11-leftover src/parser.ts', () => { expect(hmacSha256('wave11-leftover', 'src/parser.ts')).toBe('85585ef267d0bba9126f458478b55af5a7a993b59816a74b00c5dc199f890958'); });
   it('post330-ultra: sha256 src/index.ts', () => { expect(sha256('src/index.ts')).toBe('7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72'); });
   it('post330-ultra: size src/index.ts', () => { expect(statSync(join(parserRoot, 'src/index.ts')).size).toBe(4738); });
-  it('post330-ultra: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4723); });
+  it('post330-ultra: utf8-len src/index.ts', () => { expect(read('src/index.ts')).toHaveLength(4724); });
   it('post330-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256('src/index.ts'))).toBe(470); });
   it('post330-ultra: sha1 src/index.ts', () => { expect(sha1('src/index.ts')).toBe('88b9273a584ce23d1da7ca8a147fee7faeee640b'); });
   it('post330-ultra: md5 src/index.ts', () => { expect(md5('src/index.ts')).toBe('8c9cdb320becf0effa2d8027b66a2177'); });
