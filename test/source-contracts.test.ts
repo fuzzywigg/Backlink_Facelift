@@ -48012,7 +48012,7 @@ describe('post293 source-contracts HEAVY deepen (after tip #293 leftover / tip-r
     expect(helpers).not.toMatch(/anthropic|claude|haiku/i);
   });
 
-  it('post293: leftover — tip markers after #290/#291/#292/#293/#295/#296 present in helpers+source suites', () => {
+  it('post293: leftover — tip markers after #290/#291/#292/#293/#295/#296/#297 present in helpers+source suites', () => {
     const helpers = read('test/helpers.test.ts');
     const source = read('test/source-contracts.test.ts');
     expect(helpers).toContain('helpers-source-merged-293');
