@@ -43918,7 +43918,7 @@ describe('post325 helpers HEAVY deepen (after tip #325 leftover / tip-relaunch-2
     expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post311 source-contracts HEAVY deepen"].join(''));
     expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post299 source-contracts HEAVY deepen"].join(''));
     expect(read('test/source-contracts.test.ts')).toContain(['describe(', "'post286 source-contracts HEAVY deepen"].join(''));
-    expect(read('test/genres.test.ts')).toContain(['describe(', "'post286 genres HEAVY deepen"].join(''));
+    expect(read('test/genres.test.ts')).toContain(['describe(', "'post311 genres HEAVY deepen"].join(''));
     expect(read('test/helpers.test.ts')).toContain('helpers-source-only');
     expect(read('test/helpers.test.ts')).toContain('tip-relaunch-2026-09-15-post325');
     expect(read('test/helpers.test.ts')).toContain('tip-caac298');
