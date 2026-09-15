@@ -50139,7 +50139,7 @@ https://example.com/ok-crewaiops-311.m3u8
     const stations = parseM3U(`#EXTM3U
 #EXTINF:-1 tvg-name="flowiseops311",flowiseops311
 flowiseops://pkg.example.com/a
-#EXTINF:-1 tvg-name="n8nops302",n8nops302
+#EXTINF:-1 tvg-name="n8nops311",n8nops311
 n8nops://pkg.example.com/b
 #EXTINF:-1 tvg-name="OkFlowiseops311",OkFlowiseops311
 https://example.com/ok-flowiseops-311.m3u8
@@ -50222,9 +50222,9 @@ https://example.com/ok-traefikops-311.m3u8
   it('post311: leftover protocol-relative // URL resets like non-http (wave9)', () => {
     const stations = parseM3U(`#EXTM3U
 #EXTINF:-1 tvg-name="ProtoRel311",ProtoRel311
-//cdn.example.com/stream302.m3u8
+//cdn.example.com/stream311.m3u8
 #EXTINF:-1 tvg-name="OkProto311",OkProto311
-https://example.com/ok-proto302.m3u8
+https://example.com/ok-proto311.m3u8
 `);
     expect(stations.map((s) => s.name)).toEqual(['OkProto311']);
   });
@@ -50232,58 +50232,58 @@ https://example.com/ok-proto302.m3u8
   it('post311: leftover HTTPS:// uppercase scheme is not a stream URL (resets current)', () => {
     const stations = parseM3U(`#EXTM3U
 #EXTINF:-1 tvg-name="BadHttps311",BadHttps311
-HTTPS://example.com/bad302.m3u8
+HTTPS://example.com/bad311.m3u8
 #EXTINF:-1 tvg-name="OkHttps311",OkHttps311
-https://example.com/ok-https302.m3u8
+https://example.com/ok-https311.m3u8
 `);
     expect(stations.map((s) => s.name)).toEqual(['OkHttps311']);
   });
 
   it('post311: leftover single-quoted tvg-name is ignored; comma display name binds', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name='IgnoredSingle302',DisplayBind311
-https://example.com/single-name302.m3u8
+    const stations = parseM3U(`#EXTINF:-1 tvg-name='IgnoredSingle311',DisplayBind311
+https://example.com/single-name311.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('DisplayBind302');
+    expect(stations[0].name).toBe('DisplayBind311');
   });
 
   it('post311: leftover unquoted tvg-name=Foo does not match regex so comma name binds', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name=Unquoted302,CommaName311
-https://example.com/unquoted-name302.m3u8
+    const stations = parseM3U(`#EXTINF:-1 tvg-name=Unquoted311,CommaName311
+https://example.com/unquoted-name311.m3u8
 `);
-    expect(stations[0].name).toBe('CommaName302');
+    expect(stations[0].name).toBe('CommaName311');
   });
 
   it('post311: leftover attribute order country before language still extracts both', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-country="JP" tvg-language="ja" tvg-name="OrderCtry311",OrderCtry311
-https://example.com/order-ctry302.m3u8
+https://example.com/order-ctry311.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'OrderCtry302', language: 'ja', country: 'JP' });
+    expect(stations[0]).toMatchObject({ name: 'OrderCtry311', language: 'ja', country: 'JP' });
   });
 
   it('post311: leftover duplicate tvg-logo attrs keep first match only', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="DupLogo311" tvg-logo="https://cdn.example/first302.png" tvg-logo="https://cdn.example/second302.png",DupLogo311
-https://example.com/dup-logo302.m3u8
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="DupLogo311" tvg-logo="https://cdn.example/first311.png" tvg-logo="https://cdn.example/second311.png",DupLogo311
+https://example.com/dup-logo311.m3u8
 `);
-    expect(stations[0].logo).toBe('https://cdn.example/first302.png');
+    expect(stations[0].logo).toBe('https://cdn.example/first311.png');
   });
 
   it('post311: leftover empty tvg-language="" stores empty string', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyLang311" tvg-language="",EmptyLang311
-https://example.com/empty-lang302.m3u8
+https://example.com/empty-lang311.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'EmptyLang302', language: '' });
+    expect(stations[0]).toMatchObject({ name: 'EmptyLang311', language: '' });
   });
 
   it('post311: leftover empty tvg-country="" stores empty string', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-name="EmptyCtry311" tvg-country="",EmptyCtry311
-https://example.com/empty-ctry302.m3u8
+https://example.com/empty-ctry311.m3u8
 `);
-    expect(stations[0]).toMatchObject({ name: 'EmptyCtry302', country: '' });
+    expect(stations[0]).toMatchObject({ name: 'EmptyCtry311', country: '' });
   });
 
   it('post311: leftover https URL with encoded hash %23 in path still binds', () => {
-    const url = 'https://example.com/a%23frag302.m3u8';
+    const url = 'https://example.com/a%23frag311.m3u8';
     const stations = parseM3U(`#EXTINF:-1 tvg-name="PctH311",PctH311
 ${url}
 `);
@@ -50293,40 +50293,40 @@ ${url}
 
   it('post311: leftover https URL with IPv6 literal still binds (prefix-only scheme check)', () => {
     const url = 'https://[2001:db8::268]/port-ipv6-311.m3u8';
-    const stations = parseM3U('#EXTINF:-1 tvg-name="Ipv6Https302",Ipv6Https302\n' + url + '\n');
+    const stations = parseM3U('#EXTINF:-1 tvg-name="Ipv6Https311",Ipv6Https311\n' + url + '\n');
     expect(stations).toHaveLength(1);
-    expect(stations[0]).toMatchObject({ name: 'Ipv6Https302', url });
+    expect(stations[0]).toMatchObject({ name: 'Ipv6Https311', url });
   });
 
   it('post311: leftover #EXTINF with duration -1.5 still extracts attrs', () => {
     const stations = parseM3U(`#EXTINF:-1.5 tvg-name="DurFloat311",DurFloat311
-https://example.com/dur-float302.m3u8
+https://example.com/dur-float311.m3u8
 `);
-    expect(stations[0].name).toBe('DurFloat302');
+    expect(stations[0].name).toBe('DurFloat311');
   });
 
   it('post311: leftover #EXT-X-MEDIA comment preserves pending EXTINF before URL', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-name="HlsMedia311",HlsMedia311
 #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aac"
-https://example.com/hls-media302.m3u8
+https://example.com/hls-media311.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('HlsMedia302');
+    expect(stations[0].name).toBe('HlsMedia311');
   });
 
   it('post311: leftover LF-only blank between EXTINF and URL still binds after trim', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="LfMid311",LfMid302\n\nhttps://example.com/lf-mid302.m3u8\n`);
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="LfMid311",LfMid311\n\nhttps://example.com/lf-mid311.m3u8\n`);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('LfMid302');
+    expect(stations[0].name).toBe('LfMid311');
   });
 
   it('post311: leftover #EXT-X-TARGETDURATION mid-playlist does not clear pending EXTINF', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-name="MidTarget311",MidTarget311
 #EXT-X-TARGETDURATION:10
-https://example.com/mid-target302.m3u8
+https://example.com/mid-target311.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('MidTarget302');
+    expect(stations[0].name).toBe('MidTarget311');
   });
 
   it('post311: leftover four consecutive EXTINF replaces pending so only last name binds', () => {
@@ -50335,51 +50335,51 @@ https://example.com/mid-target302.m3u8
 #EXTINF:-1 tvg-name="SecondExt311",SecondExt311
 #EXTINF:-1 tvg-name="ThirdExt311",ThirdExt311
 #EXTINF:-1 tvg-name="FourthExt311",FourthExt311
-https://example.com/consec-ext302.m3u8
+https://example.com/consec-ext311.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['FourthExt302']);
+    expect(stations.map((s) => s.name)).toEqual(['FourthExt311']);
   });
 
   it('post311: leftover fragment difference keeps both URLs as distinct seen keys', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="F1_302",F1_302
-https://example.com/f302.m3u8#a
-#EXTINF:-1 tvg-name="F2_302",F2_302
-https://example.com/f302.m3u8#b
+#EXTINF:-1 tvg-name="F1_311",F1_311
+https://example.com/f311.m3u8#a
+#EXTINF:-1 tvg-name="F2_311",F2_311
+https://example.com/f311.m3u8#b
 `);
-    expect(stations.map((s) => s.name)).toEqual(['F1_302', 'F2_302']);
+    expect(stations.map((s) => s.name)).toEqual(['F1_311', 'F2_311']);
   });
 
   it('post311: leftover query difference keeps both URLs as distinct seen keys', () => {
     const stations = parseM3U(`#EXTM3U
-#EXTINF:-1 tvg-name="Q1_302",Q1_302
-https://example.com/q302.m3u8?a=1
-#EXTINF:-1 tvg-name="Q2_302",Q2_302
-https://example.com/q302.m3u8?a=2
+#EXTINF:-1 tvg-name="Q1_311",Q1_311
+https://example.com/q311.m3u8?a=1
+#EXTINF:-1 tvg-name="Q2_311",Q2_311
+https://example.com/q311.m3u8?a=2
 `);
-    expect(stations.map((s) => s.name)).toEqual(['Q1_302', 'Q2_302']);
+    expect(stations.map((s) => s.name)).toEqual(['Q1_311', 'Q2_311']);
   });
 
   it('post311: leftover tvg-logo with webp data URI still stores exact value', () => {
     const logo = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
     const stations = parseM3U(`#EXTINF:-1 tvg-name="WebpLogo311" tvg-logo="${logo}",WebpLogo311
-https://example.com/webp-logo302.m3u8
+https://example.com/webp-logo311.m3u8
 `);
     expect(stations[0].logo).toBe(logo);
   });
 
   it('post311: leftover group-title with emoji + ZWJ binds exactly', () => {
     const stations = parseM3U(`#EXTINF:-1 tvg-name="EmojiGrp311" group-title="📻✨ radio",EmojiGrp311
-https://example.com/emoji-grp302.m3u8
+https://example.com/emoji-grp311.m3u8
 `);
     expect(stations[0].group).toBe('📻✨ radio');
   });
 
   it('post311: leftover buildSimpleM3U round-trip still yields one https station', () => {
-    const m3u = buildSimpleM3U([{ name: 'Build302', url: 'https://example.com/build302.m3u8', group: 'Jazz' }]);
+    const m3u = buildSimpleM3U([{ name: 'Build311', url: 'https://example.com/build311.m3u8', group: 'Jazz' }]);
     const stations = parseM3U(m3u);
     expect(stations).toHaveLength(1);
-    expect(stations[0]).toMatchObject({ name: 'Build302', url: 'https://example.com/build302.m3u8', group: 'Jazz' });
+    expect(stations[0]).toMatchObject({ name: 'Build311', url: 'https://example.com/build311.m3u8', group: 'Jazz' });
   });
 
   it('post311: leftover SAMPLE_M3U still yields six http stream lines via helper', () => {
@@ -50389,46 +50389,46 @@ https://example.com/emoji-grp302.m3u8
   it('post311: leftover tab-indented EXTINF/URL still binds after trim', () => {
     const stations = parseM3U(`#EXTM3U
 \t#EXTINF:-1 tvg-name="Tab311",Tab311
-\thttps://example.com/tab302.m3u8
+\thttps://example.com/tab311.m3u8
 `);
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('Tab302');
+    expect(stations[0].name).toBe('Tab311');
   });
 
   it('post311: leftover BOM-prefixed #EXTM3U header still parses following station', () => {
-    const stations = parseM3U('\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name="Bom311",Bom302\nhttps://example.com/bom302.m3u8\n');
+    const stations = parseM3U('\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name="Bom311",Bom311\nhttps://example.com/bom311.m3u8\n');
     expect(stations).toHaveLength(1);
-    expect(stations[0].name).toBe('Bom302');
+    expect(stations[0].name).toBe('Bom311');
   });
 
   it('post311: leftover five distinct https stations preserve insertion order', () => {
     const stations = parseM3U(`#EXTM3U
 #EXTINF:-1 tvg-name="A311",A311
-https://example.com/a302.m3u8
+https://example.com/a311.m3u8
 #EXTINF:-1 tvg-name="B311",B311
-https://example.com/b302.m3u8
+https://example.com/b311.m3u8
 #EXTINF:-1 tvg-name="C311",C311
-https://example.com/c302.m3u8
+https://example.com/c311.m3u8
 #EXTINF:-1 tvg-name="D311",D311
-https://example.com/d302.m3u8
+https://example.com/d311.m3u8
 #EXTINF:-1 tvg-name="E311",E311
-https://example.com/e302.m3u8
+https://example.com/e311.m3u8
 `);
-    expect(stations.map((s) => s.name)).toEqual(['A302', 'B302', 'C302', 'D302', 'E302']);
+    expect(stations.map((s) => s.name)).toEqual(['A311', 'B311', 'C311', 'D311', 'E311']);
   });
 
   it('post311: leftover #EXTINF without comma and without tvg-name drops following URL', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-logo="https://cdn.example/z302.png"
-https://example.com/no-name302.m3u8
+    const stations = parseM3U(`#EXTINF:-1 tvg-logo="https://cdn.example/z311.png"
+https://example.com/no-name311.m3u8
 `);
     expect(stations).toEqual([]);
   });
 
   it('post311: leftover tvg-name with embedded quote-free comma inside quotes prefers tvg-name', () => {
-    const stations = parseM3U(`#EXTINF:-1 tvg-name="Alpha, Beta302",DisplayLose311
-https://example.com/comma-in-name302.m3u8
+    const stations = parseM3U(`#EXTINF:-1 tvg-name="Alpha, Beta311",DisplayLose311
+https://example.com/comma-in-name311.m3u8
 `);
-    expect(stations[0].name).toBe('Alpha, Beta302');
+    expect(stations[0].name).toBe('Alpha, Beta311');
   });
 
 
@@ -50527,7 +50527,7 @@ https://example.com/comma-in-name302.m3u8
   it('post311: HMAC wave9-leftover src/parser.ts', () => { expect(hmacSha256("wave9-leftover", "src/parser.ts")).toBe("c86588962d95b4afcaa1745fb66959ed0d74c7918f7099b07eb342c9f3780fe8"); });
   it('post311: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post311: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post311: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post311: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post311: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post311: sha1 src/index.ts', () => { expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b"); });
   it('post311: md5 src/index.ts', () => { expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177"); });
@@ -50779,7 +50779,7 @@ describe('post311 parser extras HEAVY deepen (after #311/#312/#314 leftover / ti
   it('post311-extras: HMAC wave9-leftover src/parser.ts', () => { expect(hmacSha256("wave9-leftover", "src/parser.ts")).toBe("c86588962d95b4afcaa1745fb66959ed0d74c7918f7099b07eb342c9f3780fe8"); });
   it('post311-extras: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post311-extras: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post311-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post311-extras: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post311-extras: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post311-extras: HMAC post311 src/index.ts', () => { expect(hmacSha256("post311", "src/index.ts")).toBe("5a79909bd16b454a6fd06896425782a051ac05a1aa612939a2826b234b253d8e"); });
   it('post311-extras: HMAC after-#311 src/index.ts', () => { expect(hmacSha256("after-#311", "src/index.ts")).toBe("a72a62a4796566ac55acaf69392e48832f5ae87b72b0a6ecc25cde06480ec7e1"); });
@@ -51138,7 +51138,7 @@ describe('post311 parser ultra HEAVY deepen (after #311/#312/#314 residual tip-r
   it('post311-ultra: HMAC wave9-leftover src/parser.ts', () => { expect(hmacSha256("wave9-leftover", "src/parser.ts")).toBe("c86588962d95b4afcaa1745fb66959ed0d74c7918f7099b07eb342c9f3780fe8"); });
   it('post311-ultra: sha256 src/index.ts', () => { expect(sha256("src/index.ts")).toBe("7f0d574b0aedc6cd71d3ea35bb03e2a20389028e6ff2c195718acff2e0313a72"); });
   it('post311-ultra: size src/index.ts', () => { expect(statSync(join(parserRoot, "src/index.ts")).size).toBe(4738); });
-  it('post311-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4723); });
+  it('post311-ultra: utf8-len src/index.ts', () => { expect(read("src/index.ts")).toHaveLength(4724); });
   it('post311-ultra: nibble src/index.ts', () => { expect(nibbleSum(sha256("src/index.ts"))).toBe(470); });
   it('post311-ultra: sha1 src/index.ts', () => { expect(sha1("src/index.ts")).toBe("88b9273a584ce23d1da7ca8a147fee7faeee640b"); });
   it('post311-ultra: md5 src/index.ts', () => { expect(md5("src/index.ts")).toBe("8c9cdb320becf0effa2d8027b66a2177"); });
