@@ -40470,10 +40470,10 @@ describe('post295 helpers HEAVY deepen (after tip #295 leftover / tip-relaunch-2
 
 
 
-  it('post295: helper leftover — stubIptvAndGemini accepts Request instance for iptv-org', async () => {
+  it('post295: helper leftover — stubIptvAndGemini accepts URL instance for iptv-org', async () => {
     const fetchMock = stubIptvAndGemini({ m3u: SAMPLE_M3U });
-    const res = await (fetchMock as unknown as (input: RequestInfo) => Promise<Response>)(
-      new Request('https://iptv-org.github.io/iptv/categories/jazz.m3u'),
+    const res = await (fetchMock as unknown as (input: RequestInfo | URL) => Promise<Response>)(
+      new URL('https://iptv-org.github.io/iptv/categories/jazz.m3u'),
     );
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('Alpha FM');
