@@ -69,7 +69,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
@@ -141,7 +141,7 @@ jobs:
           grep -q 'npm run typecheck' .github/workflows/deploy.yml
           grep -q 'npm run test:coverage' .github/workflows/deploy.yml
           grep -q 'cancel-in-progress: true' .github/workflows/ci.yml
-          grep -q 'upload-artifact@v4' .github/workflows/ci.yml
+          grep -q 'upload-artifact@v7' .github/workflows/ci.yml
           grep -q 'if-no-files-found: error' .github/workflows/ci.yml
           grep -q 'retention-days: 14' .github/workflows/ci.yml
           grep -q 'persist-credentials: false' .github/workflows/deploy.yml
