@@ -12,14 +12,14 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "hono": "^4.13.7"
+    "hono": "^4.13.9"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260911.1",
-    "@types/node": "^22.20.2",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@cloudflare/workers-types": "^5.20260927.1",
+    "@types/node": "^22.20.4",
+    "@vitest/coverage-v8": "^5.0.2",
     "typescript": "^5.7.0",
     "vitest": "^5.0.0",
-    "wrangler": "^4.131.1"
+    "wrangler": "^4.142.0"
   }
 }
