@@ -12670,35 +12670,35 @@ describe('post144 mcp HEAVY deepen (after #144)', () => {
   });
 
   it("post144: locks .github/workflows/ci.yml sha256", () => {
-    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+    expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6");
   });
 
   it("post144: locks .github/workflows/ci.yml sha1", () => {
-    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+    expect(sha1(".github/workflows/ci.yml")).toBe("cde9f8d8638c657fd57e07cf565fe18eecbe133f");
   });
 
   it("post144: locks .github/workflows/ci.yml md5", () => {
-    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+    expect(md5(".github/workflows/ci.yml")).toBe("fa7d7e9013f5d7d6538dce82b969c4b8");
   });
 
   it("post144: locks .github/workflows/ci.yml sha384", () => {
-    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+    expect(sha384(".github/workflows/ci.yml")).toBe("f59bf0dfd256795307316437f4e40a9a3c8d098945b2a00d9159641e80537b8c53fadaf625f527ef0e5c95e37924c97b");
   });
 
   it("post144: locks .github/workflows/ci.yml sha512", () => {
-    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+    expect(sha512(".github/workflows/ci.yml")).toBe("9b3837162581fb0a076f4dd4d264685a09460ba05508fabf44c0dc2bd64fd24937e0388d070b86b6b9f5932206662c36ac784a733a21287fa0408d8379554e15");
   });
 
   it("post144: locks .github/workflows/ci.yml sha3-256", () => {
-    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+    expect(sha3(".github/workflows/ci.yml")).toBe("b64fb52d8c867a66da68c2e84c37fd65fc7b524ff2b5846675e827519c599ec5");
   });
 
   it("post144: locks .github/workflows/ci.yml blake2b512", () => {
-    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+    expect(blake2b(".github/workflows/ci.yml")).toBe("cfbb76435701a5a83c0a322affda8bcfc0288ba2dfaf127ce7826bd802bb1cc93f17bbb9e0347ec1279ff0249977bafb0d515c0160eea167e8678dcdd22141a8");
   });
 
   it("post144: locks .github/workflows/ci.yml ripemd160", () => {
-    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+    expect(ripemd(".github/workflows/ci.yml")).toBe("6a5ff4dce4fa62856b0379d9e02d475ab1782ee4");
   });
 
   it("post144: locks .github/workflows/ci.yml size 6295", () => {
@@ -12713,33 +12713,33 @@ describe('post144 mcp HEAVY deepen (after #144)', () => {
 
   it("post144: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(nibbleSum(d)).toBe(515);
-    expect(xorNibbles(d)).toBe(3);
+    expect(nibbleSum(d)).toBe(496);
+    expect(xorNibbles(d)).toBe(6);
   });
 
   it("post144: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(pairSum(d)).toBe(4595);
-    expect(rollingXor(d)).toBe(71);
+    expect(pairSum(d)).toBe(3841);
+    expect(rollingXor(d)).toBe(83);
   });
 
   it("post144: locks .github/workflows/ci.yml first/last/mid octets", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(d.slice(0, 2)).toBe("c4");
-    expect(d.slice(-2)).toBe("d5");
-    expect(d.slice(28, 36)).toBe("f5e6f56e");
+    expect(d.slice(0, 2)).toBe("15");
+    expect(d.slice(-2)).toBe("e6");
+    expect(d.slice(28, 36)).toBe("4451377a");
   });
 
   it("post144: locks .github/workflows/ci.yml HMAC post144/leftover/TOKENMAXX", () => {
-    expect(hmacSha256('post144', ".github/workflows/ci.yml")).toBe("afe7b174bd8f66dbae1b92a05d66a6f5df406909cc676c9c5d10ae13858b56c7");
-    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
-    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('post144', ".github/workflows/ci.yml")).toBe("7698b7aa345a4da8c31135e5c358fe2d231a86041a7f41b10f4cd08725b26046");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a");
   });
 
   it("post144: locks .github/workflows/ci.yml HMAC after-#144/HEAVY/no-product-invent", () => {
-    expect(hmacSha256('after-#144', ".github/workflows/ci.yml")).toBe("74c810ab49c253d698ee4130f4426ef96d92039c885437b9f9c12642802ba051");
-    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
-    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+    expect(hmacSha256('after-#144', ".github/workflows/ci.yml")).toBe("a943ca02576165cfa51088dde6f8d1d07585f6342d6caa32a36be87f487f977a");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204");
   });
 
   it("post144: locks .github/workflows/ci.yml spaces 1716", () => {
@@ -12748,11 +12748,11 @@ describe('post144 mcp HEAVY deepen (after #144)', () => {
 
   it("post144: locks .github/workflows/ci.yml reversed sha256", () => {
     const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
-    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("739a1616cfce5fea54f7b7c57cc06b2757711379433991e7763ca8e25649e655");
   });
 
   it("post144: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
-    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("15340A3F1F8E5B6A1EEAB4FC41AD4451377A158E65E8588EF7CFE4C7184B81E6");
   });
 
   it("post144: locks .github/workflows/ci.yml first-line sha256", () => {
@@ -14013,33 +14013,33 @@ describe('overnight sitemap-diff fixtures HEAVY deepen (mcp leftover)', () => {
   it('overnight-sdf: HMAC parseM3U wrangler.toml', () => { expect(hmacSha256('parseM3U', 'wrangler.toml')).toBe('9a2f0b3b33b464cb2c883f11c97a019bffab430ec8c4f3120d3693a5aa3df2f5'); });
   it('overnight-sdf: HMAC VALID_GENRES wrangler.toml', () => { expect(hmacSha256('VALID_GENRES', 'wrangler.toml')).toBe('b63c6f1421f8427f0055707971a3e4a458cde77362a98559fb80c8f99f38398f'); });
   it('overnight-sdf: HMAC HITL wrangler.toml', () => { expect(hmacSha256('HITL', 'wrangler.toml')).toBe('163535e4f1ffba9fa5d82ccec88c349b95720ee09d57f10a4b7d067551b2e0bf'); });
-  it('overnight-sdf: locks .github/workflows/ci.yml sha256', () => { expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5'); });
-  it('overnight-sdf: locks .github/workflows/ci.yml sha1', () => { expect(sha1('.github/workflows/ci.yml')).toBe('2105395119389c6131d039b5d787abc150bbbcaa'); });
-  it('overnight-sdf: locks .github/workflows/ci.yml md5', () => { expect(md5('.github/workflows/ci.yml')).toBe('ea05159f5a4591ccf20765050a212605'); });
+  it('overnight-sdf: locks .github/workflows/ci.yml sha256', () => { expect(sha256('.github/workflows/ci.yml')).toBe('15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6'); });
+  it('overnight-sdf: locks .github/workflows/ci.yml sha1', () => { expect(sha1('.github/workflows/ci.yml')).toBe('cde9f8d8638c657fd57e07cf565fe18eecbe133f'); });
+  it('overnight-sdf: locks .github/workflows/ci.yml md5', () => { expect(md5('.github/workflows/ci.yml')).toBe('fa7d7e9013f5d7d6538dce82b969c4b8'); });
   it('overnight-sdf: locks .github/workflows/ci.yml size 6295', () => { expect(statSync(join(root, '.github/workflows/ci.yml')).size).toBe(6295); });
-  it('overnight-sdf: locks .github/workflows/ci.yml nibble 515', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515); });
-  it('overnight-sdf: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e'); });
-  it('overnight-sdf: HMAC sitemap-diff .github/workflows/ci.yml', () => { expect(hmacSha256('sitemap-diff', '.github/workflows/ci.yml')).toBe('07915411143e2cc6cd07cacb3c7a40e419adaee043806c023fed407542811e05'); });
-  it('overnight-sdf: HMAC fixtures .github/workflows/ci.yml', () => { expect(hmacSha256('fixtures', '.github/workflows/ci.yml')).toBe('a7d11e07c0c2e5779e7a8db7add5c4ce388f2ae4fa7982efca799d01e992f2e2'); });
-  it('overnight-sdf: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b'); });
-  it('overnight-sdf: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea'); });
-  it('overnight-sdf: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde'); });
-  it('overnight-sdf: HMAC after-#149 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#149', '.github/workflows/ci.yml')).toBe('1ca70adb70643d3a209df633a579940509cbdf89a5f75c51a7ffcebce8643e7b'); });
-  it('overnight-sdf: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce'); });
-  it('overnight-sdf: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba'); });
-  it('overnight-sdf: HMAC added-removed-changed .github/workflows/ci.yml', () => { expect(hmacSha256('added-removed-changed', '.github/workflows/ci.yml')).toBe('0a537973b66af1fb94cda2913f6488d187653caf941763da1ae4975f5ff0a713'); });
-  it('overnight-sdf: HMAC empty-sitemap .github/workflows/ci.yml', () => { expect(hmacSha256('empty-sitemap', '.github/workflows/ci.yml')).toBe('557808bc8da65cdc5d0975295d5356b5affcb22d74621081299077f5b078f91f'); });
-  it('overnight-sdf: HMAC large-diff .github/workflows/ci.yml', () => { expect(hmacSha256('large-diff', '.github/workflows/ci.yml')).toBe('ab16cadded36c4fbe8c2c900d250b0d8a106cd5141c7731530455e50ae19b3a0'); });
-  it('overnight-sdf: HMAC malformed-xml .github/workflows/ci.yml', () => { expect(hmacSha256('malformed-xml', '.github/workflows/ci.yml')).toBe('38c920bbf6c1e60ba52d1597cd899f3d5ea01672ddee3611d6e5c1754d3ec8d8'); });
-  it('overnight-sdf: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc'); });
-  it('overnight-sdf: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc'); });
-  it('overnight-sdf: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13'); });
-  it('overnight-sdf: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('8a64f8a57a8e0d57022a408212641087f1eaeb50cbf7f616da671d19647dbc3b'); });
-  it('overnight-sdf: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('1c60dc3be507ae8043c44018700fd49f8cf7bf23d8059f0617ca6587aa9cf6d5'); });
-  it('overnight-sdf: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5'); });
-  it('overnight-sdf: HMAC parseM3U .github/workflows/ci.yml', () => { expect(hmacSha256('parseM3U', '.github/workflows/ci.yml')).toBe('d3cf58e7da8daa280d973fcb974fc3ec6e7d42818c0b0e983c094021e30b1b33'); });
-  it('overnight-sdf: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c'); });
-  it('overnight-sdf: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461'); });
+  it('overnight-sdf: locks .github/workflows/ci.yml nibble 515', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(496); });
+  it('overnight-sdf: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('2d2a6cf1a857a46ecb89fb5ffabb7ff4f847fc124f208a2ed60ea852ca3435bd'); });
+  it('overnight-sdf: HMAC sitemap-diff .github/workflows/ci.yml', () => { expect(hmacSha256('sitemap-diff', '.github/workflows/ci.yml')).toBe('bc93235e04c385e805df86f0eb3ee3bbe437789c6b1f190e10c4c44ba3a39285'); });
+  it('overnight-sdf: HMAC fixtures .github/workflows/ci.yml', () => { expect(hmacSha256('fixtures', '.github/workflows/ci.yml')).toBe('fe87a1145135abdc905225cda984ddf5433a21780928a5aa5ea67f6ff1aee532'); });
+  it('overnight-sdf: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a'); });
+  it('overnight-sdf: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5'); });
+  it('overnight-sdf: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204'); });
+  it('overnight-sdf: HMAC after-#149 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#149', '.github/workflows/ci.yml')).toBe('a399720e06742f19426ac55d448261448323f1265589f744e0f481b779598324'); });
+  it('overnight-sdf: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b'); });
+  it('overnight-sdf: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5'); });
+  it('overnight-sdf: HMAC added-removed-changed .github/workflows/ci.yml', () => { expect(hmacSha256('added-removed-changed', '.github/workflows/ci.yml')).toBe('3851d05a8cf990f880fc7c42486217e1d8dc2c02c0c8370fd521e36091fd5f7a'); });
+  it('overnight-sdf: HMAC empty-sitemap .github/workflows/ci.yml', () => { expect(hmacSha256('empty-sitemap', '.github/workflows/ci.yml')).toBe('a93b8907cc91561b5310649979890d4a0e1edcd7774c65266cdf6a2f3ba0e89b'); });
+  it('overnight-sdf: HMAC large-diff .github/workflows/ci.yml', () => { expect(hmacSha256('large-diff', '.github/workflows/ci.yml')).toBe('4fd7158edde6be33d935d256c764fc6c01e64c18748face9096fb1870b1993a2'); });
+  it('overnight-sdf: HMAC malformed-xml .github/workflows/ci.yml', () => { expect(hmacSha256('malformed-xml', '.github/workflows/ci.yml')).toBe('c24ee5efc4fdc106fadaec158da9bd24bd0d1c1885251730ab7651d48917b34a'); });
+  it('overnight-sdf: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a'); });
+  it('overnight-sdf: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f'); });
+  it('overnight-sdf: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237'); });
+  it('overnight-sdf: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('ed2dc575c05e90566559fe3427064fcc85bc79010e370a58a6493153a910489e'); });
+  it('overnight-sdf: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('6ef6b8cb4d7f9f4dce90c8ab8d8e775c0fcf310654695c3406fb7e3d27179334'); });
+  it('overnight-sdf: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e'); });
+  it('overnight-sdf: HMAC parseM3U .github/workflows/ci.yml', () => { expect(hmacSha256('parseM3U', '.github/workflows/ci.yml')).toBe('afb93e902bb116fb4b977fedf9630ea19a0d02eb49145e19a5948fa65f59daac'); });
+  it('overnight-sdf: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924'); });
+  it('overnight-sdf: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa'); });
   it('overnight-sdf: src/index.ts forbids invent phrase sitemap', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("sitemap"); });
   it('overnight-sdf: src/index.ts forbids invent phrase urlset', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("urlset"); });
   it('overnight-sdf: src/index.ts forbids invent phrase url-loc', () => { expect(read('src/index.ts').toLowerCase()).not.toContain("url-loc"); });
@@ -15762,35 +15762,35 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
   });
 
   it("post157: locks .github/workflows/ci.yml sha256", () => {
-    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+    expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6");
   });
 
   it("post157: locks .github/workflows/ci.yml sha1", () => {
-    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+    expect(sha1(".github/workflows/ci.yml")).toBe("cde9f8d8638c657fd57e07cf565fe18eecbe133f");
   });
 
   it("post157: locks .github/workflows/ci.yml md5", () => {
-    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+    expect(md5(".github/workflows/ci.yml")).toBe("fa7d7e9013f5d7d6538dce82b969c4b8");
   });
 
   it("post157: locks .github/workflows/ci.yml sha384", () => {
-    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+    expect(sha384(".github/workflows/ci.yml")).toBe("f59bf0dfd256795307316437f4e40a9a3c8d098945b2a00d9159641e80537b8c53fadaf625f527ef0e5c95e37924c97b");
   });
 
   it("post157: locks .github/workflows/ci.yml sha512", () => {
-    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+    expect(sha512(".github/workflows/ci.yml")).toBe("9b3837162581fb0a076f4dd4d264685a09460ba05508fabf44c0dc2bd64fd24937e0388d070b86b6b9f5932206662c36ac784a733a21287fa0408d8379554e15");
   });
 
   it("post157: locks .github/workflows/ci.yml sha3-256", () => {
-    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+    expect(sha3(".github/workflows/ci.yml")).toBe("b64fb52d8c867a66da68c2e84c37fd65fc7b524ff2b5846675e827519c599ec5");
   });
 
   it("post157: locks .github/workflows/ci.yml blake2b512", () => {
-    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+    expect(blake2b(".github/workflows/ci.yml")).toBe("cfbb76435701a5a83c0a322affda8bcfc0288ba2dfaf127ce7826bd802bb1cc93f17bbb9e0347ec1279ff0249977bafb0d515c0160eea167e8678dcdd22141a8");
   });
 
   it("post157: locks .github/workflows/ci.yml ripemd160", () => {
-    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+    expect(ripemd(".github/workflows/ci.yml")).toBe("6a5ff4dce4fa62856b0379d9e02d475ab1782ee4");
   });
 
   it("post157: locks .github/workflows/ci.yml size 6295", () => {
@@ -15805,33 +15805,33 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
 
   it("post157: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(nibbleSum(d)).toBe(515);
-    expect(xorNibbles(d)).toBe(3);
+    expect(nibbleSum(d)).toBe(496);
+    expect(xorNibbles(d)).toBe(6);
   });
 
   it("post157: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(pairSum(d)).toBe(4595);
-    expect(rollingXor(d)).toBe(71);
+    expect(pairSum(d)).toBe(3841);
+    expect(rollingXor(d)).toBe(83);
   });
 
   it("post157: locks .github/workflows/ci.yml first/last/mid octets", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(d.slice(0, 2)).toBe("c4");
-    expect(d.slice(-2)).toBe("d5");
-    expect(d.slice(28, 36)).toBe("f5e6f56e");
+    expect(d.slice(0, 2)).toBe("15");
+    expect(d.slice(-2)).toBe("e6");
+    expect(d.slice(28, 36)).toBe("4451377a");
   });
 
   it("post157: locks .github/workflows/ci.yml HMAC post157/leftover/TOKENMAXX", () => {
-    expect(hmacSha256('post157', ".github/workflows/ci.yml")).toBe("331ca3bce5b9ed2879de6469fb16e7e77d90234163bd07d109f364e08e12f2a5");
-    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
-    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('post157', ".github/workflows/ci.yml")).toBe("d46eec5e965d3c7958dc9807d2c797b2c9a1455776f289bf5279240dfe43f972");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a");
   });
 
   it("post157: locks .github/workflows/ci.yml HMAC after-#157/HEAVY/no-product-invent", () => {
-    expect(hmacSha256('after-#157', ".github/workflows/ci.yml")).toBe("3b5664df62c14719a240acbaae325ca9b2e884f95c6f0a45d711d64be1162010");
-    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
-    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+    expect(hmacSha256('after-#157', ".github/workflows/ci.yml")).toBe("07a2d4126e5b35c2b0807e0382bccc9c580c648dd9f0d922b0a7d19bc9790667");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204");
   });
 
   it("post157: locks .github/workflows/ci.yml spaces 1716", () => {
@@ -15840,11 +15840,11 @@ describe('post157 mcp HEAVY deepen (after #157)', () => {
 
   it("post157: locks .github/workflows/ci.yml reversed sha256", () => {
     const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
-    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("739a1616cfce5fea54f7b7c57cc06b2757711379433991e7763ca8e25649e655");
   });
 
   it("post157: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
-    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("15340A3F1F8E5B6A1EEAB4FC41AD4451377A158E65E8588EF7CFE4C7184B81E6");
   });
 
   it("post157: locks .github/workflows/ci.yml first-line sha256", () => {
@@ -17237,30 +17237,30 @@ describe('post157 mcp extras HEAVY deepen (after #157 leftover slice)', () => {
   it('post157-extras: size docs/mcp-spec.md', () => { expect(statSync(join(mcpRoot, 'docs/mcp-spec.md')).size).toBe(3552); });
   it('post157-extras: utf8-len docs/mcp-spec.md', () => { expect(read('docs/mcp-spec.md')).toHaveLength(3544); });
   it('post157-extras: nibble docs/mcp-spec.md', () => { expect(nibbleSum(sha256('docs/mcp-spec.md'))).toBe(514); });
-  it('post157-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5'); });
-  it('post157-extras: HMAC post157 .github/workflows/ci.yml', () => { expect(hmacSha256('post157', ".github/workflows/ci.yml")).toBe("331ca3bce5b9ed2879de6469fb16e7e77d90234163bd07d109f364e08e12f2a5"); });
-  it('post157-extras: HMAC after-#157 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#157', ".github/workflows/ci.yml")).toBe("3b5664df62c14719a240acbaae325ca9b2e884f95c6f0a45d711d64be1162010"); });
-  it('post157-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce'); });
-  it('post157-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b'); });
-  it('post157-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea'); });
-  it('post157-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde'); });
-  it('post157-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba'); });
-  it('post157-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc'); });
-  it('post157-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189'); });
-  it('post157-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256('ci-leftover', '.github/workflows/ci.yml')).toBe('1b43e4cb8234aa591b26a4e898d2343daa5f27e76d2c7f705481aa8070903551'); });
-  it('post157-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc'); });
-  it('post157-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13'); });
-  it('post157-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('8a64f8a57a8e0d57022a408212641087f1eaeb50cbf7f616da671d19647dbc3b'); });
-  it('post157-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('1c60dc3be507ae8043c44018700fd49f8cf7bf23d8059f0617ca6587aa9cf6d5'); });
-  it('post157-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5'); });
-  it('post157-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('a3f526cfe1d8f02f79e076a789f3182a36794a4d1b7aba5fe91cd951467fbe5f'); });
-  it('post157-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c'); });
-  it('post157-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461'); });
-  it('post157-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c'); });
-  it('post157-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf'); });
+  it('post157-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6'); });
+  it('post157-extras: HMAC post157 .github/workflows/ci.yml', () => { expect(hmacSha256('post157', ".github/workflows/ci.yml")).toBe("d46eec5e965d3c7958dc9807d2c797b2c9a1455776f289bf5279240dfe43f972"); });
+  it('post157-extras: HMAC after-#157 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#157', ".github/workflows/ci.yml")).toBe("07a2d4126e5b35c2b0807e0382bccc9c580c648dd9f0d922b0a7d19bc9790667"); });
+  it('post157-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b'); });
+  it('post157-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a'); });
+  it('post157-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5'); });
+  it('post157-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204'); });
+  it('post157-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5'); });
+  it('post157-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a'); });
+  it('post157-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909'); });
+  it('post157-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256('ci-leftover', '.github/workflows/ci.yml')).toBe('388350e7e6c1054317c2bab75dd3b63c3f5a1e6c2827696f8ef9d4bd6a773c04'); });
+  it('post157-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f'); });
+  it('post157-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237'); });
+  it('post157-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('ed2dc575c05e90566559fe3427064fcc85bc79010e370a58a6493153a910489e'); });
+  it('post157-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('6ef6b8cb4d7f9f4dce90c8ab8d8e775c0fcf310654695c3406fb7e3d27179334'); });
+  it('post157-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e'); });
+  it('post157-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('68ae883f6a4f4d7320208bfb4301cf83c452f8fb29cfe3900fd368ac31b84fce'); });
+  it('post157-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924'); });
+  it('post157-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa'); });
+  it('post157-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc'); });
+  it('post157-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51'); });
   it('post157-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(mcpRoot, '.github/workflows/ci.yml')).size).toBe(6295); });
   it('post157-extras: utf8-len .github/workflows/ci.yml', () => { expect(read('.github/workflows/ci.yml')).toHaveLength(6295); });
-  it('post157-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515); });
+  it('post157-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(496); });
   it('post157-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256('.github/workflows/deploy.yml')).toBe('49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3'); });
   it('post157-extras: HMAC post157 .github/workflows/deploy.yml', () => { expect(hmacSha256('post157', ".github/workflows/deploy.yml")).toBe("2698eaecf8d7d626cd1ee82d1a4b7959fdca869f913bbf401ac5df4a611ef87e"); });
   it('post157-extras: HMAC after-#157 .github/workflows/deploy.yml', () => { expect(hmacSha256('after-#157', ".github/workflows/deploy.yml")).toBe("9117edade9c5844ce20167cb2c91a5b2f63b60681acf3803bd8d1e2f338691f2"); });
@@ -18982,35 +18982,35 @@ describe('post164 mcp HEAVY deepen (after #164)', () => {
   });
 
   it("post164: locks .github/workflows/ci.yml sha256", () => {
-    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+    expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6");
   });
 
   it("post164: locks .github/workflows/ci.yml sha1", () => {
-    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+    expect(sha1(".github/workflows/ci.yml")).toBe("cde9f8d8638c657fd57e07cf565fe18eecbe133f");
   });
 
   it("post164: locks .github/workflows/ci.yml md5", () => {
-    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+    expect(md5(".github/workflows/ci.yml")).toBe("fa7d7e9013f5d7d6538dce82b969c4b8");
   });
 
   it("post164: locks .github/workflows/ci.yml sha384", () => {
-    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+    expect(sha384(".github/workflows/ci.yml")).toBe("f59bf0dfd256795307316437f4e40a9a3c8d098945b2a00d9159641e80537b8c53fadaf625f527ef0e5c95e37924c97b");
   });
 
   it("post164: locks .github/workflows/ci.yml sha512", () => {
-    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+    expect(sha512(".github/workflows/ci.yml")).toBe("9b3837162581fb0a076f4dd4d264685a09460ba05508fabf44c0dc2bd64fd24937e0388d070b86b6b9f5932206662c36ac784a733a21287fa0408d8379554e15");
   });
 
   it("post164: locks .github/workflows/ci.yml sha3-256", () => {
-    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+    expect(sha3(".github/workflows/ci.yml")).toBe("b64fb52d8c867a66da68c2e84c37fd65fc7b524ff2b5846675e827519c599ec5");
   });
 
   it("post164: locks .github/workflows/ci.yml blake2b512", () => {
-    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+    expect(blake2b(".github/workflows/ci.yml")).toBe("cfbb76435701a5a83c0a322affda8bcfc0288ba2dfaf127ce7826bd802bb1cc93f17bbb9e0347ec1279ff0249977bafb0d515c0160eea167e8678dcdd22141a8");
   });
 
   it("post164: locks .github/workflows/ci.yml ripemd160", () => {
-    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+    expect(ripemd(".github/workflows/ci.yml")).toBe("6a5ff4dce4fa62856b0379d9e02d475ab1782ee4");
   });
 
   it("post164: locks .github/workflows/ci.yml size 6295", () => {
@@ -19025,33 +19025,33 @@ describe('post164 mcp HEAVY deepen (after #164)', () => {
 
   it("post164: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(nibbleSum(d)).toBe(515);
-    expect(xorNibbles(d)).toBe(3);
+    expect(nibbleSum(d)).toBe(496);
+    expect(xorNibbles(d)).toBe(6);
   });
 
   it("post164: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(pairSum(d)).toBe(4595);
-    expect(rollingXor(d)).toBe(71);
+    expect(pairSum(d)).toBe(3841);
+    expect(rollingXor(d)).toBe(83);
   });
 
   it("post164: locks .github/workflows/ci.yml first/last/mid octets", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(d.slice(0, 2)).toBe("c4");
-    expect(d.slice(-2)).toBe("d5");
-    expect(d.slice(28, 36)).toBe("f5e6f56e");
+    expect(d.slice(0, 2)).toBe("15");
+    expect(d.slice(-2)).toBe("e6");
+    expect(d.slice(28, 36)).toBe("4451377a");
   });
 
   it("post164: locks .github/workflows/ci.yml HMAC post164/leftover/TOKENMAXX", () => {
-    expect(hmacSha256('post164', ".github/workflows/ci.yml")).toBe("9b47eea7d124af56b43168f6f2164fee17724f49532520afc52e5a115bc7657a");
-    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
-    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('post164', ".github/workflows/ci.yml")).toBe("96c16474baac06e6128f92d3e7b0dadc710b66341a694ddd4bc4fd62b610bf87");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a");
   });
 
   it("post164: locks .github/workflows/ci.yml HMAC after-#164/HEAVY/no-product-invent", () => {
-    expect(hmacSha256('after-#164', ".github/workflows/ci.yml")).toBe("02cfc9f8904733e2a49000d4cc65ff62a07db17b39899d98d9d8a619ca2b2783");
-    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
-    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+    expect(hmacSha256('after-#164', ".github/workflows/ci.yml")).toBe("c81e06b9efe8e2e0c34c09511e5b3c7d5d6f3a7731e1cb9b53938b897344955b");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204");
   });
 
   it("post164: locks .github/workflows/ci.yml spaces 1716", () => {
@@ -19060,11 +19060,11 @@ describe('post164 mcp HEAVY deepen (after #164)', () => {
 
   it("post164: locks .github/workflows/ci.yml reversed sha256", () => {
     const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
-    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("739a1616cfce5fea54f7b7c57cc06b2757711379433991e7763ca8e25649e655");
   });
 
   it("post164: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
-    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("15340A3F1F8E5B6A1EEAB4FC41AD4451377A158E65E8588EF7CFE4C7184B81E6");
   });
 
   it("post164: locks .github/workflows/ci.yml first-line sha256", () => {
@@ -20456,30 +20456,30 @@ describe('post164 mcp extras HEAVY deepen (after #164 leftover slice)', () => {
   it('post164-extras: size docs/mcp-spec.md', () => { expect(statSync(join(mcpRoot, 'docs/mcp-spec.md')).size).toBe(3552); });
   it('post164-extras: utf8-len docs/mcp-spec.md', () => { expect(read('docs/mcp-spec.md')).toHaveLength(3544); });
   it('post164-extras: nibble docs/mcp-spec.md', () => { expect(nibbleSum(sha256('docs/mcp-spec.md'))).toBe(514); });
-  it('post164-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5'); });
-  it('post164-extras: HMAC post164 .github/workflows/ci.yml', () => { expect(hmacSha256('post164', ".github/workflows/ci.yml")).toBe("9b47eea7d124af56b43168f6f2164fee17724f49532520afc52e5a115bc7657a"); });
-  it('post164-extras: HMAC after-#164 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#164', ".github/workflows/ci.yml")).toBe("02cfc9f8904733e2a49000d4cc65ff62a07db17b39899d98d9d8a619ca2b2783"); });
-  it('post164-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce'); });
-  it('post164-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b'); });
-  it('post164-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea'); });
-  it('post164-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde'); });
-  it('post164-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba'); });
-  it('post164-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc'); });
-  it('post164-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189'); });
-  it('post164-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256('ci-leftover', '.github/workflows/ci.yml')).toBe('1b43e4cb8234aa591b26a4e898d2343daa5f27e76d2c7f705481aa8070903551'); });
-  it('post164-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc'); });
-  it('post164-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13'); });
-  it('post164-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('8a64f8a57a8e0d57022a408212641087f1eaeb50cbf7f616da671d19647dbc3b'); });
-  it('post164-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('1c60dc3be507ae8043c44018700fd49f8cf7bf23d8059f0617ca6587aa9cf6d5'); });
-  it('post164-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5'); });
-  it('post164-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('a3f526cfe1d8f02f79e076a789f3182a36794a4d1b7aba5fe91cd951467fbe5f'); });
-  it('post164-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c'); });
-  it('post164-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461'); });
-  it('post164-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c'); });
-  it('post164-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf'); });
+  it('post164-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6'); });
+  it('post164-extras: HMAC post164 .github/workflows/ci.yml', () => { expect(hmacSha256('post164', ".github/workflows/ci.yml")).toBe("96c16474baac06e6128f92d3e7b0dadc710b66341a694ddd4bc4fd62b610bf87"); });
+  it('post164-extras: HMAC after-#164 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#164', ".github/workflows/ci.yml")).toBe("c81e06b9efe8e2e0c34c09511e5b3c7d5d6f3a7731e1cb9b53938b897344955b"); });
+  it('post164-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b'); });
+  it('post164-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a'); });
+  it('post164-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5'); });
+  it('post164-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204'); });
+  it('post164-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5'); });
+  it('post164-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a'); });
+  it('post164-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909'); });
+  it('post164-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256('ci-leftover', '.github/workflows/ci.yml')).toBe('388350e7e6c1054317c2bab75dd3b63c3f5a1e6c2827696f8ef9d4bd6a773c04'); });
+  it('post164-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f'); });
+  it('post164-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237'); });
+  it('post164-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('ed2dc575c05e90566559fe3427064fcc85bc79010e370a58a6493153a910489e'); });
+  it('post164-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('6ef6b8cb4d7f9f4dce90c8ab8d8e775c0fcf310654695c3406fb7e3d27179334'); });
+  it('post164-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e'); });
+  it('post164-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('68ae883f6a4f4d7320208bfb4301cf83c452f8fb29cfe3900fd368ac31b84fce'); });
+  it('post164-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924'); });
+  it('post164-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa'); });
+  it('post164-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc'); });
+  it('post164-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51'); });
   it('post164-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(mcpRoot, '.github/workflows/ci.yml')).size).toBe(6295); });
   it('post164-extras: utf8-len .github/workflows/ci.yml', () => { expect(read('.github/workflows/ci.yml')).toHaveLength(6295); });
-  it('post164-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515); });
+  it('post164-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(496); });
   it('post164-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256('.github/workflows/deploy.yml')).toBe('49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3'); });
   it('post164-extras: HMAC post164 .github/workflows/deploy.yml', () => { expect(hmacSha256('post164', ".github/workflows/deploy.yml")).toBe("d8a43e7cf151de15ce4367da18d9494c8aa83c5d8cf5df428e20efff63a16503"); });
   it('post164-extras: HMAC after-#164 .github/workflows/deploy.yml', () => { expect(hmacSha256('after-#164', ".github/workflows/deploy.yml")).toBe("1fb628dce0d3975af2b5bdcc94921376b0055d9c8fee9b951aebdcf0182306cc"); });
@@ -22055,35 +22055,35 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
   });
 
   it("post166: locks .github/workflows/ci.yml sha256", () => {
-    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+    expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6");
   });
 
   it("post166: locks .github/workflows/ci.yml sha1", () => {
-    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+    expect(sha1(".github/workflows/ci.yml")).toBe("cde9f8d8638c657fd57e07cf565fe18eecbe133f");
   });
 
   it("post166: locks .github/workflows/ci.yml md5", () => {
-    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+    expect(md5(".github/workflows/ci.yml")).toBe("fa7d7e9013f5d7d6538dce82b969c4b8");
   });
 
   it("post166: locks .github/workflows/ci.yml sha384", () => {
-    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+    expect(sha384(".github/workflows/ci.yml")).toBe("f59bf0dfd256795307316437f4e40a9a3c8d098945b2a00d9159641e80537b8c53fadaf625f527ef0e5c95e37924c97b");
   });
 
   it("post166: locks .github/workflows/ci.yml sha512", () => {
-    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+    expect(sha512(".github/workflows/ci.yml")).toBe("9b3837162581fb0a076f4dd4d264685a09460ba05508fabf44c0dc2bd64fd24937e0388d070b86b6b9f5932206662c36ac784a733a21287fa0408d8379554e15");
   });
 
   it("post166: locks .github/workflows/ci.yml sha3-256", () => {
-    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+    expect(sha3(".github/workflows/ci.yml")).toBe("b64fb52d8c867a66da68c2e84c37fd65fc7b524ff2b5846675e827519c599ec5");
   });
 
   it("post166: locks .github/workflows/ci.yml blake2b512", () => {
-    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+    expect(blake2b(".github/workflows/ci.yml")).toBe("cfbb76435701a5a83c0a322affda8bcfc0288ba2dfaf127ce7826bd802bb1cc93f17bbb9e0347ec1279ff0249977bafb0d515c0160eea167e8678dcdd22141a8");
   });
 
   it("post166: locks .github/workflows/ci.yml ripemd160", () => {
-    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+    expect(ripemd(".github/workflows/ci.yml")).toBe("6a5ff4dce4fa62856b0379d9e02d475ab1782ee4");
   });
 
   it("post166: locks .github/workflows/ci.yml size 6295", () => {
@@ -22098,33 +22098,33 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
 
   it("post166: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(nibbleSum(d)).toBe(515);
-    expect(xorNibbles(d)).toBe(3);
+    expect(nibbleSum(d)).toBe(496);
+    expect(xorNibbles(d)).toBe(6);
   });
 
   it("post166: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(pairSum(d)).toBe(4595);
-    expect(rollingXor(d)).toBe(71);
+    expect(pairSum(d)).toBe(3841);
+    expect(rollingXor(d)).toBe(83);
   });
 
   it("post166: locks .github/workflows/ci.yml first/last/mid octets", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(d.slice(0, 2)).toBe("c4");
-    expect(d.slice(-2)).toBe("d5");
-    expect(d.slice(28, 36)).toBe("f5e6f56e");
+    expect(d.slice(0, 2)).toBe("15");
+    expect(d.slice(-2)).toBe("e6");
+    expect(d.slice(28, 36)).toBe("4451377a");
   });
 
   it("post166: locks .github/workflows/ci.yml HMAC post166/leftover/TOKENMAXX", () => {
-    expect(hmacSha256('post166', ".github/workflows/ci.yml")).toBe("37d9125e14c1adf3f10d3a33cea21372caf23631aaafb22ea2c2632e927c899d");
-    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
-    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('post166', ".github/workflows/ci.yml")).toBe("923470e8fc8b92e61e69ba9007e1c5e7920953be49e64297053c5724d638ebca");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a");
   });
 
   it("post166: locks .github/workflows/ci.yml HMAC after-#166/HEAVY/no-product-invent", () => {
-    expect(hmacSha256('after-#166', ".github/workflows/ci.yml")).toBe("8136b9369b353ae7fb71ca9d67a3204a330eacc1395a933f46cf3be21f1c6abb");
-    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
-    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+    expect(hmacSha256('after-#166', ".github/workflows/ci.yml")).toBe("5139fe28cf8a9518fb003c19df02be58f008e01db4d5650309c1e59e3fa74545");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204");
   });
 
   it("post166: locks .github/workflows/ci.yml spaces 1716", () => {
@@ -22133,11 +22133,11 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
 
   it("post166: locks .github/workflows/ci.yml reversed sha256", () => {
     const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
-    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("739a1616cfce5fea54f7b7c57cc06b2757711379433991e7763ca8e25649e655");
   });
 
   it("post166: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
-    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("15340A3F1F8E5B6A1EEAB4FC41AD4451377A158E65E8588EF7CFE4C7184B81E6");
   });
 
   it("post166: locks .github/workflows/ci.yml first-line sha256", () => {
@@ -22159,8 +22159,8 @@ describe('post166 mcp HEAVY deepen (after #166)', () => {
   });
 
   it("post166: locks .github/workflows/ci.yml HMAC-SHA1/MD5 key post166", () => {
-    expect(createHmac('sha1', 'post166').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("bce03bf04a8cb70bd961756128b527f128f3a01a");
-    expect(createHmac('md5', 'post166').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("4aa5f9cf98e2f9ee69941aec0fe67242");
+    expect(createHmac('sha1', 'post166').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("32c1b755e080d663dc4bacbc5a3581d5157aaf93");
+    expect(createHmac('md5', 'post166').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("ea6cde5d99d0c6b77f29c330a958b7c9");
   });
 
   it("post166: locks .github/workflows/deploy.yml sha256", () => {
@@ -22882,30 +22882,30 @@ describe('post166 mcp extras HEAVY deepen (after #166 leftover slice)', () => {
   it('post166-extras: size docs/mcp-spec.md', () => { expect(statSync(join(mcpRoot, "docs/mcp-spec.md")).size).toBe(3552); });
   it('post166-extras: utf8-len docs/mcp-spec.md', () => { expect(read("docs/mcp-spec.md")).toHaveLength(3544); });
   it('post166-extras: nibble docs/mcp-spec.md', () => { expect(nibbleSum(sha256("docs/mcp-spec.md"))).toBe(514); });
-  it('post166-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5"); });
-  it('post166-extras: HMAC post166 .github/workflows/ci.yml', () => { expect(hmacSha256("post166", ".github/workflows/ci.yml")).toBe("37d9125e14c1adf3f10d3a33cea21372caf23631aaafb22ea2c2632e927c899d"); });
-  it('post166-extras: HMAC after-#166 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#166", ".github/workflows/ci.yml")).toBe("8136b9369b353ae7fb71ca9d67a3204a330eacc1395a933f46cf3be21f1c6abb"); });
-  it('post166-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce"); });
-  it('post166-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b"); });
-  it('post166-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea"); });
-  it('post166-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde"); });
-  it('post166-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba"); });
-  it('post166-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc"); });
-  it('post166-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189"); });
-  it('post166-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("ci-leftover", ".github/workflows/ci.yml")).toBe("1b43e4cb8234aa591b26a4e898d2343daa5f27e76d2c7f705481aa8070903551"); });
-  it('post166-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc"); });
-  it('post166-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256("backlink", ".github/workflows/ci.yml")).toBe("db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13"); });
-  it('post166-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256("CATALOG_CACHE", ".github/workflows/ci.yml")).toBe("8a64f8a57a8e0d57022a408212641087f1eaeb50cbf7f616da671d19647dbc3b"); });
-  it('post166-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256("GEMINI_API_KEY", ".github/workflows/ci.yml")).toBe("1c60dc3be507ae8043c44018700fd49f8cf7bf23d8059f0617ca6587aa9cf6d5"); });
-  it('post166-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5"); });
-  it('post166-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256("gemini-2.0-flash", ".github/workflows/ci.yml")).toBe("a3f526cfe1d8f02f79e076a789f3182a36794a4d1b7aba5fe91cd951467fbe5f"); });
-  it('post166-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c"); });
-  it('post166-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461"); });
-  it('post166-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c"); });
-  it('post166-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf"); });
+  it('post166-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6"); });
+  it('post166-extras: HMAC post166 .github/workflows/ci.yml', () => { expect(hmacSha256("post166", ".github/workflows/ci.yml")).toBe("923470e8fc8b92e61e69ba9007e1c5e7920953be49e64297053c5724d638ebca"); });
+  it('post166-extras: HMAC after-#166 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#166", ".github/workflows/ci.yml")).toBe("5139fe28cf8a9518fb003c19df02be58f008e01db4d5650309c1e59e3fa74545"); });
+  it('post166-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b"); });
+  it('post166-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a"); });
+  it('post166-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5"); });
+  it('post166-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204"); });
+  it('post166-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5"); });
+  it('post166-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a"); });
+  it('post166-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909"); });
+  it('post166-extras: HMAC ci-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("ci-leftover", ".github/workflows/ci.yml")).toBe("388350e7e6c1054317c2bab75dd3b63c3f5a1e6c2827696f8ef9d4bd6a773c04"); });
+  it('post166-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f"); });
+  it('post166-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256("backlink", ".github/workflows/ci.yml")).toBe("be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237"); });
+  it('post166-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256("CATALOG_CACHE", ".github/workflows/ci.yml")).toBe("ed2dc575c05e90566559fe3427064fcc85bc79010e370a58a6493153a910489e"); });
+  it('post166-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256("GEMINI_API_KEY", ".github/workflows/ci.yml")).toBe("6ef6b8cb4d7f9f4dce90c8ab8d8e775c0fcf310654695c3406fb7e3d27179334"); });
+  it('post166-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e"); });
+  it('post166-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256("gemini-2.0-flash", ".github/workflows/ci.yml")).toBe("68ae883f6a4f4d7320208bfb4301cf83c452f8fb29cfe3900fd368ac31b84fce"); });
+  it('post166-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924"); });
+  it('post166-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa"); });
+  it('post166-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc"); });
+  it('post166-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51"); });
   it('post166-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(mcpRoot, ".github/workflows/ci.yml")).size).toBe(6295); });
   it('post166-extras: utf8-len .github/workflows/ci.yml', () => { expect(read(".github/workflows/ci.yml")).toHaveLength(6295); });
-  it('post166-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(515); });
+  it('post166-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(496); });
   it('post166-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3"); });
   it('post166-extras: HMAC post166 .github/workflows/deploy.yml', () => { expect(hmacSha256("post166", ".github/workflows/deploy.yml")).toBe("e356359ee1138e4997ff0fd0ba1405add6e42bd66ecd36df731878f522b038b9"); });
   it('post166-extras: HMAC after-#166 .github/workflows/deploy.yml', () => { expect(hmacSha256("after-#166", ".github/workflows/deploy.yml")).toBe("a9892a2b1a5639ac7836c41ee175ea81a26ea83773b8f69998c85651c963d33b"); });
@@ -24584,35 +24584,35 @@ describe('post178 mcp HEAVY deepen (after #178 leftover / not mcp-spec+ci-config
     expect(createHmac('md5', 'post178').update(readFileSync(join(mcpRoot, "docs/mcp-spec.md"))).digest('hex')).toBe("a47d08466ff028db2fe3d87f5bd87cfd");
   });
   it("post178: locks .github/workflows/ci.yml sha256", () => {
-    expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5");
+    expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6");
   });
 
   it("post178: locks .github/workflows/ci.yml sha1", () => {
-    expect(sha1(".github/workflows/ci.yml")).toBe("2105395119389c6131d039b5d787abc150bbbcaa");
+    expect(sha1(".github/workflows/ci.yml")).toBe("cde9f8d8638c657fd57e07cf565fe18eecbe133f");
   });
 
   it("post178: locks .github/workflows/ci.yml md5", () => {
-    expect(md5(".github/workflows/ci.yml")).toBe("ea05159f5a4591ccf20765050a212605");
+    expect(md5(".github/workflows/ci.yml")).toBe("fa7d7e9013f5d7d6538dce82b969c4b8");
   });
 
   it("post178: locks .github/workflows/ci.yml sha384", () => {
-    expect(sha384(".github/workflows/ci.yml")).toBe("8aa8ec73d3268813ebed009b6ade76fbfd8833f0aa035fddfb830493e21b2074d7728e8554206bc26c9a3fa3792612ab");
+    expect(sha384(".github/workflows/ci.yml")).toBe("f59bf0dfd256795307316437f4e40a9a3c8d098945b2a00d9159641e80537b8c53fadaf625f527ef0e5c95e37924c97b");
   });
 
   it("post178: locks .github/workflows/ci.yml sha512", () => {
-    expect(sha512(".github/workflows/ci.yml")).toBe("3999896950ad770f1352680a8d40714a837a82ee5b5c7e255ab8b9545fa759b131bfba0b22eee8111287cb4b54eb35be1e8f5a944d6d47a814d29eeb97cb4460");
+    expect(sha512(".github/workflows/ci.yml")).toBe("9b3837162581fb0a076f4dd4d264685a09460ba05508fabf44c0dc2bd64fd24937e0388d070b86b6b9f5932206662c36ac784a733a21287fa0408d8379554e15");
   });
 
   it("post178: locks .github/workflows/ci.yml sha3-256", () => {
-    expect(sha3(".github/workflows/ci.yml")).toBe("8f49dc5067d49c3458635df0dbb9078bac974081a35adab2c27d9349f30cd611");
+    expect(sha3(".github/workflows/ci.yml")).toBe("b64fb52d8c867a66da68c2e84c37fd65fc7b524ff2b5846675e827519c599ec5");
   });
 
   it("post178: locks .github/workflows/ci.yml blake2b512", () => {
-    expect(blake2b(".github/workflows/ci.yml")).toBe("5629fff561ce7acb56fc3d2f66b875992f525b4a25ec6c3c6fb485d6f6d20bb74a33c67c89389360ee29d12dd26361a4c24b39db6ec9aaf58462c3b0472f489d");
+    expect(blake2b(".github/workflows/ci.yml")).toBe("cfbb76435701a5a83c0a322affda8bcfc0288ba2dfaf127ce7826bd802bb1cc93f17bbb9e0347ec1279ff0249977bafb0d515c0160eea167e8678dcdd22141a8");
   });
 
   it("post178: locks .github/workflows/ci.yml ripemd160", () => {
-    expect(ripemd(".github/workflows/ci.yml")).toBe("491302ba2e7b00c030ea98aea8ccee799d61e1ff");
+    expect(ripemd(".github/workflows/ci.yml")).toBe("6a5ff4dce4fa62856b0379d9e02d475ab1782ee4");
   });
 
   it("post178: locks .github/workflows/ci.yml size 6295", () => {
@@ -24627,39 +24627,39 @@ describe('post178 mcp HEAVY deepen (after #178 leftover / not mcp-spec+ci-config
 
   it("post178: locks .github/workflows/ci.yml nibble 515 xor 3", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(nibbleSum(d)).toBe(515);
-    expect(xorNibbles(d)).toBe(3);
+    expect(nibbleSum(d)).toBe(496);
+    expect(xorNibbles(d)).toBe(6);
   });
 
   it("post178: locks .github/workflows/ci.yml pairSum 4595 rollingXor 71", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(pairSum(d)).toBe(4595);
-    expect(rollingXor(d)).toBe(71);
+    expect(pairSum(d)).toBe(3841);
+    expect(rollingXor(d)).toBe(83);
   });
 
   it("post178: locks .github/workflows/ci.yml first/last/mid octets", () => {
     const d = sha256(".github/workflows/ci.yml");
-    expect(d.slice(0, 2)).toBe("c4");
-    expect(d.slice(-2)).toBe("d5");
-    expect(d.slice(28, 36)).toBe("f5e6f56e");
+    expect(d.slice(0, 2)).toBe("15");
+    expect(d.slice(-2)).toBe("e6");
+    expect(d.slice(28, 36)).toBe("4451377a");
   });
 
   it("post178: locks .github/workflows/ci.yml HMAC post178/leftover/TOKENMAXX", () => {
-    expect(hmacSha256('post178', ".github/workflows/ci.yml")).toBe("dcbc43daacdef6ebddb2485e482e002356e3e76e48abf48c037d36688aa1b583");
-    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce");
-    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b");
+    expect(hmacSha256('post178', ".github/workflows/ci.yml")).toBe("455cb0f79493c67d08b56a6b94702b17b7a880f4a080089eb5829421eac24390");
+    expect(hmacSha256('leftover', ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b");
+    expect(hmacSha256('TOKENMAXX', ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a");
   });
 
   it("post178: locks .github/workflows/ci.yml HMAC after-#178/HEAVY/no-product-invent", () => {
-    expect(hmacSha256('after-#178', ".github/workflows/ci.yml")).toBe("d52e18b4656a029d2bdf1399e9d586c64adad22e732cc2028b8385580b34824f");
-    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea");
-    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde");
+    expect(hmacSha256('after-#178', ".github/workflows/ci.yml")).toBe("eea79970c5f2d9270a617b72d6ba42038cc8d207cc8c8c05b762d36ac9053540");
+    expect(hmacSha256('HEAVY', ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5");
+    expect(hmacSha256('no-product-invent', ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204");
   });
 
   it("post178: locks .github/workflows/ci.yml HMAC not-mcp-spec/not-ci-config/genres-mcp-only", () => {
-    expect(hmacSha256('not-mcp-spec', ".github/workflows/ci.yml")).toBe("4d0ce7f28c212480e642fcd4c71b9d867c7cdbfa051c151afe29b9c77e5157b7");
-    expect(hmacSha256('not-ci-config', ".github/workflows/ci.yml")).toBe("211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a");
-    expect(hmacSha256('genres-mcp-only', ".github/workflows/ci.yml")).toBe("7ad2212c81128b1cdc257e6392d4a9cc329329b09fcc5171bd9cfeb516f1a9bd");
+    expect(hmacSha256('not-mcp-spec', ".github/workflows/ci.yml")).toBe("c5b50b554ba4a6f72d549a2bb66c2e3521a9e9fad1861dc11c627832a9ddbec9");
+    expect(hmacSha256('not-ci-config', ".github/workflows/ci.yml")).toBe("87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a");
+    expect(hmacSha256('genres-mcp-only', ".github/workflows/ci.yml")).toBe("2a28d81e1a95ddf7eedb7db58d0dcafc2c4f53ae7fbdc557923d4ca724805061");
   });
 
   it("post178: locks .github/workflows/ci.yml spaces 1716", () => {
@@ -24668,11 +24668,11 @@ describe('post178 mcp HEAVY deepen (after #178 leftover / not mcp-spec+ci-config
 
   it("post178: locks .github/workflows/ci.yml reversed sha256", () => {
     const rev = [...read(".github/workflows/ci.yml")].reverse().join('');
-    expect(createHash('sha256').update(rev).digest('hex')).toBe("d1897bbef13787c7c5d1c731f788dea05deb87bd79eafe2bb7e29755b7b2b79b");
+    expect(createHash('sha256').update(rev).digest('hex')).toBe("739a1616cfce5fea54f7b7c57cc06b2757711379433991e7763ca8e25649e655");
   });
 
   it("post178: locks .github/workflows/ci.yml sha256 UPPERCASE", () => {
-    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("C4DB88D23A2F8C41A388C0791279F5E6F56E3D5DA7CC8FD25F97B5308B00EED5");
+    expect(sha256(".github/workflows/ci.yml").toUpperCase()).toBe("15340A3F1F8E5B6A1EEAB4FC41AD4451377A158E65E8588EF7CFE4C7184B81E6");
   });
 
   it("post178: locks .github/workflows/ci.yml first-line sha256", () => {
@@ -24694,8 +24694,8 @@ describe('post178 mcp HEAVY deepen (after #178 leftover / not mcp-spec+ci-config
   });
 
   it("post178: locks .github/workflows/ci.yml HMAC-SHA1/MD5 key post178", () => {
-    expect(createHmac('sha1', 'post178').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("b47db901dd4912e4ea8d8aa2d565174c94077ecc");
-    expect(createHmac('md5', 'post178').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("03dc84eb508054c93fe54ff0b3352fff");
+    expect(createHmac('sha1', 'post178').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("ee7bcf5d26d1e6008ef2114128d75124920becc7");
+    expect(createHmac('md5', 'post178').update(readFileSync(join(mcpRoot, ".github/workflows/ci.yml"))).digest('hex')).toBe("f39fde0fd8c4f097529aeddb9c642749");
   });
   it("post178: locks .github/workflows/deploy.yml sha256", () => {
     expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3");
@@ -25495,35 +25495,35 @@ describe('post178 mcp extras HEAVY deepen (after #178 leftover slice)', () => {
   it('post178-extras: size docs/mcp-spec.md', () => { expect(statSync(join(mcpRoot, "docs/mcp-spec.md")).size).toBe(3552); });
   it('post178-extras: utf8-len docs/mcp-spec.md', () => { expect(read("docs/mcp-spec.md")).toHaveLength(3544); });
   it('post178-extras: nibble docs/mcp-spec.md', () => { expect(nibbleSum(sha256("docs/mcp-spec.md"))).toBe(514); });
-  it('post178-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5"); });
-  it('post178-extras: HMAC post178 .github/workflows/ci.yml', () => { expect(hmacSha256("post178", ".github/workflows/ci.yml")).toBe("dcbc43daacdef6ebddb2485e482e002356e3e76e48abf48c037d36688aa1b583"); });
-  it('post178-extras: HMAC after-#178 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#178", ".github/workflows/ci.yml")).toBe("d52e18b4656a029d2bdf1399e9d586c64adad22e732cc2028b8385580b34824f"); });
-  it('post178-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce"); });
-  it('post178-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b"); });
-  it('post178-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea"); });
-  it('post178-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde"); });
-  it('post178-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba"); });
-  it('post178-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc"); });
-  it('post178-extras: HMAC not-mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("not-mcp-spec", ".github/workflows/ci.yml")).toBe("4d0ce7f28c212480e642fcd4c71b9d867c7cdbfa051c151afe29b9c77e5157b7"); });
-  it('post178-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a"); });
-  it('post178-extras: HMAC genres-mcp-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-only", ".github/workflows/ci.yml")).toBe("7ad2212c81128b1cdc257e6392d4a9cc329329b09fcc5171bd9cfeb516f1a9bd"); });
-  it('post178-extras: HMAC mcp-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-leftover", ".github/workflows/ci.yml")).toBe("d4a017a4a6f1ffd28c08cf287b95d37488b2c38e31001cbbe6d10af72ba0016a"); });
-  it('post178-extras: HMAC genres-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("genres-leftover", ".github/workflows/ci.yml")).toBe("fa17308c7b86de8688c332951c105459fcb2341e2628f91dd0c33b638ed34d07"); });
-  it('post178-extras: HMAC dual-runtime .github/workflows/ci.yml', () => { expect(hmacSha256("dual-runtime", ".github/workflows/ci.yml")).toBe("389fb619685ba16511d92142c3099969c4621008ba2a0a48e3779c80c4afcdbc"); });
-  it('post178-extras: HMAC resolveGenre .github/workflows/ci.yml', () => { expect(hmacSha256("resolveGenre", ".github/workflows/ci.yml")).toBe("16527a5c75181eb0e8e7008901a0fc4cf6a6078d3c65cd0f6ec0c346529043c2"); });
-  it('post178-extras: HMAC MCP_MANIFEST .github/workflows/ci.yml', () => { expect(hmacSha256("MCP_MANIFEST", ".github/workflows/ci.yml")).toBe("fd021fa01cef318c30394e7aa60c52a25ec2a0657fff85b2f9f279c0b42ec49c"); });
-  it('post178-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c"); });
-  it('post178-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf"); });
-  it('post178-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc"); });
-  it('post178-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461"); });
-  it('post178-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c"); });
-  it('post178-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5"); });
-  it('post178-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256("backlink", ".github/workflows/ci.yml")).toBe("db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13"); });
-  it('post178-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189"); });
-  it('post178-extras: HMAC no-dns .github/workflows/ci.yml', () => { expect(hmacSha256("no-dns", ".github/workflows/ci.yml")).toBe("0f6a9a6f5d10da688f8e0a3e28a7b49e5dd1ceddcc8eef99729dd00e26b4186b"); });
+  it('post178-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6"); });
+  it('post178-extras: HMAC post178 .github/workflows/ci.yml', () => { expect(hmacSha256("post178", ".github/workflows/ci.yml")).toBe("455cb0f79493c67d08b56a6b94702b17b7a880f4a080089eb5829421eac24390"); });
+  it('post178-extras: HMAC after-#178 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#178", ".github/workflows/ci.yml")).toBe("eea79970c5f2d9270a617b72d6ba42038cc8d207cc8c8c05b762d36ac9053540"); });
+  it('post178-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b"); });
+  it('post178-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a"); });
+  it('post178-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5"); });
+  it('post178-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204"); });
+  it('post178-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5"); });
+  it('post178-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a"); });
+  it('post178-extras: HMAC not-mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("not-mcp-spec", ".github/workflows/ci.yml")).toBe("c5b50b554ba4a6f72d549a2bb66c2e3521a9e9fad1861dc11c627832a9ddbec9"); });
+  it('post178-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a"); });
+  it('post178-extras: HMAC genres-mcp-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-only", ".github/workflows/ci.yml")).toBe("2a28d81e1a95ddf7eedb7db58d0dcafc2c4f53ae7fbdc557923d4ca724805061"); });
+  it('post178-extras: HMAC mcp-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-leftover", ".github/workflows/ci.yml")).toBe("e6584659cb9d2cbaf068adfb378fff3da2cb75139c8b3fb21f11f3cbaf0c50e7"); });
+  it('post178-extras: HMAC genres-leftover .github/workflows/ci.yml', () => { expect(hmacSha256("genres-leftover", ".github/workflows/ci.yml")).toBe("54248654a1a5ad6bea5388790f8125e769576e4e4c38fd6f1f5e741c13699e30"); });
+  it('post178-extras: HMAC dual-runtime .github/workflows/ci.yml', () => { expect(hmacSha256("dual-runtime", ".github/workflows/ci.yml")).toBe("c1d3c09fb1a5c3fe384888b49e5d999fe4b6addf0652b6744a83c675ee03e8f4"); });
+  it('post178-extras: HMAC resolveGenre .github/workflows/ci.yml', () => { expect(hmacSha256("resolveGenre", ".github/workflows/ci.yml")).toBe("e09786eb33e64c51da0162d4b9096a22ec5f8868b577df89a944190cf4f56755"); });
+  it('post178-extras: HMAC MCP_MANIFEST .github/workflows/ci.yml', () => { expect(hmacSha256("MCP_MANIFEST", ".github/workflows/ci.yml")).toBe("c5151f60859c82b9a64449296e9b68dfea6ea852fb5892bfea23a435c4829d57"); });
+  it('post178-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924"); });
+  it('post178-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51"); });
+  it('post178-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f"); });
+  it('post178-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa"); });
+  it('post178-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc"); });
+  it('post178-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e"); });
+  it('post178-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256("backlink", ".github/workflows/ci.yml")).toBe("be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237"); });
+  it('post178-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909"); });
+  it('post178-extras: HMAC no-dns .github/workflows/ci.yml', () => { expect(hmacSha256("no-dns", ".github/workflows/ci.yml")).toBe("d583100d93dd626f644ce9518a7092b1f0fc8bd94c74c83def338d48aa11acf5"); });
   it('post178-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(mcpRoot, ".github/workflows/ci.yml")).size).toBe(6295); });
   it('post178-extras: utf8-len .github/workflows/ci.yml', () => { expect(read(".github/workflows/ci.yml")).toHaveLength(6295); });
-  it('post178-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(515); });
+  it('post178-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(496); });
   it('post178-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3"); });
   it('post178-extras: HMAC post178 .github/workflows/deploy.yml', () => { expect(hmacSha256("post178", ".github/workflows/deploy.yml")).toBe("024819a67e1ed7e5bf392c003eecab2460363fc2f219f46235416938949c2557"); });
   it('post178-extras: HMAC after-#178 .github/workflows/deploy.yml', () => { expect(hmacSha256("after-#178", ".github/workflows/deploy.yml")).toBe("5243d5c0940589eadc1c94cc962ba454e8f0f2732719dadfd2dd587e6cf42a54"); });
@@ -26537,39 +26537,39 @@ describe('post181 mcp extras HEAVY deepen (after #181 leftover / genres-mcp-edge
   it('post181-extras: size docs/mcp-spec.md', () => { expect(statSync(join(mcpRoot, 'docs/mcp-spec.md')).size).toBe(3552); });
   it('post181-extras: utf8-len docs/mcp-spec.md', () => { expect(read('docs/mcp-spec.md')).toHaveLength(3544); });
   it('post181-extras: nibble docs/mcp-spec.md', () => { expect(nibbleSum(sha256('docs/mcp-spec.md'))).toBe(514); });
-  it('post181-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5'); });
-  it('post181-extras: HMAC post181 .github/workflows/ci.yml', () => { expect(hmacSha256('post181', '.github/workflows/ci.yml')).toBe('e64a420bd765e97d95fc20719754a264c6e5a1ab4eebfe151436bedb83388788'); });
-  it('post181-extras: HMAC after-#181 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#181', '.github/workflows/ci.yml')).toBe('914def4d74b85a331c8682eeb52b0aa5f7453fa24b76c75436130354926c2b9a'); });
-  it('post181-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce'); });
-  it('post181-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b'); });
-  it('post181-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea'); });
-  it('post181-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde'); });
-  it('post181-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba'); });
-  it('post181-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc'); });
-  it('post181-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189'); });
-  it('post181-extras: HMAC not-parser .github/workflows/ci.yml', () => { expect(hmacSha256('not-parser', '.github/workflows/ci.yml')).toBe('f62367240563f3dd3e53be35526061bef4ad675f70d8164e3fae0b60d2144608'); });
-  it('post181-extras: HMAC not-routes .github/workflows/ci.yml', () => { expect(hmacSha256('not-routes', '.github/workflows/ci.yml')).toBe('fba38deef79f6fa2bb846e07296fe3ec94653004a0c54b597c22fcf3f30c2ab1'); });
-  it('post181-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256('not-wrangler', '.github/workflows/ci.yml')).toBe('24e165608e99925509227123c8e6c6a15f623ec1b6516a7a3200f6ae6b965ea6'); });
-  it('post181-extras: HMAC not-mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256('not-mcp-spec', '.github/workflows/ci.yml')).toBe('4d0ce7f28c212480e642fcd4c71b9d867c7cdbfa051c151afe29b9c77e5157b7'); });
-  it('post181-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256('not-ci-config', '.github/workflows/ci.yml')).toBe('211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a'); });
-  it('post181-extras: HMAC genres-mcp-edges .github/workflows/ci.yml', () => { expect(hmacSha256('genres-mcp-edges', '.github/workflows/ci.yml')).toBe('159340e04a1e9ce284bd47fa44d9d7c24e45d3d3f1e79084bd0823a7e9066a18'); });
-  it('post181-extras: HMAC not-helpers-sibling .github/workflows/ci.yml', () => { expect(hmacSha256('not-helpers-sibling', '.github/workflows/ci.yml')).toBe('fab4326df604c81b2a07407243abf82601df4566ff03ecad52874c5f3402f672'); });
-  it('post181-extras: HMAC after-merged-181 .github/workflows/ci.yml', () => { expect(hmacSha256('after-merged-181', '.github/workflows/ci.yml')).toBe('4e1b9e97066419da85f6051ebde39f89f5ff24d59ba52808e3bc1df0e35f9a22'); });
-  it('post181-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc'); });
-  it('post181-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('db82d56ead609b63cbc9d4e8f91d953c7a496125047ea4feaf11acc54d643f13'); });
-  it('post181-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('8a64f8a57a8e0d57022a408212641087f1eaeb50cbf7f616da671d19647dbc3b'); });
-  it('post181-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('1c60dc3be507ae8043c44018700fd49f8cf7bf23d8059f0617ca6587aa9cf6d5'); });
-  it('post181-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5'); });
-  it('post181-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('a3f526cfe1d8f02f79e076a789f3182a36794a4d1b7aba5fe91cd951467fbe5f'); });
-  it('post181-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c'); });
-  it('post181-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461'); });
-  it('post181-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c'); });
-  it('post181-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf'); });
-  it('post181-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e'); });
-  it('post181-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256('unit-contract', '.github/workflows/ci.yml')).toBe('41a158366420e6d05352b87b1160c4fcf7501e5f4461ff8524f3b90e06988370'); });
+  it('post181-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256('.github/workflows/ci.yml')).toBe('15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6'); });
+  it('post181-extras: HMAC post181 .github/workflows/ci.yml', () => { expect(hmacSha256('post181', '.github/workflows/ci.yml')).toBe('958bfac971dde4bb264ccd5dbbda45ec242e5e1604c8597c9ae39055ccf0eafe'); });
+  it('post181-extras: HMAC after-#181 .github/workflows/ci.yml', () => { expect(hmacSha256('after-#181', '.github/workflows/ci.yml')).toBe('2b2c77f82dbc160eb2c77c3125a138397db1f8f9f079c5418fe22ea4c3dbf819'); });
+  it('post181-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256('leftover', '.github/workflows/ci.yml')).toBe('f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b'); });
+  it('post181-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256('TOKENMAXX', '.github/workflows/ci.yml')).toBe('67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a'); });
+  it('post181-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256('HEAVY', '.github/workflows/ci.yml')).toBe('2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5'); });
+  it('post181-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256('no-product-invent', '.github/workflows/ci.yml')).toBe('63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204'); });
+  it('post181-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256('slice-diff', '.github/workflows/ci.yml')).toBe('4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5'); });
+  it('post181-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256('no-src-change', '.github/workflows/ci.yml')).toBe('8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a'); });
+  it('post181-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256('manifest-lock', '.github/workflows/ci.yml')).toBe('6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909'); });
+  it('post181-extras: HMAC not-parser .github/workflows/ci.yml', () => { expect(hmacSha256('not-parser', '.github/workflows/ci.yml')).toBe('8774104c31f6eef48f19728c2adcaa1540dad0ab09a1f6918287a7e891a6b7f2'); });
+  it('post181-extras: HMAC not-routes .github/workflows/ci.yml', () => { expect(hmacSha256('not-routes', '.github/workflows/ci.yml')).toBe('c9898508b08f52f599a60d354226b65b907f9bece135c2f0fe0a9272f691a275'); });
+  it('post181-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256('not-wrangler', '.github/workflows/ci.yml')).toBe('346ff431859912736cbc6d0eb053559dadc814424a5e263cd13f0911e8b608c9'); });
+  it('post181-extras: HMAC not-mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256('not-mcp-spec', '.github/workflows/ci.yml')).toBe('c5b50b554ba4a6f72d549a2bb66c2e3521a9e9fad1861dc11c627832a9ddbec9'); });
+  it('post181-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256('not-ci-config', '.github/workflows/ci.yml')).toBe('87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a'); });
+  it('post181-extras: HMAC genres-mcp-edges .github/workflows/ci.yml', () => { expect(hmacSha256('genres-mcp-edges', '.github/workflows/ci.yml')).toBe('1953510a539151d07da667406e8cd04bd05141601bb18b2a2f717fb974616741'); });
+  it('post181-extras: HMAC not-helpers-sibling .github/workflows/ci.yml', () => { expect(hmacSha256('not-helpers-sibling', '.github/workflows/ci.yml')).toBe('33437b4942c4c907d02f25b94963d087a92df91be27ac45de8137aa3e480916d'); });
+  it('post181-extras: HMAC after-merged-181 .github/workflows/ci.yml', () => { expect(hmacSha256('after-merged-181', '.github/workflows/ci.yml')).toBe('d7080eabab0cede106a6645f003de3e20d2de16e6aa5ef52c402c71d757d4b5f'); });
+  it('post181-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256('fuzzywigg', '.github/workflows/ci.yml')).toBe('d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f'); });
+  it('post181-extras: HMAC backlink .github/workflows/ci.yml', () => { expect(hmacSha256('backlink', '.github/workflows/ci.yml')).toBe('be6b226366646e8ea15ecadfd46450ae7a94ddae86a51150a05a55a980e69237'); });
+  it('post181-extras: HMAC CATALOG_CACHE .github/workflows/ci.yml', () => { expect(hmacSha256('CATALOG_CACHE', '.github/workflows/ci.yml')).toBe('ed2dc575c05e90566559fe3427064fcc85bc79010e370a58a6493153a910489e'); });
+  it('post181-extras: HMAC GEMINI_API_KEY .github/workflows/ci.yml', () => { expect(hmacSha256('GEMINI_API_KEY', '.github/workflows/ci.yml')).toBe('6ef6b8cb4d7f9f4dce90c8ab8d8e775c0fcf310654695c3406fb7e3d27179334'); });
+  it('post181-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256('iptv-org', '.github/workflows/ci.yml')).toBe('58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e'); });
+  it('post181-extras: HMAC gemini-2.0-flash .github/workflows/ci.yml', () => { expect(hmacSha256('gemini-2.0-flash', '.github/workflows/ci.yml')).toBe('68ae883f6a4f4d7320208bfb4301cf83c452f8fb29cfe3900fd368ac31b84fce'); });
+  it('post181-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256('VALID_GENRES', '.github/workflows/ci.yml')).toBe('6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924'); });
+  it('post181-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256('HITL', '.github/workflows/ci.yml')).toBe('7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa'); });
+  it('post181-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256('no-creds', '.github/workflows/ci.yml')).toBe('b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc'); });
+  it('post181-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256('station_select', '.github/workflows/ci.yml')).toBe('bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51'); });
+  it('post181-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256('overnight', '.github/workflows/ci.yml')).toBe('2d2a6cf1a857a46ecb89fb5ffabb7ff4f847fc124f208a2ed60ea852ca3435bd'); });
+  it('post181-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256('unit-contract', '.github/workflows/ci.yml')).toBe('e282eaa3d9cf1df9887a019933619bf0b13292b92dd20a2306bc8ddc9f817ffa'); });
   it('post181-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(mcpRoot, '.github/workflows/ci.yml')).size).toBe(6295); });
   it('post181-extras: utf8-len .github/workflows/ci.yml', () => { expect(read('.github/workflows/ci.yml')).toHaveLength(6295); });
-  it('post181-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(515); });
+  it('post181-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256('.github/workflows/ci.yml'))).toBe(496); });
   it('post181-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256('.github/workflows/deploy.yml')).toBe('49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3'); });
   it('post181-extras: HMAC post181 .github/workflows/deploy.yml', () => { expect(hmacSha256('post181', '.github/workflows/deploy.yml')).toBe('efdb8b929cd3d00f179b517c6fdf06215238b35ea41ea0d4106d031e4ce0457d'); });
   it('post181-extras: HMAC after-#181 .github/workflows/deploy.yml', () => { expect(hmacSha256('after-#181', '.github/workflows/deploy.yml')).toBe('a806092a6afd030508d00f65cd5c57f83745c8d7d39236f5c578fc32662ce2fd'); });
@@ -28260,40 +28260,40 @@ describe('post200 mcp extras HEAVY deepen (after #200 leftover / genres-mcp-spec
   it('post200-extras: DEPLOY.md forbids invent phrase r2_', () => { expect(read("DEPLOY.md").toLowerCase()).not.toContain("r2_"); });
   it('post200-extras: DEPLOY.md forbids invent phrase crawlqueue', () => { expect(read("DEPLOY.md").toLowerCase()).not.toContain("crawlqueue"); });
   it('post200-extras: DEPLOY.md forbids invent phrase dead_letter', () => { expect(read("DEPLOY.md").toLowerCase()).not.toContain("dead_letter"); });
-  it('post200-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5"); });
+  it('post200-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6"); });
   it('post200-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(root, ".github/workflows/ci.yml")).size).toBe(6295); });
   it('post200-extras: js-utf16-len .github/workflows/ci.yml', () => { expect(read(".github/workflows/ci.yml")).toHaveLength(6295); });
   it('post200-extras: utf16le-bytes .github/workflows/ci.yml', () => { expect(Buffer.byteLength(read(".github/workflows/ci.yml"), 'utf16le')).toBe(12590); });
-  it('post200-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(515); });
-  it('post200-extras: HMAC post200 .github/workflows/ci.yml', () => { expect(hmacSha256("post200", ".github/workflows/ci.yml")).toBe("50d742e353692d0cfd06dc9136703dd0d530d46a573b0e4230a6fa65e4d80266"); });
-  it('post200-extras: HMAC after-#200 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#200", ".github/workflows/ci.yml")).toBe("cbe7b618deabf0083c8c260baa1b9c602b19b1f6967948289950421ae7b208a1"); });
-  it('post200-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce"); });
-  it('post200-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b"); });
-  it('post200-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea"); });
-  it('post200-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde"); });
-  it('post200-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba"); });
-  it('post200-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc"); });
-  it('post200-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189"); });
-  it('post200-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("e8071d567556af604eca6e2fa84971bcf02a66a8c89df301faf8d59c6300dbc3"); });
-  it('post200-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("36d85c375ed30f695d6c2406d4747394e0a97125f11328fd0286a47d5fb5aa8d"); });
-  it('post200-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("ca77326b830654f3e5b8345d9de5daf67c9c47579a862b0deddcd23d74959826"); });
-  it('post200-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a"); });
-  it('post200-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("6baf19c4d23b311e14a7ef610cb07ff03e5e6eb7641033b0550845b823d3fbfc"); });
-  it('post200-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("34f8ef777a3b12c5cea1db4e8e413348be6627c6986759f0b3b40ed917e9d2bd"); });
-  it('post200-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("24e165608e99925509227123c8e6c6a15f623ec1b6516a7a3200f6ae6b965ea6"); });
-  it('post200-extras: HMAC after-merged-200 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-200", ".github/workflows/ci.yml")).toBe("7c116ab1410d4d3f86ef1abd277c23167f270488ae2ad44c95c93b23619049ce"); });
-  it('post200-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("fb3eeb0126916fefcca238567eb553d656617a42077efca6fb94b9cc341cb29d"); });
-  it('post200-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("e05600c5de318a0895c740330838dd73420d9cabf5881876b82b9e0fb9cbec7b"); });
-  it('post200-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc"); });
-  it('post200-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461"); });
-  it('post200-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c"); });
-  it('post200-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5"); });
-  it('post200-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c"); });
-  it('post200-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf"); });
-  it('post200-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e"); });
-  it('post200-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("41a158366420e6d05352b87b1160c4fcf7501e5f4461ff8524f3b90e06988370"); });
-  it('post200-extras: HMAC post200-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post200-extras", ".github/workflows/ci.yml")).toBe("3199457998e146aac79e971fce368a9daffb055370aefb61947f42eb6335fb60"); });
-  it('post200-extras: HMAC post200-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post200-ultra", ".github/workflows/ci.yml")).toBe("153288bf6e427f1d17853e83a19096305a2521c495c458154d83777c317a4f15"); });
+  it('post200-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(496); });
+  it('post200-extras: HMAC post200 .github/workflows/ci.yml', () => { expect(hmacSha256("post200", ".github/workflows/ci.yml")).toBe("0117a55ee5a63445f22c2e8be94650e2ad35b1cea6bda2347bc7b03b0b53fb1b"); });
+  it('post200-extras: HMAC after-#200 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#200", ".github/workflows/ci.yml")).toBe("37d412450969504911339245b8e36ca9af1e49fa28b900db895eae1e8165d729"); });
+  it('post200-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b"); });
+  it('post200-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a"); });
+  it('post200-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5"); });
+  it('post200-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204"); });
+  it('post200-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5"); });
+  it('post200-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a"); });
+  it('post200-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909"); });
+  it('post200-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("2e6f39140238ad02a0020f15925ca06d3f87d57aebc97be208bb28a912e92ee3"); });
+  it('post200-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("91c7f3ff127295535b28db2bd03d400c3fa621a7f08876679787c17852cdfc68"); });
+  it('post200-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("1ecdd5f4f0cb7b7bf8fc10f4c63ac25d3cf9d29114bb3fb5a423694db81568af"); });
+  it('post200-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a"); });
+  it('post200-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("33709771793081d4f10f52af9d18c42daf401a164adff892bd5b5b76ba1cb6fb"); });
+  it('post200-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("edf429096aeb414036a0f70d8643d388c0a9f5295e673712598db7d4dfd0b0ec"); });
+  it('post200-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("346ff431859912736cbc6d0eb053559dadc814424a5e263cd13f0911e8b608c9"); });
+  it('post200-extras: HMAC after-merged-200 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-200", ".github/workflows/ci.yml")).toBe("f0b08dfbca90f86198dd638c338843fabfb65a47e9d6cf0d580f9d043f12e541"); });
+  it('post200-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("685c4184cc3c5a107dc3d9eb1e6e276de1935f0e0c28969a6847f3da44349a3f"); });
+  it('post200-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("335aad0641c05bf88aafb186563b4e80e0014ca932767ed0bfcdf68daffa793d"); });
+  it('post200-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f"); });
+  it('post200-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa"); });
+  it('post200-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc"); });
+  it('post200-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e"); });
+  it('post200-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924"); });
+  it('post200-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51"); });
+  it('post200-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("2d2a6cf1a857a46ecb89fb5ffabb7ff4f847fc124f208a2ed60ea852ca3435bd"); });
+  it('post200-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("e282eaa3d9cf1df9887a019933619bf0b13292b92dd20a2306bc8ddc9f817ffa"); });
+  it('post200-extras: HMAC post200-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post200-extras", ".github/workflows/ci.yml")).toBe("cb9a81ef7713e17700064c37ae6b77d16f175957c1ad1d7dc701fc7eff85be34"); });
+  it('post200-extras: HMAC post200-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post200-ultra", ".github/workflows/ci.yml")).toBe("808f2cb157b3f1b6468b505a88ebe4eba8ece354a6492b07c31b6135676d667e"); });
   it('post200-extras: .github/workflows/ci.yml forbids invent phrase /playlist', () => { expect(read(".github/workflows/ci.yml").toLowerCase()).not.toContain("/playlist"); });
   it('post200-extras: .github/workflows/ci.yml forbids invent phrase /now-playing', () => { expect(read(".github/workflows/ci.yml").toLowerCase()).not.toContain("/now-playing"); });
   it('post200-extras: .github/workflows/ci.yml forbids invent phrase openai', () => { expect(read(".github/workflows/ci.yml").toLowerCase()).not.toContain("openai"); });
@@ -29479,47 +29479,47 @@ describe('post211 mcp extras HEAVY deepen (after #211 leftover / genres-mcp-spec
   it('post211-extras: HMAC genres DEPLOY.md', () => { expect(hmacSha256("genres", "DEPLOY.md")).toBe("2e655f78eaa696b875847da9b0f6908d4b12fde3e46ad406b135fe83aa33c904"); });
   it('post211-extras: HMAC mcp DEPLOY.md', () => { expect(hmacSha256("mcp", "DEPLOY.md")).toBe("c2fc8100a2b36a0c468a0e930d14d291405c27e20f9ead165b59551413ae8188"); });
   it('post211-extras: HMAC mcp-spec DEPLOY.md', () => { expect(hmacSha256("mcp-spec", "DEPLOY.md")).toBe("2b65a0453b4a85587ecdefaa8fe088b12516d11f6bf9fb5e3a91bd07aa3a9df7"); });
-  it('post211-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5"); });
+  it('post211-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6"); });
   it('post211-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(repo, ".github/workflows/ci.yml")).size).toBe(6295); });
   it('post211-extras: js-utf16-len .github/workflows/ci.yml', () => { expect(read(".github/workflows/ci.yml")).toHaveLength(6295); });
   it('post211-extras: utf16le-bytes .github/workflows/ci.yml', () => { expect(Buffer.byteLength(read(".github/workflows/ci.yml"), 'utf16le')).toBe(12590); });
-  it('post211-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(515); });
-  it('post211-extras: HMAC post211 .github/workflows/ci.yml', () => { expect(hmacSha256("post211", ".github/workflows/ci.yml")).toBe("f46b6c8b0e0e459104f417506d45593b4901071ae0300ff2fad45f7a089bace0"); });
-  it('post211-extras: HMAC after-#211 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#211", ".github/workflows/ci.yml")).toBe("aca5ffbe957c7f314005f00a971018acb6dde9bc6e6fab8ffd81adebe972f507"); });
-  it('post211-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce"); });
-  it('post211-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b"); });
-  it('post211-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea"); });
-  it('post211-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde"); });
-  it('post211-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba"); });
-  it('post211-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc"); });
-  it('post211-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189"); });
-  it('post211-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("e8071d567556af604eca6e2fa84971bcf02a66a8c89df301faf8d59c6300dbc3"); });
-  it('post211-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("36d85c375ed30f695d6c2406d4747394e0a97125f11328fd0286a47d5fb5aa8d"); });
-  it('post211-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("ca77326b830654f3e5b8345d9de5daf67c9c47579a862b0deddcd23d74959826"); });
-  it('post211-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("6baf19c4d23b311e14a7ef610cb07ff03e5e6eb7641033b0550845b823d3fbfc"); });
-  it('post211-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("24e165608e99925509227123c8e6c6a15f623ec1b6516a7a3200f6ae6b965ea6"); });
-  it('post211-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a"); });
-  it('post211-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("34f8ef777a3b12c5cea1db4e8e413348be6627c6986759f0b3b40ed917e9d2bd"); });
-  it('post211-extras: HMAC parser-routes-merged .github/workflows/ci.yml', () => { expect(hmacSha256("parser-routes-merged", ".github/workflows/ci.yml")).toBe("3a1edb0e2f051339c630b9042529ec8cb62031af70fd19654de04334fd13b4db"); });
-  it('post211-extras: HMAC wrangler-merged .github/workflows/ci.yml', () => { expect(hmacSha256("wrangler-merged", ".github/workflows/ci.yml")).toBe("40c01f47a946a5bd88258b12c4773194a914594606cf5ce6d690c27bd15288ad"); });
-  it('post211-extras: HMAC after-merged-211 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-211", ".github/workflows/ci.yml")).toBe("0409a3068df55d2213750a4c4f8aedab7969183e46adc473ecd65662d2c1d30e"); });
-  it('post211-extras: HMAC unsaturated-after-211 .github/workflows/ci.yml', () => { expect(hmacSha256("unsaturated-after-211", ".github/workflows/ci.yml")).toBe("5605909d4564f624c6d5d15f046969a75e0297c55020cbd0f2137737dd53d4cc"); });
-  it('post211-extras: HMAC beyond-post200 .github/workflows/ci.yml', () => { expect(hmacSha256("beyond-post200", ".github/workflows/ci.yml")).toBe("7295c304cb4bc0e7da20f5ad6d6f15d03b2ebd403620faff410effb588768cc8"); });
-  it('post211-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("fb3eeb0126916fefcca238567eb553d656617a42077efca6fb94b9cc341cb29d"); });
-  it('post211-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("e05600c5de318a0895c740330838dd73420d9cabf5881876b82b9e0fb9cbec7b"); });
-  it('post211-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc"); });
-  it('post211-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461"); });
-  it('post211-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c"); });
-  it('post211-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5"); });
-  it('post211-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c"); });
-  it('post211-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf"); });
-  it('post211-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e"); });
-  it('post211-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("41a158366420e6d05352b87b1160c4fcf7501e5f4461ff8524f3b90e06988370"); });
-  it('post211-extras: HMAC post211-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post211-extras", ".github/workflows/ci.yml")).toBe("245e79ce48071a632a2de20b5f1c57fe78190fdcfaedbebbf2435c1b29a9d7fe"); });
-  it('post211-extras: HMAC post211-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post211-ultra", ".github/workflows/ci.yml")).toBe("ce3f9665feab014591319004c8f0c8d8db85523017c4b6d25a10f0fe2fb4a3a3"); });
-  it('post211-extras: HMAC genres .github/workflows/ci.yml', () => { expect(hmacSha256("genres", ".github/workflows/ci.yml")).toBe("0e04990f9d3e9d046f9ab7a94584211f5981806ed9435a10183399937bcdae9f"); });
-  it('post211-extras: HMAC mcp .github/workflows/ci.yml', () => { expect(hmacSha256("mcp", ".github/workflows/ci.yml")).toBe("b6908c88ba549d88f1b476cd1e5a5d5a5ce99571a2f80a67568f59be65099aba"); });
-  it('post211-extras: HMAC mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-spec", ".github/workflows/ci.yml")).toBe("08a15c59a71697f9946e9fc4a06c00bbb4a26e7ff5ae8a95bfba2c1d865356f1"); });
+  it('post211-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(496); });
+  it('post211-extras: HMAC post211 .github/workflows/ci.yml', () => { expect(hmacSha256("post211", ".github/workflows/ci.yml")).toBe("445e455b0728987d34f741356648e6b3e2db0449477375981cc5e67ed028037f"); });
+  it('post211-extras: HMAC after-#211 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#211", ".github/workflows/ci.yml")).toBe("cc1344e2814de573cce431fb4f1337f87ece1a78bb957a3fc4a3ac4870ed68c9"); });
+  it('post211-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b"); });
+  it('post211-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a"); });
+  it('post211-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5"); });
+  it('post211-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204"); });
+  it('post211-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5"); });
+  it('post211-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a"); });
+  it('post211-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909"); });
+  it('post211-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("2e6f39140238ad02a0020f15925ca06d3f87d57aebc97be208bb28a912e92ee3"); });
+  it('post211-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("91c7f3ff127295535b28db2bd03d400c3fa621a7f08876679787c17852cdfc68"); });
+  it('post211-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("1ecdd5f4f0cb7b7bf8fc10f4c63ac25d3cf9d29114bb3fb5a423694db81568af"); });
+  it('post211-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("33709771793081d4f10f52af9d18c42daf401a164adff892bd5b5b76ba1cb6fb"); });
+  it('post211-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("346ff431859912736cbc6d0eb053559dadc814424a5e263cd13f0911e8b608c9"); });
+  it('post211-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a"); });
+  it('post211-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("edf429096aeb414036a0f70d8643d388c0a9f5295e673712598db7d4dfd0b0ec"); });
+  it('post211-extras: HMAC parser-routes-merged .github/workflows/ci.yml', () => { expect(hmacSha256("parser-routes-merged", ".github/workflows/ci.yml")).toBe("82f1e10cbda67a2fa4a70266e2d565cbf92593b5071227d4517dbeef198fc63d"); });
+  it('post211-extras: HMAC wrangler-merged .github/workflows/ci.yml', () => { expect(hmacSha256("wrangler-merged", ".github/workflows/ci.yml")).toBe("944e7535dc25a0aa9b9dc977dcece079fe27ee5b9028d21ba4cd576e444f1fd5"); });
+  it('post211-extras: HMAC after-merged-211 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-211", ".github/workflows/ci.yml")).toBe("db74c8f9867b1e4b3435081c36adc1e9ac1d4e89881e7b977b2bf098e3a23c40"); });
+  it('post211-extras: HMAC unsaturated-after-211 .github/workflows/ci.yml', () => { expect(hmacSha256("unsaturated-after-211", ".github/workflows/ci.yml")).toBe("74a65b981e0d2e6e891e0e821b3bd6ce368826a509266aeae56517c07b263809"); });
+  it('post211-extras: HMAC beyond-post200 .github/workflows/ci.yml', () => { expect(hmacSha256("beyond-post200", ".github/workflows/ci.yml")).toBe("da81f3e5a9cd162ed04aa5bffbaf706d30cc952f6d378cad95e00c4bcb5d4a35"); });
+  it('post211-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("685c4184cc3c5a107dc3d9eb1e6e276de1935f0e0c28969a6847f3da44349a3f"); });
+  it('post211-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("335aad0641c05bf88aafb186563b4e80e0014ca932767ed0bfcdf68daffa793d"); });
+  it('post211-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f"); });
+  it('post211-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa"); });
+  it('post211-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc"); });
+  it('post211-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e"); });
+  it('post211-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924"); });
+  it('post211-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51"); });
+  it('post211-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("2d2a6cf1a857a46ecb89fb5ffabb7ff4f847fc124f208a2ed60ea852ca3435bd"); });
+  it('post211-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("e282eaa3d9cf1df9887a019933619bf0b13292b92dd20a2306bc8ddc9f817ffa"); });
+  it('post211-extras: HMAC post211-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post211-extras", ".github/workflows/ci.yml")).toBe("dbf6a4d1df02b5ddb555dad365280c2e5d04cea4bafd0a07f9309be2bf2251ad"); });
+  it('post211-extras: HMAC post211-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post211-ultra", ".github/workflows/ci.yml")).toBe("7d25c0b8663d8ae6b213ccf02b1dfd1bedf54fc430d09da58434ebfdb4d9c4ab"); });
+  it('post211-extras: HMAC genres .github/workflows/ci.yml', () => { expect(hmacSha256("genres", ".github/workflows/ci.yml")).toBe("085f5b8a42cc0d919bf563d2f8835d0afc1e6b8e585f88bb8dc2f3a7b9545df9"); });
+  it('post211-extras: HMAC mcp .github/workflows/ci.yml', () => { expect(hmacSha256("mcp", ".github/workflows/ci.yml")).toBe("55d844d3a290c7402882ef969da1177753a8534bb3546d156697395d6e4b99eb"); });
+  it('post211-extras: HMAC mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-spec", ".github/workflows/ci.yml")).toBe("04cf8b844156b1be95246962893608e14f253498f8610c26927caa0e5367b0a6"); });
   it('post211-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3"); });
   it('post211-extras: size .github/workflows/deploy.yml', () => { expect(statSync(join(repo, ".github/workflows/deploy.yml")).size).toBe(1004); });
   it('post211-extras: js-utf16-len .github/workflows/deploy.yml', () => { expect(read(".github/workflows/deploy.yml")).toHaveLength(1004); });
@@ -30658,47 +30658,47 @@ describe('post215 mcp extras HEAVY deepen (after #215 leftover / genres-mcp-spec
   it('post215-extras: HMAC genres DEPLOY.md', () => { expect(hmacSha256("genres", "DEPLOY.md")).toBe("2e655f78eaa696b875847da9b0f6908d4b12fde3e46ad406b135fe83aa33c904"); });
   it('post215-extras: HMAC mcp DEPLOY.md', () => { expect(hmacSha256("mcp", "DEPLOY.md")).toBe("c2fc8100a2b36a0c468a0e930d14d291405c27e20f9ead165b59551413ae8188"); });
   it('post215-extras: HMAC mcp-spec DEPLOY.md', () => { expect(hmacSha256("mcp-spec", "DEPLOY.md")).toBe("2b65a0453b4a85587ecdefaa8fe088b12516d11f6bf9fb5e3a91bd07aa3a9df7"); });
-  it('post215-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("c4db88d23a2f8c41a388c0791279f5e6f56e3d5da7cc8fd25f97b5308b00eed5"); });
+  it('post215-extras: sha256 .github/workflows/ci.yml', () => { expect(sha256(".github/workflows/ci.yml")).toBe("15340a3f1f8e5b6a1eeab4fc41ad4451377a158e65e8588ef7cfe4c7184b81e6"); });
   it('post215-extras: size .github/workflows/ci.yml', () => { expect(statSync(join(repo, ".github/workflows/ci.yml")).size).toBe(6295); });
   it('post215-extras: js-utf16-len .github/workflows/ci.yml', () => { expect(read(".github/workflows/ci.yml")).toHaveLength(6295); });
   it('post215-extras: utf16le-bytes .github/workflows/ci.yml', () => { expect(Buffer.byteLength(read(".github/workflows/ci.yml"), 'utf16le')).toBe(12590); });
-  it('post215-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(515); });
-  it('post215-extras: HMAC post215 .github/workflows/ci.yml', () => { expect(hmacSha256("post215", ".github/workflows/ci.yml")).toBe("fc5d73f81193633e6b45a4fdf00af9146c54a1be94ad5fe354f657a8cadabadc"); });
-  it('post215-extras: HMAC after-#215 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#215", ".github/workflows/ci.yml")).toBe("85819386daec9c38ff0088d09074b5d5003950c1390737bf267570f6bfb73fae"); });
-  it('post215-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("d3a3011af7bfedc38d734aef6b43a85941e216b58b5cea76cdda86f4c1b9b1ce"); });
-  it('post215-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("5e19ddb7bf70feb704fea407ec1335e838ba9fe1e3fd6803cccf04cc7c73a83b"); });
-  it('post215-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("8c10cb5abbb616b57d2df21384cbdb40264d52be8a25a32448acd6e22e1848ea"); });
-  it('post215-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("1a959a3eb061936e9c62fd3497ddd23988ff785d88dcfdd133f97d35c77e8fde"); });
-  it('post215-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("589b0400ab9b6c63dc596fda36cd56f90acb45d84be4ddbf88b7e28030a42fba"); });
-  it('post215-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("b14dfd46c70af553877fde42c3925ad14dcf6d0b2806c3acba8a3ba7978116fc"); });
-  it('post215-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("0833800c412e79ca645326cd2fcfe5da70b137accda0fee38d7b4ae1acbd9189"); });
-  it('post215-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("e8071d567556af604eca6e2fa84971bcf02a66a8c89df301faf8d59c6300dbc3"); });
-  it('post215-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("36d85c375ed30f695d6c2406d4747394e0a97125f11328fd0286a47d5fb5aa8d"); });
-  it('post215-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("ca77326b830654f3e5b8345d9de5daf67c9c47579a862b0deddcd23d74959826"); });
-  it('post215-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("6baf19c4d23b311e14a7ef610cb07ff03e5e6eb7641033b0550845b823d3fbfc"); });
-  it('post215-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("24e165608e99925509227123c8e6c6a15f623ec1b6516a7a3200f6ae6b965ea6"); });
-  it('post215-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("211fcf90351eee1238c838e24121185526ea3afc8ebadc3723d09c0bb47de25a"); });
-  it('post215-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("34f8ef777a3b12c5cea1db4e8e413348be6627c6986759f0b3b40ed917e9d2bd"); });
-  it('post215-extras: HMAC parser-routes-merged .github/workflows/ci.yml', () => { expect(hmacSha256("parser-routes-merged", ".github/workflows/ci.yml")).toBe("3a1edb0e2f051339c630b9042529ec8cb62031af70fd19654de04334fd13b4db"); });
-  it('post215-extras: HMAC wrangler-merged .github/workflows/ci.yml', () => { expect(hmacSha256("wrangler-merged", ".github/workflows/ci.yml")).toBe("40c01f47a946a5bd88258b12c4773194a914594606cf5ce6d690c27bd15288ad"); });
-  it('post215-extras: HMAC after-merged-215 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-215", ".github/workflows/ci.yml")).toBe("08b9f815bbfe68c48a3acdac22b0aa6446fc8bb52ef200dafcb400af2cf250cf"); });
-  it('post215-extras: HMAC unsaturated-after-215 .github/workflows/ci.yml', () => { expect(hmacSha256("unsaturated-after-215", ".github/workflows/ci.yml")).toBe("e311a314b984dea3a484f688d3e09cbc02badf09b72276801429fdcd51bb03dc"); });
-  it('post215-extras: HMAC beyond-post211 .github/workflows/ci.yml', () => { expect(hmacSha256("beyond-post211", ".github/workflows/ci.yml")).toBe("1f06efa09fc734216c201783fba722b2e35270487e80daf4869688c47e2dafc9"); });
-  it('post215-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("fb3eeb0126916fefcca238567eb553d656617a42077efca6fb94b9cc341cb29d"); });
-  it('post215-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("e05600c5de318a0895c740330838dd73420d9cabf5881876b82b9e0fb9cbec7b"); });
-  it('post215-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("392bc8a1dfb5586b8163f4776d52b27035a7b82af685148ecced42b50fcbdfbc"); });
-  it('post215-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("a1f8c9446de2bb236d3211d1ea7bc88fcb53a65e967b7eb08bc46e2f0ea0e461"); });
-  it('post215-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("1a0865373b47d039ed61eac765815bd157845537668db47acd59f730defcd83c"); });
-  it('post215-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("73d6bf3580bf4226845b8125eb1c4e7f0d5341004fc194a681a890c03d72f9d5"); });
-  it('post215-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("9bb0a17987e18a4a73177f7e3ccf17abcbc9c273f88cdba237a1c9870c55812c"); });
-  it('post215-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("6f8ee6109c782c75da0955b270c6cf80ca1baf597c924fa83b7a8c9f5b9db5cf"); });
-  it('post215-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("7d539f6b020e6c47c51ecd50b9acc82083214b2bbb01d91ee9b0c42fe3ec740e"); });
-  it('post215-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("41a158366420e6d05352b87b1160c4fcf7501e5f4461ff8524f3b90e06988370"); });
-  it('post215-extras: HMAC post215-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post215-extras", ".github/workflows/ci.yml")).toBe("67a8b8759953e238169dda0237553fb90439cf5d4ba1f1503fb64044202e80ad"); });
-  it('post215-extras: HMAC post215-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post215-ultra", ".github/workflows/ci.yml")).toBe("5b9548e4b05f4cc1546201153a391d179476a9cf8a48941002e33e5a9e3e5d14"); });
-  it('post215-extras: HMAC genres .github/workflows/ci.yml', () => { expect(hmacSha256("genres", ".github/workflows/ci.yml")).toBe("0e04990f9d3e9d046f9ab7a94584211f5981806ed9435a10183399937bcdae9f"); });
-  it('post215-extras: HMAC mcp .github/workflows/ci.yml', () => { expect(hmacSha256("mcp", ".github/workflows/ci.yml")).toBe("b6908c88ba549d88f1b476cd1e5a5d5a5ce99571a2f80a67568f59be65099aba"); });
-  it('post215-extras: HMAC mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-spec", ".github/workflows/ci.yml")).toBe("08a15c59a71697f9946e9fc4a06c00bbb4a26e7ff5ae8a95bfba2c1d865356f1"); });
+  it('post215-extras: nibble .github/workflows/ci.yml', () => { expect(nibbleSum(sha256(".github/workflows/ci.yml"))).toBe(496); });
+  it('post215-extras: HMAC post215 .github/workflows/ci.yml', () => { expect(hmacSha256("post215", ".github/workflows/ci.yml")).toBe("5a6eb564de6d891bba2f744c66cc5a8c89c40c30d711d46067f198facc4fe268"); });
+  it('post215-extras: HMAC after-#215 .github/workflows/ci.yml', () => { expect(hmacSha256("after-#215", ".github/workflows/ci.yml")).toBe("3de78c547a7c90961fa7d59e48f4744fec2b63049d5a1d571370a5c92f428122"); });
+  it('post215-extras: HMAC leftover .github/workflows/ci.yml', () => { expect(hmacSha256("leftover", ".github/workflows/ci.yml")).toBe("f009183fcf616e17b8a9f49a3b59d41ccbb1338fcb781a981200441951f9c59b"); });
+  it('post215-extras: HMAC TOKENMAXX .github/workflows/ci.yml', () => { expect(hmacSha256("TOKENMAXX", ".github/workflows/ci.yml")).toBe("67d2bca58347e9e4100e9160854d862df709fcf5ef0e857a599d7de2db343c3a"); });
+  it('post215-extras: HMAC HEAVY .github/workflows/ci.yml', () => { expect(hmacSha256("HEAVY", ".github/workflows/ci.yml")).toBe("2503b4b6e34a431ac2fb613becf6fef513c02ea90dcfc5b714018d935e916dc5"); });
+  it('post215-extras: HMAC no-product-invent .github/workflows/ci.yml', () => { expect(hmacSha256("no-product-invent", ".github/workflows/ci.yml")).toBe("63127951e754e96addecb1859088b3d0e1c21d15e992030f47bda9c8d0992204"); });
+  it('post215-extras: HMAC slice-diff .github/workflows/ci.yml', () => { expect(hmacSha256("slice-diff", ".github/workflows/ci.yml")).toBe("4b130dc1ea9e88a3948d17958a33a7a10cb2139cc4027ae4376578a2200c18c5"); });
+  it('post215-extras: HMAC no-src-change .github/workflows/ci.yml', () => { expect(hmacSha256("no-src-change", ".github/workflows/ci.yml")).toBe("8ee52c95ae205b381db7db8e0a47565dc84592e2343b943d3087232343e2087a"); });
+  it('post215-extras: HMAC manifest-lock .github/workflows/ci.yml', () => { expect(hmacSha256("manifest-lock", ".github/workflows/ci.yml")).toBe("6b62ca20c86bca3ae616815e5f65bebd3bd98e1d2e3207e8ed5d4594c65cc909"); });
+  it('post215-extras: HMAC genres-mcp-spec-only .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-only", ".github/workflows/ci.yml")).toBe("2e6f39140238ad02a0020f15925ca06d3f87d57aebc97be208bb28a912e92ee3"); });
+  it('post215-extras: HMAC genres-mcp-spec-edges .github/workflows/ci.yml', () => { expect(hmacSha256("genres-mcp-spec-edges", ".github/workflows/ci.yml")).toBe("91c7f3ff127295535b28db2bd03d400c3fa621a7f08876679787c17852cdfc68"); });
+  it('post215-extras: HMAC dual-surface .github/workflows/ci.yml', () => { expect(hmacSha256("dual-surface", ".github/workflows/ci.yml")).toBe("1ecdd5f4f0cb7b7bf8fc10f4c63ac25d3cf9d29114bb3fb5a423694db81568af"); });
+  it('post215-extras: HMAC not-parser-routes .github/workflows/ci.yml', () => { expect(hmacSha256("not-parser-routes", ".github/workflows/ci.yml")).toBe("33709771793081d4f10f52af9d18c42daf401a164adff892bd5b5b76ba1cb6fb"); });
+  it('post215-extras: HMAC not-wrangler .github/workflows/ci.yml', () => { expect(hmacSha256("not-wrangler", ".github/workflows/ci.yml")).toBe("346ff431859912736cbc6d0eb053559dadc814424a5e263cd13f0911e8b608c9"); });
+  it('post215-extras: HMAC not-ci-config .github/workflows/ci.yml', () => { expect(hmacSha256("not-ci-config", ".github/workflows/ci.yml")).toBe("87754dbc60c8c84edf48c5a351115a9433b99ba3b0b753a01a8584d24260bf1a"); });
+  it('post215-extras: HMAC not-helpers-source .github/workflows/ci.yml', () => { expect(hmacSha256("not-helpers-source", ".github/workflows/ci.yml")).toBe("edf429096aeb414036a0f70d8643d388c0a9f5295e673712598db7d4dfd0b0ec"); });
+  it('post215-extras: HMAC parser-routes-merged .github/workflows/ci.yml', () => { expect(hmacSha256("parser-routes-merged", ".github/workflows/ci.yml")).toBe("82f1e10cbda67a2fa4a70266e2d565cbf92593b5071227d4517dbeef198fc63d"); });
+  it('post215-extras: HMAC wrangler-merged .github/workflows/ci.yml', () => { expect(hmacSha256("wrangler-merged", ".github/workflows/ci.yml")).toBe("944e7535dc25a0aa9b9dc977dcece079fe27ee5b9028d21ba4cd576e444f1fd5"); });
+  it('post215-extras: HMAC after-merged-215 .github/workflows/ci.yml', () => { expect(hmacSha256("after-merged-215", ".github/workflows/ci.yml")).toBe("cf98c852a3d52755ebeafe207ee726d12116d5af6896523f11dcc00f49febcfb"); });
+  it('post215-extras: HMAC unsaturated-after-215 .github/workflows/ci.yml', () => { expect(hmacSha256("unsaturated-after-215", ".github/workflows/ci.yml")).toBe("8b79ad947b9cb763df2beab2aa9e0282ebbaafe1841eae3540b220b09b072b18"); });
+  it('post215-extras: HMAC beyond-post211 .github/workflows/ci.yml', () => { expect(hmacSha256("beyond-post211", ".github/workflows/ci.yml")).toBe("2ee9854051ba24a738170138b9698f23bc409c3dbd6505a099f11d354374e476"); });
+  it('post215-extras: HMAC utf16-js-length .github/workflows/ci.yml', () => { expect(hmacSha256("utf16-js-length", ".github/workflows/ci.yml")).toBe("685c4184cc3c5a107dc3d9eb1e6e276de1935f0e0c28969a6847f3da44349a3f"); });
+  it('post215-extras: HMAC residual-edges .github/workflows/ci.yml', () => { expect(hmacSha256("residual-edges", ".github/workflows/ci.yml")).toBe("335aad0641c05bf88aafb186563b4e80e0014ca932767ed0bfcdf68daffa793d"); });
+  it('post215-extras: HMAC fuzzywigg .github/workflows/ci.yml', () => { expect(hmacSha256("fuzzywigg", ".github/workflows/ci.yml")).toBe("d5aeee7519845f04908c27307b0ae9895977b2c1d210e3a3b0c5eb6f7049271f"); });
+  it('post215-extras: HMAC HITL .github/workflows/ci.yml', () => { expect(hmacSha256("HITL", ".github/workflows/ci.yml")).toBe("7488c1d9e0539029e97937b8f99992835da86084e24615ad198e7ba0cbf951aa"); });
+  it('post215-extras: HMAC no-creds .github/workflows/ci.yml', () => { expect(hmacSha256("no-creds", ".github/workflows/ci.yml")).toBe("b6fdde8f6074f27ff7288db54776d7d1b0178e74d65fef57880e41093246c0fc"); });
+  it('post215-extras: HMAC iptv-org .github/workflows/ci.yml', () => { expect(hmacSha256("iptv-org", ".github/workflows/ci.yml")).toBe("58ebf99f748b0218ccbcf1a368ebbd30d6955401251f51bfeac859ba650b5b1e"); });
+  it('post215-extras: HMAC VALID_GENRES .github/workflows/ci.yml', () => { expect(hmacSha256("VALID_GENRES", ".github/workflows/ci.yml")).toBe("6f15728689bd5a045a8b55e6925f9df64e7c30a839eaac1410f908b5ca587924"); });
+  it('post215-extras: HMAC station_select .github/workflows/ci.yml', () => { expect(hmacSha256("station_select", ".github/workflows/ci.yml")).toBe("bbff52ab6964763cc71dfc042779bf03319b57a94053bd931e4eb5d255f8ba51"); });
+  it('post215-extras: HMAC overnight .github/workflows/ci.yml', () => { expect(hmacSha256("overnight", ".github/workflows/ci.yml")).toBe("2d2a6cf1a857a46ecb89fb5ffabb7ff4f847fc124f208a2ed60ea852ca3435bd"); });
+  it('post215-extras: HMAC unit-contract .github/workflows/ci.yml', () => { expect(hmacSha256("unit-contract", ".github/workflows/ci.yml")).toBe("e282eaa3d9cf1df9887a019933619bf0b13292b92dd20a2306bc8ddc9f817ffa"); });
+  it('post215-extras: HMAC post215-extras .github/workflows/ci.yml', () => { expect(hmacSha256("post215-extras", ".github/workflows/ci.yml")).toBe("a05e9b7706efb25e704b661596d27cb13ae0882dc4f1d4dd4d7b8593ca146ce1"); });
+  it('post215-extras: HMAC post215-ultra .github/workflows/ci.yml', () => { expect(hmacSha256("post215-ultra", ".github/workflows/ci.yml")).toBe("bce17d3e85761d1566c1a149f40d55fd12930a92bc67007ac018d71a4f7e1b21"); });
+  it('post215-extras: HMAC genres .github/workflows/ci.yml', () => { expect(hmacSha256("genres", ".github/workflows/ci.yml")).toBe("085f5b8a42cc0d919bf563d2f8835d0afc1e6b8e585f88bb8dc2f3a7b9545df9"); });
+  it('post215-extras: HMAC mcp .github/workflows/ci.yml', () => { expect(hmacSha256("mcp", ".github/workflows/ci.yml")).toBe("55d844d3a290c7402882ef969da1177753a8534bb3546d156697395d6e4b99eb"); });
+  it('post215-extras: HMAC mcp-spec .github/workflows/ci.yml', () => { expect(hmacSha256("mcp-spec", ".github/workflows/ci.yml")).toBe("04cf8b844156b1be95246962893608e14f253498f8610c26927caa0e5367b0a6"); });
   it('post215-extras: sha256 .github/workflows/deploy.yml', () => { expect(sha256(".github/workflows/deploy.yml")).toBe("49bf571653f9091108a8e7e3f358de06de332686019d1b0e0f68ddaf7b48d5c3"); });
   it('post215-extras: size .github/workflows/deploy.yml', () => { expect(statSync(join(repo, ".github/workflows/deploy.yml")).size).toBe(1004); });
   it('post215-extras: js-utf16-len .github/workflows/deploy.yml', () => { expect(read(".github/workflows/deploy.yml")).toHaveLength(1004); });
